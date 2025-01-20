@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id
+  email         String   @unique
+  name          String
+  venmoUsername String?  @unique
+  createdAt     DateTime @default(now())
+
+  organizations Organization[]
+  orders        Order[]
+}
+
+model Organization {
+  id                      String   @id @default(uuid())
+  name                    String   @unique
+  description             String
+  authorized              Boolean  @default(false)
+  logoUrl                 String?
+  websiteUrl              String?
+  instagramUsername       String?
+  venmoUsername           String?
+  venmoForwardingVerified Boolean  @default(false)
+  createdAt               DateTime @default(now())
+
+  admins      User[]
+  fundraisers Fundraiser[]
+}
+
+model Fundraiser {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  imageUrls   String[]
+  startsAt    DateTime
+  endsAt      DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String
+  items          Item[]
+  orders         Order[]
+}
+
+model Item {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  imageUrl    String?
+  offsale     Boolean  @default(false)
+  limit       Int?
+  price       Decimal  @db.Money
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  fundraiser   Fundraiser   @relation(fields: [fundraiserId], references: [id])
+  fundraiserId String
+  orders       OrderItems[]
+}
+
+model Order {
+  id            String        @id @default(uuid())
+  paymentMethod PaymentMethod
+  paymentStatus PaymentStatus
+  pickedUp      Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  buyer        User         @relation(fields: [buyerId], references: [id])
+  buyerId      String
+  fundraiser   Fundraiser   @relation(fields: [fundraiserId], references: [id])
+  fundraiserId String
+  items        OrderItems[]
+}
+
+// Order <-> Items Association Table
+model OrderItems {
+  quantity Int
+
+  order   Order  @relation(fields: [orderId], references: [id])
+  orderId String
+  item    Item   @relation(fields: [itemId], references: [id])
+  itemId  String
+
+  @@id([orderId, itemId])
+}
+
+enum PaymentMethod {
+  VENMO
+  OTHER
+}
+
+enum PaymentStatus {
+  UNVERIFIABLE
+  PENDING
+  CONFIRMED
+}
