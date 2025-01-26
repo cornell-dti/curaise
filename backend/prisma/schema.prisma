@@ -48,6 +48,8 @@ model Fundraiser {
   organizationId String
   items          Item[]
   orders         Order[]
+
+  @@index([organizationId])
 }
 
 model Item {
@@ -64,6 +66,8 @@ model Item {
   fundraiser   Fundraiser   @relation(fields: [fundraiserId], references: [id])
   fundraiserId String
   orders       OrderItems[]
+
+  @@index([fundraiserId])
 }
 
 model Order {
@@ -79,6 +83,9 @@ model Order {
   fundraiser   Fundraiser   @relation(fields: [fundraiserId], references: [id])
   fundraiserId String
   items        OrderItems[]
+
+  @@index([buyerId])
+  @@index([fundraiserId])
 }
 
 // Order <-> Items Association Table
@@ -91,6 +98,8 @@ model OrderItems {
   itemId  String
 
   @@id([orderId, itemId])
+  @@index([orderId])
+  @@index([itemId])
 }
 
 enum PaymentMethod {
