@@ -1,10 +1,15 @@
 import { Router } from "express";
 import validate from "../../middleware/validate";
-import { OrganizationRouteParams } from "./organization.types";
+import {
+  OrganizationRouteParams,
+  CreateOrganizationBody,
+} from "./organization.types";
 import {
   getOrganizationFundraisersHandler,
   getOrganizationHandler,
+  createOrganizationHandler,
 } from "./organization.handlers";
+import { authenticate } from "../../middleware/authenticate";
 
 const organizationRouter = Router();
 
@@ -22,7 +27,12 @@ organizationRouter.get(
 
 organizationRouter.post("/:id/add-admin");
 
-organizationRouter.post("/create");
+organizationRouter.post(
+  "/create",
+  validate({ body: CreateOrganizationBody }),
+  authenticate,
+  createOrganizationHandler
+);
 
 organizationRouter.post("/:id/update");
 

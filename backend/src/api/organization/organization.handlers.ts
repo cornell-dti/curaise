@@ -1,8 +1,12 @@
 import { Request, Response } from "express-serve-static-core";
-import { OrganizationRouteParams } from "./organization.types";
+import {
+  OrganizationRouteParams,
+  CreateOrganizationBody,
+} from "./organization.types";
 import {
   getOrganization,
   getOrganizationFundraisers,
+  createOrganization,
 } from "./organization.services";
 import { BasicFundraiserSchema, CompleteOrganizationSchema } from "common";
 
@@ -53,4 +57,32 @@ export const getOrganizationFundraisersHandler = async (
   res
     .status(200)
     .json({ message: "Fundraisers retrieved", data: cleanedFundraisers });
+};
+
+export const createOrganizationHandler = async (
+  req: Request<{}, any, CreateOrganizationBody, {}>,
+  res: Response
+) => {
+  const organization = await createOrganization({
+    ...req.body,
+    creatorId: res.locals.user!.id,
+  });
+  if (!organization) {
+    res.status(500).json({ message: "Failed to create organization" });
+    return;
+  }
+
+  // Remove irrelevant fields from returned order
+  const parsedOrganization = CompleteOrganizationSchema.safeParse(organization);
+  if (!parsedOrganization.success) {
+    res.status(500).json({ message: "Internal server error" });
+    return;
+  }
+  const cleanedOrganization = parsedOrganization.data;
+
+  // TODO: send email to curaise internal people for further verification of organization
+
+  res
+    .status(200)
+    .json({ message: "Organization created", data: cleanedOrganization });
 };
