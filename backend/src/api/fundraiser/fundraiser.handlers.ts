@@ -2,6 +2,7 @@ import { Request, Response } from "express-serve-static-core";
 import {
   CreateFundraiserBody,
   FundraiserRouteParams,
+  UpdateFundraiserBody,
 } from "./fundraiser.types";
 import {
   createFundraiser,
@@ -9,6 +10,7 @@ import {
   getFundraiser,
   getFundraiserItems,
   getFundraiserOrders,
+  updateFundraiser,
 } from "./fundraiser.services";
 import {
   BasicFundraiserSchema,
@@ -150,10 +152,51 @@ export const createFundraiserHandler = async (
   }
   const cleanedFundraiser = parsedFundraiser.data;
 
-  res
-    .status(200)
-    .json({
-      message: "Successfully created fundraiser",
-      data: cleanedFundraiser,
-    });
+  res.status(200).json({
+    message: "Successfully created fundraiser",
+    data: cleanedFundraiser,
+  });
+};
+
+export const updateFundraiserHandler = async (
+  req: Request<FundraiserRouteParams, any, UpdateFundraiserBody, {}>,
+  res: Response
+) => {
+  const fundraiser = await getFundraiser(req.params.id);
+  if (!fundraiser) {
+    res.status(404).json({ message: "Fundraiser not found" });
+    return;
+  }
+
+  // Check if user is admin of fundraiser's organization
+  if (
+    !fundraiser.organization.admins.some(
+      (admin) => admin.id === res.locals.user!.id
+    )
+  ) {
+    res.status(403).json({ message: "Unauthorized to update fundraiser" });
+    return;
+  }
+
+  const updatedFundraiser = await updateFundraiser({
+    fundraiserId: req.params.id,
+    ...req.body,
+  });
+  if (!updatedFundraiser) {
+    res.status(500).json({ message: "Failed to update fundraiser" });
+    return;
+  }
+
+  // remove irrelevant fields
+  const parsedFundraiser = BasicFundraiserSchema.safeParse(updatedFundraiser);
+  if (!parsedFundraiser.success) {
+    res.status(500).json({ message: "Couldn't parse fundraiser" });
+    return;
+  }
+  const cleanedFundraiser = parsedFundraiser.data;
+
+  res.status(200).json({
+    message: "Successfully updated fundraiser",
+    data: cleanedFundraiser,
+  });
 };

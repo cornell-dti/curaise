@@ -43,4 +43,11 @@ fundraiserRouter.post(
   createFundraiserHandler
 );
 
+fundraiserRouter.post(
+  "/:id/update",
+  validate({ params: FundraiserRouteParams, body: CreateFundraiserBody }),
+  authenticate,
+  createFundraiserHandler
+);
+
 export default fundraiserRouter;

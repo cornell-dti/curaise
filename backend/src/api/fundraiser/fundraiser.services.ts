@@ -1,5 +1,5 @@
 import { prisma } from "../../utils/prisma";
-import { CreateFundraiserBody } from "./fundraiser.types";
+import { CreateFundraiserBody, UpdateFundraiserBody } from "./fundraiser.types";
 
 export const getFundraiser = async (fundraiserId: string) => {
   const fundraiser = await prisma.fundraiser.findUnique({
@@ -100,6 +100,28 @@ export const createFundraiser = async (
           id: fundraiserBody.organizationId,
         },
       },
+    },
+    include: {
+      organization: true,
+    },
+  });
+
+  return fundraiser;
+};
+
+export const updateFundraiser = async (
+  fundraiserBody: UpdateFundraiserBody & { fundraiserId: string }
+) => {
+  const fundraiser = await prisma.fundraiser.update({
+    where: {
+      id: fundraiserBody.fundraiserId,
+    },
+    data: {
+      name: fundraiserBody.name,
+      description: fundraiserBody.description,
+      imageUrls: fundraiserBody.imageUrls,
+      startsAt: fundraiserBody.startsAt,
+      endsAt: fundraiserBody.endsAt,
     },
     include: {
       organization: true,
