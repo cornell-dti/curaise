@@ -1,5 +1,9 @@
 import { prisma } from "../../utils/prisma";
-import { CreateOrganizationBody } from "./organization.types";
+import organizationRouter from "./organization.router";
+import {
+  CreateOrganizationBody,
+  UpdateOrganizationBody,
+} from "./organization.types";
 
 export const getOrganization = async (organizationId: string) => {
   const organization = await prisma.organization.findUnique({
@@ -47,4 +51,28 @@ export const createOrganization = async (
   });
 
   return newOrganization;
+};
+
+export const updateOrganization = async (
+  organizationBody: UpdateOrganizationBody & { organizationId: string }
+) => {
+  const organization = await prisma.organization.update({
+    where: { id: organizationBody.organizationId },
+    data: {
+      name: organizationBody.name,
+      description: organizationBody.description,
+      logoUrl: organizationBody.logoUrl,
+      websiteUrl: organizationBody.websiteUrl,
+      instagramUsername: organizationBody.instagramUsername,
+      venmoUsername: organizationBody.venmoUsername,
+      admins: {
+        connect: organizationBody.addedAdminsIds?.map((id) => ({ id })),
+      },
+    },
+    include: {
+      admins: true,
+    },
+  });
+
+  return organization;
 };
