@@ -8,7 +8,11 @@ import {
   getOrganizationFundraisers,
   createOrganization,
 } from "./organization.services";
-import { BasicFundraiserSchema, CompleteOrganizationSchema } from "common";
+import {
+  BasicFundraiserSchema,
+  BasicOrganizationSchema,
+  CompleteOrganizationSchema,
+} from "common";
 
 export const getOrganizationHandler = async (
   req: Request<OrganizationRouteParams, any, {}, {}>,
@@ -73,7 +77,7 @@ export const createOrganizationHandler = async (
   }
 
   // Remove irrelevant fields from returned order
-  const parsedOrganization = CompleteOrganizationSchema.safeParse(organization);
+  const parsedOrganization = BasicOrganizationSchema.safeParse(organization);
   if (!parsedOrganization.success) {
     res.status(500).json({ message: "Internal server error" });
     return;
