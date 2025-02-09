@@ -3,6 +3,9 @@ import {
   CreateFundraiserBody,
   FundraiserRouteParams,
   UpdateFundraiserBody,
+  CreateFundraiserItemBody,
+  UpdateFundraiserItemBody,
+  FundraiserItemRouteParams,
 } from "./fundraiser.types";
 import {
   createFundraiser,
@@ -11,6 +14,8 @@ import {
   getFundraiserItems,
   getFundraiserOrders,
   updateFundraiser,
+  createFundraiserItem,
+  updateFundraiserItem,
 } from "./fundraiser.services";
 import {
   BasicFundraiserSchema,
@@ -198,5 +203,92 @@ export const updateFundraiserHandler = async (
   res.status(200).json({
     message: "Successfully updated fundraiser",
     data: cleanedFundraiser,
+  });
+};
+
+export const createFundraiserItemHandler = async (
+  req: Request<FundraiserRouteParams, any, CreateFundraiserItemBody, {}>,
+  res: Response
+) => {
+  const fundraiser = await getFundraiser(req.params.id);
+  if (!fundraiser) {
+    res.status(404).json({ message: "Fundraiser not found" });
+    return;
+  }
+
+  // Check if user is admin of fundraiser's organization
+  if (
+    !fundraiser.organization.admins.some(
+      (admin) => admin.id === res.locals.user!.id
+    )
+  ) {
+    res.status(403).json({ message: "Unauthorized to create fundraiser item" });
+    return;
+  }
+
+  const item = await createFundraiserItem({
+    fundraiserId: req.params.id,
+    ...req.body,
+  });
+  if (!item) {
+    res.status(500).json({ message: "Failed to create fundraiser item" });
+    return;
+  }
+
+  // remove irrelevant fields
+  const parsedItem = CompleteItemSchema.safeParse(item);
+  if (!parsedItem.success) {
+    res.status(500).json({ message: "Couldn't parse item" });
+    return;
+  }
+  const cleanedItem = parsedItem.data;
+
+  res.status(200).json({
+    message: "Successfully created fundraiser item",
+    data: cleanedItem,
+  });
+};
+
+export const updateFundraiserItemHandler = async (
+  req: Request<FundraiserItemRouteParams, any, UpdateFundraiserItemBody, {}>,
+  res: Response
+) => {
+  const fundraiser = await getFundraiser(req.params.fundraiserId);
+  if (!fundraiser) {
+    res.status(404).json({ message: "Fundraiser not found" });
+    return;
+  }
+
+  // Check if user is admin of fundraiser's organization
+  if (
+    !fundraiser.organization.admins.some(
+      (admin) => admin.id === res.locals.user!.id
+    )
+  ) {
+    res.status(403).json({ message: "Unauthorized to update fundraiser item" });
+    return;
+  }
+
+  const item = await updateFundraiserItem({
+    fundraiserId: req.params.fundraiserId,
+    itemId: req.params.itemId,
+    ...req.body,
+  });
+  if (!item) {
+    res.status(500).json({ message: "Failed to update fundraiser item" });
+    return;
+  }
+
+  // remove irrelevant fields
+  const parsedItem = CompleteItemSchema.safeParse(item);
+  if (!parsedItem.success) {
+    res.status(500).json({ message: "Couldn't parse item" });
+    return;
+  }
+  const cleanedItem = parsedItem.data;
+
+  res.status(200).json({
+    message: "Successfully updated fundraiser item",
+    data: cleanedItem,
   });
 };

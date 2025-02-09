@@ -1,5 +1,10 @@
 import { prisma } from "../../utils/prisma";
-import { CreateFundraiserBody, UpdateFundraiserBody } from "./fundraiser.types";
+import {
+  CreateFundraiserBody,
+  UpdateFundraiserBody,
+  CreateFundraiserItemBody,
+  UpdateFundraiserItemBody,
+} from "./fundraiser.types";
 
 export const getFundraiser = async (fundraiserId: string) => {
   const fundraiser = await prisma.fundraiser.findUnique({
@@ -129,4 +134,43 @@ export const updateFundraiser = async (
   });
 
   return fundraiser;
+};
+
+export const createFundraiserItem = async (
+  itemBody: CreateFundraiserItemBody & { fundraiserId: string }
+) => {
+  const item = await prisma.item.create({
+    data: {
+      name: itemBody.name,
+      description: itemBody.description,
+      price: itemBody.price,
+      imageUrl: itemBody.imageUrl,
+      fundraiser: {
+        connect: {
+          id: itemBody.fundraiserId,
+        },
+      },
+    },
+  });
+
+  return item;
+};
+
+export const updateFundraiserItem = async (
+  itemBody: UpdateFundraiserItemBody & { itemId: string; fundraiserId: string }
+) => {
+  const item = await prisma.item.update({
+    where: {
+      id: itemBody.itemId,
+      fundraiserId: itemBody.fundraiserId,
+    },
+    data: {
+      name: itemBody.name,
+      description: itemBody.description,
+      price: itemBody.price,
+      imageUrl: itemBody.imageUrl,
+    },
+  });
+
+  return item;
 };
