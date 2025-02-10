@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   CreateFundraiserBody,
   FundraiserRouteParams,
+  UpdateFundraiserBody,
   CreateFundraiserItemBody,
   UpdateFundraiserItemBody,
   FundraiserItemRouteParams,
@@ -11,6 +12,7 @@ import {
   createFundraiserHandler,
   getAllFundraisersHandler,
   getFundraiserHandler,
+  updateFundraiserHandler,
   getFundraiserItemsHandler,
   getFundraiserOrdersHandler,
   createFundraiserItemHandler,
@@ -50,9 +52,9 @@ fundraiserRouter.post(
 
 fundraiserRouter.post(
   "/:id/update",
-  validate({ params: FundraiserRouteParams, body: CreateFundraiserBody }),
+  validate({ params: FundraiserRouteParams, body: UpdateFundraiserBody }),
   authenticate,
-  createFundraiserHandler
+  updateFundraiserHandler
 );
 
 fundraiserRouter.post(

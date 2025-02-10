@@ -1,5 +1,4 @@
 import { prisma } from "../../utils/prisma";
-import organizationRouter from "./organization.router";
 import {
   CreateOrganizationBody,
   UpdateOrganizationBody,
@@ -66,7 +65,7 @@ export const updateOrganization = async (
       instagramUsername: organizationBody.instagramUsername,
       venmoUsername: organizationBody.venmoUsername,
       admins: {
-        connect: organizationBody.addedAdminsIds?.map((id) => ({ id })),
+        connect: organizationBody.addedAdminsIds?.map((id) => ({ id })), // TODO: possible bug
       },
     },
     include: {

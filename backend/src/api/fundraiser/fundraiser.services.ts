@@ -157,12 +157,11 @@ export const createFundraiserItem = async (
 };
 
 export const updateFundraiserItem = async (
-  itemBody: UpdateFundraiserItemBody & { itemId: string; fundraiserId: string }
+  itemBody: UpdateFundraiserItemBody & { itemId: string }
 ) => {
   const item = await prisma.item.update({
     where: {
       id: itemBody.itemId,
-      fundraiserId: itemBody.fundraiserId,
     },
     data: {
       name: itemBody.name,

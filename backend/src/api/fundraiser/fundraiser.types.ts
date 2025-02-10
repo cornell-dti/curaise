@@ -1,4 +1,3 @@
-import exp from "constants";
 import z from "zod";
 
 export const FundraiserRouteParams = z.object({
@@ -37,15 +36,17 @@ export type UpdateFundraiserBody = z.infer<typeof UpdateFundraiserBody>;
 export const CreateFundraiserItemBody = z.object({
   name: z.string().min(1).max(255),
   description: z.string(),
-  price: z.number().int().min(1),
+  price: z.number().min(0),
   imageUrl: z.string().url().optional(),
+  offsale: z.boolean().optional(),
 });
 export type CreateFundraiserItemBody = z.infer<typeof CreateFundraiserItemBody>;
 
 export const UpdateFundraiserItemBody = z.object({
   name: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
-  price: z.number().int().min(1).optional(),
+  price: z.number().min(0).optional(),
   imageUrl: z.string().url().optional(),
+  offsale: z.boolean().optional(),
 });
 export type UpdateFundraiserItemBody = z.infer<typeof UpdateFundraiserItemBody>;

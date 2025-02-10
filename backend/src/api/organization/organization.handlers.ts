@@ -102,7 +102,7 @@ export const updateOrganizationHandler = async (
     res.status(404).json({ message: "Organization not found" });
     return;
   }
-  if (organization.admins.every((admin) => admin.id !== res.locals.user!.id)) {
+  if (!organization.admins.some((admin) => admin.id === res.locals.user!.id)) {
     res.status(403).json({ message: "Unauthorized to update organization" });
     return;
   }

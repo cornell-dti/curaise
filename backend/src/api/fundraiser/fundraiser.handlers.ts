@@ -270,7 +270,6 @@ export const updateFundraiserItemHandler = async (
   }
 
   const item = await updateFundraiserItem({
-    fundraiserId: req.params.fundraiserId,
     itemId: req.params.itemId,
     ...req.body,
   });
