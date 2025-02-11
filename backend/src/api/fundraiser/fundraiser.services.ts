@@ -1,5 +1,10 @@
 import { prisma } from "../../utils/prisma";
-import { CreateFundraiserBody } from "./fundraiser.types";
+import {
+  CreateFundraiserBody,
+  UpdateFundraiserBody,
+  CreateFundraiserItemBody,
+  UpdateFundraiserItemBody,
+} from "./fundraiser.types";
 
 export const getFundraiser = async (fundraiserId: string) => {
   const fundraiser = await prisma.fundraiser.findUnique({
@@ -107,4 +112,65 @@ export const createFundraiser = async (
   });
 
   return fundraiser;
+};
+
+export const updateFundraiser = async (
+  fundraiserBody: UpdateFundraiserBody & { fundraiserId: string }
+) => {
+  const fundraiser = await prisma.fundraiser.update({
+    where: {
+      id: fundraiserBody.fundraiserId,
+    },
+    data: {
+      name: fundraiserBody.name,
+      description: fundraiserBody.description,
+      imageUrls: fundraiserBody.imageUrls,
+      startsAt: fundraiserBody.startsAt,
+      endsAt: fundraiserBody.endsAt,
+    },
+    include: {
+      organization: true,
+    },
+  });
+
+  return fundraiser;
+};
+
+export const createFundraiserItem = async (
+  itemBody: CreateFundraiserItemBody & { fundraiserId: string }
+) => {
+  const item = await prisma.item.create({
+    data: {
+      name: itemBody.name,
+      description: itemBody.description,
+      price: itemBody.price,
+      imageUrl: itemBody.imageUrl,
+      fundraiser: {
+        connect: {
+          id: itemBody.fundraiserId,
+        },
+      },
+    },
+  });
+
+  return item;
+};
+
+export const updateFundraiserItem = async (
+  itemBody: UpdateFundraiserItemBody & { itemId: string }
+) => {
+  const item = await prisma.item.update({
+    where: {
+      id: itemBody.itemId,
+    },
+    data: {
+      name: itemBody.name,
+      description: itemBody.description,
+      price: itemBody.price,
+      imageUrl: itemBody.imageUrl,
+      offsale: itemBody.offsale,
+    },
+  });
+
+  return item;
 };
