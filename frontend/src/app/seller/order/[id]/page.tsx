@@ -4,5 +4,5 @@ export default async function OrderPage({
   params: Promise<{ id: string }>;
 }) {
   const id = (await params).id;
-  return <div>My Order: {id}</div>;
+  return <div>Buyer Order: {id}</div>;
 }
