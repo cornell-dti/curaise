@@ -6,7 +6,7 @@ export const OrderRouteParams = z.object({
 export type OrderRouteParams = z.infer<typeof OrderRouteParams>;
 
 export const CreateOrderBody = z.object({
-  fundraiser: z.string().uuid(),
+  fundraiserId: z.string().uuid(),
   items: z
     .array(
       z.object({
