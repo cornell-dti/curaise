@@ -168,6 +168,7 @@ export const updateFundraiserItem = async (
       description: itemBody.description,
       price: itemBody.price,
       imageUrl: itemBody.imageUrl,
+      offsale: itemBody.offsale,
     },
   });
 
