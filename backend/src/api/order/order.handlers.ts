@@ -7,6 +7,7 @@ import {
   getOrder,
 } from "./order.services";
 import { BasicOrderSchema, CompleteOrderSchema } from "common";
+import { getFundraiser } from "../fundraiser/fundraiser.services";
 
 export const getOrderHandler = async (
   req: Request<OrderRouteParams, any, {}, {}>,
@@ -45,6 +46,20 @@ export const createOrderHandler = async (
   req: Request<{}, any, CreateOrderBody, {}>,
   res: Response
 ) => {
+  const fundraiser = await getFundraiser(req.body.fundraiserId);
+  if (!fundraiser) {
+    res.status(404).json({ message: "Fundraiser not found" });
+    return;
+  }
+  if (fundraiser.startsAt > new Date()) {
+    res.status(400).json({ message: "Fundraiser has not started" });
+    return;
+  }
+  if (fundraiser.endsAt < new Date()) {
+    res.status(400).json({ message: "Fundraiser has ended" });
+    return;
+  }
+
   const order = await createOrder({
     ...req.body,
     buyerId: res.locals.user!.id,
