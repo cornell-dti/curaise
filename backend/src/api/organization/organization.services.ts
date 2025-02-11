@@ -64,6 +64,7 @@ export const updateOrganization = async (
       websiteUrl: organizationBody.websiteUrl,
       instagramUsername: organizationBody.instagramUsername,
       venmoUsername: organizationBody.venmoUsername,
+
       admins: {
         connect: organizationBody.addedAdminsIds?.map((id) => ({ id })), // TODO: possible bug
       },
