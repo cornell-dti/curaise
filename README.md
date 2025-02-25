@@ -1,3 +1,5 @@
 # CURaise
 
-Arsh Singh
+Contributors (24-25):
+- Chelsea She
+- Arsh Singh
