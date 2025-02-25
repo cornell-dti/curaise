@@ -1,4 +1,5 @@
 # CURaise
 
 Contributors (24-25):
-Chelsea She
+- Chelsea She
+- Arsh Singh
