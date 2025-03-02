@@ -21,6 +21,11 @@ export const getFundraiser = async (fundraiserId: string) => {
           },
         },
       },
+      announcements: {
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
     },
   });
 
@@ -97,6 +102,8 @@ export const createFundraiser = async (
     data: {
       name: fundraiserBody.name,
       description: fundraiserBody.description,
+      goalAmount: fundraiserBody.goalAmount,
+      pickupLocation: fundraiserBody.pickupLocation,
       imageUrls: fundraiserBody.imageUrls,
       startsAt: fundraiserBody.startsAt,
       endsAt: fundraiserBody.endsAt,
@@ -124,6 +131,8 @@ export const updateFundraiser = async (
     data: {
       name: fundraiserBody.name,
       description: fundraiserBody.description,
+      goalAmount: fundraiserBody.goalAmount,
+      pickupLocation: fundraiserBody.pickupLocation,
       imageUrls: fundraiserBody.imageUrls,
       startsAt: fundraiserBody.startsAt,
       endsAt: fundraiserBody.endsAt,
@@ -173,4 +182,22 @@ export const updateFundraiserItem = async (
   });
 
   return item;
+};
+
+export const createAnnouncement = async (
+  fundraiserId: string,
+  message: string
+) => {
+  const announcement = await prisma.announcement.create({
+    data: {
+      message,
+      fundraiser: {
+        connect: {
+          id: fundraiserId,
+        },
+      },
+    },
+  });
+
+  return announcement;
 };

@@ -35,19 +35,31 @@ model Organization {
 }
 
 model Fundraiser {
-  id          String   @id @default(uuid())
-  name        String
-  description String
-  imageUrls   String[]
-  startsAt    DateTime
-  endsAt      DateTime
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(uuid())
+  name           String
+  description    String
+  goalAmount     Decimal? @db.Money
+  pickupLocation String
+  imageUrls      String[]
+  startsAt       DateTime
+  endsAt         DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  organization   Organization @relation(fields: [organizationId], references: [id])
+  organization   Organization   @relation(fields: [organizationId], references: [id])
   organizationId String
   items          Item[]
   orders         Order[]
+  announcements  Announcement[]
+}
+
+model Announcement {
+  id        String   @id @default(uuid())
+  message   String
+  createdAt DateTime @default(now())
+
+  fundraiser   Fundraiser @relation(fields: [fundraiserId], references: [id])
+  fundraiserId String
 }
 
 model Item {

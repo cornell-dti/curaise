@@ -6,6 +6,7 @@ import {
   CreateFundraiserItemBody,
   UpdateFundraiserItemBody,
   FundraiserItemRouteParams,
+  CreateAnnouncementBody,
 } from "./fundraiser.types";
 import validate from "../../middleware/validate";
 import {
@@ -17,6 +18,7 @@ import {
   getFundraiserOrdersHandler,
   createFundraiserItemHandler,
   updateFundraiserItemHandler,
+  createAnnouncementHandler,
 } from "./fundraiser.handlers";
 import { authenticate } from "../../middleware/authenticate";
 
@@ -72,6 +74,13 @@ fundraiserRouter.post(
   }),
   authenticate,
   updateFundraiserItemHandler
+);
+
+fundraiserRouter.post(
+  "/:id/announcements/create",
+  validate({ params: FundraiserRouteParams, body: CreateAnnouncementBody }),
+  authenticate,
+  createAnnouncementHandler
 );
 
 export default fundraiserRouter;
