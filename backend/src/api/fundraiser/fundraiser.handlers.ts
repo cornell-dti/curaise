@@ -20,13 +20,13 @@ import {
   createAnnouncement,
 } from "./fundraiser.services";
 import {
+  AnnouncementSchema,
   BasicFundraiserSchema,
   CompleteOrderSchema,
   CompleteFundraiserSchema,
   CompleteItemSchema,
 } from "common";
 import { getOrganization } from "../organization/organization.services";
-import { AnnouncementSchema } from "common/dist/schemas/fundraiser";
 
 export const getAllFundraisersHandler = async (req: Request, res: Response) => {
   const fundraisers = await getAllFundraisers();
@@ -315,10 +315,10 @@ export const createAnnouncementHandler = async (
     return;
   }
 
-  const announcement = await createAnnouncement(
-    req.params.id,
-    req.body.message
-  );
+  const announcement = await createAnnouncement({
+    fundraiserId: req.params.id,
+    ...req.body,
+  });
   if (!announcement) {
     res.status(500).json({ message: "Failed to create announcement" });
     return;

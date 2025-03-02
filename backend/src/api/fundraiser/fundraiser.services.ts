@@ -4,6 +4,7 @@ import {
   UpdateFundraiserBody,
   CreateFundraiserItemBody,
   UpdateFundraiserItemBody,
+  CreateAnnouncementBody,
 } from "./fundraiser.types";
 
 export const getFundraiser = async (fundraiserId: string) => {
@@ -185,15 +186,14 @@ export const updateFundraiserItem = async (
 };
 
 export const createAnnouncement = async (
-  fundraiserId: string,
-  message: string
+  announcementBody: CreateAnnouncementBody & { fundraiserId: string }
 ) => {
   const announcement = await prisma.announcement.create({
     data: {
-      message,
+      message: announcementBody.message,
       fundraiser: {
         connect: {
-          id: fundraiserId,
+          id: announcementBody.fundraiserId,
         },
       },
     },
