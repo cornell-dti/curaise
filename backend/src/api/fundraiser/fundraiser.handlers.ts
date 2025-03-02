@@ -6,6 +6,7 @@ import {
   CreateFundraiserItemBody,
   UpdateFundraiserItemBody,
   FundraiserItemRouteParams,
+  CreateAnnouncementBody,
 } from "./fundraiser.types";
 import {
   createFundraiser,
@@ -16,8 +17,10 @@ import {
   updateFundraiser,
   createFundraiserItem,
   updateFundraiserItem,
+  createAnnouncement,
 } from "./fundraiser.services";
 import {
+  AnnouncementSchema,
   BasicFundraiserSchema,
   CompleteOrderSchema,
   CompleteFundraiserSchema,
@@ -289,5 +292,50 @@ export const updateFundraiserItemHandler = async (
   res.status(200).json({
     message: "Successfully updated fundraiser item",
     data: cleanedItem,
+  });
+};
+
+export const createAnnouncementHandler = async (
+  req: Request<FundraiserRouteParams, any, CreateAnnouncementBody, {}>,
+  res: Response
+) => {
+  const fundraiser = await getFundraiser(req.params.id);
+  if (!fundraiser) {
+    res.status(404).json({ message: "Fundraiser not found" });
+    return;
+  }
+
+  // Check if user is admin of fundraiser's organization
+  if (
+    !fundraiser.organization.admins.some(
+      (admin) => admin.id === res.locals.user!.id
+    )
+  ) {
+    res.status(403).json({ message: "Unauthorized to update fundraiser item" });
+    return;
+  }
+
+  const announcement = await createAnnouncement({
+    fundraiserId: req.params.id,
+    ...req.body,
+  });
+  if (!announcement) {
+    res.status(500).json({ message: "Failed to create announcement" });
+    return;
+  }
+
+  // TODO: SEND EMAIL WHEN CREATING ANNOUNCEMENT
+
+  // remove irrelevant fields
+  const parsedAnnouncement = AnnouncementSchema.safeParse(announcement);
+  if (!parsedAnnouncement.success) {
+    res.status(500).json({ message: "Couldn't parse announcement" });
+    return;
+  }
+  const cleanedAnnouncement = parsedAnnouncement.data;
+
+  res.status(200).json({
+    message: "Successfully created announcement",
+    data: cleanedAnnouncement,
   });
 };

@@ -17,6 +17,8 @@ export const CreateFundraiserBody = z.object({
   name: z.string().min(1).max(255),
   description: z.string(),
   imageUrls: z.array(z.string().url()),
+  goalAmount: z.number().min(0).optional(),
+  pickupLocation: z.string(),
   startsAt: z.coerce.date(),
   endsAt: z.coerce.date(),
 
@@ -27,6 +29,8 @@ export type CreateFundraiserBody = z.infer<typeof CreateFundraiserBody>;
 export const UpdateFundraiserBody = z.object({
   name: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
+  goalAmount: z.number().min(0).optional(),
+  pickupLocation: z.string(),
   imageUrls: z.array(z.string().url()).optional(),
   startsAt: z.coerce.date().optional(),
   endsAt: z.coerce.date().optional(),
@@ -50,3 +54,8 @@ export const UpdateFundraiserItemBody = z.object({
   offsale: z.boolean().optional(),
 });
 export type UpdateFundraiserItemBody = z.infer<typeof UpdateFundraiserItemBody>;
+
+export const CreateAnnouncementBody = z.object({
+  message: z.string(),
+});
+export type CreateAnnouncementBody = z.infer<typeof CreateAnnouncementBody>;

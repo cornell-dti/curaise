@@ -1,4 +1,5 @@
 export {
+  AnnouncementSchema,
   BasicFundraiserSchema,
   CompleteFundraiserSchema,
 } from "./schemas/fundraiser";
