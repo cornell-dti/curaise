@@ -7,6 +7,7 @@ import {
   UpdateFundraiserItemBody,
   FundraiserItemRouteParams,
   CreateAnnouncementBody,
+  DeleteFundraiserAnnouncementRouteParams,
 } from "./fundraiser.types";
 import {
   createFundraiser,
@@ -18,6 +19,7 @@ import {
   createFundraiserItem,
   updateFundraiserItem,
   createAnnouncement,
+  deleteFundraiserAnnouncement,
 } from "./fundraiser.services";
 import {
   BasicFundraiserSchema,
@@ -338,4 +340,35 @@ export const createAnnouncementHandler = async (
     message: "Successfully created announcement",
     data: cleanedAnnouncement,
   });
+};
+
+export const deleteFundraiserAnnouncementHandler = async (
+  req: Request<DeleteFundraiserAnnouncementRouteParams, any, {}, {}>,
+  res: Response
+) => {
+  const fundraiser = await getFundraiser(req.params.fundraiserId);
+  if (!fundraiser) {
+    res.status(404).json({ message: "Fundraiser not found" });
+    return;
+  }
+
+  // Check if user is admin of fundraiser's organization
+  if (
+    !fundraiser.organization.admins.some(
+      (admin) => admin.id === res.locals.user!.id
+    )
+  ) {
+    res.status(403).json({ message: "Unauthorized to delete announcement" });
+    return;
+  }
+
+  const announcement = await deleteFundraiserAnnouncement(
+    req.params.announcementId
+  );
+  if (!announcement) {
+    res.status(500).json({ message: "Failed to delete announcement" });
+    return;
+  }
+
+  res.status(200).json({ message: "Successfully deleted announcement" });
 };
