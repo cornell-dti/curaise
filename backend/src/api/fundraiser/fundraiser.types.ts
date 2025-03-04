@@ -59,3 +59,11 @@ export const CreateAnnouncementBody = z.object({
   message: z.string(),
 });
 export type CreateAnnouncementBody = z.infer<typeof CreateAnnouncementBody>;
+
+export const DeleteAnnouncementRouteParams = z.object({
+  fundraiserId: z.string().uuid(),
+  announcementId: z.string().uuid(),
+});
+export type DeleteAnnouncementRouteParams = z.infer<
+  typeof DeleteAnnouncementRouteParams
+>;
