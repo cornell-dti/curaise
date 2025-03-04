@@ -60,10 +60,10 @@ export const CreateAnnouncementBody = z.object({
 });
 export type CreateAnnouncementBody = z.infer<typeof CreateAnnouncementBody>;
 
-export const DeleteFundraiserAnnouncementRouteParams = z.object({
+export const DeleteAnnouncementRouteParams = z.object({
   fundraiserId: z.string().uuid(),
   announcementId: z.string().uuid(),
 });
-export type DeleteFundraiserAnnouncementRouteParams = z.infer<
-  typeof DeleteFundraiserAnnouncementRouteParams
+export type DeleteAnnouncementRouteParams = z.infer<
+  typeof DeleteAnnouncementRouteParams
 >;

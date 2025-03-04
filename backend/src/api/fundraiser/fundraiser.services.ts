@@ -202,7 +202,7 @@ export const createAnnouncement = async (
   return announcement;
 };
 
-export const deleteFundraiserAnnouncement = async (announcementId: string) => {
+export const deleteAnnouncement = async (announcementId: string) => {
   const announcement = await prisma.announcement.delete({
     where: {
       id: announcementId,

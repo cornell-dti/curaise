@@ -7,7 +7,7 @@ import {
   UpdateFundraiserItemBody,
   FundraiserItemRouteParams,
   CreateAnnouncementBody,
-  DeleteFundraiserAnnouncementRouteParams,
+  DeleteAnnouncementRouteParams,
 } from "./fundraiser.types";
 import validate from "../../middleware/validate";
 import {
@@ -20,7 +20,7 @@ import {
   createFundraiserItemHandler,
   updateFundraiserItemHandler,
   createAnnouncementHandler,
-  deleteFundraiserAnnouncementHandler,
+  deleteAnnouncementHandler,
 } from "./fundraiser.handlers";
 import { authenticate } from "../../middleware/authenticate";
 
@@ -87,9 +87,9 @@ fundraiserRouter.post(
 
 fundraiserRouter.delete(
   "/:fundraiserid/announcements/:announcementid/delete",
-  validate({ params: DeleteFundraiserAnnouncementRouteParams }),
+  validate({ params: DeleteAnnouncementRouteParams }),
   authenticate,
-  deleteFundraiserAnnouncementHandler
+  deleteAnnouncementHandler
 );
 
 export default fundraiserRouter;

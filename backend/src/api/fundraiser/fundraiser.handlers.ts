@@ -7,7 +7,7 @@ import {
   UpdateFundraiserItemBody,
   FundraiserItemRouteParams,
   CreateAnnouncementBody,
-  DeleteFundraiserAnnouncementRouteParams,
+  DeleteAnnouncementRouteParams,
 } from "./fundraiser.types";
 import {
   createFundraiser,
@@ -19,7 +19,7 @@ import {
   createFundraiserItem,
   updateFundraiserItem,
   createAnnouncement,
-  deleteFundraiserAnnouncement,
+  deleteAnnouncement,
 } from "./fundraiser.services";
 import {
   BasicFundraiserSchema,
@@ -342,8 +342,8 @@ export const createAnnouncementHandler = async (
   });
 };
 
-export const deleteFundraiserAnnouncementHandler = async (
-  req: Request<DeleteFundraiserAnnouncementRouteParams, any, {}, {}>,
+export const deleteAnnouncementHandler = async (
+  req: Request<DeleteAnnouncementRouteParams, any, {}, {}>,
   res: Response
 ) => {
   const fundraiser = await getFundraiser(req.params.fundraiserId);
@@ -362,9 +362,7 @@ export const deleteFundraiserAnnouncementHandler = async (
     return;
   }
 
-  const announcement = await deleteFundraiserAnnouncement(
-    req.params.announcementId
-  );
+  const announcement = await deleteAnnouncement(req.params.announcementId);
   if (!announcement) {
     res.status(500).json({ message: "Failed to delete announcement" });
     return;
