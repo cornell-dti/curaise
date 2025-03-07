@@ -36,7 +36,7 @@ export const getOrganizationHandler = async (
 
   res
     .status(200)
-    .json({ message: "Order retrieved", data: cleanedOrganization });
+    .json({ message: "Organization retrieved", data: cleanedOrganization });
 };
 
 export const getOrganizationFundraisersHandler = async (
