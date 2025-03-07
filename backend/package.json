@@ -11,6 +11,7 @@
     "dev": "cp .env.dev .env && nodemon --exec node -r ts-node/register ./src/server.ts",
     "migrate:dev": "cp .env.dev .env && prisma migrate dev",
     "migrate:prod": "cp .env.prod .env && prisma migrate deploy",
+    "seed:dev": "cp .env.dev .env && prisma db seed",
     "test": "jest"
   },
   "prisma": {
