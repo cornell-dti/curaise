@@ -9,7 +9,7 @@ datasource db {
 }
 
 model User {
-  id            String   @id
+  id            String   @id @db.Uuid
   email         String   @unique
   name          String
   venmoUsername String?  @unique
@@ -20,7 +20,7 @@ model User {
 }
 
 model Organization {
-  id                      String   @id @default(uuid())
+  id                      String   @id @default(uuid()) @db.Uuid
   name                    String   @unique
   description             String
   authorized              Boolean  @default(false)
@@ -36,7 +36,7 @@ model Organization {
 }
 
 model Fundraiser {
-  id             String   @id @default(uuid())
+  id             String   @id @default(uuid()) @db.Uuid
   name           String
   description    String
   goalAmount     Decimal? @db.Money
@@ -55,7 +55,7 @@ model Fundraiser {
 }
 
 model Announcement {
-  id        String   @id @default(uuid())
+  id        String   @id @default(uuid()) @db.Uuid
   message   String
   createdAt DateTime @default(now())
 
@@ -64,7 +64,7 @@ model Announcement {
 }
 
 model Item {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @db.Uuid
   name        String
   description String
   imageUrl    String?
@@ -80,7 +80,7 @@ model Item {
 }
 
 model Order {
-  id            String        @id @default(uuid())
+  id            String        @id @default(uuid()) @db.Uuid
   paymentMethod PaymentMethod
   paymentStatus PaymentStatus
   pickedUp      Boolean       @default(false)
