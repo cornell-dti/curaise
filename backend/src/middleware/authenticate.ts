@@ -17,7 +17,9 @@ export const authenticate = async <ParamsT, BodyT, QueryT>(
 ) => {
   const {
     data: { user },
-  } = await supabase.auth.getUser(req.headers.authorization);
+  } = await supabase.auth.getUser(
+    req.headers.authorization?.split("Bearer ")[1]
+  );
 
   if (!user) {
     res.status(401).json({ message: "Invalid authorization token" });
