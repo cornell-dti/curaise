@@ -18,22 +18,22 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@prisma/client": "^6.2.1",
-    "@supabase/supabase-js": "^2.47.12",
+    "@prisma/client": "^6.4.1",
+    "@supabase/supabase-js": "^2.49.1",
     "common": "workspace:*",
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "zod": "^3.24.1"
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
-    "@types/express-serve-static-core": "^5.0.5",
-    "@types/node": "^22.10.6",
+    "@types/express-serve-static-core": "^5.0.6",
+    "@types/node": "^22.13.9",
     "dotenv-cli": "^8.0.0",
     "nodemon": "^3.1.9",
-    "prisma": "^6.2.1",
+    "prisma": "^6.4.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.8.2"
   }
 }
