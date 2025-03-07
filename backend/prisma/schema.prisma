@@ -111,9 +111,9 @@ model OrderItems {
   quantity Int
 
   order   Order  @relation(fields: [orderId], references: [id])
-  orderId String @map("order_id")
+  orderId String @map("order_id") @db.Uuid
   item    Item   @relation(fields: [itemId], references: [id])
-  itemId  String @map("item_id")
+  itemId  String @map("item_id") @db.Uuid
 
   @@id([orderId, itemId])
   @@map("order_items")
