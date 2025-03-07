@@ -9,89 +9,101 @@ datasource db {
 }
 
 model User {
-  id            String   @id
+  id            String   @id @db.Uuid
   email         String   @unique
   name          String
-  venmoUsername String?  @unique
-  createdAt     DateTime @default(now())
+  venmoUsername String?  @unique @map("venmo_username")
+  createdAt     DateTime @default(now()) @map("created_at")
 
   organizations Organization[]
   orders        Order[]
+
+  @@map("users")
 }
 
 model Organization {
-  id                      String   @id @default(uuid())
+  id                      String   @id @default(uuid()) @db.Uuid
   name                    String   @unique
   description             String
   authorized              Boolean  @default(false)
-  logoUrl                 String?
-  websiteUrl              String?
-  instagramUsername       String?
-  venmoUsername           String?
-  venmoForwardingVerified Boolean  @default(false)
-  createdAt               DateTime @default(now())
+  logoUrl                 String?  @map("logo_url")
+  websiteUrl              String?  @map("website_url")
+  instagramUsername       String?  @map("instagram_username")
+  venmoUsername           String?  @unique @map("venmo_username")
+  venmoForwardingVerified Boolean  @default(false) @map("venmo_forwarding_verified")
+  createdAt               DateTime @default(now()) @map("created_at")
 
   admins      User[]
   fundraisers Fundraiser[]
+
+  @@map("organizations")
 }
 
 model Fundraiser {
-  id             String   @id @default(uuid())
+  id             String   @id @default(uuid()) @db.Uuid
   name           String
   description    String
-  goalAmount     Decimal? @db.Money
-  pickupLocation String
-  imageUrls      String[]
-  startsAt       DateTime
-  endsAt         DateTime
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  goalAmount     Decimal? @map("goal_amount") @db.Money
+  pickupLocation String   @map("pickup_location")
+  imageUrls      String[] @map("image_urls")
+  startsAt       DateTime @map("starts_at")
+  endsAt         DateTime @map("ends_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   organization   Organization   @relation(fields: [organizationId], references: [id])
-  organizationId String
+  organizationId String         @map("organization_id") @db.Uuid
   items          Item[]
   orders         Order[]
   announcements  Announcement[]
+
+  @@map("fundraisers")
 }
 
 model Announcement {
-  id        String   @id @default(uuid())
+  id        String   @id @default(uuid()) @db.Uuid
   message   String
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
 
   fundraiser   Fundraiser @relation(fields: [fundraiserId], references: [id])
-  fundraiserId String
+  fundraiserId String     @map("fundraiser_id") @db.Uuid
+
+  @@map("announcements")
 }
 
 model Item {
-  id          String   @id @default(uuid())
+  id          String   @id @default(uuid()) @db.Uuid
   name        String
   description String
-  imageUrl    String?
+  imageUrl    String?  @map("image_url")
   offsale     Boolean  @default(false)
   limit       Int?
   price       Decimal  @db.Money
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   fundraiser   Fundraiser   @relation(fields: [fundraiserId], references: [id])
-  fundraiserId String
+  fundraiserId String       @map("fundraiser_id") @db.Uuid
   orders       OrderItems[]
+
+  @@map("items")
 }
 
 model Order {
-  id            String        @id @default(uuid())
-  paymentMethod PaymentMethod
-  paymentStatus PaymentStatus
-  pickedUp      Boolean       @default(false)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id            String        @id @default(uuid()) @db.Uuid
+  paymentMethod PaymentMethod @map("payment_method")
+  paymentStatus PaymentStatus @map("payment_status")
+  pickedUp      Boolean       @default(false) @map("picked_up")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
 
   buyer        User         @relation(fields: [buyerId], references: [id])
-  buyerId      String
+  buyerId      String       @map("buyer_id") @db.Uuid
   fundraiser   Fundraiser   @relation(fields: [fundraiserId], references: [id])
-  fundraiserId String
+  fundraiserId String       @map("fundraiser_id") @db.Uuid
   items        OrderItems[]
+
+  @@map("orders")
 }
 
 // Order <-> Items Association Table
@@ -99,11 +111,12 @@ model OrderItems {
   quantity Int
 
   order   Order  @relation(fields: [orderId], references: [id])
-  orderId String
+  orderId String @map("order_id") @db.Uuid
   item    Item   @relation(fields: [itemId], references: [id])
-  itemId  String
+  itemId  String @map("item_id") @db.Uuid
 
   @@id([orderId, itemId])
+  @@map("order_items")
 }
 
 enum PaymentMethod {
