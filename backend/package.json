@@ -5,10 +5,12 @@
   "main": "./dist/server.js",
   "scripts": {
     "build": "tsc --build",
-    "start": "node --env-file=.env.prod ./dist/server.js",
-    "dev": "nodemon --exec node --env-file=.env.dev -r ts-node/register ./src/server.ts",
-    "migrate:dev": "dotenv -e .env.dev prisma migrate dev",
-    "migrate:prod": "dotenv -e .env.prod prisma migrate deploy",
+    "switch:dev": "cp .env.dev .env",
+    "switch:prod": "cp .env.prod .env",
+    "start": "cp .env.prod .env && node ./dist/server.js",
+    "dev": "cp .env.dev .env && nodemon --exec node -r ts-node/register ./src/server.ts",
+    "migrate:dev": "cp .env.dev .env && prisma migrate dev",
+    "migrate:prod": "cp .env.prod .env && prisma migrate deploy",
     "test": "jest"
   },
   "keywords": [],
