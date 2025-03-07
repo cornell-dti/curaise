@@ -313,7 +313,9 @@ export const createAnnouncementHandler = async (
       (admin) => admin.id === res.locals.user!.id
     )
   ) {
-    res.status(403).json({ message: "Unauthorized to update fundraiser item" });
+    res
+      .status(403)
+      .json({ message: "Unauthorized to create fundraiser announcement" });
     return;
   }
 
