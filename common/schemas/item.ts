@@ -1,10 +1,11 @@
 import { z } from "zod";
+import { MoneySchema } from "./decimal";
 
 export const BasicItemSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   description: z.string(),
-  price: z.number().positive(),
+  price: MoneySchema.nullish(),
 });
 
 export const CompleteItemSchema = BasicItemSchema.extend({

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { BasicOrganizationSchema } from "./organization";
+import { MoneySchema } from "./decimal";
 
 export const AnnouncementSchema = z.object({
   id: z.string().uuid(),
@@ -11,7 +12,7 @@ export const BasicFundraiserSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(255),
   description: z.string(),
-  goalAmount: z.number().min(0),
+  goalAmount: MoneySchema.nullish(),
   pickupLocation: z.string(),
   startsAt: z.date(),
   endsAt: z.date(),
