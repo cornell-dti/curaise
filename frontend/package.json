@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack --port 8080",
+    "dev": "cp .env.dev .env.local && next dev --turbopack --port 8080",
     "build": "next build",
-    "start": "next start",
+    "start": "cp .env.prod .env.local && next start",
     "lint": "next lint"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.1",
-    "@supabase/supabase-js": "^2.47.12",
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.49.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "common": "workspace:*",
