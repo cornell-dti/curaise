@@ -11,6 +11,8 @@ export const getOrder = async (orderId: string) => {
           id: true,
           name: true,
           description: true,
+          goalAmount: true,
+          pickupLocation: true,
           startsAt: true,
           endsAt: true,
           organization: {
@@ -60,6 +62,8 @@ export const createOrder = async (
           id: true,
           name: true,
           description: true,
+          goalAmount: true,
+          pickupLocation: true,
           startsAt: true,
           endsAt: true,
           organization: {
@@ -92,6 +96,8 @@ export const completeOrderPickup = async (orderId: string) => {
           id: true,
           name: true,
           description: true,
+          goalAmount: true,
+          pickupLocation: true,
           startsAt: true,
           endsAt: true,
           organization: {
@@ -124,6 +130,8 @@ export const confirmOrderPayment = async (orderId: string) => {
           id: true,
           name: true,
           description: true,
+          goalAmount: true,
+          pickupLocation: true,
           startsAt: true,
           endsAt: true,
           organization: {
