@@ -19,6 +19,8 @@ export const getUserOrders = async (userId: string) => {
           id: true,
           name: true,
           description: true,
+          goalAmount: true,
+          pickupLocation: true,
           startsAt: true,
           endsAt: true,
           organization: {

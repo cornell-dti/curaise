@@ -8,8 +8,8 @@ export const BasicOrderSchema = z.object({
   paymentMethod: z.enum(["VENMO", "OTHER"]),
   paymentStatus: z.enum(["UNVERIFIABLE", "PENDING", "CONFIRMED"]),
   pickedUp: z.boolean(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
 
   buyer: UserSchema,
   fundraiser: BasicFundraiserSchema,
