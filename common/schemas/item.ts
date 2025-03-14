@@ -5,7 +5,7 @@ export const BasicItemSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   description: z.string(),
-  price: MoneySchema.nullish(),
+  price: MoneySchema,
 });
 
 export const CompleteItemSchema = BasicItemSchema.extend({
