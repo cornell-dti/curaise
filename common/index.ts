@@ -10,3 +10,4 @@ export {
   CompleteOrganizationSchema,
 } from "./schemas/organization";
 export { UserSchema } from "./schemas/user";
+export { DecimalSchema, MoneySchema } from "./schemas/decimal";
