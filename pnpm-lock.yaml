@@ -22,6 +22,9 @@ importers:
       cors:
         specifier: ^2.8.5
         version: 2.8.5
+      decimal.js:
+        specifier: ^10.5.0
+        version: 10.5.0
       express:
         specifier: ^4.21.2
         version: 4.21.2
@@ -62,6 +65,9 @@ importers:
 
   common:
     dependencies:
+      decimal.js:
+        specifier: ^10.5.0
+        version: 10.5.0
       zod:
         specifier: ^3.24.1
         version: 3.24.1
@@ -90,6 +96,9 @@ importers:
       common:
         specifier: workspace:*
         version: link:../common
+      decimal.js:
+        specifier: ^10.5.0
+        version: 10.5.0
       lucide-react:
         specifier: ^0.471.1
         version: 0.471.1(react@19.0.0)
@@ -1053,6 +1062,9 @@ packages:
     peerDependenciesMeta:
       supports-color:
         optional: true
+
+  decimal.js@10.5.0:
+    resolution: {integrity: sha512-8vDa8Qxvr/+d94hSh5P3IJwI5t8/c0KsMp+g8bNw9cY2icONa5aPfvKeieW1WlG0WQYwwhJ7mjui2xtiePQSXw==}
 
   deep-is@0.1.4:
     resolution: {integrity: sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==}
@@ -3288,6 +3300,8 @@ snapshots:
       ms: 2.1.3
     optionalDependencies:
       supports-color: 5.5.0
+
+  decimal.js@10.5.0: {}
 
   deep-is@0.1.4: {}
 
