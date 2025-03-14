@@ -1,5 +1,5 @@
 import z from "zod";
-import { MoneySchema } from "common";
+import { MoneySchema } from "../../utils/decimal";
 
 export const FundraiserRouteParams = z.object({
   id: z.string().uuid(),
