@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "private": true,
-  "scripts": {},
+  "scripts": {
+    "setup": "bash ./setup.sh"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC"
