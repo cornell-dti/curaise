@@ -5,7 +5,7 @@ import { MoneySchema } from "./decimal";
 export const AnnouncementSchema = z.object({
   id: z.string().uuid(),
   message: z.string(),
-  createdAt: z.date(),
+  createdAt: z.coerce.date(),
 });
 
 export const BasicFundraiserSchema = z.object({
@@ -14,8 +14,8 @@ export const BasicFundraiserSchema = z.object({
   description: z.string(),
   goalAmount: MoneySchema.nullish(),
   pickupLocation: z.string(),
-  startsAt: z.date(),
-  endsAt: z.date(),
+  startsAt: z.coerce.date(),
+  endsAt: z.coerce.date(),
   organization: BasicOrganizationSchema,
 });
 

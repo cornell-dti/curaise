@@ -19,7 +19,8 @@ export const DecimalSchema = z.custom<Decimal>(
 );
 
 export const MoneySchema = DecimalSchema.refine(
-  (val) => val.greaterThanOrEqualTo(new Decimal(0)) && val.decimalPlaces() <= 2,
+  (val) =>
+    Decimal(val).greaterThanOrEqualTo(0) && Decimal(val).decimalPlaces() <= 2,
   {
     message: "Amount must be positive or zero with at most 2 decimal places",
   }
