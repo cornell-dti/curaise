@@ -22,7 +22,7 @@ export async function signInWithGoogle() {
 
   if (error) {
     console.log(error);
-    redirect("/error");
+    redirect("/login"); // TODO: add error page
   }
 
   redirect(data.url);
@@ -33,7 +33,7 @@ export async function signOut() {
   const { error } = await supabase.auth.signOut();
   if (error) {
     console.log(error);
-    redirect("/error");
+    redirect("/logout"); // TODO: add error page
   }
 
   redirect("/");
