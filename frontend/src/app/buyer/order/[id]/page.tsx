@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { OrderStatusBadge } from "@/components/custom/OrderStatusBadge";
 import { Separator } from "@/components/ui/separator";
+import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
+import { format } from "date-fns";
 
 // data fetching function
 const getOrder = async (id: string, token: string) => {
@@ -113,18 +115,6 @@ export default async function OrderPage({
                     Paid with {order.paymentMethod}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                  <span className="text-sm">
-                    {order.pickedUp ? "Picked up" : "Not picked up yet"}
-                  </span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
-                  <span className="text-sm">
-                    Pickup Location: <b>{order.fundraiser.pickupLocation}</b>
-                  </span>
-                </div>
               </div>
               <div className="space-y-1">
                 <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
@@ -144,6 +134,39 @@ export default async function OrderPage({
                   </span>
                 </div>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Pickup Info Card */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle>Pickup Info</CardTitle>
+            <PickupStatusBadge order={order} />
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-start gap-2">
+              <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
+              <span className="text-sm">
+                Pickup Location: <b>{order.fundraiser.pickupLocation}</b>
+              </span>
+            </div>
+            <div className="flex items-start gap-2">
+              <CalendarIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
+              <span className="text-sm">
+                Pickup Window:{" "}
+                <b>
+                  {format(
+                    order.fundraiser.pickupStartsAt,
+                    "MMM d, yyyy 'at' h:mm a"
+                  )}{" "}
+                  -{" "}
+                  {format(
+                    order.fundraiser.pickupEndsAt,
+                    "MMM d, yyyy 'at' h:mm a"
+                  )}
+                </b>
+              </span>
             </div>
           </CardContent>
         </Card>
