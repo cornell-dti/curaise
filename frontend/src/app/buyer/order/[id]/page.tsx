@@ -226,7 +226,7 @@ export default async function OrderPage({
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                <CardTitle>Buyer Information</CardTitle>
+                <CardTitle>Buyer Info</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
