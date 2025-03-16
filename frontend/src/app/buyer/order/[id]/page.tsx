@@ -18,9 +18,31 @@ import {
   ShoppingBag,
   User,
 } from "lucide-react";
-import Image from "next/image";
 import { OrderStatusBadge } from "@/components/custom/OrderStatusBadge";
 import { Separator } from "@/components/ui/separator";
+
+// data fetching function
+const getOrder = async (id: string, token: string) => {
+  const response = await fetch(
+    process.env.NEXT_PUBLIC_API_URL + "/order/" + id,
+    {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    }
+  );
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message);
+  }
+
+  // parse order data
+  const data = CompleteOrderSchema.safeParse(result.data);
+  if (!data.success) {
+    throw new Error("Could not parse order data");
+  }
+  return data.data;
+};
 
 export default async function OrderPage({
   params,
@@ -47,27 +69,11 @@ export default async function OrderPage({
     error: error2,
   } = await supabase.auth.getSession();
   if (error2 || !session?.access_token) {
-    <h1>Session invalid</h1>;
+    throw new Error("No session found");
   }
 
-  // get order
-  const response = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + "/order/" + id,
-    {
-      headers: {
-        Authorization: "Bearer " + session?.access_token,
-      },
-    }
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    return <h1>{result.message}</h1>;
-  }
-  const data = CompleteOrderSchema.safeParse(result.data);
-  if (!data.success) {
-    return <h1>Couldn't parse order</h1>;
-  }
-  const order = data.data;
+  const order = await getOrder(id, session.access_token);
+
   const orderTotal = order.items
     .reduce(
       (total, item) =>
@@ -158,15 +164,6 @@ export default async function OrderPage({
                   key={orderItem.item.id}
                   className="flex flex-col sm:flex-row gap-4 pb-4 border-b last:border-0 last:pb-0"
                 >
-                  <div className="flex-shrink-0 mx-auto sm:mx-0">
-                    <Image
-                      src={"/placeholder.svg"}
-                      alt={orderItem.item.name}
-                      width={80}
-                      height={80}
-                      className="rounded-md object-cover"
-                    />
-                  </div>
                   <div className="flex-1 space-y-1 text-center sm:text-left">
                     <h3 className="font-medium">{orderItem.item.name}</h3>
                     <p className="text-sm text-muted-foreground">
@@ -228,22 +225,13 @@ export default async function OrderPage({
               </div>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
-                {/* <Image
-                  src={order.fundraiser || "/placeholder.svg"}
-                  alt={order.fundraiser.name}
-                  width={40}
-                  height={40}
-                  className="rounded-md"
-                /> */}
-                <div>
-                  <p className="font-medium mt-2 sm:mt-0">
-                    {order.fundraiser.name}
-                  </p>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {order.fundraiser.description}
-                  </p>
-                </div>
+              <div>
+                <p className="font-medium mt-2 sm:mt-0">
+                  {order.fundraiser.name}
+                </p>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {order.fundraiser.description}
+                </p>
               </div>
             </CardContent>
           </Card>

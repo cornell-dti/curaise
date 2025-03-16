@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "private": true,
-  "scripts": {},
+  "scripts": {
+    "assemble": "pnpm i && pnpm --filter 'common' build && pnpm --filter 'backend' prisma:generate",
+    "dev": "pnpm -r --parallel run dev"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC"
