@@ -96,7 +96,7 @@ export default async function OrderPage({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle>Order Summary</CardTitle>
-            <OrderStatusBadge status={order.paymentStatus} />
+            <OrderStatusBadge order={order} />
           </CardHeader>
           <CardContent>
             <div className="grid gap-6 md:grid-cols-2">
