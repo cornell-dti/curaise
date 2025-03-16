@@ -21,8 +21,10 @@ export const getUserOrders = async (userId: string) => {
           description: true,
           goalAmount: true,
           pickupLocation: true,
-          startsAt: true,
-          endsAt: true,
+          buyingStartsAt: true,
+          buyingEndsAt: true,
+          pickupStartsAt: true,
+          pickupEndsAt: true,
           organization: {
             select: {
               id: true,

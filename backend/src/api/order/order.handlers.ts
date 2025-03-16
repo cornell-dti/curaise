@@ -51,12 +51,14 @@ export const createOrderHandler = async (
     res.status(404).json({ message: "Fundraiser not found" });
     return;
   }
-  if (fundraiser.startsAt > new Date()) {
-    res.status(400).json({ message: "Fundraiser has not started" });
+  if (fundraiser.buyingStartsAt > new Date()) {
+    res
+      .status(400)
+      .json({ message: "Fundraiser buying period has not started" });
     return;
   }
-  if (fundraiser.endsAt < new Date()) {
-    res.status(400).json({ message: "Fundraiser has ended" });
+  if (fundraiser.buyingEndsAt < new Date()) {
+    res.status(400).json({ message: "Fundraiser buying period has ended" });
     return;
   }
 

@@ -14,8 +14,10 @@ export const BasicFundraiserSchema = z.object({
   description: z.string(),
   goalAmount: MoneySchema.nullish(),
   pickupLocation: z.string(),
-  startsAt: z.coerce.date(),
-  endsAt: z.coerce.date(),
+  buyingStartsAt: z.coerce.date(),
+  buyingEndsAt: z.coerce.date(),
+  pickupStartsAt: z.coerce.date(),
+  pickupEndsAt: z.coerce.date(),
   organization: BasicOrganizationSchema,
 });
 

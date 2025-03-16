@@ -20,8 +20,10 @@ export const CreateFundraiserBody = z.object({
   imageUrls: z.array(z.string().url()),
   goalAmount: MoneySchema.optional(),
   pickupLocation: z.string(),
-  startsAt: z.coerce.date(),
-  endsAt: z.coerce.date(),
+  buyingStartsAt: z.coerce.date(),
+  buyingEndsAt: z.coerce.date(),
+  pickupStartsAt: z.coerce.date(),
+  pickupEndsAt: z.coerce.date(),
 
   organizationId: z.string().uuid(),
 });
@@ -33,8 +35,10 @@ export const UpdateFundraiserBody = z.object({
   goalAmount: MoneySchema.optional(),
   pickupLocation: z.string(),
   imageUrls: z.array(z.string().url()).optional(),
-  startsAt: z.coerce.date().optional(),
-  endsAt: z.coerce.date().optional(),
+  buyingStartsAt: z.coerce.date().optional(),
+  buyingEndsAt: z.coerce.date().optional(),
+  pickupStartsAt: z.coerce.date().optional(),
+  pickupEndsAt: z.coerce.date().optional(),
 });
 export type UpdateFundraiserBody = z.infer<typeof UpdateFundraiserBody>;
 

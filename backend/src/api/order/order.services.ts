@@ -13,8 +13,10 @@ export const getOrder = async (orderId: string) => {
           description: true,
           goalAmount: true,
           pickupLocation: true,
-          startsAt: true,
-          endsAt: true,
+          buyingStartsAt: true,
+          buyingEndsAt: true,
+          pickupStartsAt: true,
+          pickupEndsAt: true,
           organization: {
             select: {
               id: true,
@@ -64,8 +66,10 @@ export const createOrder = async (
           description: true,
           goalAmount: true,
           pickupLocation: true,
-          startsAt: true,
-          endsAt: true,
+          buyingStartsAt: true,
+          buyingEndsAt: true,
+          pickupStartsAt: true,
+          pickupEndsAt: true,
           organization: {
             select: {
               id: true,
@@ -98,8 +102,10 @@ export const completeOrderPickup = async (orderId: string) => {
           description: true,
           goalAmount: true,
           pickupLocation: true,
-          startsAt: true,
-          endsAt: true,
+          buyingStartsAt: true,
+          buyingEndsAt: true,
+          pickupStartsAt: true,
+          pickupEndsAt: true,
           organization: {
             select: {
               id: true,
@@ -132,8 +138,10 @@ export const confirmOrderPayment = async (orderId: string) => {
           description: true,
           goalAmount: true,
           pickupLocation: true,
-          startsAt: true,
-          endsAt: true,
+          buyingStartsAt: true,
+          buyingEndsAt: true,
+          pickupStartsAt: true,
+          pickupEndsAt: true,
           organization: {
             select: {
               id: true,
