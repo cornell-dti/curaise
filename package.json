@@ -4,7 +4,7 @@
   "description": "",
   "private": true,
   "scripts": {
-    "assemble": "pnpm i && pnpm --filter common build && pnpm --filter backend prisma:generate",
+    "assemble": "pnpm i && pnpm --filter 'common' build && pnpm --filter 'backend' prisma:generate",
     "dev": "pnpm -r --parallel run dev"
   },
   "keywords": [],
