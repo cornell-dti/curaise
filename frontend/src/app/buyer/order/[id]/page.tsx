@@ -14,7 +14,6 @@ import {
   CalendarIcon,
   CreditCard,
   MapPin,
-  Package,
   ShoppingBag,
   User,
 } from "lucide-react";
