@@ -113,7 +113,7 @@ export default async function BuyerHome() {
       <div className="flex flex-col space-y-4">
         <h1 className="text-2xl font-bold">My Orders</h1>
 
-        <Tabs defaultValue="all" className="w-full">
+        <Tabs defaultValue="active" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="active">Active</TabsTrigger>
             <TabsTrigger value="all">All</TabsTrigger>
