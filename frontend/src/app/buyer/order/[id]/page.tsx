@@ -146,28 +146,30 @@ export default async function OrderPage({
             <PickupStatusBadge order={order} />
           </CardHeader>
           <CardContent>
-            <div className="flex items-start gap-2">
-              <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
-              <span className="text-sm">
-                Pickup Location: <b>{order.fundraiser.pickupLocation}</b>
-              </span>
-            </div>
-            <div className="flex items-start gap-2">
-              <CalendarIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
-              <span className="text-sm">
-                Pickup Window:{" "}
-                <b>
-                  {format(
-                    order.fundraiser.pickupStartsAt,
-                    "MMM d, yyyy 'at' h:mm a"
-                  )}{" "}
-                  -{" "}
-                  {format(
-                    order.fundraiser.pickupEndsAt,
-                    "MMM d, yyyy 'at' h:mm a"
-                  )}
-                </b>
-              </span>
+            <div className="space-y-2">
+              <div className="flex items-start gap-2">
+                <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
+                <span className="text-sm">
+                  Pickup Location: <b>{order.fundraiser.pickupLocation}</b>
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CalendarIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
+                <span className="text-sm">
+                  Pickup Window:{" "}
+                  <b>
+                    {format(
+                      order.fundraiser.pickupStartsAt,
+                      "MMM d, yyyy 'at' h:mm a"
+                    )}{" "}
+                    -{" "}
+                    {format(
+                      order.fundraiser.pickupEndsAt,
+                      "MMM d, yyyy 'at' h:mm a"
+                    )}
+                  </b>
+                </span>
+              </div>
             </div>
           </CardContent>
         </Card>
