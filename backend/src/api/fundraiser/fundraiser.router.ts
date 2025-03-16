@@ -1,14 +1,16 @@
 import { Router } from "express";
 import {
-  CreateFundraiserBody,
   FundraiserRouteParams,
+  FundraiserItemRouteParams,
+  DeleteAnnouncementRouteParams,
+} from "./fundraiser/types.ts";
+import {
+  CreateFundraiserBody,
   UpdateFundraiserBody,
   CreateFundraiserItemBody,
   UpdateFundraiserItemBody,
-  FundraiserItemRouteParams,
   CreateAnnouncementBody,
-  DeleteAnnouncementRouteParams,
-} from "./fundraiser.types";
+} from "common";
 import validate from "../../middleware/validate";
 import {
   createFundraiserHandler,
