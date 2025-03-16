@@ -11,14 +11,20 @@ async function main() {
   await prisma.announcement.deleteMany({});
   await prisma.fundraiser.deleteMany({});
   await prisma.organization.deleteMany({});
-  await prisma.user.deleteMany({});
+  await prisma.user.deleteMany({
+    where: {
+      email: {
+        startsWith: "test",
+      },
+    },
+  });
 
   // Create users
   const user1 = await prisma.user.create({
     data: {
       id: uuidv4(),
       email: "testuser1@cornell.edu",
-      name: "Shengle Dai",
+      name: "Test One",
     },
   });
 
@@ -26,7 +32,7 @@ async function main() {
     data: {
       id: uuidv4(),
       email: "testuser2@cornell.edu",
-      name: "Eric Weng",
+      name: "Test Two",
     },
   });
 
@@ -34,7 +40,7 @@ async function main() {
     data: {
       id: uuidv4(),
       email: "testuser3@cornell.edu",
-      name: "Steven Yu",
+      name: "Test Three",
     },
   });
 
