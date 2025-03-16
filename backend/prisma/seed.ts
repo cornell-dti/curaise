@@ -85,8 +85,10 @@ async function main() {
         "Buy some baked goods from DTI! All proceeds go toward supporting our projects and initiatives.",
       goalAmount: 100.0,
       pickupLocation: "Phillips Hall",
-      startsAt: new Date(new Date().setDate(new Date().getDate() - 1)),
-      endsAt: new Date(new Date().setDate(new Date().getDate() + 6)),
+      buyingStartsAt: new Date(new Date().setDate(new Date().getDate() - 1)),
+      buyingEndsAt: new Date(new Date().setDate(new Date().getDate() + 6)),
+      pickupStartsAt: new Date(new Date().setDate(new Date().getDate() + 7)),
+      pickupEndsAt: new Date(new Date().setDate(new Date().getDate() + 8)),
       organizationId: cornellDTI.id,
       announcements: {
         create: [
@@ -132,8 +134,10 @@ async function main() {
         "https://example.com/cds-merch-1.jpg",
         "https://example.com/cds-merch-2.jpg",
       ],
-      startsAt: new Date("2025-04-01T10:00:00Z"),
-      endsAt: new Date("2025-04-10T18:00:00Z"),
+      buyingStartsAt: new Date("2025-04-01T10:00:00Z"),
+      buyingEndsAt: new Date("2025-04-10T10:00:00Z"),
+      pickupStartsAt: new Date("2025-04-15T10:00:00Z"),
+      pickupEndsAt: new Date("2025-04-16T10:00:00Z"),
       organizationId: cds.id,
       announcements: {
         create: [

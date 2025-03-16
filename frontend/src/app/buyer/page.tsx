@@ -8,6 +8,7 @@ import { BasicOrderSchema, UserSchema } from "common";
 import { z } from "zod";
 import Link from "next/link";
 import { OrderCard } from "@/components/custom/OrderCard";
+import { isPast } from "date-fns";
 
 const getUserProfile = async (userId: string, token: string) => {
   const response = await fetch(
@@ -81,7 +82,7 @@ export default async function BuyerHome() {
   const orders = await getOrders(user.id, session.access_token);
 
   const inProgressOrders = orders.filter(
-    (order) => order.fundraiser.endsAt > new Date()
+    (order) => !isPast(order.fundraiser.pickupEndsAt)
   );
 
   return (

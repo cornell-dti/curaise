@@ -7,21 +7,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { OrderStatusBadge } from "@/components/custom/OrderStatusBadge";
+import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
 import { z } from "zod";
 import { BasicOrderSchema } from "common";
 import { Button } from "../ui/button";
 import Link from "next/link";
+import { format, isPast } from "date-fns";
 
 const OrderCard = ({ order }: { order: z.infer<typeof BasicOrderSchema> }) => {
-  const now = new Date();
-  const isActive = new Date(order.fundraiser.endsAt) > now;
-  const daysLeft = isActive
-    ? Math.ceil(
-        (new Date(order.fundraiser.endsAt).getTime() - now.getTime()) /
-          (1000 * 60 * 60 * 24)
-      )
-    : 0;
+  const isActive = !isPast(order.fundraiser.pickupEndsAt);
 
   return (
     <Card
@@ -37,7 +31,7 @@ const OrderCard = ({ order }: { order: z.infer<typeof BasicOrderSchema> }) => {
               {order.fundraiser.organization.name}
             </CardDescription>
           </div>
-          <OrderStatusBadge order={order} />
+          <PickupStatusBadge order={order} />
         </div>
       </CardHeader>
       <CardContent className="pb-2 text-sm">
@@ -46,11 +40,25 @@ const OrderCard = ({ order }: { order: z.infer<typeof BasicOrderSchema> }) => {
             <CalendarIcon className="h-4 w-4 text-muted-foreground" />
             <span>
               {isActive ? (
-                <span className="text-blue-600 font-medium">
-                  {daysLeft === 1 ? "Ends tomorrow" : `${daysLeft} days left`}
+                <span>
+                  Pickup Window:{" "}
+                  <b>
+                    {format(
+                      order.fundraiser.pickupStartsAt,
+                      "MMM d 'at' h:mm a"
+                    )}{" "}
+                    -{" "}
+                    {format(order.fundraiser.pickupEndsAt, "MMM d 'at' h:mm a")}
+                  </b>
                 </span>
               ) : (
-                <span>Ended on {order.fundraiser.endsAt.toLocaleString()}</span>
+                <span>
+                  Pickup Ended on{" "}
+                  {format(
+                    order.fundraiser.pickupEndsAt,
+                    "MMM d, yyyy 'at' h:mm a"
+                  )}
+                </span>
               )}
             </span>
           </div>

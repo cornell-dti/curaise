@@ -60,8 +60,10 @@ export const getFundraiserOrders = async (fundraiserId: string) => {
           description: true,
           goalAmount: true,
           pickupLocation: true,
-          startsAt: true,
-          endsAt: true,
+          buyingStartsAt: true,
+          buyingEndsAt: true,
+          pickupStartsAt: true,
+          pickupEndsAt: true,
           organization: {
             select: {
               id: true,
@@ -108,8 +110,10 @@ export const createFundraiser = async (
       goalAmount: fundraiserBody.goalAmount,
       pickupLocation: fundraiserBody.pickupLocation,
       imageUrls: fundraiserBody.imageUrls,
-      startsAt: fundraiserBody.startsAt,
-      endsAt: fundraiserBody.endsAt,
+      buyingStartsAt: fundraiserBody.buyingStartsAt,
+      buyingEndsAt: fundraiserBody.buyingEndsAt,
+      pickupStartsAt: fundraiserBody.pickupStartsAt,
+      pickupEndsAt: fundraiserBody.pickupEndsAt,
       organization: {
         connect: {
           id: fundraiserBody.organizationId,
@@ -137,8 +141,10 @@ export const updateFundraiser = async (
       goalAmount: fundraiserBody.goalAmount,
       pickupLocation: fundraiserBody.pickupLocation,
       imageUrls: fundraiserBody.imageUrls,
-      startsAt: fundraiserBody.startsAt,
-      endsAt: fundraiserBody.endsAt,
+      buyingStartsAt: fundraiserBody.buyingStartsAt,
+      buyingEndsAt: fundraiserBody.buyingEndsAt,
+      pickupStartsAt: fundraiserBody.pickupStartsAt,
+      pickupEndsAt: fundraiserBody.pickupEndsAt,
     },
     include: {
       organization: true,

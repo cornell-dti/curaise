@@ -14,12 +14,13 @@ import {
   CalendarIcon,
   CreditCard,
   MapPin,
-  Package,
   ShoppingBag,
   User,
 } from "lucide-react";
-import { OrderStatusBadge } from "@/components/custom/OrderStatusBadge";
+import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { Separator } from "@/components/ui/separator";
+import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
+import { format } from "date-fns";
 
 // data fetching function
 const getOrder = async (id: string, token: string) => {
@@ -96,7 +97,7 @@ export default async function OrderPage({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle>Order Summary</CardTitle>
-            <OrderStatusBadge order={order} />
+            <PaymentStatusBadge order={order} />
           </CardHeader>
           <CardContent>
             <div className="grid gap-6 md:grid-cols-2">
@@ -104,25 +105,14 @@ export default async function OrderPage({
                 <div className="flex items-center gap-2">
                   <CalendarIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                   <span className="text-sm break-words">
-                    Ordered at {order.createdAt.toLocaleString()}
+                    Ordered at{" "}
+                    {format(order.createdAt, "MMM d, yyyy 'at' h:mm a")}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CreditCard className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                   <span className="text-sm">
                     Paid with {order.paymentMethod}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                  <span className="text-sm">
-                    {order.pickedUp ? "Picked up" : "Not picked up yet"}
-                  </span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
-                  <span className="text-sm">
-                    Pickup Location: <b>{order.fundraiser.pickupLocation}</b>
                   </span>
                 </div>
               </div>
@@ -140,9 +130,44 @@ export default async function OrderPage({
                     Last Updated:
                   </span>
                   <span className="text-sm">
-                    {order.updatedAt.toLocaleString()}
+                    {format(order.updatedAt, "MMM d, yyyy 'at' h:mm a")}
                   </span>
                 </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Pickup Info Card */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle>Pickup Info</CardTitle>
+            <PickupStatusBadge order={order} />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex items-start gap-2">
+                <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
+                <span className="text-sm">
+                  Pickup Location: <b>{order.fundraiser.pickupLocation}</b>
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <CalendarIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
+                <span className="text-sm">
+                  Pickup Window:{" "}
+                  <b>
+                    {format(
+                      order.fundraiser.pickupStartsAt,
+                      "MMM d, yyyy 'at' h:mm a"
+                    )}{" "}
+                    -{" "}
+                    {format(
+                      order.fundraiser.pickupEndsAt,
+                      "MMM d, yyyy 'at' h:mm a"
+                    )}
+                  </b>
+                </span>
               </div>
             </div>
           </CardContent>
@@ -202,7 +227,7 @@ export default async function OrderPage({
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                <CardTitle>Buyer Information</CardTitle>
+                <CardTitle>Buyer Info</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
