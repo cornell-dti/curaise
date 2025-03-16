@@ -19,8 +19,11 @@ async function main() {
     },
   });
 
-  // Create users
-  const user1 = await prisma.user.create({
+  // Get real users
+  const realUsers = await prisma.user.findMany({});
+
+  // Create test users
+  const testUser1 = await prisma.user.create({
     data: {
       id: uuidv4(),
       email: "testuser1@cornell.edu",
@@ -28,7 +31,7 @@ async function main() {
     },
   });
 
-  const user2 = await prisma.user.create({
+  const testUser2 = await prisma.user.create({
     data: {
       id: uuidv4(),
       email: "testuser2@cornell.edu",
@@ -36,7 +39,7 @@ async function main() {
     },
   });
 
-  const user3 = await prisma.user.create({
+  const testUser3 = await prisma.user.create({
     data: {
       id: uuidv4(),
       email: "testuser3@cornell.edu",
@@ -54,7 +57,7 @@ async function main() {
       websiteUrl: "https://cornelldti.org",
       instagramUsername: "cornelldti",
       admins: {
-        connect: [{ id: user1.id }, { id: user2.id }],
+        connect: realUsers.map((user) => ({ id: user.id })), // make all real users admins
       },
     },
   });
@@ -69,7 +72,7 @@ async function main() {
       websiteUrl: "https://cornelldata.science",
       instagramUsername: "cornelldatascience",
       admins: {
-        connect: [{ id: user3.id }],
+        connect: [{ id: testUser1.id }],
       },
     },
   });
@@ -185,9 +188,9 @@ async function main() {
   });
 
   // Create orders for DTI fundraiser
-  const dtiOrder = await prisma.order.create({
+  const dtiOrder1 = await prisma.order.create({
     data: {
-      buyerId: user3.id,
+      buyerId: testUser1.id,
       fundraiserId: dtiFundraiser.id,
       paymentMethod: PaymentMethod.OTHER,
       paymentStatus: PaymentStatus.CONFIRMED,
@@ -207,28 +210,89 @@ async function main() {
     },
   });
 
-  // Create orders for CDS fundraiser
-  const cdsOrder = await prisma.order.create({
+  const dtiOrder2 = await prisma.order.create({
     data: {
-      buyerId: user1.id,
-      fundraiserId: cdsFundraiser.id,
-      paymentMethod: PaymentMethod.OTHER,
+      buyerId: testUser2.id,
+      fundraiserId: dtiFundraiser.id,
+      paymentMethod: PaymentMethod.VENMO,
       paymentStatus: PaymentStatus.PENDING,
       pickedUp: false,
       items: {
         create: [
           {
-            quantity: 1,
-            itemId: cdsItems[0].id, // CDS T-Shirt
+            quantity: 3,
+            itemId: dtiItems[0].id, // Tiramisu
           },
           {
-            quantity: 1,
-            itemId: cdsItems[2].id, // CDS Hoodie
+            quantity: 2,
+            itemId: dtiItems[2].id, // Apple pie
           },
         ],
       },
     },
   });
+
+  const dtiOrder3 = await prisma.order.create({
+    data: {
+      buyerId: testUser3.id,
+      fundraiserId: dtiFundraiser.id,
+      paymentMethod: PaymentMethod.OTHER,
+      paymentStatus: PaymentStatus.UNVERIFIABLE,
+      pickedUp: false,
+      items: {
+        create: [
+          {
+            quantity: 1,
+            itemId: dtiItems[2].id, // Apple pie
+          },
+        ],
+      },
+    },
+  });
+
+  // Create orders for CDS fundraiser
+  // Each real user will place 2 CDS orders
+  for (const user of realUsers) {
+    await prisma.order.create({
+      data: {
+        buyerId: user.id,
+        fundraiserId: cdsFundraiser.id,
+        paymentMethod: PaymentMethod.VENMO,
+        paymentStatus: PaymentStatus.PENDING,
+        pickedUp: false,
+        items: {
+          create: [
+            {
+              quantity: 1,
+              itemId: cdsItems[0].id, // CDS T-Shirt
+            },
+            {
+              quantity: 1,
+              itemId: cdsItems[1].id, // CDS Stickers
+            },
+          ],
+        },
+      },
+    });
+
+    await prisma.order.create({
+      data: {
+        buyerId: user.id,
+        fundraiserId: cdsFundraiser.id,
+        paymentMethod: PaymentMethod.OTHER,
+        paymentStatus: PaymentStatus.UNVERIFIABLE,
+        pickedUp: false,
+        items: {
+          create: [
+            {
+              quantity: 1,
+              itemId: cdsItems[0].id, // CDS T-Shirt
+            },
+          ],
+        },
+      },
+    });
+  }
 
   console.log("Seed data created successfully!");
 }
