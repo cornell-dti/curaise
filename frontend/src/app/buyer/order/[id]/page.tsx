@@ -46,7 +46,7 @@ export default async function OrderPage({
     error: error2,
   } = await supabase.auth.getSession();
   if (error2 || !session?.access_token) {
-    <h1>Session invalid</h1>;
+    throw new Error("No session found");
   }
 
   // get order
@@ -60,13 +60,16 @@ export default async function OrderPage({
   );
   const result = await response.json();
   if (!response.ok) {
-    return <h1>{result.message}</h1>;
+    throw new Error(result.message);
   }
+
+  // parse order data
   const data = CompleteOrderSchema.safeParse(result.data);
   if (!data.success) {
-    return <h1>Couldn't parse order</h1>;
+    throw new Error("Could not parse order data");
   }
   const order = data.data;
+
   const orderTotal = order.items
     .reduce(
       (total, item) =>
