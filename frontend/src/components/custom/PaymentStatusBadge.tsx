@@ -9,7 +9,7 @@ import { Badge } from "../ui/badge";
 import { BasicOrderSchema } from "common";
 import { z } from "zod";
 
-const OrderStatusBadge = ({
+const PaymentStatusBadge = ({
   order,
 }: {
   order: z.infer<typeof BasicOrderSchema>;
@@ -63,4 +63,4 @@ const OrderStatusBadge = ({
   );
 };
 
-export { OrderStatusBadge };
+export { PaymentStatusBadge };

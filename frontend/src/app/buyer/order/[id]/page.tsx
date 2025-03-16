@@ -18,7 +18,7 @@ import {
   ShoppingBag,
   User,
 } from "lucide-react";
-import { OrderStatusBadge } from "@/components/custom/OrderStatusBadge";
+import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { Separator } from "@/components/ui/separator";
 import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
 import { format } from "date-fns";
@@ -98,7 +98,7 @@ export default async function OrderPage({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle>Order Summary</CardTitle>
-            <OrderStatusBadge order={order} />
+            <PaymentStatusBadge order={order} />
           </CardHeader>
           <CardContent>
             <div className="grid gap-6 md:grid-cols-2">
