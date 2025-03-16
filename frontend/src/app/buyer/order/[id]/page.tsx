@@ -21,6 +21,29 @@ import {
 import { OrderStatusBadge } from "@/components/custom/OrderStatusBadge";
 import { Separator } from "@/components/ui/separator";
 
+// data fetching function
+const getOrder = async (id: string, token: string) => {
+  const response = await fetch(
+    process.env.NEXT_PUBLIC_API_URL + "/order/" + id,
+    {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    }
+  );
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message);
+  }
+
+  // parse order data
+  const data = CompleteOrderSchema.safeParse(result.data);
+  if (!data.success) {
+    throw new Error("Could not parse order data");
+  }
+  return data.data;
+};
+
 export default async function OrderPage({
   params,
 }: {
@@ -49,26 +72,7 @@ export default async function OrderPage({
     throw new Error("No session found");
   }
 
-  // get order
-  const response = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + "/order/" + id,
-    {
-      headers: {
-        Authorization: "Bearer " + session?.access_token,
-      },
-    }
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-
-  // parse order data
-  const data = CompleteOrderSchema.safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse order data");
-  }
-  const order = data.data;
+  const order = await getOrder(id, session.access_token);
 
   const orderTotal = order.items
     .reduce(
