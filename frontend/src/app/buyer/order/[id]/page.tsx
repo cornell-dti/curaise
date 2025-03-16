@@ -106,7 +106,8 @@ export default async function OrderPage({
                 <div className="flex items-center gap-2">
                   <CalendarIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                   <span className="text-sm break-words">
-                    Ordered at {order.createdAt.toLocaleString()}
+                    Ordered at{" "}
+                    {format(order.createdAt, "MMM d, yyyy 'at' h:mm a")}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -130,7 +131,7 @@ export default async function OrderPage({
                     Last Updated:
                   </span>
                   <span className="text-sm">
-                    {order.updatedAt.toLocaleString()}
+                    {format(order.updatedAt, "MMM d, yyyy 'at' h:mm a")}
                   </span>
                 </div>
               </div>
