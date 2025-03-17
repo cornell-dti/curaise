@@ -1,12 +1,18 @@
 import { Request, Response } from "express-serve-static-core";
-import { UpdateUserBody, UserRouteParams } from "./user.types";
+import { UserRouteParams } from "./user.types";
 import {
   getUser,
   getUserOrders,
   getUserOrganizations,
   updateUser,
 } from "./user.services";
-import { UserSchema, BasicOrderSchema, BasicOrganizationSchema } from "common";
+import {
+  UserSchema,
+  BasicOrderSchema,
+  BasicOrganizationSchema,
+  UpdateUserBody,
+} from "common";
+import { z } from "zod";
 
 export const getUserHandler = async (
   req: Request<UserRouteParams, any, {}, {}>,
@@ -86,7 +92,7 @@ export const getUserOrganizationsHandler = async (
 };
 
 export const updateUserHandler = async (
-  req: Request<UserRouteParams, any, UpdateUserBody, {}>,
+  req: Request<UserRouteParams, any, z.infer<typeof UpdateUserBody>, {}>,
   res: Response
 ) => {
   if (res.locals.user!.id !== req.params.id) {

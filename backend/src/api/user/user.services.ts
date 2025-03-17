@@ -1,5 +1,6 @@
 import { prisma } from "../../utils/prisma";
-import { UpdateUserBody } from "./user.types";
+import { UpdateUserBody } from "common";
+import { z } from "zod";
 
 export const getUser = async (userId: string) => {
   const user = await prisma.user.findUnique({
@@ -63,7 +64,9 @@ export const getUserOrganizations = async (userId: string) => {
 };
 
 // TODO: CHECK FOR POSSIBLE BUG (WITH UNDEFINED)
-export const updateUser = async (user: UpdateUserBody & { userId: string }) => {
+export const updateUser = async (
+  user: z.infer<typeof UpdateUserBody> & { userId: string }
+) => {
   const updatedUser = await prisma.user.update({
     where: { id: user.userId },
     data: {

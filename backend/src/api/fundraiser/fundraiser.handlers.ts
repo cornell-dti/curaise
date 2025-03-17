@@ -1,12 +1,7 @@
 import { Request, Response } from "express-serve-static-core";
 import {
-  CreateFundraiserBody,
   FundraiserRouteParams,
-  UpdateFundraiserBody,
-  CreateFundraiserItemBody,
-  UpdateFundraiserItemBody,
   FundraiserItemRouteParams,
-  CreateAnnouncementBody,
   DeleteAnnouncementRouteParams,
 } from "./fundraiser.types";
 import {
@@ -27,8 +22,14 @@ import {
   CompleteOrderSchema,
   CompleteFundraiserSchema,
   CompleteItemSchema,
+  CreateFundraiserBody,
+  UpdateFundraiserBody,
+  CreateFundraiserItemBody,
+  UpdateFundraiserItemBody,
+  CreateAnnouncementBody,
 } from "common";
 import { getOrganization } from "../organization/organization.services";
+import { z } from "zod";
 
 export const getAllFundraisersHandler = async (req: Request, res: Response) => {
   const fundraisers = await getAllFundraisers();
@@ -133,7 +134,7 @@ export const getFundraiserOrdersHandler = async (
 };
 
 export const createFundraiserHandler = async (
-  req: Request<{}, any, CreateFundraiserBody, {}>,
+  req: Request<{}, any, z.infer<typeof CreateFundraiserBody>, {}>,
   res: Response
 ) => {
   const organization = await getOrganization(req.body.organizationId);
@@ -169,7 +170,12 @@ export const createFundraiserHandler = async (
 };
 
 export const updateFundraiserHandler = async (
-  req: Request<FundraiserRouteParams, any, UpdateFundraiserBody, {}>,
+  req: Request<
+    FundraiserRouteParams,
+    any,
+    z.infer<typeof UpdateFundraiserBody>,
+    {}
+  >,
   res: Response
 ) => {
   const fundraiser = await getFundraiser(req.params.id);
@@ -212,7 +218,12 @@ export const updateFundraiserHandler = async (
 };
 
 export const createFundraiserItemHandler = async (
-  req: Request<FundraiserRouteParams, any, CreateFundraiserItemBody, {}>,
+  req: Request<
+    FundraiserRouteParams,
+    any,
+    z.infer<typeof CreateFundraiserItemBody>,
+    {}
+  >,
   res: Response
 ) => {
   const fundraiser = await getFundraiser(req.params.id);
@@ -255,7 +266,12 @@ export const createFundraiserItemHandler = async (
 };
 
 export const updateFundraiserItemHandler = async (
-  req: Request<FundraiserItemRouteParams, any, UpdateFundraiserItemBody, {}>,
+  req: Request<
+    FundraiserItemRouteParams,
+    any,
+    z.infer<typeof UpdateFundraiserItemBody>,
+    {}
+  >,
   res: Response
 ) => {
   const fundraiser = await getFundraiser(req.params.fundraiserId);
@@ -298,7 +314,12 @@ export const updateFundraiserItemHandler = async (
 };
 
 export const createAnnouncementHandler = async (
-  req: Request<FundraiserRouteParams, any, CreateAnnouncementBody, {}>,
+  req: Request<
+    FundraiserRouteParams,
+    any,
+    z.infer<typeof CreateAnnouncementBody>,
+    {}
+  >,
   res: Response
 ) => {
   const fundraiser = await getFundraiser(req.params.id);

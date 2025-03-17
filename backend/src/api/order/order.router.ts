@@ -6,7 +6,8 @@ import {
   getOrderHandler,
 } from "./order.handlers";
 import validate from "../../middleware/validate";
-import { CreateOrderBody, OrderRouteParams } from "./order.types";
+import { OrderRouteParams } from "./order.types";
+import { CreateOrderBody } from "common";
 import { authenticate } from "../../middleware/authenticate";
 
 const orderRouter = Router();

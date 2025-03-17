@@ -1,13 +1,14 @@
 import { Request, Response } from "express-serve-static-core";
-import { CreateOrderBody, OrderRouteParams } from "./order.types";
+import { OrderRouteParams } from "./order.types";
 import {
   completeOrderPickup,
   confirmOrderPayment,
   createOrder,
   getOrder,
 } from "./order.services";
-import { BasicOrderSchema, CompleteOrderSchema } from "common";
+import { BasicOrderSchema, CompleteOrderSchema, CreateOrderBody } from "common";
 import { getFundraiser } from "../fundraiser/fundraiser.services";
+import { z } from "zod";
 
 export const getOrderHandler = async (
   req: Request<OrderRouteParams, any, {}, {}>,
@@ -43,7 +44,7 @@ export const getOrderHandler = async (
 };
 
 export const createOrderHandler = async (
-  req: Request<{}, any, CreateOrderBody, {}>,
+  req: Request<{}, any, z.infer<typeof CreateOrderBody>, {}>,
   res: Response
 ) => {
   const fundraiser = await getFundraiser(req.body.fundraiserId);

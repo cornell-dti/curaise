@@ -1,10 +1,7 @@
 import { Router } from "express";
 import validate from "../../middleware/validate";
-import {
-  OrganizationRouteParams,
-  CreateOrganizationBody,
-  UpdateOrganizationBody,
-} from "./organization.types";
+import { OrganizationRouteParams } from "./organization.types";
+import { CreateOrganizationBody, UpdateOrganizationBody } from "common";
 import {
   getOrganizationFundraisersHandler,
   getOrganizationHandler,

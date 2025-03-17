@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { authenticate } from "../../middleware/authenticate";
 import validate from "../../middleware/validate";
-import { UpdateUserBody, UserRouteParams } from "./user.types";
+import { UserRouteParams } from "./user.types";
+import { UpdateUserBody } from "common";
 import {
   getUserHandler,
   getUserOrdersHandler,

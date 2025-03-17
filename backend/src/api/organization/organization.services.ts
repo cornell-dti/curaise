@@ -1,8 +1,6 @@
 import { prisma } from "../../utils/prisma";
-import {
-  CreateOrganizationBody,
-  UpdateOrganizationBody,
-} from "./organization.types";
+import { CreateOrganizationBody, UpdateOrganizationBody } from "common";
+import { z } from "zod";
 
 export const getOrganization = async (organizationId: string) => {
   const organization = await prisma.organization.findUnique({
@@ -31,7 +29,9 @@ export const getOrganizationFundraisers = async (organizationId: string) => {
 
 // TODO: CHECK FOR POSSIBLE BUG
 export const createOrganization = async (
-  organizationBody: CreateOrganizationBody & { creatorId: string }
+  organizationBody: z.infer<typeof CreateOrganizationBody> & {
+    creatorId: string;
+  }
 ) => {
   const newOrganization = await prisma.organization.create({
     data: {
@@ -53,7 +53,9 @@ export const createOrganization = async (
 };
 
 export const updateOrganization = async (
-  organizationBody: UpdateOrganizationBody & { organizationId: string }
+  organizationBody: z.infer<typeof UpdateOrganizationBody> & {
+    organizationId: string;
+  }
 ) => {
   const organization = await prisma.organization.update({
     where: { id: organizationBody.organizationId },

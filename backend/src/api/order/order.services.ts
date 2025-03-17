@@ -1,5 +1,6 @@
 import { prisma } from "../../utils/prisma";
-import { CreateOrderBody } from "./order.types";
+import { CreateOrderBody } from "common";
+import { z } from "zod";
 
 export const getOrder = async (orderId: string) => {
   const order = await prisma.order.findUnique({
@@ -41,7 +42,7 @@ export const getOrder = async (orderId: string) => {
 };
 
 export const createOrder = async (
-  orderBody: CreateOrderBody & { buyerId: string }
+  orderBody: z.infer<typeof CreateOrderBody> & { buyerId: string }
 ) => {
   const order = await prisma.order.create({
     data: {
