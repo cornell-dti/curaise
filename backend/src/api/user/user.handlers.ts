@@ -1,13 +1,17 @@
 import { Request, Response } from "express-serve-static-core";
 import { UserRouteParams } from "./user.types";
-import { UpdateUserBody } from "common";
 import {
   getUser,
   getUserOrders,
   getUserOrganizations,
   updateUser,
 } from "./user.services";
-import { UserSchema, BasicOrderSchema, BasicOrganizationSchema } from "common";
+import {
+  UserSchema,
+  BasicOrderSchema,
+  BasicOrganizationSchema,
+  UpdateUserBody,
+} from "common";
 import { z } from "zod";
 
 export const getUserHandler = async (
