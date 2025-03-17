@@ -1,9 +1,6 @@
 import { Request, Response } from "express-serve-static-core";
-import {
-  OrganizationRouteParams,
-  CreateOrganizationBody,
-  UpdateOrganizationBody,
-} from "./organization.types";
+import { OrganizationRouteParams } from "./organization.types";
+import { CreateOrganizationBody, UpdateOrganizationBody } from "common";
 import {
   getOrganization,
   getOrganizationFundraisers,
@@ -15,6 +12,7 @@ import {
   BasicOrganizationSchema,
   CompleteOrganizationSchema,
 } from "common";
+import z from "zod";
 
 export const getOrganizationHandler = async (
   req: Request<OrganizationRouteParams, any, {}, {}>,
@@ -66,7 +64,7 @@ export const getOrganizationFundraisersHandler = async (
 };
 
 export const createOrganizationHandler = async (
-  req: Request<{}, any, CreateOrganizationBody, {}>,
+  req: Request<{}, any, z.infer<typeof CreateOrganizationBody>, {}>,
   res: Response
 ) => {
   const organization = await createOrganization({
@@ -94,7 +92,7 @@ export const createOrganizationHandler = async (
 };
 
 export const updateOrganizationHandler = async (
-  req: Request<OrganizationRouteParams, any, UpdateOrganizationBody, {}>,
+  req: Request<OrganizationRouteParams, any, z.infer<typeof UpdateOrganizationBody>, {}>,
   res: Response
 ) => {
   const organization = await getOrganization(req.params.id);

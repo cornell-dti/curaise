@@ -1,5 +1,6 @@
 import { Request, Response } from "express-serve-static-core";
-import { CreateOrderBody, OrderRouteParams } from "./order.types";
+import { OrderRouteParams } from "./order.types";
+import { CreateOrderBody } from "common";
 import {
   completeOrderPickup,
   confirmOrderPayment,
@@ -43,7 +44,7 @@ export const getOrderHandler = async (
 };
 
 export const createOrderHandler = async (
-  req: Request<{}, any, CreateOrderBody, {}>,
+  req: Request<{}, any, z.infer<typeof CreateOrderBody>, {}>,
   res: Response
 ) => {
   const fundraiser = await getFundraiser(req.body.fundraiserId);

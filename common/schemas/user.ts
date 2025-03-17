@@ -6,3 +6,8 @@ export const UserSchema = z.object({
   name: z.string(),
   venmoUsername: z.string().min(1).max(255).nullish(),
 });
+
+export const UpdateUserBody = z.object({
+	name: z.string().min(1).max(255).optional(),
+	venmoUsername: z.string().min(1).max(255).optional(),
+});
