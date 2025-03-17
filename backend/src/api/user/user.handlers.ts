@@ -8,7 +8,7 @@ import {
   updateUser,
 } from "./user.services";
 import { UserSchema, BasicOrderSchema, BasicOrganizationSchema } from "common";
-import z from "zod";
+import { z } from "zod";
 
 export const getUserHandler = async (
   req: Request<UserRouteParams, any, {}, {}>,

@@ -9,6 +9,7 @@ import {
 } from "./order.services";
 import { BasicOrderSchema, CompleteOrderSchema } from "common";
 import { getFundraiser } from "../fundraiser/fundraiser.services";
+import { z } from "zod";
 
 export const getOrderHandler = async (
   req: Request<OrderRouteParams, any, {}, {}>,

@@ -12,7 +12,7 @@ import {
   BasicOrganizationSchema,
   CompleteOrganizationSchema,
 } from "common";
-import z from "zod";
+import { z } from "zod";
 
 export const getOrganizationHandler = async (
   req: Request<OrganizationRouteParams, any, {}, {}>,
@@ -92,7 +92,12 @@ export const createOrganizationHandler = async (
 };
 
 export const updateOrganizationHandler = async (
-  req: Request<OrganizationRouteParams, any, z.infer<typeof UpdateOrganizationBody>, {}>,
+  req: Request<
+    OrganizationRouteParams,
+    any,
+    z.infer<typeof UpdateOrganizationBody>,
+    {}
+  >,
   res: Response
 ) => {
   const organization = await getOrganization(req.params.id);

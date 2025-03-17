@@ -3,7 +3,7 @@ import {
   FundraiserRouteParams,
   FundraiserItemRouteParams,
   DeleteAnnouncementRouteParams,
-} from "./fundraiser/types.ts";
+} from "./fundraiser.types";
 import {
   CreateFundraiserBody,
   UpdateFundraiserBody,

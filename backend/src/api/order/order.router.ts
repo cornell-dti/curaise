@@ -6,7 +6,7 @@ import {
   getOrderHandler,
 } from "./order.handlers";
 import validate from "../../middleware/validate";
-import { OrderRouteParams } from "./order/types.ts";
+import { OrderRouteParams } from "./order.types";
 import { CreateOrderBody } from "common";
 import { authenticate } from "../../middleware/authenticate";
 

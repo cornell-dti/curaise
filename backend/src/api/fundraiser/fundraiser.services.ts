@@ -6,7 +6,7 @@ import {
   UpdateFundraiserItemBody,
   CreateAnnouncementBody,
 } from "common";
-import z from "zod";
+import { z } from "zod";
 
 export const getFundraiser = async (fundraiserId: string) => {
   const fundraiser = await prisma.fundraiser.findUnique({
@@ -130,7 +130,9 @@ export const createFundraiser = async (
 };
 
 export const updateFundraiser = async (
-  fundraiserBody: z.infer<typeof UpdateFundraiserBody> & { fundraiserId: string }
+  fundraiserBody: z.infer<typeof UpdateFundraiserBody> & {
+    fundraiserId: string;
+  }
 ) => {
   const fundraiser = await prisma.fundraiser.update({
     where: {
@@ -195,7 +197,9 @@ export const updateFundraiserItem = async (
 };
 
 export const createAnnouncement = async (
-  announcementBody: z.infer<typeof CreateAnnouncementBody> & { fundraiserId: string }
+  announcementBody: z.infer<typeof CreateAnnouncementBody> & {
+    fundraiserId: string;
+  }
 ) => {
   const announcement = await prisma.announcement.create({
     data: {
