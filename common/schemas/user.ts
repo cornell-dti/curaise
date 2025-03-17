@@ -7,6 +7,8 @@ export const UserSchema = z.object({
   venmoUsername: z.string().min(1).max(255).nullish(),
 });
 
+// CRUD BODIES:
+
 export const UpdateUserBody = z.object({
   name: z.string().min(1).max(255).optional(),
   venmoUsername: z.string().min(1).max(255).optional(),
