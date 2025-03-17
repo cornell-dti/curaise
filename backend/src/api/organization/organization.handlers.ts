@@ -1,6 +1,5 @@
 import { Request, Response } from "express-serve-static-core";
 import { OrganizationRouteParams } from "./organization.types";
-import { CreateOrganizationBody, UpdateOrganizationBody } from "common";
 import {
   getOrganization,
   getOrganizationFundraisers,
@@ -11,6 +10,8 @@ import {
   BasicFundraiserSchema,
   BasicOrganizationSchema,
   CompleteOrganizationSchema,
+  CreateOrganizationBody,
+  UpdateOrganizationBody,
 } from "common";
 import { z } from "zod";
 
