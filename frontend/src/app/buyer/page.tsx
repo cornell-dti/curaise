@@ -9,6 +9,7 @@ import { z } from "zod";
 import Link from "next/link";
 import { OrderCard } from "@/components/custom/OrderCard";
 import { isPast } from "date-fns";
+import { EditBuyerInfoDialog } from "@/components/custom/EditBuyerInfoDialog";
 
 const getUserProfile = async (userId: string, token: string) => {
   const response = await fetch(
@@ -106,9 +107,10 @@ export default async function BuyerHome() {
 
       <div className="flex items-center justify-between space-x-4 mb-6 p-4">
         <p>Looking to edit your account information?</p>
-        <Button variant="outline" asChild>
+        {/* <Button variant="outline" asChild>
           <Link href="/buyer/account">Edit Info</Link>
-        </Button>
+        </Button> */}
+        <EditBuyerInfoDialog user={userProfile} token={session.access_token} />
       </div>
 
       <div className="flex flex-col space-y-4">
