@@ -48,7 +48,7 @@ export function EditBuyerInfoDialog({
     },
   });
 
-  async function updateUser(data: z.infer<typeof UpdateUserBody>) {
+  async function onSubmit(data: z.infer<typeof UpdateUserBody>) {
     const response = await fetch(
       process.env.NEXT_PUBLIC_API_URL + "/user/" + user.id,
       {
@@ -79,7 +79,7 @@ export function EditBuyerInfoDialog({
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((data) => updateUser(data))}>
+          <form onSubmit={form.handleSubmit((data) => onSubmit(data))}>
             <DialogHeader>
               <DialogTitle>Edit account info</DialogTitle>
               <DialogDescription>
@@ -115,7 +115,9 @@ export function EditBuyerInfoDialog({
               />
             </div>
             <DialogFooter>
-              <Button type="submit">Save changes</Button>
+              <Button disabled={!form.formState.isDirty} type="submit">
+                Save changes
+              </Button>
             </DialogFooter>
           </form>
         </Form>
