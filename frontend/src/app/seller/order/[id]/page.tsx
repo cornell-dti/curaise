@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
-import { CreditCard, MapPin, ShoppingBag, User } from "lucide-react";
+import { CreditCard, MapPin, ShoppingBag, User, CalendarIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 // data fetching function
@@ -106,7 +106,7 @@ export default async function OrderPage({
               
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
+                  <CalendarIcon className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
                   <div>
                     <h3 className="font-semibold">Pickup Status</h3>
                     <div className="flex items-center gap-2 mt-1">
