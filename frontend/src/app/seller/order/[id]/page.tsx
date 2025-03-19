@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
-import { CreditCard, MapPin, ShoppingBag, User, CalendarIcon } from "lucide-react";
+import { CreditCard, ShoppingBag, User, CalendarIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 // data fetching function
