@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
-import { CalendarIcon, CreditCard, MapPin, ShoppingBag, User } from "lucide-react";
+import { CreditCard, MapPin, ShoppingBag, User } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 // data fetching function
@@ -72,78 +72,60 @@ export default async function OrderPage({
     .toFixed(2);
 
   return (
-    <div className="container max-w-4xl py-6 px-4 md:py-8 md:px-6">
+    <div className="container max-w-4xl py-6 px-4 md:py-8 md:px-6 mx-auto">
       <div className="flex flex-col gap-2 mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">Seller Order View</h1>
-        <p className="text-muted-foreground">
-          Order #{order.id} from {order.buyer.name}
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">Order Details</h1>
       </div>
 
       <div className="grid gap-6">
-        {/* Order Summary Card */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle>Order Summary</CardTitle>
-            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
-              <PaymentStatusBadge order={order} />
-              <PickupStatusBadge order={order} />
-            </div>
-          </CardHeader>
-          <CardContent>
+        {/* Order Status Card*/}
+        <Card className="border-2">
+          <CardContent className="pt-6">
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <CalendarIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                  <span className="text-sm break-words">
-                    Ordered at {format(order.createdAt, "MMM d, yyyy 'at' h:mm a")}
-                  </span>
+                <div className="flex items-start gap-3">
+                  <CreditCard className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold">Payment Status</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <PaymentStatusBadge order={order} />
+                      <span className="text-sm text-muted-foreground">
+                        {order.paymentMethod}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                  <span className="text-sm">
-                    Paid with {order.paymentMethod}
-                  </span>
-                </div>
-              </div>
-              <div className="space-y-1">
-                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-                  <span className="text-sm text-muted-foreground">Order ID:</span>
-                  <span className="text-sm font-medium break-all">{order.id}</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
-                  <span className="text-sm text-muted-foreground">Last Updated:</span>
-                  <span className="text-sm">
-                    {format(order.updatedAt, "MMM d, yyyy 'at' h:mm a")}
-                  </span>
+                <div className="flex items-start gap-3">
+                  <User className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold">Customer</h3>
+                    <p className="text-sm mt-1">{order.buyer.name}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Pickup Info Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle>Pickup Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex items-start gap-2">
-                <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
-                <span className="text-sm">
-                  Pickup Location: <b>{order.fundraiser.pickupLocation}</b>
-                </span>
-              </div>
-              <div className="flex items-start gap-2">
-                <CalendarIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
-                <span className="text-sm">
-                  Pickup Window:{" "}
-                  <b>
-                    {format(order.fundraiser.pickupStartsAt, "MMM d, yyyy 'at' h:mm a")}{" "}
-                    - {format(order.fundraiser.pickupEndsAt, "MMM d, yyyy 'at' h:mm a")}
-                  </b>
-                  </span>
+              
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold">Pickup Status</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <PickupStatusBadge order={order} />
+                      <span className="text-sm text-muted-foreground">
+                        {format(order.fundraiser.pickupStartsAt, "MMM d")}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <ShoppingBag className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold">Order Total</h3>
+                    <p className="text-sm mt-1">
+                      ${orderTotal} • {order.items.reduce((total, item) => total + item.quantity, 0)} items
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -160,7 +142,7 @@ export default async function OrderPage({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {order.items.map((orderItem) => (
+              {order.items.map((orderItem, index) => (
                 <div
                   key={orderItem.item.id}
                   className="flex flex-col sm:flex-row gap-4 pb-4 border-b last:border-0 last:pb-0"
@@ -180,7 +162,10 @@ export default async function OrderPage({
                   </div>
                   <div className="flex items-center justify-center sm:justify-end sm:w-24 mt-2 sm:mt-0">
                     <span className="font-medium">
-                      ${Decimal(orderItem.item.price).times(orderItem.quantity).toFixed(2)}
+                      $
+                      {Decimal(orderItem.item.price)
+                        .times(orderItem.quantity)
+                        .toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -194,43 +179,46 @@ export default async function OrderPage({
           </CardContent>
         </Card>
 
-        {/* Buyer Info Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              <CardTitle>Customer Information</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+        {/* Buyer and Order Info */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                <CardTitle>Buyer Info</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+                <div>
+                  <p className="font-medium mt-2 sm:mt-0">{order.buyer.name}</p>
+                  <p className="text-sm text-muted-foreground break-all">
+                    {order.buyer.email}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <ShoppingBag className="h-5 w-5" />
+                <CardTitle>Order Info</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
               <div>
-                <p className="font-medium mt-2 sm:mt-0">{order.buyer.name}</p>
-                <p className="text-sm text-muted-foreground break-all">
-                  {order.buyer.email}
+                <p className="font-medium mt-2 sm:mt-0">
+                  Order ID: {order.id}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Placed on: {format(order.createdAt, "MMM d, yyyy")}
                 </p>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Fundraiser Info */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <ShoppingBag className="h-5 w-5" />
-              <CardTitle>Fundraiser</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div>
-              <p className="font-medium mt-2 sm:mt-0">{order.fundraiser.name}</p>
-              <p className="text-sm text-muted-foreground line-clamp-2">
-                {order.fundraiser.description}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
