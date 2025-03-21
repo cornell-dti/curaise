@@ -45,11 +45,8 @@ export const getFundraisersByOrganization = async (organizationId: string) => {
 
 
 export const getAllFundraisersHandler = async (req: Request, res: Response) => {
-  const organizationId = req.query.organization_id as string | undefined;
 
-  const fundraisers = organizationId
-    ? await getFundraisersByOrganization(organizationId)
-    : await getAllFundraisers();
+  const fundraisers = await getAllFundraisers();
   if (!fundraisers) {
     res.status(404).json({ message: "Fundraisers not found" });
     return;

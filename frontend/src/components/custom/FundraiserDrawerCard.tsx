@@ -41,7 +41,7 @@ interface FundraiserDrawerContentProps {
 export function FundraiserDrawerContent({ fundraisersArray }: FundraiserDrawerContentProps) {
     type Fundraiser = z.infer<typeof CompleteFundraiserSchema>;
   return (
-    <div className="p-6 pb-2">
+    <div className="pb-2">
       {fundraisersArray.length > 0 ? (
         <div className="space-y-8">
           {fundraisersArray.map((fundraiser: Fundraiser) => {
@@ -71,7 +71,7 @@ export function FundraiserDrawerContent({ fundraisersArray }: FundraiserDrawerCo
                   <div className="grid gap-4 sm:grid-cols-2 mb-4">
                     <div className="space-y-3">
                       <div className="flex items-start gap-2">
-                        <ShoppingBag className="h-6 w-6 text-primary" />
+                        <ShoppingBag className="h-4 w-4 text-primary mt-0.5" />
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">BUYING PERIOD</p>
                           <p className="text-sm">
@@ -91,7 +91,7 @@ export function FundraiserDrawerContent({ fundraisersArray }: FundraiserDrawerCo
 
                     <div className="space-y-3">
                       <div className="flex items-start gap-2">
-                        <CalendarIcon className="h-3 w-3 text-primary mt-1" />
+                        <CalendarIcon className="h-4 w-4 text-primary mt-0.5" />
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">PICKUP DATE</p>
                           <p className="text-sm">{formatDate(fundraiser.pickupStartsAt)}</p>

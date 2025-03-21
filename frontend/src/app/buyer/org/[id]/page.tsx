@@ -5,22 +5,13 @@ import Link from "next/link";
 import { FaInstagram } from "react-icons/fa";
 import { LuShieldCheck } from "react-icons/lu";
 import { IoCloseOutline } from "react-icons/io5";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer"
 import { CompleteOrganizationSchema } from "common"
 import { CompleteFundraiserSchema } from "common"
 import { connection } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { FundraiserDrawerContent } from "@/components/custom/FundraiserDrawerCard"
+import { Separator } from "@/components/ui/separator"
 
 const getOrganization = async (id: string, token: string) => {
   const response = await fetch(
@@ -43,26 +34,21 @@ const getOrganization = async (id: string, token: string) => {
   return data.data;
 };
 
-export const getFundraisersByOrganization = async (organizationId: string) => {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
 
+export const getFundraisersByOrganization = async (
+  organizationId: string,
+  token: string
+) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/fundraiser?organization_id=${organizationId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${organizationId}/fundraisers`
   );
 
   const result = await response.json();
-  
-  console.log("API Response JSON:", result);
+
   if (!response.ok) {
     throw new Error(result.message);
   }
+
   type Fundraiser = z.infer<typeof CompleteFundraiserSchema>;
 
   const transformFundraiser = (fundraiser: Fundraiser) => ({
@@ -77,10 +63,10 @@ export const getFundraisersByOrganization = async (organizationId: string) => {
   });
 
   const transformedData = result.data.map(transformFundraiser);
-  console.log("Transformed Data: ", transformedData);
+
   const data = z.array(CompleteFundraiserSchema).safeParse(transformedData);
   if (!data.success) {
-    throw new Error("Could not parse fundraiser data .");
+    throw new Error("Could not parse fundraiser data.");
   }
 
   return data.data;
@@ -107,8 +93,7 @@ export default async function OrganizationPage({
 
     const org = await getOrganization(id, session.access_token);
 
-    console.log(org.id);
-    const fundraisers = await getFundraisersByOrganization(org.id);
+    const fundraisers = await getFundraisersByOrganization(org.id, session.access_token);
     const fundraisersArray = Array.isArray(fundraisers) ? fundraisers : [fundraisers];
 
     const instagramLink = org.instagramUsername ? `https://www.instagram.com/${org.instagramUsername}` : "#";
@@ -138,8 +123,19 @@ export default async function OrganizationPage({
           </Button>
         </div>
         
+        <div className="flex flex-row items-center gap-5 pt-10">
+          <h1 className="text-2xl md:text-2xl font-bold tracking-tight leading-tight">Active Fundraisers</h1>
+          <Separator className="flex-1"/>
+        </div>
+        <div>
+              {fundraisersArray.length > 0 ? (
+                <FundraiserDrawerContent fundraisersArray={fundraisersArray} />
+              ) : (
+                <p className="text-sm text-gray-500 pl-4">No active fundraisers found.</p>
+              )}
+        </div>
 
-        <div className="flex flex-wrap items-center gap-4 pt-2">
+        {/* <div className="flex flex-wrap items-center gap-4 pt-2">
           <Drawer>
             <DrawerTrigger asChild>
               <Button size="lg" className="h-10">
@@ -157,23 +153,7 @@ export default async function OrganizationPage({
                     for further information
                   </DrawerDescription>
                 </DrawerHeader>
-                <div className="p-6 pb-2">
-              {fundraisersArray.length > 0 ? (
-                // <div className="space-y-6">
-                //   {fundraisersArray.map((fundraiser) => (
-                //     <div key={fundraiser.id} className="space-y-2">
-                //       <blockquote className="text-lg font-semibold border-l-2 pl-4 py-1">
-                //         {new Date(fundraiser.buyingStartsAt).toLocaleDateString()} - {fundraiser.name}
-                //       </blockquote>
-                //       <p className="text-sm leading-relaxed pl-4">{fundraiser.description}</p>
-                //     </div>
-                //   ))}
-                // </div>
-                <FundraiserDrawerContent fundraisersArray={fundraisersArray} />
-              ) : (
-                <p className="text-sm text-gray-500 pl-4">No active fundraisers found.</p>
-              )}
-            </div>
+                
                 <DrawerFooter className="pt-6">
                   <DrawerClose asChild>
                     <Button variant="outline">
@@ -185,9 +165,9 @@ export default async function OrganizationPage({
               </div>
             </DrawerContent>
           </Drawer>
-        </div>
+        </div>*/}
         </section>
-    </section>
+    </section> 
   )
 }
 
