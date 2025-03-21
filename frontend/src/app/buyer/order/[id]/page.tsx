@@ -184,7 +184,7 @@ export default async function OrderPage({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {order.items.map((orderItem, index) => (
+              {order.items.map((orderItem,) => (
                 <div
                   key={orderItem.item.id}
                   className="flex flex-col sm:flex-row gap-4 pb-4 border-b last:border-0 last:pb-0"
