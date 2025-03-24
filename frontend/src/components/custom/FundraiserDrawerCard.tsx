@@ -1,11 +1,18 @@
-import { CalendarIcon, MapPinIcon, Clock, DollarSign, ShoppingBag, AlertCircle } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Progress } from "@/components/ui/progress"
-import Image from "next/image"
+import {
+  CalendarIcon,
+  MapPinIcon,
+  Clock,
+  DollarSign,
+  ShoppingBag,
+  AlertCircle,
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
+import Image from "next/image";
 import { z } from "zod";
-import { CompleteFundraiserSchema } from "common"
+import { CompleteFundraiserSchema } from "common";
 
 // Helper function to format dates
 const formatDate = (date: Date) => {
@@ -13,8 +20,8 @@ const formatDate = (date: Date) => {
     month: "short",
     day: "numeric",
     year: "numeric",
-  }).format(new Date(date))
-}
+  }).format(new Date(date));
+};
 
 // Helper function to format time
 const formatTime = (date: Date) => {
@@ -22,33 +29,46 @@ const formatTime = (date: Date) => {
     hour: "numeric",
     minute: "numeric",
     hour12: true,
-  }).format(new Date(date))
-}
+  }).format(new Date(date));
+};
 
 // Helper to check if a fundraiser is active
 const isFundraiserActive = (startDate: Date, endDate: Date) => {
-  const now = new Date()
-  return now >= new Date(startDate) && now <= new Date(endDate)
-}
+  const now = new Date();
+  return now >= new Date(startDate) && now <= new Date(endDate);
+};
+const isFundraiserPast = (endDate: Date) => {
+  const now = new Date();
+  return now > new Date(endDate);
+};
 
 type Fundraiser = z.infer<typeof CompleteFundraiserSchema>;
 type Fundraisers = Fundraiser[];
 
 interface FundraiserDrawerContentProps {
-    fundraisersArray: Fundraisers;
-  }
+  fundraisersArray: Fundraisers;
+}
 
-export function FundraiserDrawerContent({ fundraisersArray }: FundraiserDrawerContentProps) {
-    type Fundraiser = z.infer<typeof CompleteFundraiserSchema>;
+export function FundraiserDrawerContent({
+  fundraisersArray,
+}: FundraiserDrawerContentProps) {
+  type Fundraiser = z.infer<typeof CompleteFundraiserSchema>;
   return (
     <div className="pb-2">
       {fundraisersArray.length > 0 ? (
         <div className="space-y-8">
           {fundraisersArray.map((fundraiser: Fundraiser) => {
-            const isActive = isFundraiserActive(fundraiser.buyingStartsAt, fundraiser.buyingEndsAt)
+            const isActive = isFundraiserActive(
+              fundraiser.buyingStartsAt,
+              fundraiser.buyingEndsAt
+            );
+            const isPast = isFundraiserPast(fundraiser.buyingEndsAt);
 
             return (
-              <Card key={fundraiser.id} className="overflow-hidden border shadow-sm">
+              <Card
+                key={fundraiser.id}
+                className="overflow-hidden border shadow-sm"
+              >
                 {fundraiser.imageUrls && fundraiser.imageUrls.length > 0 && (
                   <div className="relative w-full h-40 bg-muted">
                     <Image
@@ -63,19 +83,30 @@ export function FundraiserDrawerContent({ fundraisersArray }: FundraiserDrawerCo
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start mb-3">
                     <h3 className="text-xl font-semibold">{fundraiser.name}</h3>
-                    <Badge variant={isActive ? "default" : "secondary"}>{isActive ? "Active" : "Upcoming"}</Badge>
+                    {!isPast ? (
+                      <Badge variant={isActive ? "default" : "secondary"}>
+                        {isActive ? "Active" : "Upcoming"}{" "}
+                      </Badge>
+                    ) : (
+                      <></>
+                    )}
                   </div>
 
-                  <p className="text-sm text-muted-foreground mb-4">{fundraiser.description}</p>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {fundraiser.description}
+                  </p>
 
                   <div className="grid gap-4 sm:grid-cols-2 mb-4">
                     <div className="space-y-3">
                       <div className="flex items-start gap-2">
                         <ShoppingBag className="h-4 w-4 text-primary mt-0.5" />
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground">BUYING PERIOD</p>
+                          <p className="text-xs font-medium text-muted-foreground">
+                            BUYING PERIOD
+                          </p>
                           <p className="text-sm">
-                            {formatDate(fundraiser.buyingStartsAt)} {" "} {formatDate(fundraiser.buyingEndsAt)}
+                            {formatDate(fundraiser.buyingStartsAt)}{" "}
+                            {formatDate(fundraiser.buyingEndsAt)}
                           </p>
                         </div>
                       </div>
@@ -83,7 +114,9 @@ export function FundraiserDrawerContent({ fundraisersArray }: FundraiserDrawerCo
                       <div className="flex items-start gap-2">
                         <MapPinIcon className="h-4 w-4 text-primary mt-0.5" />
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground">PICKUP LOCATION</p>
+                          <p className="text-xs font-medium text-muted-foreground">
+                            PICKUP LOCATION
+                          </p>
                           <p className="text-sm">{fundraiser.pickupLocation}</p>
                         </div>
                       </div>
@@ -93,17 +126,24 @@ export function FundraiserDrawerContent({ fundraisersArray }: FundraiserDrawerCo
                       <div className="flex items-start gap-2">
                         <CalendarIcon className="h-4 w-4 text-primary mt-0.5" />
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground">PICKUP DATE</p>
-                          <p className="text-sm">{formatDate(fundraiser.pickupStartsAt)}</p>
+                          <p className="text-xs font-medium text-muted-foreground">
+                            PICKUP DATE
+                          </p>
+                          <p className="text-sm">
+                            {formatDate(fundraiser.pickupStartsAt)}
+                          </p>
                         </div>
                       </div>
 
                       <div className="flex items-start gap-2">
                         <Clock className="h-4 w-4 text-primary mt-0.5" />
                         <div>
-                          <p className="text-xs font-medium text-muted-foreground">PICKUP TIME</p>
+                          <p className="text-xs font-medium text-muted-foreground">
+                            PICKUP TIME
+                          </p>
                           <p className="text-sm">
-                            {formatTime(fundraiser.pickupStartsAt)} - {formatTime(fundraiser.pickupEndsAt)}
+                            {formatTime(fundraiser.pickupStartsAt)} -{" "}
+                            {formatTime(fundraiser.pickupEndsAt)}
                           </p>
                         </div>
                       </div>
@@ -115,17 +155,23 @@ export function FundraiserDrawerContent({ fundraisersArray }: FundraiserDrawerCo
                       <div className="flex justify-between items-center mb-1.5">
                         <div className="flex items-center gap-1.5">
                           <DollarSign className="h-4 w-4 text-primary" />
-                          <p className="text-xs font-medium text-muted-foreground">FUNDRAISING GOAL</p>
+                          <p className="text-xs font-medium text-muted-foreground">
+                            FUNDRAISING GOAL
+                          </p>
                         </div>
-                        <p className="text-sm font-medium">${fundraiser.goalAmount.toString()}</p>
+                        <p className="text-sm font-medium">
+                          ${fundraiser.goalAmount.toString()}
+                        </p>
                       </div>
                       <Progress value={45} className="h-2" />
-                      <p className="text-xs text-right mt-1 text-muted-foreground">45% Complete</p>
+                      <p className="text-xs text-right mt-1 text-muted-foreground">
+                        45% Complete
+                      </p>
                     </div>
                   )}
                 </CardContent>
               </Card>
-            )
+            );
           })}
         </div>
       ) : (
@@ -138,6 +184,5 @@ export function FundraiserDrawerContent({ fundraisersArray }: FundraiserDrawerCo
         </div>
       )}
     </div>
-  )
+  );
 }
-
