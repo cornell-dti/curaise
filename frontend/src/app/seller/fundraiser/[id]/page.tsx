@@ -92,16 +92,17 @@ export default async function FundraiserOrdersPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: { 
+  searchParams: Promise<{ 
     search?: string;
     sort?: string;
     order?: 'asc' | 'desc';
-  };
+  }>;
 }) {
   await connection(); // ensures server component is dynamically rendered at runtime, not statically rendered at build time
 
   const supabase = await createClient();
   const fundraiserId = (await params).id;
+  const resolvedSearchParams = await searchParams;
 
   // protect page (must use supabase.auth.getUser() according to docs)
   const {
@@ -126,7 +127,7 @@ export default async function FundraiserOrdersPage({
   const fundraiserName = await getFundraiserNameById(fundraiserId, session.access_token);
   
   // Handle search
-  const search = searchParams.search?.toLowerCase() || '';
+  const search = resolvedSearchParams.search?.toLowerCase() || '';
   if (search) {
     orders = orders.filter((order: Order) => 
       order.buyer?.name?.toLowerCase().includes(search) ||
@@ -136,8 +137,8 @@ export default async function FundraiserOrdersPage({
   }
   
   // Handle sorting
-  const sortField = searchParams.sort || '';
-  const sortOrder = searchParams.order || 'asc';
+  const sortField = resolvedSearchParams.sort || '';
+  const sortOrder = resolvedSearchParams.order || 'asc';
   
   if (sortField) {
     orders.sort((a: Order, b: Order) => {
@@ -169,7 +170,8 @@ export default async function FundraiserOrdersPage({
   // Function to create sort URL
   const createSortUrl = (field: string): string => {
     const params = new URLSearchParams();
-    for (const [key, value] of Object.entries(searchParams)) {
+    // Use resolvedSearchParams instead of searchParams
+    for (const [key, value] of Object.entries(resolvedSearchParams)) {
       if (typeof value === 'string') {
         params.set(key, value);
       }
@@ -204,7 +206,7 @@ export default async function FundraiserOrdersPage({
                 className="w-64 h-10 pl-10 bg-white rounded-md border border-gray-300"
                 placeholder="Search orders"
                 name="search"
-                defaultValue={searchParams.search || ''}
+                defaultValue={resolvedSearchParams.search || ''}
               />
             </form>
           </div>
