@@ -211,7 +211,7 @@ export default async function FundraiserOrdersPage({
           Welcome back, <span className="text-blue-600">{organizationName}</span>
         </h1>
         <p className="text-muted-foreground mt-1">
-          Manage all orders associated with your fundraiser: <span className="font-semibold">{fundraiserName}</span>.
+          View all orders associated with <span className="font-semibold">{fundraiserName}</span>.
         </p>
       </div>
 
