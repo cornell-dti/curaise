@@ -4,9 +4,9 @@ import { connection } from "next/server";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Download, ArrowUpDown } from "lucide-react";
+import { Search, ArrowUpDown } from "lucide-react";
+import { ExportButton } from "@/components/export-button";
 
 // Type definitions for API responses
 type OrderItem = {
@@ -229,10 +229,7 @@ export default async function FundraiserOrdersPage({
             </form>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" className="h-10 px-4">
-              Export
-              <Download className="ml-2 h-5 w-5" />
-            </Button>
+            <ExportButton orders={orders} fundraiserName={fundraiserName} />
           </div>
         </div>
         <div className="overflow-x-auto">
