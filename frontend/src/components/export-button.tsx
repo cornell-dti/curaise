@@ -3,26 +3,10 @@
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { useState } from "react";
+import { CompleteOrderSchema } from "common/schemas/order";
+import { z } from "zod";
 
-type OrderItem = {
-  item: { 
-    name: string; 
-    price: number;
-  };
-  quantity: number;
-};
-
-type Order = {
-  id: string;
-  buyer?: { 
-    name?: string; 
-    email?: string;
-  };
-  paymentMethod: string;
-  pickedUp: boolean;
-  createdAt: string;
-  items: OrderItem[];
-};
+type Order = z.infer<typeof CompleteOrderSchema>;
 
 export function ExportButton({ orders, fundraiserName }: { orders: Order[], fundraiserName: string }) {
   const [isExporting, setIsExporting] = useState(false);
@@ -35,7 +19,7 @@ export function ExportButton({ orders, fundraiserName }: { orders: Order[], fund
       
       const rows = orders.map(order => {
         const orderTotal = order.items.reduce(
-          (total, item) => total + item.quantity * item.item.price, 0
+          (total, item) => total + item.quantity * Number(item.item.price), 0
         );
         
         const orderDetails = order.items.map(item => 

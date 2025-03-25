@@ -7,27 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search, ArrowUpDown } from "lucide-react";
 import { ExportButton } from "@/components/export-button";
+import { CompleteOrderSchema } from "common/schemas/order";
+import { CompleteFundraiserSchema } from "common/schemas/fundraiser";
+import { z } from "zod";
 
-// Type definitions for API responses
-type OrderItem = {
-  item: { 
-    name: string; 
-    price: number;
-  };
-  quantity: number;
-};
-
-type Order = {
-  id: string;
-  buyer?: { 
-    name?: string; 
-    email?: string;
-  };
-  paymentMethod: string;
-  pickedUp: boolean;
-  createdAt: string;
-  items: OrderItem[];
-};
+type Order = z.infer<typeof CompleteOrderSchema>;
+type OrderItem = Order['items'][0];
 
 type OrderResponse = {
   data?: {
@@ -37,12 +22,7 @@ type OrderResponse = {
 };
 
 type FundraiserResponse = {
-  data?: {
-    name?: string;
-    organization: {
-      name: string;
-    };
-  };
+  data?: z.infer<typeof CompleteFundraiserSchema>;
   message?: string;
 };
 
@@ -171,8 +151,8 @@ export default async function FundraiserOrdersPage({
         aValue = a.buyer?.email?.split('@')[0] || '';
         bValue = b.buyer?.email?.split('@')[0] || '';
       } else if (sortField === 'total') {
-        aValue = a.items.reduce((sum: number, item: OrderItem) => sum + (item.quantity * item.item.price), 0);
-        bValue = b.items.reduce((sum: number, item: OrderItem) => sum + (item.quantity * item.item.price), 0);
+        aValue = a.items.reduce((sum: number, item: OrderItem) => sum + (item.quantity * Number(item.item.price)), 0);
+        bValue = b.items.reduce((sum: number, item: OrderItem) => sum + (item.quantity * Number(item.item.price)), 0);
       } else if (sortField === 'payment') {
         aValue = a.paymentMethod || '';
         bValue = b.paymentMethod || '';
@@ -275,7 +255,7 @@ export default async function FundraiserOrdersPage({
               ) : (
                 orders.map((order: Order) => {
                   const orderTotal = order.items.reduce(
-                    (total: number, item: OrderItem) => total + item.quantity * item.item.price,
+                    (total: number, item: OrderItem) => total + item.quantity * Number(item.item.price),
                     0
                   );
                   return (
