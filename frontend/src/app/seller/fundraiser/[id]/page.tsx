@@ -1,12 +1,13 @@
 import { CompleteFundraiserSchema, CompleteOrderSchema } from "common";
 import { createClient } from "@/utils/supabase/server";
-import { AnalyticsSummaryCard } from "@/components/custom/AnalyticsSummary";
-import { z } from "zod";
-import Decimal from "decimal.js";
-import TodoList from "@/components/custom/TodoList";
-import Checklist from "@/components/custom/Checklist";
-import Link from "next/link";
-import { MdArrowOutward } from "react-icons/md";
+import { redirect } from "next/navigation";
+import { connection } from "next/server";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, ArrowUpDown } from "lucide-react";
+import { ExportButton } from "@/components/export-button";
 
 // Type definitions for API responses
 type OrderItem = {
@@ -56,8 +57,6 @@ const getOrdersByFundraiser = async (fundraiserId: string, token: string): Promi
       },
     }
   );
-  const result = await response.json() as OrderResponse;
-
   const result = (await response.json()) as OrderResponse;
   // Log the API call output
   console.log("API Response:", result);
@@ -228,10 +227,7 @@ export default async function FundraiserOrdersPage({
             </form>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" className="h-10 px-4">
-              Export
-              <Download className="ml-2 h-5 w-5" />
-            </Button>
+            <ExportButton orders={orders} fundraiserName={fundraiserName} />
           </div>
         </div>
         <div className="overflow-x-auto">
