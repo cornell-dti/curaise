@@ -51,6 +51,24 @@ const getOrganizationNameByFundraiserId = async (fundraiserId: string, token: st
   return result.data?.organization.name || "Unknown Organization";
 };
 
+const getFundraiserNameById = async (fundraiserId: string, token: string): Promise<string> => {
+  const response = await fetch(
+    process.env.NEXT_PUBLIC_API_URL + "/fundraiser/" + fundraiserId,
+    {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    }
+  );
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch fundraiser name");
+  }
+
+  return result.data?.name || "Unknown Fundraiser";
+};
+
 export default async function FundraiserOrdersPage({
   params,
 }: {
@@ -82,95 +100,98 @@ export default async function FundraiserOrdersPage({
   const orders = await getOrdersByFundraiser(fundraiserId, session.access_token);
 
   const organizationName = await getOrganizationNameByFundraiserId(fundraiserId, session.access_token);
-  console.log("Organization Name:", organizationName);
+
+  const fundraiserName = await getFundraiserNameById(fundraiserId, session.access_token);
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-gray-100">
-      <div className="w-[1028px]">
-        <h1 className="text-xl mb-4 mt-3 text-black">
-          Welcome back, <span className="font-bold text-[#0D53AE]">{organizationName}</span>
+    <div className="container mx-auto px-4 py-6 max-w-6xl">
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold text-gray-800">
+          Welcome back, <span className="text-blue-600">{organizationName}</span>
         </h1>
-        <Card className="h-[654px] bg-[#ebebeb] rounded-lg overflow-hidden">
-          <div className="p-3 flex justify-between">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
-              <Input
-                className="w-[149px] h-[31px] pl-8 bg-white rounded-[9px] shadow-[0px_4px_4px_#00000040]"
-                placeholder=""
-              />
-            </div>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="h-[31px] flex items-center gap-3.5 px-3 py-[3px] bg-white rounded-md shadow-[0px_4px_4px_#00000040] [font-family:'Inter-Regular',Helvetica] font-normal text-black"
-              >
-                Export
-                <Download className="h-6 w-6" />
-              </Button>
-              <Button
-                variant="outline"
-                className="h-[31px] flex items-center gap-3.5 px-3 py-[3px] bg-white rounded-md shadow-[0px_4px_4px_#00000040] [font-family:'Inter-Regular',Helvetica] font-normal text-black"
-              >
-                Sort By
-                <ArrowUpDown className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          <div className="mt-2">
-            <Table>
-              <TableHeader className="bg-[#c0c0c0]">
-                <TableRow className="h-[60px] border-none">
-                  <TableHead className="w-[50px] px-4 py-3 border-none"><Checkbox /></TableHead>
-                  <TableHead className="[font-family:'Inter-Regular',Helvetica] font-normal text-black text-base text-center px-4 py-3 border-none">Name</TableHead>
-                  <TableHead className="[font-family:'Inter-Regular',Helvetica] font-normal text-black text-base text-center px-4 py-3 border-none">Email</TableHead>
-                  <TableHead className="[font-family:'Inter-Regular',Helvetica] font-normal text-black text-base text-center px-4 py-3 border-none">NetId</TableHead>
-                  <TableHead className="[font-family:'Inter-Regular',Helvetica] font-normal text-black text-base text-center px-4 py-3 border-none">Order Details</TableHead>
-                  <TableHead className="[font-family:'Inter-Regular',Helvetica] font-normal text-black text-base text-center px-4 py-3 border-none">Payment</TableHead>
-                  <TableHead className="[font-family:'Inter-Regular',Helvetica] font-normal text-black text-base text-center px-4 py-3 border-none">Order Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {orders.length === 0 ? (
-                  <TableRow className="h-[60px] border-none">
-                    <TableCell colSpan={7} className="text-center font-normal px-4 py-3 border-none">No orders available</TableCell>
-                  </TableRow>
-                ) : (
-                  orders.map(
-                    (order: {
-                      id: string;
-                      buyer?: { name?: string; email?: string };
-                      paymentMethod: string;
-                      pickedUp: boolean;
-                      createdAt: string;
-                      items: { item: { name: string; price: number }; quantity: number }[];
-                    }) => {
-                      const orderTotal = order.items.reduce(
-                        (total, item) => total + item.quantity * item.item.price,
-                        0
-                      );
-                      return (
-                        <TableRow key={order.id} className="hover:bg-gray-100 h-[60px] border-none">
-                          <TableCell className="px-4 py-3 border-none"><Checkbox /></TableCell>
-                          <TableCell className="[font-family:'Inter-Regular',Helvetica] font-normal text-black text-base text-center px-4 py-3 border-none">{order.buyer?.name || "Unknown"}</TableCell>
-                          <TableCell className="[font-family:'Inter-Regular',Helvetica] font-normal text-black text-base text-center px-4 py-3 border-none">{order.buyer?.email || "Unknown"}</TableCell>
-                          <TableCell className="[font-family:'Inter-Regular',Helvetica] font-normal text-black text-base text-center px-4 py-3 border-none">{order.buyer?.email?.split('@')[0] || "Unknown"}</TableCell>
-                          <TableCell className="[font-family:'Inter-Regular',Helvetica] font-normal text-black text-base text-center px-4 py-3 border-none">
-                            {order.items.map((item, index) => (
-                              <div key={index}>{item.quantity} {item.item.name}{item.quantity > 1 ? "s" : ""}</div>
-                            ))}
-                          </TableCell>
-                          <TableCell className="[font-family:'Inter-Regular',Helvetica] font-normal text-black text-base text-center px-4 py-3 border-none">{order.paymentMethod || "Unknown"}</TableCell>
-                          <TableCell className="[font-family:'Inter-Regular',Helvetica] font-normal text-black text-base text-center px-4 py-3 border-none">${orderTotal.toFixed(2) || "Unknown"}</TableCell>
-                        </TableRow>
-                      );
-                    }
-                  )
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </Card>
+        <p className="text-muted-foreground mt-1">
+          Manage all orders associated with your fundraiser: <span className="font-semibold">{fundraiserName}</span>.
+        </p>
       </div>
+
+      <Card className="rounded-lg shadow-md">
+        <div className="p-4 flex justify-between items-center">
+          <div className="relative">
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
+            <Input
+              className="w-48 h-10 pl-10 bg-white rounded-md border border-gray-300"
+              placeholder="Search orders"
+            />
+          </div>
+          <div className="flex gap-3">
+            <Button variant="outline" className="h-10 px-4">
+              Export
+              <Download className="ml-2 h-5 w-5" />
+            </Button>
+            <Button variant="outline" className="h-10 px-4">
+              Sort By
+              <ArrowUpDown className="ml-2 h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-gray-100">
+              <TableRow>
+                <TableHead className="px-4 py-3 text-left">Select</TableHead>
+                <TableHead className="px-4 py-3 text-left">Name</TableHead>
+                <TableHead className="px-4 py-3 text-left">Email</TableHead>
+                <TableHead className="px-4 py-3 text-left">NetId</TableHead>
+                <TableHead className="px-4 py-3 text-left">Order Details</TableHead>
+                <TableHead className="px-4 py-3 text-left">Payment</TableHead>
+                <TableHead className="px-4 py-3 text-left">Order Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {orders.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-4">
+                    No orders available
+                  </TableCell>
+                </TableRow>
+              ) : (
+                orders.map((order: {
+                  id: string;
+                  buyer?: { name?: string; email?: string };
+                  paymentMethod: string;
+                  pickedUp: boolean;
+                  createdAt: string;
+                  items: { item: { name: string; price: number }; quantity: number }[];
+                }) => {
+                  const orderTotal = order.items.reduce(
+                    (total: number, item: { item: { name: string; price: number }; quantity: number }) => total + item.quantity * item.item.price,
+                    0
+                  );
+                  return (
+                    <TableRow key={order.id} className="hover:bg-gray-50">
+                      <TableCell className="px-4 py-3">
+                        <Checkbox />
+                      </TableCell>
+                      <TableCell className="px-4 py-3">{order.buyer?.name || "Unknown"}</TableCell>
+                      <TableCell className="px-4 py-3">{order.buyer?.email || "Unknown"}</TableCell>
+                      <TableCell className="px-4 py-3">{order.buyer?.email?.split('@')[0] || "Unknown"}</TableCell>
+                      <TableCell className="px-4 py-3">
+                        {order.items.map((item, index: number) => (
+                          <div key={index}>
+                            {item.quantity} {item.item.name}
+                          </div>
+                        ))}
+                      </TableCell>
+                      <TableCell className="px-4 py-3">{order.paymentMethod || "Unknown"}</TableCell>
+                      <TableCell className="px-4 py-3">${orderTotal.toFixed(2)}</TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </Card>
     </div>
   );
 }
