@@ -8,8 +8,46 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search, Download, ArrowUpDown } from "lucide-react";
 
+// Type definitions for API responses
+type OrderItem = {
+  item: { 
+    name: string; 
+    price: number;
+  };
+  quantity: number;
+};
+
+type Order = {
+  id: string;
+  buyer?: { 
+    name?: string; 
+    email?: string;
+  };
+  paymentMethod: string;
+  pickedUp: boolean;
+  createdAt: string;
+  items: OrderItem[];
+};
+
+type OrderResponse = {
+  data?: {
+    cleanedOrders: Order[];
+  };
+  message?: string;
+};
+
+type FundraiserResponse = {
+  data?: {
+    name?: string;
+    organization: {
+      name: string;
+    };
+  };
+  message?: string;
+};
+
 // data fetching function
-const getOrdersByFundraiser = async (fundraiserId: string, token: string) => {
+const getOrdersByFundraiser = async (fundraiserId: string, token: string): Promise<Order[]> => {
   const response = await fetch(
     process.env.NEXT_PUBLIC_API_URL + "/fundraiser/" + fundraiserId + "/orders",
     {
@@ -18,7 +56,7 @@ const getOrdersByFundraiser = async (fundraiserId: string, token: string) => {
       },
     }
   );
-  const result = await response.json();
+  const result = await response.json() as OrderResponse;
 
   // Log the API call output
   console.log("API Response:", result);
@@ -42,7 +80,7 @@ const getOrganizationNameByFundraiserId = async (fundraiserId: string, token: st
       },
     }
   );
-  const result = await response.json();
+  const result = await response.json() as FundraiserResponse;
 
   if (!response.ok) {
     throw new Error(result.message || "Failed to fetch organization name");
@@ -60,7 +98,7 @@ const getFundraiserNameById = async (fundraiserId: string, token: string): Promi
       },
     }
   );
-  const result = await response.json();
+  const result = await response.json() as FundraiserResponse;
 
   if (!response.ok) {
     throw new Error(result.message || "Failed to fetch fundraiser name");
@@ -71,8 +109,14 @@ const getFundraiserNameById = async (fundraiserId: string, token: string): Promi
 
 export default async function FundraiserOrdersPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: { 
+    search?: string;
+    sort?: string;
+    order?: 'asc' | 'desc';
+  };
 }) {
   await connection(); // ensures server component is dynamically rendered at runtime, not statically rendered at build time
 
@@ -97,11 +141,68 @@ export default async function FundraiserOrdersPage({
     throw new Error("No session found");
   }
 
-  const orders = await getOrdersByFundraiser(fundraiserId, session.access_token);
-
+  let orders = await getOrdersByFundraiser(fundraiserId, session.access_token);
   const organizationName = await getOrganizationNameByFundraiserId(fundraiserId, session.access_token);
-
   const fundraiserName = await getFundraiserNameById(fundraiserId, session.access_token);
+  
+  // Handle search
+  const search = searchParams.search?.toLowerCase() || '';
+  if (search) {
+    orders = orders.filter((order: Order) => 
+      order.buyer?.name?.toLowerCase().includes(search) ||
+      order.buyer?.email?.toLowerCase().includes(search) ||
+      order.items.some(item => item.item.name.toLowerCase().includes(search))
+    );
+  }
+  
+  // Handle sorting
+  const sortField = searchParams.sort || '';
+  const sortOrder = searchParams.order || 'asc';
+  
+  if (sortField) {
+    orders.sort((a: Order, b: Order) => {
+      let aValue: string | number = '';
+      let bValue: string | number = '';
+      
+      if (sortField === 'name') {
+        aValue = a.buyer?.name || '';
+        bValue = b.buyer?.name || '';
+      } else if (sortField === 'netid') {
+        aValue = a.buyer?.email?.split('@')[0] || '';
+        bValue = b.buyer?.email?.split('@')[0] || '';
+      } else if (sortField === 'total') {
+        aValue = a.items.reduce((sum: number, item: OrderItem) => sum + (item.quantity * item.item.price), 0);
+        bValue = b.items.reduce((sum: number, item: OrderItem) => sum + (item.quantity * item.item.price), 0);
+      } else if (sortField === 'payment') {
+        aValue = a.paymentMethod || '';
+        bValue = b.paymentMethod || '';
+      }
+      
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+  }
+
+  // Function to create sort URL
+  const createSortUrl = (field: string): string => {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(searchParams)) {
+      if (typeof value === 'string') {
+        params.set(key, value);
+      }
+    }
+    if (params.get('sort') === field) {
+      // Toggle order if same field
+      params.set('order', params.get('order') === 'asc' ? 'desc' : 'asc');
+    } else {
+      params.set('sort', field);
+      params.set('order', 'asc');
+    }
+    return `?${params.toString()}`;
+  };
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-6xl">
@@ -118,19 +219,19 @@ export default async function FundraiserOrdersPage({
         <div className="p-4 flex justify-between items-center">
           <div className="relative">
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
-            <Input
-              className="w-48 h-10 pl-10 bg-white rounded-md border border-gray-300"
-              placeholder="Search orders"
-            />
+            <form>
+              <Input
+                className="w-64 h-10 pl-10 bg-white rounded-md border border-gray-300"
+                placeholder="Search orders"
+                name="search"
+                defaultValue={searchParams.search || ''}
+              />
+            </form>
           </div>
           <div className="flex gap-3">
             <Button variant="outline" className="h-10 px-4">
               Export
               <Download className="ml-2 h-5 w-5" />
-            </Button>
-            <Button variant="outline" className="h-10 px-4">
-              Sort By
-              <ArrowUpDown className="ml-2 h-5 w-5" />
             </Button>
           </div>
         </div>
@@ -139,12 +240,32 @@ export default async function FundraiserOrdersPage({
             <TableHeader className="bg-gray-100">
               <TableRow>
                 <TableHead className="px-4 py-3 text-left">Select</TableHead>
-                <TableHead className="px-4 py-3 text-left">Name</TableHead>
+                <TableHead className="px-4 py-3 text-left">
+                  <a href={createSortUrl('name')} className="flex items-center">
+                    Name
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </a>
+                </TableHead>
                 <TableHead className="px-4 py-3 text-left">Email</TableHead>
-                <TableHead className="px-4 py-3 text-left">NetId</TableHead>
+                <TableHead className="px-4 py-3 text-left">
+                  <a href={createSortUrl('netid')} className="flex items-center">
+                    NetId
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </a>
+                </TableHead>
                 <TableHead className="px-4 py-3 text-left">Order Details</TableHead>
-                <TableHead className="px-4 py-3 text-left">Payment</TableHead>
-                <TableHead className="px-4 py-3 text-left">Order Total</TableHead>
+                <TableHead className="px-4 py-3 text-left">
+                  <a href={createSortUrl('payment')} className="flex items-center">
+                    Payment
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </a>
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left">
+                  <a href={createSortUrl('total')} className="flex items-center">
+                    Order Total
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </a>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -155,16 +276,9 @@ export default async function FundraiserOrdersPage({
                   </TableCell>
                 </TableRow>
               ) : (
-                orders.map((order: {
-                  id: string;
-                  buyer?: { name?: string; email?: string };
-                  paymentMethod: string;
-                  pickedUp: boolean;
-                  createdAt: string;
-                  items: { item: { name: string; price: number }; quantity: number }[];
-                }) => {
+                orders.map((order: Order) => {
                   const orderTotal = order.items.reduce(
-                    (total: number, item: { item: { name: string; price: number }; quantity: number }) => total + item.quantity * item.item.price,
+                    (total: number, item: OrderItem) => total + item.quantity * item.item.price,
                     0
                   );
                   return (
@@ -183,13 +297,16 @@ export default async function FundraiserOrdersPage({
                         ))}
                       </TableCell>
                       <TableCell className="px-4 py-3">{order.paymentMethod || "Unknown"}</TableCell>
-                      <TableCell className="px-4 py-3">${orderTotal.toFixed(2)}</TableCell>
+                      <TableCell className="px-4 py-3 font-medium">${orderTotal.toFixed(2)}</TableCell>
                     </TableRow>
                   );
                 })
               )}
             </TableBody>
           </Table>
+        </div>
+        <div className="p-4 text-sm text-muted-foreground">
+          {orders.length} {orders.length === 1 ? 'order' : 'orders'} found
         </div>
       </Card>
     </div>
