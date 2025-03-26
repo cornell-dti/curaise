@@ -7,7 +7,7 @@ import { CompleteOrganizationSchema } from "common";
 import { CompleteFundraiserSchema } from "common";
 import { connection } from "next/server";
 import { z } from "zod";
-import { FundraiserDrawerContent } from "@/components/custom/FundraiserDrawerCard";
+import { FundraiserCard } from "@/components/custom/FundraiserCard";
 import { Separator } from "@/components/ui/separator";
 
 const getOrganization = async (id: string, token: string) => {
@@ -159,7 +159,9 @@ export default async function OrganizationPage({
         </div>
         <div>
           {currentAndFutureFundraisers.length > 0 ? (
-            <FundraiserDrawerContent fundraisersArray={currentAndFutureFundraisers} />
+              <FundraiserCard
+                fundraisersArray={currentAndFutureFundraisers}
+              />
           ) : (
             <p className="text-sm text-gray-500 pl-4">
               No active fundraisers found.
@@ -175,7 +177,7 @@ export default async function OrganizationPage({
         </div>
         <div>
           {pastFundraisers.length > 0 ? (
-            <FundraiserDrawerContent fundraisersArray={pastFundraisers} />
+            <FundraiserCard fundraisersArray={pastFundraisers} />
           ) : (
             <p className="text-sm text-gray-500 pl-4">
               No active fundraisers found.
