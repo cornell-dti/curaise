@@ -4,9 +4,16 @@ import { connection } from "next/server";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Search, ArrowUpDown, ArrowUp, ArrowDown, Filter } from "lucide-react";
 import { ExportButton } from "@/components/custom/ExportButton";
-import { FilterButton } from "@/components/custom/FilterButton";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { CompleteFundraiserSchema } from "common/schemas/fundraiser";
 import { z } from "zod";
@@ -249,6 +256,43 @@ export default async function FundraiserOrdersPage({
     id,
     name,
   }));
+
+  // Get active filters
+  const activeFilters = {
+    paymentType: Array.isArray(resolvedSearchParams.paymentType)
+      ? resolvedSearchParams.paymentType
+      : resolvedSearchParams.paymentType ? [resolvedSearchParams.paymentType] : [],
+    items: Array.isArray(resolvedSearchParams.items)
+      ? resolvedSearchParams.items
+      : resolvedSearchParams.items ? [resolvedSearchParams.items] : [],
+    status: Array.isArray(resolvedSearchParams.status)
+      ? resolvedSearchParams.status
+      : resolvedSearchParams.status ? [resolvedSearchParams.status] : []
+  };
+
+  const totalActiveFilters =
+    activeFilters.paymentType.length +
+    activeFilters.items.length +
+    activeFilters.status.length;
+
+  // Function to create URL for clearing filters
+  const createClearFiltersUrl = () => {
+    const params = new URLSearchParams();
+    
+    // Preserve existing non-filter search params
+    Object.entries(resolvedSearchParams).forEach(([key, value]) => {
+      if (!['paymentType', 'items', 'status'].includes(key) && value) {
+        if (Array.isArray(value)) {
+          value.forEach(v => params.append(key, v));
+        } else {
+          params.set(key, String(value));
+        }
+      }
+    });
+    
+    return `?${params.toString()}`;
+  };
+
   return (
     <div className="container mx-auto px-4 py-6 max-w-6xl">
       <div className="mb-4">
@@ -274,23 +318,134 @@ export default async function FundraiserOrdersPage({
             </form>
           </div>
           <div className="flex gap-3">
-            <FilterButton
-              paymentTypes={paymentTypes}
-              itemOptions={availableItems}
-              orderStatuses={orderStatuses}
-              activeFilters={{
-                paymentType: Array.isArray(resolvedSearchParams.paymentType)
-                  ? resolvedSearchParams.paymentType
-                  : resolvedSearchParams.paymentType ? [resolvedSearchParams.paymentType] : [],
-                items: Array.isArray(resolvedSearchParams.items)
-                  ? resolvedSearchParams.items
-                  : resolvedSearchParams.items ? [resolvedSearchParams.items] : [],
-                status: Array.isArray(resolvedSearchParams.status)
-                  ? resolvedSearchParams.status
-                  : resolvedSearchParams.status ? [resolvedSearchParams.status] : []
-              }}
-              currentParams={resolvedSearchParams}
-            />
+            {/* Server-side filter functionality */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="h-10 px-4">
+                  <span>Filter</span>
+                  <Filter className="h-4 w-4" />
+                  {totalActiveFilters > 0 && (
+                    <Badge
+                      variant="secondary"
+                      className="ml-1 rounded-sm px-1 font-normal"
+                    >
+                      {totalActiveFilters}
+                    </Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-4" align="end">
+                <form method="get" action="">
+                  <div className="max-h-[400px] overflow-y-auto pr-2">
+                    {/* Preserve non-filter parameters */}
+                    {Object.entries(resolvedSearchParams).map(([key, value]) => {
+                      if (!['paymentType', 'items', 'status'].includes(key) && value !== undefined && key !== 'search') {
+                        if (Array.isArray(value)) {
+                          return value.map((v, i) => (
+                            <input key={`${key}-${i}`} type="hidden" name={key} value={v} />
+                          ));
+                        } else {
+                          return <input key={key} type="hidden" name={key} value={String(value)} />;
+                        }
+                      }
+                      return null;
+                    })}
+                    
+                    {/* Preserve search parameter */}
+                    {resolvedSearchParams.search && (
+                      <input type="hidden" name="search" value={String(resolvedSearchParams.search)} />
+                    )}
+
+                    {/* Payment Type Section */}
+                    <div className="mb-4">
+                      <h3 className="font-medium text-sm mb-2 text-muted-foreground">Payment Type</h3>
+                      <div className="space-y-2">
+                        {paymentTypes.map((type) => (
+                          <div
+                            key={type}
+                            className="flex items-center space-x-2 rounded-md p-1"
+                          >
+                            <Checkbox
+                              id={`payment-${type}`}
+                              name="paymentType"
+                              value={type}
+                              defaultChecked={activeFilters.paymentType.includes(type)}
+                            />
+                            <label
+                              htmlFor={`payment-${type}`}
+                              className="flex flex-1 cursor-pointer select-none items-center justify-between text-sm"
+                            >
+                              {type}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Order Status Section */}
+                    <div className="mb-4">
+                      <h3 className="font-medium text-sm mb-2 text-muted-foreground">Order Status</h3>
+                      <div className="space-y-2">
+                        {orderStatuses.map((status) => (
+                          <div
+                            key={status}
+                            className="flex items-center space-x-2 rounded-md p-1"
+                          >
+                            <Checkbox
+                              id={`status-${status}`}
+                              name="status"
+                              value={status}
+                              defaultChecked={activeFilters.status.includes(status)}
+                            />
+                            <label
+                              htmlFor={`status-${status}`}
+                              className="flex flex-1 cursor-pointer select-none items-center justify-between text-sm"
+                            >
+                              {status}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Items Section */}
+                    <div className="mb-4">
+                      <h3 className="font-medium text-sm mb-2 text-muted-foreground">Items</h3>
+                      <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                        {availableItems.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center space-x-2 rounded-md p-1"
+                          >
+                            <Checkbox
+                              id={`item-${item.id}`}
+                              name="items"
+                              value={item.id}
+                              defaultChecked={activeFilters.items.includes(item.id)}
+                            />
+                            <label
+                              htmlFor={`item-${item.id}`}
+                              className="flex flex-1 cursor-pointer select-none items-center justify-between text-sm"
+                            >
+                              {item.name}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t mt-4">
+                    <a href={createClearFiltersUrl()} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-primary-foreground hover:bg-primary/90 h-9 px-3">
+                      Clear filters
+                    </a>
+                    <Button size="sm" type="submit">
+                      Apply filters
+                    </Button>
+                  </div>
+                </form>
+              </PopoverContent>
+            </Popover>
             <ExportButton orders={orders} fundraiserName={fundraiserName} />
           </div>
         </div>
