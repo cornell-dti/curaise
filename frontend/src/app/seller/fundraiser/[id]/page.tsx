@@ -144,7 +144,7 @@ export default async function FundraiserOrdersPage({
     );
   }
   
-  // Apply filters if they exist
+  // Apply filters if they exist, for paymentType, status, and items
   if (resolvedSearchParams.paymentType && resolvedSearchParams.paymentType.length > 0) {
     const paymentTypes = Array.isArray(resolvedSearchParams.paymentType)
       ? resolvedSearchParams.paymentType
@@ -316,7 +316,6 @@ export default async function FundraiserOrdersPage({
             </form>
           </div>
           <div className="flex gap-3">
-            {/* Server-side filter functionality */}
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="h-10 px-4">
