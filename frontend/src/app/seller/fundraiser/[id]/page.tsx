@@ -4,9 +4,9 @@ import { connection } from "next/server";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Search, ArrowUpDown } from "lucide-react";
-import { ExportButton } from "@/components/export-button";
+import { Search, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { ExportButton } from "@/components/custom/ExportButton";
+import { FilterButton } from "@/components/custom/FilterButton";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { CompleteFundraiserSchema } from "common/schemas/fundraiser";
 import { z } from "zod";
@@ -92,10 +92,13 @@ export default async function FundraiserOrdersPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ 
+  searchParams: Promise<{
     search?: string;
     sort?: string;
     order?: 'asc' | 'desc';
+    paymentType?: string[];
+    items?: string[];
+    status?: string[];
   }>;
 }) {
   await connection(); // ensures server component is dynamically rendered at runtime, not statically rendered at build time
@@ -129,10 +132,41 @@ export default async function FundraiserOrdersPage({
   // Handle search
   const search = resolvedSearchParams.search?.toLowerCase() || '';
   if (search) {
-    orders = orders.filter((order: Order) => 
+    orders = orders.filter((order: Order) =>
       order.buyer?.name?.toLowerCase().includes(search) ||
       order.buyer?.email?.toLowerCase().includes(search) ||
       order.items.some(item => item.item.name.toLowerCase().includes(search))
+    );
+  }
+  
+  // Apply filters if they exist
+  if (resolvedSearchParams.paymentType && resolvedSearchParams.paymentType.length > 0) {
+    const paymentTypes = Array.isArray(resolvedSearchParams.paymentType)
+      ? resolvedSearchParams.paymentType
+      : [resolvedSearchParams.paymentType];
+    
+    orders = orders.filter((order: Order) =>
+      paymentTypes.includes(order.paymentMethod || '')
+    );
+  }
+  
+  if (resolvedSearchParams.status && resolvedSearchParams.status.length > 0) {
+    const statuses = Array.isArray(resolvedSearchParams.status)
+      ? resolvedSearchParams.status
+      : [resolvedSearchParams.status];
+    
+    orders = orders.filter((order: Order) =>
+      statuses.includes(order.paymentStatus || '')
+    );
+  }
+  
+  if (resolvedSearchParams.items && resolvedSearchParams.items.length > 0) {
+    const itemFilters = Array.isArray(resolvedSearchParams.items)
+      ? resolvedSearchParams.items
+      : [resolvedSearchParams.items];
+    
+    orders = orders.filter((order: Order) =>
+      order.items.some(item => itemFilters.includes(item.item.id))
     );
   }
   
@@ -157,6 +191,9 @@ export default async function FundraiserOrdersPage({
       } else if (sortField === 'payment') {
         aValue = a.paymentMethod || '';
         bValue = b.paymentMethod || '';
+      } else if (sortField === 'status') {
+        aValue = a.paymentStatus || '';
+        bValue = b.paymentStatus || '';
       }
       
       if (sortOrder === 'asc') {
@@ -186,6 +223,32 @@ export default async function FundraiserOrdersPage({
     return `?${params.toString()}`;
   };
 
+  // Function to determine which sort icon to display
+  const getSortIcon = (field: string) => {
+    if (resolvedSearchParams.sort === field) {
+      return resolvedSearchParams.order === 'asc'
+        ? <ArrowUp className="ml-2 h-4 w-4 text-blue-600" />
+        : <ArrowDown className="ml-2 h-4 w-4 text-blue-600" />;
+    }
+    return <ArrowUpDown className="ml-2 h-4 w-4" />;
+  };
+
+  // Extract available filter options from orders
+  const paymentTypes = [...new Set(orders.map(order => order.paymentMethod || 'Unknown'))];
+  const orderStatuses = [...new Set(orders.map(order => order.paymentStatus || 'Unknown'))];
+  
+  // Get unique items across all orders
+  const uniqueItems = new Map();
+  orders.forEach(order => {
+    order.items.forEach(item => {
+      uniqueItems.set(item.item.id, item.item.name);
+    });
+  });
+  
+  const availableItems = Array.from(uniqueItems).map(([id, name]) => ({
+    id,
+    name,
+  }));
   return (
     <div className="container mx-auto px-4 py-6 max-w-6xl">
       <div className="mb-4">
@@ -197,8 +260,8 @@ export default async function FundraiserOrdersPage({
         </p>
       </div>
 
-      <Card className="rounded-lg shadow-md">
-        <div className="p-4 flex justify-between items-center">
+      <Card className="rounded-lg shadow-md bg-[#F7F7F7]">
+        <div className="p-4 flex justify-between items-center bg-[#F7F7F7]">
           <div className="relative">
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
             <form>
@@ -211,38 +274,60 @@ export default async function FundraiserOrdersPage({
             </form>
           </div>
           <div className="flex gap-3">
+            <FilterButton
+              paymentTypes={paymentTypes}
+              itemOptions={availableItems}
+              orderStatuses={orderStatuses}
+              activeFilters={{
+                paymentType: Array.isArray(resolvedSearchParams.paymentType)
+                  ? resolvedSearchParams.paymentType
+                  : resolvedSearchParams.paymentType ? [resolvedSearchParams.paymentType] : [],
+                items: Array.isArray(resolvedSearchParams.items)
+                  ? resolvedSearchParams.items
+                  : resolvedSearchParams.items ? [resolvedSearchParams.items] : [],
+                status: Array.isArray(resolvedSearchParams.status)
+                  ? resolvedSearchParams.status
+                  : resolvedSearchParams.status ? [resolvedSearchParams.status] : []
+              }}
+              currentParams={resolvedSearchParams}
+            />
             <ExportButton orders={orders} fundraiserName={fundraiserName} />
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-gray-100">
+        <div className="overflow-x-auto bg-[#F7F7F7]">
+          <Table className="bg-[#F7F7F7] text-black">
+            <TableHeader className="bg-[#C1C1C1]">
               <TableRow>
-                <TableHead className="px-4 py-3 text-left">Select</TableHead>
-                <TableHead className="px-4 py-3 text-left">
-                  <a href={createSortUrl('name')} className="flex items-center">
+                <TableHead className="px-4 py-3 text-left text-black">
+                  <a href={createSortUrl('status')} className="flex items-center text-black">
+                    Status
+                    {getSortIcon('status')}
+                  </a>
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left text-black">
+                  <a href={createSortUrl('name')} className="flex items-center text-black">
                     Name
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    {getSortIcon('name')}
                   </a>
                 </TableHead>
-                <TableHead className="px-4 py-3 text-left">Email</TableHead>
-                <TableHead className="px-4 py-3 text-left">
-                  <a href={createSortUrl('netid')} className="flex items-center">
+                <TableHead className="px-4 py-3 text-left text-black">Email</TableHead>
+                <TableHead className="px-4 py-3 text-left text-black">
+                  <a href={createSortUrl('netid')} className="flex items-center text-black">
                     NetId
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    {getSortIcon('netid')}
                   </a>
                 </TableHead>
-                <TableHead className="px-4 py-3 text-left">Order Details</TableHead>
-                <TableHead className="px-4 py-3 text-left">
-                  <a href={createSortUrl('payment')} className="flex items-center">
+                <TableHead className="px-4 py-3 text-left text-black">Order Details</TableHead>
+                <TableHead className="px-4 py-3 text-left text-black">
+                  <a href={createSortUrl('payment')} className="flex items-center text-black">
                     Payment
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    {getSortIcon('payment')}
                   </a>
                 </TableHead>
-                <TableHead className="px-4 py-3 text-left">
-                  <a href={createSortUrl('total')} className="flex items-center">
+                <TableHead className="px-4 py-3 text-left text-black">
+                  <a href={createSortUrl('total')} className="flex items-center text-black">
                     Order Total
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    {getSortIcon('total')}
                   </a>
                 </TableHead>
               </TableRow>
@@ -250,7 +335,7 @@ export default async function FundraiserOrdersPage({
             <TableBody>
               {orders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-4">
+                  <TableCell colSpan={7} className="text-center py-4 text-black">
                     No orders available
                   </TableCell>
                 </TableRow>
@@ -260,23 +345,29 @@ export default async function FundraiserOrdersPage({
                     (total: number, item: OrderItem) => total + item.quantity * Number(item.item.price),
                     0
                   );
+                  // Determine row color based on payment status
+                  const isConfirmed = order.paymentStatus?.toLowerCase() === "confirmed";
+                  
                   return (
-                    <TableRow key={order.id} className="hover:bg-gray-50">
-                      <TableCell className="px-4 py-3">
-                        <Checkbox />
+                    <TableRow 
+                      key={order.id} 
+                      className={`hover:bg-gray-200 ${isConfirmed ? 'bg-[#C1C1C1]' : ''}`}
+                    >
+                      <TableCell className="px-4 py-3 text-black">
+                        {order.paymentStatus || "Unknown"}
                       </TableCell>
-                      <TableCell className="px-4 py-3">{order.buyer?.name || "Unknown"}</TableCell>
-                      <TableCell className="px-4 py-3">{order.buyer?.email || "Unknown"}</TableCell>
-                      <TableCell className="px-4 py-3">{order.buyer?.email?.split('@')[0] || "Unknown"}</TableCell>
-                      <TableCell className="px-4 py-3">
+                      <TableCell className="px-4 py-3 text-black">{order.buyer?.name || "Unknown"}</TableCell>
+                      <TableCell className="px-4 py-3 text-black">{order.buyer?.email || "Unknown"}</TableCell>
+                      <TableCell className="px-4 py-3 text-black">{order.buyer?.email?.split('@')[0] || "Unknown"}</TableCell>
+                      <TableCell className="px-4 py-3 text-black">
                         {order.items.map((item, index: number) => (
                           <div key={index}>
                             {item.quantity} {item.item.name}
                           </div>
                         ))}
                       </TableCell>
-                      <TableCell className="px-4 py-3">{order.paymentMethod || "Unknown"}</TableCell>
-                      <TableCell className="px-4 py-3 font-medium">${orderTotal.toFixed(2)}</TableCell>
+                      <TableCell className="px-4 py-3 text-black">{order.paymentMethod || "Unknown"}</TableCell>
+                      <TableCell className="px-4 py-3 font-medium text-black">${orderTotal.toFixed(2)}</TableCell>
                     </TableRow>
                   );
                 })
@@ -284,7 +375,7 @@ export default async function FundraiserOrdersPage({
             </TableBody>
           </Table>
         </div>
-        <div className="p-4 text-sm text-muted-foreground">
+        <div className="p-4 text-sm text-muted-foreground bg-[#F7F7F7]">
           {orders.length} {orders.length === 1 ? 'order' : 'orders'} found
         </div>
       </Card>
