@@ -291,6 +291,22 @@ export default async function FundraiserOrdersPage({
     return `?${params.toString()}`;
   };
 
+  const getStatusBadgeClass = (status: string | undefined): string => {
+    if (!status) return "bg-gray-100 hover:bg-gray-200 text-gray-800"; // gray for unknown
+    
+    const lowercaseStatus = status.toLowerCase();
+    
+    if (lowercaseStatus === "confirmed") {
+      return "bg-green-200 hover:bg-green-300 text-green-800"; // green for confirmed
+    } else if (lowercaseStatus === "unverifiable") {
+      return "bg-red-200 hover:bg-red-300 text-red-800"; // red for unverifiable
+    } else if (lowercaseStatus === "pending") {
+      return "bg-yellow-200 hover:bg-yellow-300 text-yellow-800"; // yellow for pending
+    } else {
+      return "bg-gray-100 hover:bg-gray-200 text-gray-800"; // gray for other statuses
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-6 max-w-6xl">
       <div className="mb-4">
@@ -506,7 +522,9 @@ export default async function FundraiserOrdersPage({
                       className={`hover:bg-gray-200 ${isConfirmed ? 'bg-[#C1C1C1]' : ''}`}
                     >
                       <TableCell className="px-4 py-3 text-black">
-                        {order.paymentStatus || "Unknown"}
+                        <Badge className={getStatusBadgeClass(order.paymentStatus)}>
+                          {order.paymentStatus || "Unknown"}
+                        </Badge>
                       </TableCell>
                       <TableCell className="px-4 py-3 text-black">{order.buyer?.name || "Unknown"}</TableCell>
                       <TableCell className="px-4 py-3 text-black">{order.buyer?.email || "Unknown"}</TableCell>
