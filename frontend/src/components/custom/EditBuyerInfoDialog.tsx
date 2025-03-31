@@ -115,9 +115,7 @@ export function EditBuyerInfoDialog({
               />
             </div>
             <DialogFooter>
-              <Button disabled={!form.formState.isDirty} type="submit">
-                Save changes
-              </Button>
+              <Button type="submit">Save changes</Button>
             </DialogFooter>
           </form>
         </Form>
