@@ -11,7 +11,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { UserSchema, UpdateUserBody } from "common";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -20,13 +19,11 @@ import { toast } from "sonner";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
 import { authFetcher } from "@/lib/fetcher";
@@ -46,8 +43,6 @@ export function EditBuyerInfoDialog({
     }
   );
 
-  const router = useRouter();
-
   const [open, setOpen] = useState(false);
 
   const form = useForm<z.infer<typeof UpdateUserBody>>({
@@ -61,7 +56,7 @@ export function EditBuyerInfoDialog({
     },
   });
 
-  async function onSubmit(data: z.infer<typeof UpdateUserBody>) {
+  async function onSubmit(formData: z.infer<typeof UpdateUserBody>) {
     const response = await fetch(
       process.env.NEXT_PUBLIC_API_URL + "/user/" + user.id,
       {
@@ -70,7 +65,7 @@ export function EditBuyerInfoDialog({
           "Content-Type": "application/json",
           Authorization: "Bearer " + token,
         },
-        body: JSON.stringify(data, (key, value) => {
+        body: JSON.stringify(formData, (key, value) => {
           if (value === undefined) {
             return "";
           }
@@ -84,10 +79,12 @@ export function EditBuyerInfoDialog({
       toast.error(result.message);
       return;
     } else {
-      mutate();
-      router.refresh();
-      form.reset();
       setOpen(false);
+      mutate({
+        ...data,
+        ...formData,
+      });
+      form.reset();
       toast.success(result.message);
     }
   }
