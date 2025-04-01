@@ -7,16 +7,12 @@ import { connection } from "next/server";
 import { z } from "zod";
 import { FundraiserCard } from "@/components/custom/FundraiserCard";
 import { Separator } from "@/components/ui/separator";
-import { ExternalLink, Instagram, ShieldCheck } from "lucide-react";
+import { ExternalLink, ShieldCheck, ShoppingBag } from "lucide-react";
+import { isPast } from "date-fns";
 
-const getOrganization = async (id: string, token: string) => {
+const getOrganization = async (id: string) => {
   const response = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + "/organization/" + id,
-    {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    }
+    process.env.NEXT_PUBLIC_API_URL + "/organization/" + id
   );
   const result = await response.json();
   if (!response.ok) {
@@ -54,41 +50,20 @@ export default async function OrganizationPage({
 }) {
   await connection();
 
-  const supabase = await createClient();
   const id = (await params).id;
 
-  const {
-    data: { session },
-    error: error2,
-  } = await supabase.auth.getSession();
-  if (error2 || !session?.access_token) {
-    throw new Error("No session found");
-  }
+  const org = await getOrganization(id);
+  const fundraisers = await getFundraisers(id);
 
-  const org = await getOrganization(id, session.access_token);
-
-  const fundraisers = await getFundraisers(org.id);
-  const fundraisersArray = Array.isArray(fundraisers)
-    ? fundraisers
-    : [fundraisers];
-
-  const now = new Date();
-
-  type Fundraiser = z.infer<typeof CompleteFundraiserSchema>;
-  const pastFundraisers: Fundraiser[] = [];
-  const currentAndFutureFundraisers: Fundraiser[] = [];
-  fundraisersArray.forEach((fundraiser) => {
-    const endDate = new Date(fundraiser.pickupEndsAt);
-
-    if (endDate < now) {
-      pastFundraisers.push(fundraiser);
-    } else {
-      currentAndFutureFundraisers.push(fundraiser);
-    }
-  });
+  const currentAndFutureFundraisers = fundraisers.filter(
+    (fundraiser) => !isPast(fundraiser.buyingStartsAt)
+  );
+  const pastFundraisers = fundraisers.filter((fundraiser) =>
+    isPast(fundraiser.buyingEndsAt)
+  );
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-3xl">
+    <div className="container mx-auto px-4 py-6 max-w-3xl space-y-4">
       <div className="space-y-2">
         <h1 className="flex items-center text-4xl font-bold">
           {org.name}
@@ -131,36 +106,42 @@ export default async function OrganizationPage({
         </div>
       </div>
 
-      <div className="flex flex-row items-center gap-5 pt-10">
-        <h1 className="text-2xl md:text-2xl font-bold tracking-tight leading-tight">
-          Current Fundraisers
-        </h1>
-        <Separator className="flex-1" />
-      </div>
-      <div className="space-y-4">
-        {currentAndFutureFundraisers.length > 0 ? (
-          <FundraiserCard fundraisersArray={currentAndFutureFundraisers} />
-        ) : (
-          <p className="text-sm text-gray-500 pl-4">
-            No active fundraisers found.
-          </p>
-        )}
+      <div className="flex flex-col">
+        <h1 className="text-2xl font-bold">Active Fundraisers</h1>
+
+        <div className="space-y-4 mt-4">
+          {currentAndFutureFundraisers.length > 0 ? (
+            currentAndFutureFundraisers.map((fundraiser) => (
+              <FundraiserCard key={fundraiser.id} fundraiser={fundraiser} />
+            ))
+          ) : (
+            <div className="text-center py-6">
+              <h3 className="text-lg font-medium">No active fundraisers</h3>
+              <p className="text-muted-foreground">
+                {org.name} doesn't have any active fundraisers at the moment.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="flex flex-row items-center gap-5 pt-7">
-        <h1 className="text-2xl md:text-2xl font-bold tracking-tight leading-tight">
-          Past Fundraisers
-        </h1>
-        <Separator className="flex-1" />
-      </div>
-      <div className="space-y-10">
-        {pastFundraisers.length > 0 ? (
-          <FundraiserCard fundraisersArray={pastFundraisers} />
-        ) : (
-          <p className="text-sm text-gray-500 pl-4">
-            No past fundraisers found.
-          </p>
-        )}
+      <div className="flex flex-col">
+        <h1 className="text-2xl font-bold">Past Fundraisers</h1>
+
+        <div className="space-y-4 mt-4">
+          {pastFundraisers.length > 0 ? (
+            pastFundraisers.map((fundraiser) => (
+              <FundraiserCard key={fundraiser.id} fundraiser={fundraiser} />
+            ))
+          ) : (
+            <div className="text-center py-6">
+              <h3 className="text-lg font-medium">No past fundraisers</h3>
+              <p className="text-muted-foreground">
+                {org.name} doesn't have any past fundraisers.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
