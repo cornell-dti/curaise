@@ -107,9 +107,7 @@ export default async function BuyerHome() {
 
       <div className="flex items-center justify-between space-x-4 mb-6 p-4">
         <p>Looking to edit your account information?</p>
-        <Button variant="outline" asChild>
-          <Link href="/buyer/account">Edit Info</Link>
-        </Button>
+        <EditBuyerInfoDialog user={userProfile} token={session.access_token} />
       </div>
 
       <div className="flex flex-col space-y-4">

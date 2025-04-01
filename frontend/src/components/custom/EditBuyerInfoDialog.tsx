@@ -28,6 +28,8 @@ import {
 } from "@/components/ui/form";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import useSWR from "swr";
+import { authFetcher } from "@/lib/fetcher";
 
 export function EditBuyerInfoDialog({
   user,
@@ -36,15 +38,26 @@ export function EditBuyerInfoDialog({
   user: z.infer<typeof UserSchema>;
   token: string;
 }) {
+  const { data, error, mutate } = useSWR(
+    `/user/${user.id}`,
+    authFetcher(UserSchema),
+    {
+      fallbackData: user,
+    }
+  );
+
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
 
   const form = useForm<z.infer<typeof UpdateUserBody>>({
     resolver: zodResolver(UpdateUserBody),
-    defaultValues: {
-      name: user.name,
-      venmoUsername: user.venmoUsername ?? undefined,
+    values: {
+      name: data.name,
+      venmoUsername: data.venmoUsername ?? "",
+    },
+    resetOptions: {
+      keepDirtyValues: true,
     },
   });
 
@@ -57,7 +70,12 @@ export function EditBuyerInfoDialog({
           "Content-Type": "application/json",
           Authorization: "Bearer " + token,
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(data, (key, value) => {
+          if (value === undefined) {
+            return "";
+          }
+          return value;
+        }),
       }
     );
 
@@ -66,9 +84,11 @@ export function EditBuyerInfoDialog({
       toast.error(result.message);
       return;
     } else {
+      mutate();
       router.refresh();
-      toast.success(result.message);
+      form.reset();
       setOpen(false);
+      toast.success(result.message);
     }
   }
 
@@ -115,7 +135,9 @@ export function EditBuyerInfoDialog({
               />
             </div>
             <DialogFooter>
-              <Button type="submit">Save changes</Button>
+              <Button type="submit" disabled={!form.formState.isDirty}>
+                Save changes
+              </Button>
             </DialogFooter>
           </form>
         </Form>
