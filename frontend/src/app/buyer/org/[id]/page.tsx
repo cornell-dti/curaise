@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
-import { CompleteOrganizationSchema } from "common";
+import { BasicFundraiserSchema, CompleteOrganizationSchema } from "common";
 import { CompleteFundraiserSchema } from "common";
 import { connection } from "next/server";
 import { z } from "zod";
@@ -30,36 +30,16 @@ const getOrganization = async (id: string, token: string) => {
   return data.data;
 };
 
-export const getFundraisersByOrganization = async (
-  organizationId: string,
-  token: string
-) => {
+export const getFundraisers = async (organizationId: string) => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/organization/${organizationId}/fundraisers`
   );
-
   const result = await response.json();
-
   if (!response.ok) {
     throw new Error(result.message);
   }
 
-  type Fundraiser = z.infer<typeof CompleteFundraiserSchema>;
-
-  const transformFundraiser = (fundraiser: Fundraiser) => ({
-    ...fundraiser,
-    goalAmount: Number(fundraiser.goalAmount),
-    buyingStartsAt: new Date(fundraiser.buyingStartsAt),
-    buyingEndsAt: new Date(fundraiser.buyingEndsAt),
-    pickupStartsAt: new Date(fundraiser.pickupStartsAt),
-    pickupEndsAt: new Date(fundraiser.pickupEndsAt),
-    imageUrls: fundraiser.imageUrls ?? [],
-    announcements: fundraiser.announcements ?? [],
-  });
-
-  const transformedData = result.data.map(transformFundraiser);
-
-  const data = z.array(CompleteFundraiserSchema).safeParse(transformedData);
+  const data = BasicFundraiserSchema.array().safeParse(result.data);
   if (!data.success) {
     throw new Error("Could not parse fundraiser data.");
   }
@@ -87,10 +67,7 @@ export default async function OrganizationPage({
 
   const org = await getOrganization(id, session.access_token);
 
-  const fundraisers = await getFundraisersByOrganization(
-    org.id,
-    session.access_token
-  );
+  const fundraisers = await getFundraisers(org.id);
   const fundraisersArray = Array.isArray(fundraisers)
     ? fundraisers
     : [fundraisers];
