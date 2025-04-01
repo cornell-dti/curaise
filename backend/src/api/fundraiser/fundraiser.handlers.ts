@@ -30,22 +30,8 @@ import {
 } from "common";
 import { getOrganization } from "../organization/organization.services";
 import { z } from "zod";
-import { prisma } from "../../utils/prisma";
-
-export const getFundraisersByOrganization = async (organizationId: string) => {
-  return await prisma.fundraiser.findMany({
-    where: {
-      organizationId: organizationId
-    },
-    include: {
-      organization: true,
-    },
-  });
-};
-
 
 export const getAllFundraisersHandler = async (req: Request, res: Response) => {
-
   const fundraisers = await getAllFundraisers();
   if (!fundraisers) {
     res.status(404).json({ message: "Fundraisers not found" });
