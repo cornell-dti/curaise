@@ -29,7 +29,7 @@ export const OrganizationCard = ({
         <CardFooter className="pt-4">
           <div
             className={cn(
-              // organization.authorized && "invisible",
+              organization.authorized && "invisible",
               "mt-1 flex items-center text-sm text-gray-500 gap-2"
             )}
           >
