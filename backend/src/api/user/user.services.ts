@@ -63,7 +63,6 @@ export const getUserOrganizations = async (userId: string) => {
   return organizations;
 };
 
-// TODO: CHECK FOR POSSIBLE BUG (WITH UNDEFINED)
 export const updateUser = async (
   user: z.infer<typeof UpdateUserBody> & { userId: string }
 ) => {
@@ -71,7 +70,7 @@ export const updateUser = async (
     where: { id: user.userId },
     data: {
       name: user.name,
-      venmoUsername: user.venmoUsername,
+      venmoUsername: user.venmoUsername ?? null,
     },
   });
 
