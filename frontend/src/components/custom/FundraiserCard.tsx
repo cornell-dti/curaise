@@ -1,4 +1,4 @@
-import { CalendarIcon, MapPinIcon, Clock, ShoppingBag } from "lucide-react";
+import { CalendarIcon, MapPinIcon, ShoppingBag } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -10,7 +10,7 @@ import {
 import { z } from "zod";
 import { BasicFundraiserSchema } from "common";
 import Link from "next/link";
-import { format, isPast } from "date-fns";
+import { format } from "date-fns";
 import { Button } from "../ui/button";
 
 export function FundraiserCard({
@@ -18,8 +18,6 @@ export function FundraiserCard({
 }: {
   fundraiser: z.infer<typeof BasicFundraiserSchema>;
 }) {
-  const isActive = !isPast(fundraiser.pickupEndsAt);
-
   return (
     <Card className="overflow-hidden border shadow-sm">
       <CardHeader className="pb-2">
@@ -35,7 +33,7 @@ export function FundraiserCard({
       <CardContent className="pb-2 text-sm">
         <div className="grid gap-2">
           <div className="flex items-center gap-2">
-            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+            <ShoppingBag className="h-4 w-4 text-muted-foreground" />
             <span>
               Buying Window:{" "}
               <b>

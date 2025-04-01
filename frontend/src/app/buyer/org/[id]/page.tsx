@@ -1,12 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
 import { BasicFundraiserSchema, CompleteOrganizationSchema } from "common";
-import { CompleteFundraiserSchema } from "common";
 import { connection } from "next/server";
-import { z } from "zod";
 import { FundraiserCard } from "@/components/custom/FundraiserCard";
-import { Separator } from "@/components/ui/separator";
 import { ExternalLink, ShieldCheck, ShoppingBag } from "lucide-react";
 import { isPast } from "date-fns";
 
