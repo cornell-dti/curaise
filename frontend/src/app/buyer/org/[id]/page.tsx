@@ -111,20 +111,15 @@ export default async function OrganizationPage({
   });
 
   return (
-    <div className="container mx-auto px-6 py-8 md:py-12">
-      <section className="max-w-3xl mx-auto space-y-8">
-        <div className="space-y-4">
-          <div className="flex flex-row items-center gap-3">
-            <h1 className="text-4xl md:text-4xl font-bold tracking-tight leading-tight">
-              {org.name}
-            </h1>
-            {org.authorized && <ShieldCheck className="text-gray-600" />}
-          </div>
-          <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-            {org.description}
-          </p>
-        </div>
-
+    <div className="container mx-auto px-4 py-6 max-w-3xl">
+      <div className="space-y-2">
+        <h1 className="flex items-center text-4xl font-bold">
+          {org.name}
+          {org.authorized && <ShieldCheck className="text-gray-600 ml-1" />}
+        </h1>
+        <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
+          {org.description}
+        </p>
         <div className="space-y-2 sm:flex sm:space-y-0 items-center gap-4 mx-auto w-full">
           {org.websiteUrl && (
             <Button asChild variant="outline" size="lg" className="h-10 w-full">
@@ -157,39 +152,39 @@ export default async function OrganizationPage({
             </Button>
           )}
         </div>
+      </div>
 
-        <div className="flex flex-row items-center gap-5 pt-10">
-          <h1 className="text-2xl md:text-2xl font-bold tracking-tight leading-tight">
-            Current Fundraisers
-          </h1>
-          <Separator className="flex-1" />
-        </div>
-        <div className="space-y-4">
-          {currentAndFutureFundraisers.length > 0 ? (
-            <FundraiserCard fundraisersArray={currentAndFutureFundraisers} />
-          ) : (
-            <p className="text-sm text-gray-500 pl-4">
-              No active fundraisers found.
-            </p>
-          )}
-        </div>
+      <div className="flex flex-row items-center gap-5 pt-10">
+        <h1 className="text-2xl md:text-2xl font-bold tracking-tight leading-tight">
+          Current Fundraisers
+        </h1>
+        <Separator className="flex-1" />
+      </div>
+      <div className="space-y-4">
+        {currentAndFutureFundraisers.length > 0 ? (
+          <FundraiserCard fundraisersArray={currentAndFutureFundraisers} />
+        ) : (
+          <p className="text-sm text-gray-500 pl-4">
+            No active fundraisers found.
+          </p>
+        )}
+      </div>
 
-        <div className="flex flex-row items-center gap-5 pt-7">
-          <h1 className="text-2xl md:text-2xl font-bold tracking-tight leading-tight">
-            Past Fundraisers
-          </h1>
-          <Separator className="flex-1" />
-        </div>
-        <div className="space-y-10">
-          {pastFundraisers.length > 0 ? (
-            <FundraiserCard fundraisersArray={pastFundraisers} />
-          ) : (
-            <p className="text-sm text-gray-500 pl-4">
-              No past fundraisers found.
-            </p>
-          )}
-        </div>
-      </section>
+      <div className="flex flex-row items-center gap-5 pt-7">
+        <h1 className="text-2xl md:text-2xl font-bold tracking-tight leading-tight">
+          Past Fundraisers
+        </h1>
+        <Separator className="flex-1" />
+      </div>
+      <div className="space-y-10">
+        {pastFundraisers.length > 0 ? (
+          <FundraiserCard fundraisersArray={pastFundraisers} />
+        ) : (
+          <p className="text-sm text-gray-500 pl-4">
+            No past fundraisers found.
+          </p>
+        )}
+      </div>
     </div>
   );
 }
