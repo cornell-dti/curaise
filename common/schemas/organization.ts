@@ -27,6 +27,7 @@ export const CreateOrganizationBody = z.object({
   websiteUrl: z.string().url().optional(),
   instagramUsername: z.string().min(1).max(30).optional(),
   venmoUsername: z.string().min(5).max(30).optional(),
+  addedAdminsIds: z.array(z.string().uuid()),
 });
 
 export const UpdateOrganizationBody = z.object({
