@@ -93,15 +93,10 @@ export default async function BuyerHome() {
           <div className="bg-blue-100 rounded-full p-3">
             <ShoppingBag className="h-6 w-6 text-blue-600" />
           </div>
-          <div>
-            <h2 className="font-bold text-xl">
-              Welcome back, {userProfile.name}!
-            </h2>
-            <p className="text-muted-foreground mt-1">
-              You currently have {inProgressOrders.length} active{" "}
-              {inProgressOrders.length == 1 ? "order" : "orders"}.
-            </p>
-          </div>
+          <p className="font-bold text-lg my-auto">
+            You currently have {inProgressOrders.length} active{" "}
+            {inProgressOrders.length == 1 ? "order" : "orders"}.
+          </p>
         </div>
       </div>
 
