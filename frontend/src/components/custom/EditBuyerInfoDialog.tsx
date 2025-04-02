@@ -65,12 +65,7 @@ export function EditBuyerInfoDialog({
           "Content-Type": "application/json",
           Authorization: "Bearer " + token,
         },
-        body: JSON.stringify(formData, (key, value) => {
-          if (value === undefined) {
-            return "";
-          }
-          return value;
-        }),
+        body: JSON.stringify(formData),
       }
     );
 
