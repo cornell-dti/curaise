@@ -44,13 +44,15 @@ export const OrganizationCard = ({
 
 export const CreateOrganizationCard = () => {
   return (
-    <Card className="border-dashed cursor-pointer hover:bg-gray-50 transition-colors duration-300">
-      <CardContent className="flex items-center justify-center py-8 h-full min-h-32">
-        <p className="flex items-center text-gray-500 font-medium">
-          <Plus className="mr-1" size={20} />
-          Create Organization
-        </p>
-      </CardContent>
-    </Card>
+    <Link href={`/seller/org/create`}>
+      <Card className="border-dashed cursor-pointer hover:bg-gray-50 transition-colors duration-300">
+        <CardContent className="flex items-center justify-center py-8 h-full min-h-32">
+          <p className="flex items-center text-gray-500 font-medium">
+            <Plus className="mr-1" size={20} />
+            Create Organization
+          </p>
+        </CardContent>
+      </Card>
+    </Link>
   );
 };
