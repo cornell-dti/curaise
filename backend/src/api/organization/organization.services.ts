@@ -27,7 +27,6 @@ export const getOrganizationFundraisers = async (organizationId: string) => {
   return fundraisers;
 };
 
-// TODO: CHECK FOR POSSIBLE BUG
 export const createOrganization = async (
   organizationBody: z.infer<typeof CreateOrganizationBody> & {
     creatorId: string;
@@ -67,10 +66,10 @@ export const updateOrganization = async (
     data: {
       name: organizationBody.name,
       description: organizationBody.description,
-      logoUrl: organizationBody.logoUrl,
-      websiteUrl: organizationBody.websiteUrl,
-      instagramUsername: organizationBody.instagramUsername,
-      venmoUsername: organizationBody.venmoUsername,
+      logoUrl: organizationBody.logoUrl ?? null,
+      websiteUrl: organizationBody.websiteUrl ?? null,
+      instagramUsername: organizationBody.instagramUsername ?? null,
+      venmoUsername: organizationBody.venmoUsername ?? null,
 
       admins: {
         connect: organizationBody.addedAdminsIds?.map((id) => ({ id })), // TODO: possible bug

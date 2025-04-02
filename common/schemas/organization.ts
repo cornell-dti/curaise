@@ -48,13 +48,30 @@ export const CreateOrganizationBody = z.object({
   addedAdminsIds: z.array(z.string().uuid()),
 });
 
-// TODO: POSSIBLE BUG
 export const UpdateOrganizationBody = z.object({
-  name: z.string().min(1).max(255).optional(),
-  description: z.string().optional(),
+  name: z.string().min(1).max(255),
+  description: z.string(),
   logoUrl: z.string().url().optional(),
-  websiteUrl: z.string().url().optional(),
-  instagramUsername: z.string().min(1).max(30).optional(),
-  venmoUsername: z.string().min(5).max(30).optional(),
-  addedAdminsIds: z.array(z.string().uuid()).optional(),
+  websiteUrl: z
+    .string()
+    .optional()
+    .transform((value) =>
+      value ? (value.length === 0 ? undefined : value) : undefined
+    )
+    .pipe(z.string().url().optional()),
+  instagramUsername: z
+    .string()
+    .optional()
+    .transform((value) =>
+      value ? (value.length === 0 ? undefined : value) : undefined
+    )
+    .pipe(z.string().min(1).max(30).optional()),
+  venmoUsername: z
+    .string()
+    .optional()
+    .transform((value) =>
+      value ? (value.length === 0 ? undefined : value) : undefined
+    )
+    .pipe(z.string().min(5).max(30).optional()),
+  addedAdminsIds: z.array(z.string().uuid()), // appends additional admin ids, doesn't replace original
 });
