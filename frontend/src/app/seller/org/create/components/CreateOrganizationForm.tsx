@@ -16,10 +16,10 @@ export function CreateOrganizationForm({ token }: { token: string }) {
   >({
     name: "",
     description: "",
-    logoUrl: undefined,
+    logoUrl: undefined, // temporarily undefined because form doesn't populate these values
     websiteUrl: "",
     instagramUsername: "",
-    venmoUsername: undefined,
+    venmoUsername: undefined, // temporarily undefined because form doesn't populate these values
     addedAdminsIds: [],
   });
 

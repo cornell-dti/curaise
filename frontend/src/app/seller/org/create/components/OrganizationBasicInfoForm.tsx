@@ -87,9 +87,9 @@ export function OrganizationBasicInfoForm({
               name="websiteUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Website URL</FormLabel>
+                  <FormLabel>Website URL (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Website URL" {...field} />
+                    <Input placeholder="https://www.example.org" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -100,9 +100,9 @@ export function OrganizationBasicInfoForm({
               name="instagramUsername"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Instagram Username</FormLabel>
+                  <FormLabel>Instagram Username (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Instagram Username" {...field} />
+                    <Input placeholder="example_ig_username" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
