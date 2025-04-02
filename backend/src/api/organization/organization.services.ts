@@ -42,7 +42,12 @@ export const createOrganization = async (
       instagramUsername: organizationBody.instagramUsername,
       venmoUsername: organizationBody.venmoUsername,
 
-      admins: { connect: { id: organizationBody.creatorId } },
+      admins: {
+        connect: [
+          { id: organizationBody.creatorId },
+          ...organizationBody.addedAdminsIds.map((id) => ({ id })),
+        ],
+      },
     },
     include: {
       admins: true,
