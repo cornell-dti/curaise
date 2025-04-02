@@ -18,7 +18,7 @@ export default function MultiStepForm({
   labels,
   children,
 }: PropsWithChildren<{
-  form: UseFormReturn;
+  form: UseFormReturn<any, any, undefined>;
   onSubmit: (formData: any) => void;
   labels: Array<string>;
 }>) {
