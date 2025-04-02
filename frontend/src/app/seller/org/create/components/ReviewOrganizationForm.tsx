@@ -59,7 +59,7 @@ export function ReviewOrganizationForm({
         )}
         {formData.venmoUsername && (
           <p>
-            Venmo Username: <b>{formData.venmoUsername}</b>
+            Venmo Username: <b>@{formData.venmoUsername}</b>
           </p>
         )}
       </CardContent>
