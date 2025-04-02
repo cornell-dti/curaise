@@ -42,6 +42,7 @@ export const CreateFundraiserBody = z.object({
   organizationId: z.string().uuid(),
 });
 
+// TODO: POSSIBLE BUG
 export const UpdateFundraiserBody = z.object({
   name: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
@@ -62,6 +63,7 @@ export const CreateFundraiserItemBody = z.object({
   offsale: z.boolean(),
 });
 
+// TODO: POSSIBLE BUG
 export const UpdateFundraiserItemBody = z.object({
   name: z.string().min(1).max(255).optional(),
   description: z.string().optional(),
