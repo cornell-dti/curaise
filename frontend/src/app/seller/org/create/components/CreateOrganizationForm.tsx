@@ -1,5 +1,6 @@
 "use client";
 
+import { redirect } from "next/navigation";
 import { CreateOrganizationBody } from "common";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -15,10 +16,10 @@ export function CreateOrganizationForm({ token }: { token: string }) {
   >({
     name: "",
     description: "",
-    logoUrl: "",
+    logoUrl: undefined,
     websiteUrl: "",
     instagramUsername: "",
-    venmoUsername: "",
+    venmoUsername: undefined,
     addedAdminsIds: [],
   });
 
@@ -41,6 +42,7 @@ export function CreateOrganizationForm({ token }: { token: string }) {
       return;
     } else {
       toast.success(result.message);
+      redirect("/seller/org/" + result.data.id);
     }
   }
 
