@@ -55,9 +55,9 @@ export function OrganizationAddAdminsForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Add Additional Admins</CardTitle>
+        <CardTitle>Add Additional Admins (Optional)</CardTitle>
         <CardDescription>
-          Add additional users as admins to your organization.
+          Add other users as admins to your new organization.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -70,25 +70,30 @@ export function OrganizationAddAdminsForm({
           <Button onClick={handleAddAdmin}>Add Admin</Button>
         </div>
 
-        <div className="mt-4 space-y-2">
-          <p>Additional Admins:</p>
-          <ul className="list-disc list-inside text-sm">
-            {admins.map((admin) => (
-              <li key={admin.id} className="flex items-center justify-between">
-                {admin.name} ({admin.email})
-                <Button
-                  variant="destructive"
-                  className="ml-1"
-                  onClick={() =>
-                    setAdmins((prev) => prev.filter((a) => a.id !== admin.id))
-                  }
+        {admins.length > 0 && (
+          <div className="mt-4 space-y-2">
+            <p>Additional Admins:</p>
+            <ul className="list-disc list-inside text-sm">
+              {admins.map((admin) => (
+                <li
+                  key={admin.id}
+                  className="flex items-center justify-between"
                 >
-                  <X />
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </div>
+                  {admin.name} ({admin.email})
+                  <Button
+                    variant="destructive"
+                    className="ml-1"
+                    onClick={() =>
+                      setAdmins((prev) => prev.filter((a) => a.id !== admin.id))
+                    }
+                  >
+                    <X />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={onBack}>
