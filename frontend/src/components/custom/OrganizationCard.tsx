@@ -34,7 +34,7 @@ export const OrganizationCard = ({
             )}
           >
             <PauseCircle size={16} />
-            <span>Project hasn't been approved yet</span>
+            <span>Organization hasn't been approved yet</span>
           </div>
         </CardFooter>
       </Card>
