@@ -72,9 +72,7 @@ export function CreateOrganizationForm({ token }: { token: string }) {
 
         <ReviewOrganizationForm
           formData={formData}
-          onSubmit={() => {
-            onSubmit();
-          }}
+          onSubmit={onSubmit}
           onBack={() => setCurrentStep(1)}
         />
       </MultiStepForm>
