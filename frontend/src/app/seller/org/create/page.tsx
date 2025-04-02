@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/utils/supabase/server";
 import { connection } from "next/server";
-import { CreateOrganizationForm } from "@/components/custom/CreateOrganizationForm";
+import { CreateOrganizationForm } from "@/app/seller/org/create/components/CreateOrganizationForm";
 
 export default async function CreateOrganizationPage() {
   await connection(); // ensures server component is dynamically rendered at runtime, not statically rendered at build time
