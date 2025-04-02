@@ -59,7 +59,7 @@ export const CreateFundraiserItemBody = z.object({
   description: z.string(),
   price: MoneySchema,
   imageUrl: z.string().url().optional(),
-  offsale: z.boolean().optional(),
+  offsale: z.boolean(),
 });
 
 export const UpdateFundraiserItemBody = z.object({
