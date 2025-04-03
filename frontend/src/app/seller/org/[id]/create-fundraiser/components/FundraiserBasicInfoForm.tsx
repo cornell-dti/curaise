@@ -23,11 +23,38 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { DateTimePicker } from "@/components/custom/DateTimePicker";
 import { ControllerRenderProps } from "react-hook-form";
+import { useEffect } from "react";
 
 const BasicInformationSchema = CreateFundraiserBody.omit({
   imageUrls: true,
   organizationId: true,
-});
+})
+  .refine(
+    (data) => {
+      // Check if buying end date is after buying start date
+      if (data.buyingStartsAt && data.buyingEndsAt) {
+        return new Date(data.buyingEndsAt) > new Date(data.buyingStartsAt);
+      }
+      return true;
+    },
+    {
+      message: "Buying end date must be after buying start date",
+      path: ["buyingEndsAt"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Check if pickup end date is after pickup start date
+      if (data.pickupStartsAt && data.pickupEndsAt) {
+        return new Date(data.pickupEndsAt) > new Date(data.pickupStartsAt);
+      }
+      return true;
+    },
+    {
+      message: "Pickup end date must be after pickup start date",
+      path: ["pickupEndsAt"],
+    }
+  );
 
 // Adapter component that connects react-hook-form field to DateTimePicker
 const DateTimeFieldAdapter = ({
@@ -36,6 +63,13 @@ const DateTimeFieldAdapter = ({
   field: ControllerRenderProps<any, any>;
 }) => {
   return <DateTimePicker value={field.value} onChange={field.onChange} />;
+};
+
+// Helper function for adding days for default date setting
+const addDays = (date: Date, days: number): Date => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
 };
 
 export function FundraiserBasicInfoForm({
@@ -49,6 +83,21 @@ export function FundraiserBasicInfoForm({
     resolver: zodResolver(BasicInformationSchema),
     defaultValues,
   });
+
+  // Set default values for the form fields
+  useEffect(() => {
+    const now = new Date();
+
+    const buyingStartsAt = now;
+    const buyingEndsAt = addDays(now, 2);
+    const pickupStartsAt = addDays(now, 1);
+    const pickupEndsAt = addDays(now, 3);
+
+    form.setValue("buyingStartsAt", buyingStartsAt);
+    form.setValue("buyingEndsAt", buyingEndsAt);
+    form.setValue("pickupStartsAt", pickupStartsAt);
+    form.setValue("pickupEndsAt", pickupEndsAt);
+  }, [form]);
 
   return (
     <Card>
