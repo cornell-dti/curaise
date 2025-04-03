@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CalendarIcon, Clock } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DateTimePickerProps {
@@ -120,12 +120,8 @@ export function DateTimePicker({
 
             {/* Time picker section */}
             <div className="border-t border-border p-3">
-              <div className="flex items-center justify-between">
-                <div className="w-8 flex-shrink-0">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                </div>
-
-                <div className="flex items-center space-x-2 ml-4">
+              <div className="flex items-center justify-center">
+                <div className="flex items-center space-x-2">
                   {/* Hour selector */}
                   <Select
                     value={selectedHour.toString()}
