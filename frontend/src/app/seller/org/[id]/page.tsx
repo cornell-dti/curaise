@@ -3,7 +3,7 @@ import Link from "next/link";
 import { BasicFundraiserSchema, CompleteOrganizationSchema } from "common";
 import { connection } from "next/server";
 import { FundraiserCard } from "@/components/custom/FundraiserCard";
-import { ExternalLink, ShieldCheck, ShoppingBag } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { isPast } from "date-fns";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
@@ -20,7 +20,7 @@ const getOrganization = async (id: string) => {
 
   const data = CompleteOrganizationSchema.safeParse(result.data);
   if (!data.success) {
-    throw new Error("Could not parse order data");
+    throw new Error("Could not parse organization data");
   }
   return data.data;
 };
@@ -74,13 +74,21 @@ export default async function OrganizationPage({
   const org = await getOrganization(id);
   const fundraisers = await getFundraisers(id);
 
+  // Check if user is an admin of the organization
   if (!org.admins.map((admin) => admin.id).includes(user.id)) {
     return <p>naw</p>;
   }
 
-  const currentAndFutureFundraisers = fundraisers.filter(
+  // Separate fundraisers into three categories: future, active, and past
+  const futureFundraisers = fundraisers.filter(
     (fundraiser) => !isPast(fundraiser.buyingStartsAt)
   );
+
+  const activeFundraisers = fundraisers.filter(
+    (fundraiser) =>
+      isPast(fundraiser.buyingStartsAt) && !isPast(fundraiser.buyingEndsAt)
+  );
+
   const pastFundraisers = fundraisers.filter((fundraiser) =>
     isPast(fundraiser.buyingEndsAt)
   );
@@ -103,18 +111,42 @@ export default async function OrganizationPage({
       <div className="flex flex-col">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">Active Fundraisers</h1>
+          <Link href={`/seller/org/${id}/create-fundraiser`}>
+            <Button className="ml-2">Create New Fundraiser</Button>
+          </Link>
         </div>
 
         <div className="space-y-4 mt-4">
-          {currentAndFutureFundraisers.length > 0 ? (
-            currentAndFutureFundraisers.map((fundraiser) => (
+          {activeFundraisers.length > 0 ? (
+            activeFundraisers.map((fundraiser) => (
               <FundraiserCard key={fundraiser.id} fundraiser={fundraiser} />
             ))
           ) : (
             <div className="text-center py-6">
               <h3 className="text-lg font-medium">No active fundraisers</h3>
               <p className="text-muted-foreground">
-                {org.name} doesn't have any active fundraisers at the moment.
+                {org.name} doesn't have any currently active fundraisers.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold">Future Fundraisers</h1>
+        </div>
+
+        <div className="space-y-4 mt-4">
+          {futureFundraisers.length > 0 ? (
+            futureFundraisers.map((fundraiser) => (
+              <FundraiserCard key={fundraiser.id} fundraiser={fundraiser} />
+            ))
+          ) : (
+            <div className="text-center py-6">
+              <h3 className="text-lg font-medium">No future fundraisers</h3>
+              <p className="text-muted-foreground">
+                {org.name} doesn't have any upcoming fundraisers scheduled.
               </p>
             </div>
           )}
