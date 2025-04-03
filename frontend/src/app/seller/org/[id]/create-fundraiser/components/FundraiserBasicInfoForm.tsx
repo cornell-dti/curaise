@@ -65,11 +65,30 @@ const DateTimeFieldAdapter = ({
   return <DateTimePicker value={field.value} onChange={field.onChange} />;
 };
 
-// Helper function for adding days for default date setting
-const addDays = (date: Date, days: number): Date => {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result;
+const getDefaultDates = () => {
+  const now = new Date();
+
+  const buyingStartsAt = new Date(now);
+  buyingStartsAt.setHours(9, 0, 0, 0);
+
+  const buyingEndsAt = new Date(now);
+  buyingEndsAt.setDate(now.getDate() + 1);
+  buyingEndsAt.setHours(21, 0, 0, 0);
+
+  const pickupStartsAt = new Date(now);
+  pickupStartsAt.setDate(now.getDate() + 1);
+  pickupStartsAt.setHours(9, 0, 0, 0);
+
+  const pickupEndsAt = new Date(now);
+  pickupEndsAt.setDate(now.getDate() + 1);
+  pickupEndsAt.setHours(22, 0, 0, 0);
+
+  return {
+    buyingStartsAt,
+    buyingEndsAt,
+    pickupStartsAt,
+    pickupEndsAt,
+  };
 };
 
 export function FundraiserBasicInfoForm({
@@ -79,25 +98,18 @@ export function FundraiserBasicInfoForm({
   defaultValues: z.infer<typeof BasicInformationSchema>;
   onSubmit: (data: z.infer<typeof BasicInformationSchema>) => void;
 }) {
+  const defaultDates = getDefaultDates();
+
   const form = useForm<z.infer<typeof BasicInformationSchema>>({
     resolver: zodResolver(BasicInformationSchema),
-    defaultValues,
+    defaultValues: {
+      ...defaultValues,
+      buyingStartsAt: defaultDates.buyingStartsAt,
+      buyingEndsAt: defaultDates.buyingEndsAt,
+      pickupStartsAt: defaultDates.pickupStartsAt,
+      pickupEndsAt: defaultDates.pickupEndsAt,
+    },
   });
-
-  // Set default values for the form fields
-  useEffect(() => {
-    const now = new Date();
-
-    const buyingStartsAt = now;
-    const buyingEndsAt = addDays(now, 2);
-    const pickupStartsAt = addDays(now, 1);
-    const pickupEndsAt = addDays(now, 3);
-
-    form.setValue("buyingStartsAt", buyingStartsAt);
-    form.setValue("buyingEndsAt", buyingEndsAt);
-    form.setValue("pickupStartsAt", pickupStartsAt);
-    form.setValue("pickupEndsAt", pickupEndsAt);
-  }, [form]);
 
   return (
     <Card>
