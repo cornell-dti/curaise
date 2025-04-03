@@ -33,13 +33,13 @@ export function DateTimePicker({
   placeholder = "Select date and time",
 }: DateTimePickerProps) {
   // Generate hours (1-12) and minutes for the time picker
-  const hours = Array.from({ length: 12 }, (_, i) => i + 1); // 1-12 instead of 0-23
+  const hours = Array.from({ length: 12 }, (_, i) => i + 1);
   const minutes = Array.from({ length: 4 }, (_, i) => i * 15);
 
   // Get current hour, minute, and period from value
   const date = value || new Date();
   const hour24 = date.getHours();
-  const selectedHour = hour24 % 12 === 0 ? 12 : hour24 % 12; // Convert 24h to 12h format
+  const selectedHour = hour24 % 12 === 0 ? 12 : hour24 % 12;
   const selectedMinute = Math.floor(date.getMinutes() / 15) * 15;
   const selectedPeriod = hour24 >= 12 ? "PM" : "AM";
 
