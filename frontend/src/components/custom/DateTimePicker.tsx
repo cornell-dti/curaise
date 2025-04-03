@@ -32,34 +32,47 @@ export function DateTimePicker({
   className,
   placeholder = "Select date and time",
 }: DateTimePickerProps) {
-  // Generate hours and minutes for the time picker
-  const hours = Array.from({ length: 24 }, (_, i) => i);
-  const minutes = Array.from({ length: 12 }, (_, i) => i * 5);
+  // Generate hours (1-12) and minutes for the time picker
+  const hours = Array.from({ length: 12 }, (_, i) => i + 1); // 1-12 instead of 0-23
+  const minutes = Array.from({ length: 4 }, (_, i) => i * 15);
 
-  // Get current hour and minute from value
-  const selectedHour = value ? value.getHours() : 9;
-  const selectedMinute = value ? Math.floor(value.getMinutes() / 5) * 5 : 0;
+  // Get current hour, minute, and period from value
+  const date = value || new Date();
+  const hour24 = date.getHours();
+  const selectedHour = hour24 % 12 === 0 ? 12 : hour24 % 12; // Convert 24h to 12h format
+  const selectedMinute = Math.floor(date.getMinutes() / 15) * 15;
+  const selectedPeriod = hour24 >= 12 ? "PM" : "AM";
 
   // Handle time selection
-  const handleTimeChange = (type: "hour" | "minute", newValue: string) => {
-    if (!value) {
-      // If no date is selected, create one with today's date
-      const today = new Date();
-      if (type === "hour") {
-        today.setHours(Number.parseInt(newValue), selectedMinute);
-      } else {
-        today.setHours(selectedHour, Number.parseInt(newValue));
+  const handleTimeChange = (
+    type: "hour" | "minute" | "period",
+    newValue: string
+  ) => {
+    const newDate = new Date(value || new Date());
+
+    if (type === "hour") {
+      let hour24 = parseInt(newValue, 10);
+      if (selectedPeriod === "PM" && hour24 < 12) {
+        hour24 += 12;
+      } else if (selectedPeriod === "AM" && hour24 === 12) {
+        hour24 = 0;
       }
-      onChange(today);
-    } else {
-      const newDate = new Date(value);
-      if (type === "hour") {
-        newDate.setHours(Number.parseInt(newValue), selectedMinute);
-      } else {
-        newDate.setHours(selectedHour, Number.parseInt(newValue));
+      newDate.setHours(hour24, selectedMinute);
+    } else if (type === "minute") {
+      newDate.setMinutes(parseInt(newValue, 10));
+    } else if (type === "period") {
+      let hour24 = selectedHour;
+      if (newValue === "PM" && hour24 < 12) {
+        hour24 += 12;
+      } else if (newValue === "AM" && hour24 === 12) {
+        hour24 = 0;
+      } else if (newValue === "AM" && hour24 > 12) {
+        hour24 -= 12;
       }
-      onChange(newDate);
+      newDate.setHours(hour24);
     }
+
+    onChange(newDate);
   };
 
   return (
@@ -75,46 +88,44 @@ export function DateTimePicker({
             disabled={disabled}
             aria-label="Select date and time"
           >
-            {value ? (
-              format(value, "PPP p") // Show date and time
-            ) : (
-              <span>{placeholder}</span>
-            )}
+            {value ? format(value, "PPP p") : <span>{placeholder}</span>}
             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <div className="p-0">
-            <Calendar
-              mode="single"
-              selected={value}
-              onSelect={(date) => {
-                if (date) {
-                  // Preserve the current time when selecting a new date
-                  const newDate = new Date(date);
-                  if (value) {
-                    newDate.setHours(value.getHours(), value.getMinutes());
+            <div className="flex justify-center">
+              <Calendar
+                mode="single"
+                selected={value}
+                onSelect={(date) => {
+                  if (date) {
+                    // Preserve the current time when selecting a new date
+                    const newDate = new Date(date);
+                    if (value) {
+                      newDate.setHours(value.getHours(), value.getMinutes());
+                    } else {
+                      newDate.setHours(9, 0); // Default to 9:00 AM
+                    }
+                    onChange(newDate);
                   } else {
-                    newDate.setHours(9, 0); // Default to 9:00 AM
+                    onChange(undefined);
                   }
-                  onChange(newDate);
-                } else {
-                  onChange(undefined);
-                }
-              }}
-              initialFocus
-              disabled={disabled}
-            />
+                }}
+                initialFocus
+                disabled={disabled}
+                className="rounded-md mx-auto"
+              />
+            </div>
 
             {/* Time picker section */}
             <div className="border-t border-border p-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
+                <div className="w-8 flex-shrink-0">
                   <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">Time</span>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 ml-4">
                   {/* Hour selector */}
                   <Select
                     value={selectedHour.toString()}
@@ -141,7 +152,7 @@ export function DateTimePicker({
                   <Select
                     value={selectedMinute.toString()}
                     onValueChange={(value: string) =>
-                      handleTimeChange("hour", value)
+                      handleTimeChange("minute", value)
                     }
                     disabled={disabled}
                   >
@@ -154,6 +165,23 @@ export function DateTimePicker({
                           {minute.toString().padStart(2, "0")}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* AM/PM selector */}
+                  <Select
+                    value={selectedPeriod}
+                    onValueChange={(value: string) =>
+                      handleTimeChange("period", value)
+                    }
+                    disabled={disabled}
+                  >
+                    <SelectTrigger className="w-[70px]">
+                      <SelectValue placeholder="AM/PM" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="AM">AM</SelectItem>
+                      <SelectItem value="PM">PM</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
