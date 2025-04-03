@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CreateFundraiserItemBody } from "common";
 import { Dispatch, SetStateAction, useState } from "react";
 import { z } from "zod";
-import { PlusCircle, X, Image } from "lucide-react";
+import { PlusCircle, X, ShoppingCart } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
@@ -170,7 +170,7 @@ export function FundraiserAddItemsForm({
 
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8 text-center border rounded-lg border-dashed">
-            <Image className="w-12 h-12 text-gray-400 mb-4" />
+            <ShoppingCart className="w-12 h-12 text-gray-400 mb-4" />
             <p className="text-sm text-gray-500">
               No items added yet. Click "Add Item" to create items for your
               fundraiser.
