@@ -1,5 +1,7 @@
 import { connection } from "next/server";
-import { CompleteFundraiserSchema } from "common";
+import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
+import { format } from "date-fns";
+import { MapPin, Calendar } from "lucide-react";
 
 const getFundraiser = async (id: string) => {
 	const response = await fetch(
@@ -24,7 +26,7 @@ const getFundraiserItems = async (id: string) => {
   if (!response.ok) {
     throw new Error(result.message);
   }
-  const data = CompleteFundraiserSchema.array().safeParse(result.data);
+  const data = CompleteItemSchema.array().safeParse(result.data);
   if (!data.success) {
     throw new Error("Could not parse fundraiser items data");
   }
@@ -40,21 +42,30 @@ export default async function FundraiserPage({
   
   const id = (await params).id;
   const fundraiser = await getFundraiser(id);
-  // const fundraiserItems = await getFundraiserItems(id);
+  const fundraiserItems = await getFundraiserItems(id);
 
   return (
-		<div>
-			<h1>{fundraiser.name}</h1>
-			<p>{fundraiser.description}</p>
-			<h2>Items</h2>
-			{/* <ul>
-				{fundraiserItems.map((item) => (
-					<li key={item.id}>
-						<h3>{item.name}</h3>
-						<p>{item.description}</p>
-					</li>
-				))}
-			</ul> */}
+		<div className="p-4 border-b">
+			<h1 className="text-2xl font-bold mb-2">{fundraiser.name}</h1>
+			<p className="text-gray-600 mb-4">{fundraiser.description}</p>
+			<div className="flex items-center mb-2">
+				<Calendar className="w-4 h-4 mr-2 text-gray-500" />
+				<span className="text-sm text-gray-700">
+					{format(new Date(fundraiser.pickupStartsAt), "EEEE, MM/dd/yyyy")}
+				</span>
+			</div>
+			<div className="flex items-center mb-2">
+				<MapPin className="w-4 h-4 mr-2 text-gray-500" />
+				<span className="text-sm text-gray-700">
+					{fundraiser.pickupLocation}
+				</span>
+			</div>
+			<div className="flex items-center mb-2">
+				<MapPin className="w-4 h-4 mr-2 text-gray-500" />
+				<span className="text-sm text-gray-700">
+					{fundraiser.pickupLocation}
+				</span>
+			</div>
 		</div>
 	);
 }
