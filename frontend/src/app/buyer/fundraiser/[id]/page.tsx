@@ -2,6 +2,7 @@ import { connection } from "next/server";
 import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
 import { format } from "date-fns";
 import { MapPin, Calendar } from "lucide-react";
+import { FundraiserItemsPanels } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemsPanel";
 
 const getFundraiser = async (id: string) => {
 	const response = await fetch(
@@ -45,27 +46,30 @@ export default async function FundraiserPage({
   const fundraiserItems = await getFundraiserItems(id);
 
   return (
-		<div className="p-4 border-b">
-			<h1 className="text-2xl font-bold mb-2">{fundraiser.name}</h1>
-			<p className="text-gray-600 mb-4">{fundraiser.description}</p>
-			<div className="flex items-center mb-2">
-				<Calendar className="w-4 h-4 mr-2 text-gray-500" />
-				<span className="text-sm text-gray-700">
-					{format(new Date(fundraiser.pickupStartsAt), "EEEE, MM/dd/yyyy")}
-				</span>
-			</div>
-			<div className="flex items-center mb-2">
-				<MapPin className="w-4 h-4 mr-2 text-gray-500" />
-				<span className="text-sm text-gray-700">
-					{fundraiser.pickupLocation}
-				</span>
-			</div>
-			<div className="flex items-center mb-2">
-				<MapPin className="w-4 h-4 mr-2 text-gray-500" />
-				<span className="text-sm text-gray-700">
-					{fundraiser.pickupLocation}
-				</span>
-			</div>
+		<div>
+			<div className="p-4 border-b flex flex-col items-center justify-center">
+				<h1 className="text-2xl font-bold mb-2">{fundraiser.name}</h1>
+				<p className="text-gray-600 mb-4">{fundraiser.description}</p>
+				<div className="flex items-center mb-2">
+					<Calendar className="w-4 h-4 mr-2 text-gray-500" />
+					<span className="text-sm text-gray-700">
+						{format(new Date(fundraiser.pickupStartsAt), "EEEE, MM/dd/yyyy")}
+					</span>
+				</div>
+				<div className="flex items-center mb-2">
+					<MapPin className="w-4 h-4 mr-2 text-gray-500" />
+					<span className="text-sm text-gray-700">
+						{fundraiser.pickupLocation}
+					</span>
+				</div>
+				<div className="flex items-center mb-2">
+					<MapPin className="w-4 h-4 mr-2 text-gray-500" />
+					<span className="text-sm text-gray-700">
+						{fundraiser.pickupLocation}
+					</span>
+				</div>
+      </div>
+      <FundraiserItemsPanels items={ fundraiserItems } />
 		</div>
 	);
 }
