@@ -4,20 +4,18 @@ import Decimal from "decimal.js";
 import { Plus } from "lucide-react";
 import { z } from "zod";
 
-type FundraiserItemCardProp = {
+interface FundraiserItemCardProp {
     item: z.infer<typeof CompleteItemSchema>;
 };
 
 const formatPrice = (price: Decimal) => {
-	if (typeof price === "object" && price.toFixed) {
-		return `$${price.toFixed(2)}`;
-	}
-	return `$${Number(price).toFixed(2)}`;
+    if (price.toFixed) {
+        return `$${price.toFixed(2)}`;
+    }
+    return `$${Number(price).toFixed(2)}`;
 };
 
-
 export function FundraiserItemCard({ item }: FundraiserItemCardProp) {
-    console.log("Item Price:", item.price, typeof item.price);
 	return (
 		<div className="border rounded-md flex flex-col  overflow-hidden h-full hover:scale-105 transition-transform duration-150">
 			<div className="relative w-full h-48 bg-gray-100">

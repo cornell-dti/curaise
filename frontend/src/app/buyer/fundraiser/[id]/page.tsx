@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
 import { format } from "date-fns";
-import { MapPin, Calendar } from "lucide-react";
+import { MapPin, Calendar, ShoppingBag } from "lucide-react";
 import { FundraiserItemsPanels } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemsPanel";
 
 const getFundraiser = async (id: string) => {
@@ -34,6 +34,13 @@ const getFundraiserItems = async (id: string) => {
   return data.data;
 }
 
+const formatDate = (startsAt: Date, endsAt: Date) => {
+  return `${format(new Date(startsAt), "MMMM dd ")} at
+    ${format(new Date(startsAt), " hh:mm a")} -
+    ${format(new Date(endsAt), " MMMM dd ")} at
+    ${format(new Date(endsAt), " hh:mm a")}`
+}
+
 export default async function FundraiserPage({
 	params,
 }: {
@@ -47,29 +54,51 @@ export default async function FundraiserPage({
 
   return (
 		<div>
-			<div className="p-4 border-b flex flex-col items-center justify-center">
+			<div className="p-10 border-b flex flex-col">
+				<div className="relative w-full h-40 sm:h-50 md:h-58 lg:h-64 rounded-lg shadow-lg overflow-hidden mb-10">
+					{fundraiser.imageUrls[0] ? (
+						<img
+							src={fundraiser.imageUrls[0]}
+							alt={fundraiser.name}
+							className="w-full h-full object-cover"
+						/>
+					) : (
+						<div className="w-full h-full flex items-center justify-center bg-gray-200">
+							<span className="text-gray-400">No image</span>
+						</div>
+					)}
+				</div>
 				<h1 className="text-2xl font-bold mb-2">{fundraiser.name}</h1>
 				<p className="text-gray-600 mb-4">{fundraiser.description}</p>
-				<div className="flex items-center mb-2">
-					<Calendar className="w-4 h-4 mr-2 text-gray-500" />
-					<span className="text-sm text-gray-700">
-						{format(new Date(fundraiser.pickupStartsAt), "EEEE, MM/dd/yyyy")}
-					</span>
+				<div className="flex flex-col items-start w-full max-w-md">
+					<div className="flex items-center mb-2">
+						<ShoppingBag className="w-4 h-4 mr-2 text-gray-500" />
+						<span className="text-sm text-gray-700">
+							{"Buying Window: "}
+							<span className="font-bold">
+								{formatDate(fundraiser.buyingStartsAt, fundraiser.buyingEndsAt)}
+							</span>
+						</span>
+					</div>
+					<div className="flex items-center mb-2">
+						<MapPin className="w-4 h-4 mr-2 text-gray-500" />
+						<span className="text-sm text-gray-700">
+							{"Pickup Location: "}
+							<span className="font-bold">{fundraiser.pickupLocation}</span>
+						</span>
+					</div>
+					<div className="flex items-center mb-2">
+						<Calendar className="w-4 h-4 mr-2 text-gray-500" />
+						<span className="text-sm text-gray-700">
+							{"Pickup Window: "}
+							<span className="font-bold">
+								{formatDate(fundraiser.pickupStartsAt, fundraiser.pickupEndsAt)}
+							</span>
+						</span>
+					</div>
 				</div>
-				<div className="flex items-center mb-2">
-					<MapPin className="w-4 h-4 mr-2 text-gray-500" />
-					<span className="text-sm text-gray-700">
-						{fundraiser.pickupLocation}
-					</span>
-				</div>
-				<div className="flex items-center mb-2">
-					<MapPin className="w-4 h-4 mr-2 text-gray-500" />
-					<span className="text-sm text-gray-700">
-						{fundraiser.pickupLocation}
-					</span>
-				</div>
-      </div>
-      <FundraiserItemsPanels items={ fundraiserItems } />
+			</div>
+			<FundraiserItemsPanels items={fundraiserItems} />
 		</div>
 	);
 }
