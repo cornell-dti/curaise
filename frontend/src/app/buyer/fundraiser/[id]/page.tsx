@@ -2,7 +2,8 @@ import { connection } from "next/server";
 import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
 import { format } from "date-fns";
 import { MapPin, Calendar, ShoppingBag } from "lucide-react";
-import { FundraiserItemsPanels } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemsPanel";
+import { FundraiserItemsPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemsPanel";
+import { FundraiserGallerySlider } from "@/app/buyer/fundraiser/[id]/components/FundraiserGallerySlider"
 
 const getFundraiser = async (id: string) => {
 	const response = await fetch(
@@ -55,20 +56,13 @@ export default async function FundraiserPage({
   return (
 		<div>
 			<div className="p-10 border-b flex flex-col">
-				<div className="relative w-full h-40 sm:h-50 md:h-58 lg:h-64 rounded-lg shadow-lg overflow-hidden mb-10">
-					{fundraiser.imageUrls[0] ? (
-						<img
-							src={fundraiser.imageUrls[0]}
-							alt={fundraiser.name}
-							className="w-full h-full object-cover"
-						/>
-					) : (
-						<div className="w-full h-full flex items-center justify-center bg-gray-200">
-							<span className="text-gray-400">No image</span>
-						</div>
-					)}
-				</div>
-				<h1 className="text-2xl font-bold mb-2">{fundraiser.name}</h1>
+			  {fundraiser.imageUrls.length > 0 ? (
+				  <FundraiserGallerySlider images={fundraiser.imageUrls} />) : (
+					<div className="w-full h-40 sm:h-50 md:h-58 lg:h-64 bg-gray-200 rounded-lg mb-10 flex items-center justify-center">
+						<p className="text-gray-500">No images available</p>
+					</div>
+				  ) }
+				<h1 className="text-2xl font-bold mb-2">{fundraiser.name}</h1> 
 				<p className="text-gray-600 mb-4">{fundraiser.description}</p>
 				<div className="flex flex-col items-start w-full max-w-md">
 					<div className="flex items-center mb-2">
@@ -98,7 +92,7 @@ export default async function FundraiserPage({
 					</div>
 				</div>
 			</div>
-			<FundraiserItemsPanels items={fundraiserItems} />
+			<FundraiserItemsPanel items={fundraiserItems} />
 		</div>
 	);
 }
