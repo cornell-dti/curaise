@@ -1,7 +1,7 @@
 'use client';
 import { CompleteItemSchema } from 'common';
 import { z } from 'zod';
-import { FundraiserItemCard } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemCard";
+import { FundraiserItemModal } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemModal";
 
 interface FundraiserItemsPanelProps {
 	items: z.infer<typeof CompleteItemSchema>[];
@@ -19,7 +19,7 @@ export function FundraiserItemsPanel({ items }: FundraiserItemsPanelProps) {
 						</p>
 					) : (
 						items.map((item) => (
-							<FundraiserItemCard key={item.id} item={item} />
+							<FundraiserItemModal key={item.id} item={item} />
 						))
 					)}
 				</div>

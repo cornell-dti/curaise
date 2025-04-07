@@ -1,0 +1,40 @@
+@keyframes slideOpen {
+	from {
+		width: 32px;
+	}
+	to {
+		width: 110px;
+	}
+}
+
+@keyframes slideClose {
+	from {
+		width: 110px;
+	}
+	to {
+		width: 32px;
+	}
+}
+
+.animate-slide-open {
+	animation: slideOpen 0.3s ease-out forwards;
+	transform-origin: right;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.animate-slide-close {
+	animation: slideClose 0.3s ease-out forwards;
+	transform-origin: right;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.quantity-selector {
+	width: 32px;
+	transition: width 0.3s ease-out;
+}
+
+.quantity-selector.expanded {
+	width: 110px;
+}
