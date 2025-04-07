@@ -34,26 +34,22 @@ export function FundraiserGallerySlider({
 					return prevIndex - 1;
 				});
             }
-        // Runs every 5s interval
-		}, 5000);
+        // Runs every 3s interval
+		}, 3000);
 
 		return () => clearInterval(interval);
-	}, [images.length, direction]);
+	}, [images.length, currentIndex]);
 
 	const goToSlide = (index: number) => {
 		setCurrentIndex(index);
 	};
 
 	const goToPrevious = () => {
-		setCurrentIndex((prevIndex) =>
-			prevIndex === 0 ? images.length - 1 : prevIndex - 1
-		);
+		setCurrentIndex((prevIndex) => prevIndex - 1);
 	};
 
 	const goToNext = () => {
-		setCurrentIndex((prevIndex) =>
-			prevIndex === images.length - 1 ? 0 : prevIndex + 1
-		);
+		setCurrentIndex((prevIndex) => prevIndex + 1);
 	};
 
 	return (
@@ -71,16 +67,44 @@ export function FundraiserGallerySlider({
 					</div>
 				))}
 			</div>
-			<button
-				className="absolute top-1/2 left-2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full focus:outline-none hover:bg-opacity-75"
-				onClick={goToPrevious}>
-				←
-			</button>
-			<button
-				className="absolute top-1/2 right-2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full focus:outline-none hover:bg-opacity-75"
-				onClick={goToNext}>
-				→
-			</button>
+			{currentIndex !== 0 ? (
+				<button
+					className="absolute top-1/2 -translate-y-1/2 left-0 flex items-center justify-center w-10 h-24 text-2xl text-black bg-white bg-opacity-60 cursor-pointer rounded-r-full hover:bg-opacity-80 transition-colors duration-300"
+					onClick={goToPrevious}>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						strokeWidth={2}
+						stroke="currentColor"
+						className="w-5 h-5">
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							d="M15 19l-7-7 7-7"
+						/>
+					</svg>
+				</button>
+			) : null}
+			{currentIndex !== images.length - 1 ? (
+				<button
+					className="absolute top-1/2 -translate-y-1/2 right-0 flex items-center justify-center w-10 h-24 text-2xl text-black bg-white bg-opacity-80 cursor-pointer rounded-l-full"
+					onClick={goToNext}>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						strokeWidth={2}
+						stroke="currentColor"
+						className="w-5 h-5">
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							d="M9 5l7 7-7 7"
+						/>
+					</svg>
+				</button>
+			) : null}
 			<div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-2">
 				{images.map((_, index) => (
 					<button
