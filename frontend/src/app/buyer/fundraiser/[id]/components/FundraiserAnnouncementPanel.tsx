@@ -2,11 +2,11 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AnnouncementSchema } from "common";
-import { z } from "zod";
+import type { AnnouncementSchema } from "common";
+import type { z } from "zod";
 
 interface FundraiserAnnouncementPanelProps {
-    announcements: z.infer<typeof AnnouncementSchema>[];
+	announcements: z.infer<typeof AnnouncementSchema>[];
 }
 
 export function FundraiserAnnouncementPanel({
@@ -22,32 +22,49 @@ export function FundraiserAnnouncementPanel({
 		return null;
 	}
 
-	return (
-		<div className="border-b">
-			<div className="p-6 md:p-10">
-				<button
-					onClick={toggleDropdown}
-					className="w-full flex items-center justify-between bg-white rounded-md p-4 border hover:bg-gray-50 transition-colors">
-					<div className="flex items-center">
-						<Bell className="w-5 h-5 mr-2 text-gray-600" />
-						<h2 className="text-lg font-semibold">
-							Announcements ({announcements.length})
-						</h2>
-					</div>
-					{isOpen ? (
-						<ChevronUp className="w-5 h-5 text-gray-600" />
-					) : (
-						<ChevronDown className="w-5 h-5 text-gray-600" />
-					)}
-				</button>
+	const mostRecent = announcements[0];
 
+	const truncateMessage = (message: string, maxLength = 60) => {
+		return message.length > maxLength
+			? `${message.substring(0, maxLength)}...`
+			: message;
+	};
+
+	return (
+		<div className="px-10">
+			<button
+				onClick={toggleDropdown}
+				disabled={announcements.length <= 1}
+				className="w-full flex items-start bg-white rounded-md p-4 border hover:bg-gray-50 transition-colors">
+				<Bell className="w-5 h-5 mr-3 mt-0.5 text-gray-600 flex-shrink-0" />
+				<div className="flex-1 overflow-hidden text-left">
+					<h2 className="text-lg font-semibold leading-tight">
+						Announcements ({announcements.length})
+					</h2>
+					<p className="text-sm text-gray-600 truncate mt-1">
+						{truncateMessage(mostRecent.message)}
+					</p>
+				</div>
+				{announcements.length > 1 && (
+					<div className="flex-shrink-0 ml-2 self-center">
+						{isOpen ? (
+							<ChevronUp className="w-5 h-5 text-gray-600" />
+						) : (
+							<ChevronDown className="w-5 h-5 text-gray-600" />
+						)}
+					</div>
+				)}
+			</button>
+			{/* Dropdown Content */}
+			{announcements.length > 1 && (
 				<div
 					className={cn(
 						"mt-2 overflow-hidden transition-all duration-300 ease-in-out",
 						isOpen ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
 					)}>
 					<div className="space-y-4 pt-2">
-						{announcements.map((announcement) => (
+						{/* Map over announcements starting from the second element */}
+						{announcements.slice(1).map((announcement) => (
 							<div
 								key={announcement.id}
 								className="bg-white p-4 rounded-md border">
@@ -62,7 +79,7 @@ export function FundraiserAnnouncementPanel({
 						))}
 					</div>
 				</div>
-			</div>
+			)}
 		</div>
 	);
 }

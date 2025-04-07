@@ -53,15 +53,15 @@ export default async function FundraiserPage({
 	const id = (await params).id;
 	const fundraiser = await getFundraiser(id);
 	const fundraiserItems = await getFundraiserItems(id);
-	const announcements = fundraiser.announcements
+	const announcements = fundraiser.announcements;
 
 	return (
-		<div>
-			<div className="p-10 border-b flex flex-col">
+		<div className="flex flex-col">
+			<div className="p-10">
 				{fundraiser.imageUrls.length > 0 ? (
 					<FundraiserGallerySlider images={fundraiser.imageUrls} />
 				) : (
-					<div className="w-full h-40 sm:h-50 md:h-58 lg:h-64 bg-gray-200 rounded-lg mb-10 flex items-center justify-center">
+					<div className="w-full h-40 sm:h-50 md:h-58 lg:h-64 bg-gray-200 rounded-lg mb-6 flex items-center justify-center">
 						<p className="text-gray-500">No images available</p>
 					</div>
 				)}
@@ -69,7 +69,8 @@ export default async function FundraiserPage({
 				<p className="text-gray-600 mb-4">{fundraiser.description}</p>
 				<div className="flex flex-col items-start w-full max-w-md">
 					<div className="flex items-center mb-2">
-						<ShoppingBag className="w-4 h-4 mr-2 text-gray-500" />
+						{/* Adjust icon size and ensure alignment */}
+						<ShoppingBag className="w-6 h-6 sm:w-4 sm:h-4 mr-2 text-gray-500 flex-shrink-0" />
 						<span className="text-sm text-gray-700">
 							{"Buying Window: "}
 							<span className="font-bold">
@@ -78,14 +79,16 @@ export default async function FundraiserPage({
 						</span>
 					</div>
 					<div className="flex items-center mb-2">
-						<MapPin className="w-4 h-4 mr-2 text-gray-500" />
+						{/* Adjust icon size and ensure alignment */}
+						<MapPin className="w-6 h-6 sm:w-4 sm:h-4 mr-2 text-gray-500 flex-shrink-0" />
 						<span className="text-sm text-gray-700">
 							{"Pickup Location: "}
 							<span className="font-bold">{fundraiser.pickupLocation}</span>
 						</span>
 					</div>
-					<div className="flex items-center mb-2">
-						<Calendar className="w-4 h-4 mr-2 text-gray-500" />
+					<div className="flex items-center">
+						{/* Adjust icon size and ensure alignment */}
+						<Calendar className="w-6 h-6 sm:w-4 sm:h-4 mr-2 text-gray-500 flex-shrink-0" />
 						<span className="text-sm text-gray-700">
 							{"Pickup Window: "}
 							<span className="font-bold">
