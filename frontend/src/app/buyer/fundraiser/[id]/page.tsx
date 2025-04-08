@@ -37,10 +37,8 @@ const getFundraiserItems = async (id: string) => {
 };
 
 const formatDate = (startsAt: Date, endsAt: Date) => {
-  return `${format(new Date(startsAt), "MMMM dd ")} at
-    ${format(new Date(startsAt), " hh:mm a")} -
-    ${format(new Date(endsAt), " MMMM dd ")} at
-    ${format(new Date(endsAt), " hh:mm a")}`;
+  return `${format(new Date(startsAt), "MMM d, yyyy 'at' h:mm a")}
+    ${format(new Date(endsAt), "MMM d, yyyy 'at' h:mm a")}`;
 };
 
 export default async function FundraiserPage({
@@ -66,37 +64,39 @@ export default async function FundraiserPage({
         )}
         <h1 className="text-3xl font-bold mb-2">{fundraiser.name}</h1>
         <p className="text-gray-600 mb-4">{fundraiser.description}</p>
-        <div className="flex flex-col items-start w-full max-w-md">
-          <div className="flex items-center mb-2">
-            {/* Adjust icon size and ensure alignment */}
-            <ShoppingBag className="w-6 h-6 sm:w-4 sm:h-4 mr-2 text-gray-500 flex-shrink-0" />
-            <span className="text-sm text-gray-700">
-              {"Buying Window: "}
-              <span className="font-bold">
-                {formatDate(fundraiser.buyingStartsAt, fundraiser.buyingEndsAt)}
-              </span>
+
+        <div className="flex flex-col items-start w-full space-y-2">
+          <div className="flex sm:items-center gap-2">
+            <ShoppingBag className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+            <span className="text-md">
+              Buying Window:{" "}
+              <b>
+                {format(fundraiser.buyingStartsAt, "MMM d, yyyy 'at' h:mm a")} -{" "}
+                {format(fundraiser.buyingEndsAt, "MMM d, yyyy 'at' h:mm a")}
+              </b>
             </span>
           </div>
-          <div className="flex items-center mb-2">
-            {/* Adjust icon size and ensure alignment */}
-            <MapPin className="w-6 h-6 sm:w-4 sm:h-4 mr-2 text-gray-500 flex-shrink-0" />
-            <span className="text-sm text-gray-700">
-              {"Pickup Location: "}
-              <span className="font-bold">{fundraiser.pickupLocation}</span>
+
+          <div className="flex sm:items-center gap-2">
+            <MapPin className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+            <span className="text-md">
+              Pickup Location: <b>{fundraiser.pickupLocation}</b>
             </span>
           </div>
-          <div className="flex items-center">
-            {/* Adjust icon size and ensure alignment */}
-            <Calendar className="w-6 h-6 sm:w-4 sm:h-4 mr-2 text-gray-500 flex-shrink-0" />
-            <span className="text-sm text-gray-700">
-              {"Pickup Window: "}
-              <span className="font-bold">
-                {formatDate(fundraiser.pickupStartsAt, fundraiser.pickupEndsAt)}
-              </span>
+
+          <div className="flex sm:items-center gap-2">
+            <Calendar className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+            <span className="text-md">
+              Pickup Window:{" "}
+              <b>
+                {format(fundraiser.pickupStartsAt, "MMM d, yyyy 'at' h:mm a")} -{" "}
+                {format(fundraiser.pickupEndsAt, "MMM d, yyyy 'at' h:mm a")}
+              </b>
             </span>
           </div>
         </div>
       </div>
+
       <FundraiserAnnouncementPanel announcements={fundraiser.announcements} />
       <FundraiserItemsPanel items={fundraiserItems} />
     </div>
