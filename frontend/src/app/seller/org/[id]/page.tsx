@@ -116,7 +116,11 @@ export default async function OrganizationPage({
         <div className="space-y-4 mt-4">
           {activeFundraisers.length > 0 ? (
             activeFundraisers.map((fundraiser) => (
-              <FundraiserCard key={fundraiser.id} fundraiser={fundraiser} />
+              <FundraiserCard
+                key={fundraiser.id}
+                fundraiser={fundraiser}
+                seller
+              />
             ))
           ) : (
             <div className="text-center py-6">
