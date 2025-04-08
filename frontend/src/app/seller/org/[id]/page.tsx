@@ -82,11 +82,11 @@ export default async function OrganizationPage({
   // Separate fundraisers into two categories: active and past
 
   const activeFundraisers = fundraisers.filter(
-    (fundraiser) => !isPast(fundraiser.buyingEndsAt)
+    (fundraiser) => !isPast(fundraiser.pickupEndsAt)
   );
 
   const pastFundraisers = fundraisers.filter((fundraiser) =>
-    isPast(fundraiser.buyingEndsAt)
+    isPast(fundraiser.pickupEndsAt)
   );
 
   return (
