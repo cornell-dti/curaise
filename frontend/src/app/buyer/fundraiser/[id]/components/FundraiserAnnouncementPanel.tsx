@@ -22,7 +22,7 @@ export function FundraiserAnnouncementPanel({
   }
 
   return (
-    <div className="px-10">
+    <div>
       <button
         onClick={toggleDropdown}
         className="w-full flex items-start bg-white rounded-lg p-4 border hover:bg-gray-50 transition-colors"
@@ -47,7 +47,7 @@ export function FundraiserAnnouncementPanel({
         <div
           className={cn(
             "mt-2 overflow-hidden transition-all duration-300 ease-in-out",
-            isOpen ? "max-h-[1000px] opacity-100" : "max-h-0 opacity-0"
+            isOpen ? "opacity-100" : "max-h-0 opacity-0"
           )}
         >
           <div className="space-y-4 pt-2">

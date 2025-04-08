@@ -9,7 +9,7 @@ export function FundraiserItemsPanel({
   items: z.infer<typeof CompleteItemSchema>[];
 }) {
   return (
-    <div className="bg-white p-10 rounded-md">
+    <div className="bg-white rounded-md">
       <h2 className="text-2xl font-bold mb-4">Items</h2>
 
       {items.length === 0 ? (
