@@ -8,11 +8,11 @@ import { Plus, Minus, Trash } from "lucide-react";
 import type { z } from "zod";
 import { cn } from "@/lib/utils";
 
-interface FundraiserItemCardProp {
+export function FundraiserItemCard({
+  item,
+}: {
   item: z.infer<typeof CompleteItemSchema>;
-}
-
-export function FundraiserItemCard({ item }: FundraiserItemCardProp) {
+}) {
   const [showQuantity, setShowQuantity] = useState(false);
   const [quantity, setQuantity] = useState(0);
   const [isClosing, setIsClosing] = useState(false);
