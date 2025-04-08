@@ -87,7 +87,7 @@ export function FundraiserItemCard({ item }: FundraiserItemCardProp) {
   };
 
   return (
-    <div className="border rounded-md flex flex-col overflow-hidden h-full hover:scale-105 transition-transform duration-150">
+    <div className="border rounded-md flex flex-col overflow-hidden h-full hover:scale-105 transition-transform duration-150 cursor-pointer">
       <div className="relative w-full h-48 bg-gray-100">
         {item.imageUrl ? (
           <img
