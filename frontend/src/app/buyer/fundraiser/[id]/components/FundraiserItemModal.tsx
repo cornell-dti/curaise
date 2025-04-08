@@ -37,8 +37,11 @@ export function FundraiserItemModal({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <FundraiserItemCard item={item} />
+        <div>
+          <FundraiserItemCard item={item} />
+        </div>
       </DialogTrigger>
+
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           {item.imageUrl && (
@@ -51,7 +54,7 @@ export function FundraiserItemModal({
           <DialogTitle>{item.name}</DialogTitle>
           <DialogDescription>{item.description}</DialogDescription>
         </DialogHeader>
-        <div className="py-4">
+        <DialogDescription>
           <div className="flex items-center justify-center gap-4">
             <Button
               variant="outline"
@@ -68,7 +71,7 @@ export function FundraiserItemModal({
               <Plus className="h-4 w-4" />
             </Button>
           </div>
-        </div>
+        </DialogDescription>
         <DialogFooter>
           <Button className="w-full">
             Add {quantity} {quantity === 1 ? "item" : "items"}
