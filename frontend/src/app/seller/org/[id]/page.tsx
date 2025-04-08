@@ -76,17 +76,13 @@ export default async function OrganizationPage({
 
   // Check if user is an admin of the organization
   if (!org.admins.map((admin) => admin.id).includes(user.id)) {
-    throw new Error("You are not authorized to view this page.");
+    throw new Error("You are not authorized to view this organization.");
   }
 
-  // Separate fundraisers into three categories: future, active, and past
-  const futureFundraisers = fundraisers.filter(
-    (fundraiser) => !isPast(fundraiser.buyingStartsAt)
-  );
+  // Separate fundraisers into two categories: active and past
 
   const activeFundraisers = fundraisers.filter(
-    (fundraiser) =>
-      isPast(fundraiser.buyingStartsAt) && !isPast(fundraiser.buyingEndsAt)
+    (fundraiser) => !isPast(fundraiser.buyingEndsAt)
   );
 
   const pastFundraisers = fundraisers.filter((fundraiser) =>
@@ -94,7 +90,11 @@ export default async function OrganizationPage({
   );
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-3xl space-y-4">
+    <div className="container mx-auto px-4 py-6 max-w-4xl space-y-4">
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-100">
+        <p className="text-lg my-auto">Welcome, admin!</p>
+      </div>
+
       <div className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="flex items-center text-4xl font-bold">
@@ -102,14 +102,11 @@ export default async function OrganizationPage({
             {org.authorized && <ShieldCheck className="text-gray-600 ml-1" />}
           </h1>
           <EditOrgInfoDialog org={org} token={session.access_token} />
-          <div className="bg-green-100 text-green-800 px-4 py-2 rounded-md font-medium text-sm sm:text-base">
-            Welcome, admin!
-          </div>
         </div>
       </div>
 
       <div className="flex flex-col">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Active Fundraisers</h1>
           <Link href={`/seller/org/${id}/create-fundraiser`}>
             <Button className="ml-2">Create New Fundraiser</Button>
@@ -126,27 +123,6 @@ export default async function OrganizationPage({
               <h3 className="text-lg font-medium">No active fundraisers</h3>
               <p className="text-muted-foreground">
                 {org.name} doesn't have any currently active fundraisers.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="flex flex-col">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Future Fundraisers</h1>
-        </div>
-
-        <div className="space-y-4 mt-4">
-          {futureFundraisers.length > 0 ? (
-            futureFundraisers.map((fundraiser) => (
-              <FundraiserCard key={fundraiser.id} fundraiser={fundraiser} />
-            ))
-          ) : (
-            <div className="text-center py-6">
-              <h3 className="text-lg font-medium">No future fundraisers</h3>
-              <p className="text-muted-foreground">
-                {org.name} doesn't have any upcoming fundraisers scheduled.
               </p>
             </div>
           )}
