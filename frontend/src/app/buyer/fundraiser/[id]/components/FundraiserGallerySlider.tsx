@@ -1,4 +1,5 @@
 "use client";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
 
 interface FundraiserGallerySliderProps {
@@ -34,8 +35,8 @@ export function FundraiserGallerySlider({
           return prevIndex - 1;
         });
       }
-      // Runs every 3s interval
-    }, 3000);
+      // Runs every 5s
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [images.length, currentIndex]);
@@ -53,7 +54,7 @@ export function FundraiserGallerySlider({
   };
 
   return (
-    <div className="relative w-full h-40 sm:h-50 md:h-58 lg:h-64 overflow-hidden rounded-lg shadow-lg mb-10">
+    <div className="relative w-full h-40 sm:h-50 md:h-58 lg:h-64 overflow-hidden rounded-t-lg">
       <div
         className="flex w-full h-full transition-transform duration-500 ease-in-out"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
@@ -68,25 +69,14 @@ export function FundraiserGallerySlider({
           </div>
         ))}
       </div>
-      {currentIndex !== 0 ? (
+
+      {/* Previous and Next Buttons */}
+      {/* {currentIndex !== 0 ? (
         <button
           className="absolute top-1/2 -translate-y-1/2 left-0 flex items-center justify-center w-10 h-24 text-2xl text-black bg-white bg-opacity-60 cursor-pointer rounded-r-full hover:bg-opacity-80 transition-colors duration-300"
           onClick={goToPrevious}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-5 h-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
+          <ChevronLeft />
         </button>
       ) : null}
       {currentIndex !== images.length - 1 ? (
@@ -94,28 +84,16 @@ export function FundraiserGallerySlider({
           className="absolute top-1/2 -translate-y-1/2 right-0 flex items-center justify-center w-10 h-24 text-2xl text-black bg-white bg-opacity-80 cursor-pointer rounded-l-full"
           onClick={goToNext}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-5 h-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
+          <ChevronRight />
         </button>
-      ) : null}
+      ) : null} */}
+
       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-2">
         {images.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`w-3 h-3 rounded-full focus:outline-none ${
+            className={`w-2 h-2 rounded-full focus:outline-none ${
               index === currentIndex ? "bg-white" : "bg-gray-400"
             }`}
           />
