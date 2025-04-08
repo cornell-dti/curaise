@@ -29,27 +29,56 @@ const AddAdminsSchema = CreateOrganizationBody.pick({
 });
 
 export function OrganizationAddAdminsForm({
+  admins,
+  setAdmins,
   onSubmit,
   onBack,
 }: {
+  admins: z.infer<typeof UserSchema>[];
+  setAdmins: React.Dispatch<React.SetStateAction<z.infer<typeof UserSchema>[]>>;
   onSubmit: (data: z.infer<typeof AddAdminsSchema>) => void;
   onBack: () => void;
 }) {
   const [adminEmail, setAdminEmail] = useState("");
-  const [admins, setAdmins] = useState<z.infer<typeof UserSchema>[]>([]);
 
   const handleAddAdmin = async () => {
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "/user/search?email=" + adminEmail
-    );
-    const data = await response.json();
-    if (!response.ok) {
-      toast.error(data.message);
+    if (!adminEmail.trim()) {
+      toast.error("Please enter an admin email");
       return;
     }
-    const user = UserSchema.parse(data.data);
-    setAdmins((prev) => [...prev, user]);
-    setAdminEmail("");
+
+    try {
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_API_URL
+        }/user/search?email=${encodeURIComponent(adminEmail)}`
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        toast.error(result.message || "Failed to find user");
+        return;
+      }
+
+      const user = UserSchema.parse(result.data);
+
+      // Check if admin is already in the list
+      if (admins.some((admin) => admin.id === user.id)) {
+        toast.error("This user is already added as an admin");
+        return;
+      }
+
+      setAdmins((prev) => [...prev, user]);
+      setAdminEmail("");
+      toast.success(`${user.name} added to list`);
+    } catch (error) {
+      toast.error("Error adding admin");
+    }
+  };
+
+  const removeAdmin = (adminId: string) => {
+    setAdmins((prev) => prev.filter((admin) => admin.id !== adminId));
   };
 
   return (
@@ -73,21 +102,23 @@ export function OrganizationAddAdminsForm({
         {admins.length > 0 && (
           <div className="mt-4 space-y-2">
             <p>Additional Admins:</p>
-            <ul className="list-disc list-inside text-sm">
+            <ul className="space-y-2">
               {admins.map((admin) => (
                 <li
                   key={admin.id}
-                  className="flex items-center justify-between"
+                  className="flex items-center justify-between bg-muted p-2 rounded-md"
                 >
-                  {admin.name} ({admin.email})
+                  <span className="text-sm">
+                    {admin.name} ({admin.email})
+                  </span>
                   <Button
-                    variant="destructive"
-                    className="ml-1"
-                    onClick={() =>
-                      setAdmins((prev) => prev.filter((a) => a.id !== admin.id))
-                    }
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeAdmin(admin.id)}
+                    className="h-7 w-7 p-0"
                   >
-                    <X />
+                    <X className="h-4 w-4" />
                   </Button>
                 </li>
               ))}
