@@ -24,7 +24,7 @@ const getOrganization = async (id: string) => {
 export default async function CreateFundraiserPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   await connection(); // ensures server component is dynamically rendered at runtime, not statically rendered at build time
 
