@@ -23,7 +23,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { DateTimePicker } from "@/components/custom/DateTimePicker";
 import { ControllerRenderProps } from "react-hook-form";
-import { useEffect } from "react";
 
 const BasicInformationSchema = CreateFundraiserBody.omit({
   imageUrls: true,
@@ -65,32 +64,6 @@ const DateTimeFieldAdapter = ({
   return <DateTimePicker value={field.value} onChange={field.onChange} />;
 };
 
-const getDefaultDates = () => {
-  const now = new Date();
-
-  const buyingStartsAt = new Date(now);
-  buyingStartsAt.setHours(9, 0, 0, 0);
-
-  const buyingEndsAt = new Date(now);
-  buyingEndsAt.setDate(now.getDate() + 1);
-  buyingEndsAt.setHours(21, 0, 0, 0);
-
-  const pickupStartsAt = new Date(now);
-  pickupStartsAt.setDate(now.getDate() + 1);
-  pickupStartsAt.setHours(9, 0, 0, 0);
-
-  const pickupEndsAt = new Date(now);
-  pickupEndsAt.setDate(now.getDate() + 1);
-  pickupEndsAt.setHours(22, 0, 0, 0);
-
-  return {
-    buyingStartsAt,
-    buyingEndsAt,
-    pickupStartsAt,
-    pickupEndsAt,
-  };
-};
-
 export function FundraiserBasicInfoForm({
   defaultValues,
   onSubmit,
@@ -98,17 +71,9 @@ export function FundraiserBasicInfoForm({
   defaultValues: z.infer<typeof BasicInformationSchema>;
   onSubmit: (data: z.infer<typeof BasicInformationSchema>) => void;
 }) {
-  const defaultDates = getDefaultDates();
-
   const form = useForm<z.infer<typeof BasicInformationSchema>>({
     resolver: zodResolver(BasicInformationSchema),
-    defaultValues: {
-      ...defaultValues,
-      buyingStartsAt: defaultDates.buyingStartsAt,
-      buyingEndsAt: defaultDates.buyingEndsAt,
-      pickupStartsAt: defaultDates.pickupStartsAt,
-      pickupEndsAt: defaultDates.pickupEndsAt,
-    },
+    defaultValues: defaultValues,
   });
 
   return (

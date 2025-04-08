@@ -10,6 +10,32 @@ import { FundraiserBasicInfoForm } from "./FundraiserBasicInfoForm";
 import { FundraiserAddItemsForm } from "./FundraiserAddItemsForm";
 import { ReviewFundraiserForm } from "./ReviewFundraiserForm";
 
+const getDefaultDates = () => {
+  const now = new Date();
+
+  const buyingStartsAt = new Date(now);
+  buyingStartsAt.setHours(9, 0, 0, 0);
+
+  const buyingEndsAt = new Date(now);
+  buyingEndsAt.setDate(now.getDate() + 1);
+  buyingEndsAt.setHours(21, 0, 0, 0);
+
+  const pickupStartsAt = new Date(now);
+  pickupStartsAt.setDate(now.getDate() + 1);
+  pickupStartsAt.setHours(9, 0, 0, 0);
+
+  const pickupEndsAt = new Date(now);
+  pickupEndsAt.setDate(now.getDate() + 1);
+  pickupEndsAt.setHours(22, 0, 0, 0);
+
+  return {
+    buyingStartsAt,
+    buyingEndsAt,
+    pickupStartsAt,
+    pickupEndsAt,
+  };
+};
+
 export function CreateFundraiserForm({
   token,
   organizationId,
@@ -17,6 +43,8 @@ export function CreateFundraiserForm({
   token: string;
   organizationId: string;
 }) {
+  const defaultDates = getDefaultDates();
+
   const [formData, setFormData] = useState<
     z.infer<typeof CreateFundraiserBody>
   >({
@@ -25,10 +53,10 @@ export function CreateFundraiserForm({
     imageUrls: [], // Not implemented yet
     goalAmount: undefined,
     pickupLocation: "",
-    buyingStartsAt: new Date(),
-    buyingEndsAt: new Date(),
-    pickupStartsAt: new Date(),
-    pickupEndsAt: new Date(),
+    buyingStartsAt: defaultDates.buyingStartsAt,
+    buyingEndsAt: defaultDates.buyingEndsAt,
+    pickupStartsAt: defaultDates.pickupStartsAt,
+    pickupEndsAt: defaultDates.pickupEndsAt,
     organizationId: organizationId,
   });
 
