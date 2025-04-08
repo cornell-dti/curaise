@@ -97,7 +97,10 @@ export function EditOrgInfoDialog({
       const user = UserSchema.parse(result.data);
 
       // Check if admin is already in the list
-      if (additionalAdmins.some((admin) => admin.id === user.id)) {
+      if (
+        additionalAdmins.some((admin) => admin.id === user.id) ||
+        org.admins.some((admin) => admin.id === user.id)
+      ) {
         toast.error("This user is already added as an admin");
         return;
       }
@@ -107,7 +110,6 @@ export function EditOrgInfoDialog({
       toast.success(`${user.name} added to list, click save to confirm`);
     } catch (error) {
       toast.error("Error adding admin");
-      console.error(error);
     }
   };
 
@@ -197,7 +199,6 @@ export function EditOrgInfoDialog({
                   </FormItem>
                 )}
               />
-              {/* logoUrl field removed as requested */}
               <FormField
                 control={form.control}
                 name="websiteUrl"
