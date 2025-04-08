@@ -80,6 +80,7 @@ export function CreateOrganizationForm({ token }: { token: string }) {
         />
 
         <ReviewOrganizationForm
+          admins={admins}
           formData={formData}
           onSubmit={onSubmit}
           onBack={() => setCurrentStep(1)}

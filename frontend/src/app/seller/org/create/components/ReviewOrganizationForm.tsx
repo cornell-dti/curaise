@@ -7,26 +7,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { CreateOrganizationBody } from "common";
-import { useForm } from "react-hook-form";
+import { CreateOrganizationBody, UserSchema } from "common";
 import { z } from "zod";
 
 export function ReviewOrganizationForm({
+  admins,
   formData,
   onSubmit,
   onBack,
 }: {
+  admins: z.infer<typeof UserSchema>[];
   formData: z.infer<typeof CreateOrganizationBody>;
   onSubmit: () => void;
   onBack: () => void;
@@ -40,27 +30,46 @@ export function ReviewOrganizationForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <p>
-          Name: <b>{formData.name}</b>
-        </p>
-        <p>
-          Description:{" "}
-          {formData.description ? <b>{formData.description}</b> : "(none)"}
-        </p>
-        {formData.websiteUrl && (
+        <div className="flex flex-col gap-2">
           <p>
-            Website URL: <b>{formData.websiteUrl}</b>
+            Name: <b>{formData.name}</b>
           </p>
-        )}
-        {formData.instagramUsername && (
           <p>
-            Instagram Username: <b>@{formData.instagramUsername}</b>
+            Description:{" "}
+            {formData.description ? <b>{formData.description}</b> : "(none)"}
           </p>
-        )}
-        {formData.venmoUsername && (
-          <p>
-            Venmo Username: <b>@{formData.venmoUsername}</b>
-          </p>
+          {formData.websiteUrl && (
+            <p>
+              Website URL: <b>{formData.websiteUrl}</b>
+            </p>
+          )}
+          {formData.instagramUsername && (
+            <p>
+              Instagram Username: <b>@{formData.instagramUsername}</b>
+            </p>
+          )}
+          {formData.venmoUsername && (
+            <p>
+              Venmo Username: <b>@{formData.venmoUsername}</b>
+            </p>
+          )}
+        </div>
+        {admins.length > 0 && (
+          <div className="mt-4 space-y-2">
+            <p>Additional Admins:</p>
+            <ul className="space-y-2">
+              {admins.map((admin) => (
+                <li
+                  key={admin.id}
+                  className="flex items-center justify-between bg-muted p-2 rounded-md"
+                >
+                  <span className="text-sm">
+                    {admin.name} ({admin.email})
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </CardContent>
       <CardFooter className="flex justify-between">
