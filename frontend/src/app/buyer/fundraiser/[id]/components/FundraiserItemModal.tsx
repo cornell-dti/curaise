@@ -54,24 +54,22 @@ export function FundraiserItemModal({
           <DialogTitle>{item.name}</DialogTitle>
           <DialogDescription>{item.description}</DialogDescription>
         </DialogHeader>
-        <DialogDescription>
-          <div className="flex items-center justify-center gap-4">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={decrementQuantity}
-              disabled={quantity <= 1}
-            >
-              <Minus className="h-4 w-4" />
-            </Button>
-            <span className="text-lg font-medium w-8 text-center">
-              {quantity}
-            </span>
-            <Button variant="outline" size="icon" onClick={incrementQuantity}>
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-        </DialogDescription>
+        <div className="flex items-center justify-center gap-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={decrementQuantity}
+            disabled={quantity <= 1}
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+          <span className="text-lg font-medium w-8 text-center">
+            {quantity}
+          </span>
+          <Button variant="outline" size="icon" onClick={incrementQuantity}>
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
         <DialogFooter>
           <Button className="w-full">
             Add {quantity} {quantity === 1 ? "item" : "items"}
