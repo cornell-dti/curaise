@@ -6,7 +6,7 @@ import type { CompleteItemSchema } from "common";
 import type Decimal from "decimal.js";
 import { Plus, Minus, Trash } from "lucide-react";
 import type { z } from "zod";
-import "../style/Slider.css";
+import { cn } from "@/lib/utils";
 
 interface FundraiserItemCardProp {
   item: z.infer<typeof CompleteItemSchema>;
@@ -111,11 +111,11 @@ export function FundraiserItemCard({ item }: FundraiserItemCardProp) {
           <div className="relative">
             <div
               ref={selectorRef}
-              className={`quantity-selector flex items-center justify-center bg-gray-100 rounded-full h-8 shadow-sm ${
-                showQuantity ? "expanded " : ""
-              } ${showQuantity && !isClosing ? "animate-slide-open" : ""} ${
-                isClosing ? "animate-slide-close" : ""
-              }`}
+              className={cn(
+                "quantity-selector flex items-center justify-center bg-gray-100 rounded-full h-8 shadow-sm",
+                showQuantity ? "w-24" : "w-8",
+                "origin-right overflow-hidden whitespace-nowrap transition-all duration-300 ease-out"
+              )}
             >
               {showQuantity ? (
                 <>
