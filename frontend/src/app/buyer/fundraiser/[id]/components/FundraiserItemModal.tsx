@@ -16,11 +16,11 @@ import { FundraiserItemCard } from "@/app/buyer/fundraiser/[id]/components/Fundr
 import { useState } from "react";
 import { Plus, Minus } from "lucide-react";
 
-interface FundraiserItemModalProps {
+export function FundraiserItemModal({
+  item,
+}: {
   item: z.infer<typeof CompleteItemSchema>;
-}
-
-export function FundraiserItemModal({ item }: FundraiserItemModalProps) {
+}) {
   const [quantity, setQuantity] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
 
