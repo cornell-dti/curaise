@@ -142,9 +142,7 @@ export function CreateFundraiserForm({
         <FundraiserAddItemsForm
           items={fundraiserItems}
           setItems={setFundraiserItems}
-          onSubmit={() => {
-            setCurrentStep(2);
-          }}
+          onSubmit={() => setCurrentStep(2)}
           onBack={() => setCurrentStep(0)}
         />
 
