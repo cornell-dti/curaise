@@ -79,12 +79,7 @@ export function EditOrgInfoDialog({
       const response = await fetch(
         `${
           process.env.NEXT_PUBLIC_API_URL
-        }/user/search?email=${encodeURIComponent(adminEmail)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        }/user/search?email=${encodeURIComponent(adminEmail)}`
       );
 
       const result = await response.json();
