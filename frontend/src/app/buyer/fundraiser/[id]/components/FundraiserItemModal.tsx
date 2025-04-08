@@ -37,9 +37,9 @@ export function FundraiserItemModal({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <div>
+        <span className="cursor-pointer">
           <FundraiserItemCard item={item} />
-        </div>
+        </span>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[600px]">

@@ -15,10 +15,10 @@ export function FundraiserItemCard({
 }) {
   const [showQuantity, setShowQuantity] = useState(false);
   const [quantity, setQuantity] = useState(0);
-  const [isClosing, setIsClosing] = useState(false);
   const selectorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // click outside add/remove component
     function handleClickOutside(event: MouseEvent) {
       if (
         selectorRef.current &&
@@ -33,13 +33,6 @@ export function FundraiserItemCard({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showQuantity]);
-
-  const formatPrice = (price: Decimal) => {
-    if (price.toFixed) {
-      return `$${price.toFixed(2)}`;
-    }
-    return `$${Number(price).toFixed(2)}`;
-  };
 
   const handlePlusClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event
@@ -60,16 +53,13 @@ export function FundraiserItemCard({
   };
 
   const handleClose = () => {
-    setIsClosing(true);
     setTimeout(() => {
-      setIsClosing(false);
       setShowQuantity(false);
     }, 300);
   };
 
   const handleOpen = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event
-    setIsClosing(false);
     setShowQuantity(true);
     if (quantity === 0) {
       setQuantity(1);
@@ -78,16 +68,14 @@ export function FundraiserItemCard({
 
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event
-    setIsClosing(true);
     setTimeout(() => {
-      setIsClosing(false);
       setShowQuantity(false);
       setQuantity(0);
     }, 300);
   };
 
   return (
-    <div className="border rounded-md flex flex-col overflow-hidden h-full hover:scale-105 transition-transform duration-150 cursor-pointer">
+    <div className="border rounded-md flex flex-col overflow-hidden h-full hover:scale-105 transition-transform duration-150">
       <div className="relative w-full h-48 bg-gray-100">
         {item.imageUrl ? (
           <img
@@ -105,9 +93,11 @@ export function FundraiserItemCard({
       <div className="flex-1 p-4">
         <h3 className="font-medium text-lg">{item.name}</h3>
         <div className="flex items-center justify-between mt-2">
-          <span className="font-medium text-gray-800">
-            {formatPrice(item.price)}
-          </span>
+          <p className="font-medium text-gray-800">{`$${Number(
+            item.price
+          ).toFixed(2)}`}</p>
+
+          {/* add item component */}
           <div className="relative">
             <div
               ref={selectorRef}

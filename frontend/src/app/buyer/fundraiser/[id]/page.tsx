@@ -36,11 +36,6 @@ const getFundraiserItems = async (id: string) => {
   return data.data;
 };
 
-const formatDate = (startsAt: Date, endsAt: Date) => {
-  return `${format(new Date(startsAt), "MMM d, yyyy 'at' h:mm a")}
-    ${format(new Date(endsAt), "MMM d, yyyy 'at' h:mm a")}`;
-};
-
 export default async function FundraiserPage({
   params,
 }: {
