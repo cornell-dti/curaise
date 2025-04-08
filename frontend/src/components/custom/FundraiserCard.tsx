@@ -15,8 +15,10 @@ import { Button } from "../ui/button";
 
 export function FundraiserCard({
   fundraiser,
+  seller,
 }: {
   fundraiser: z.infer<typeof BasicFundraiserSchema>;
+  seller?: boolean;
 }) {
   return (
     <Card className="overflow-hidden border shadow-sm">
@@ -64,7 +66,15 @@ export function FundraiserCard({
       </CardContent>
       <CardFooter className="pt-2 flex ">
         <Button variant="outline" size="sm" className="h-8" asChild>
-          <Link href={`/buyer/fundraiser/${fundraiser.id}`}>View Details</Link>
+          <Link
+            href={
+              seller
+                ? `/seller/fundraiser/${fundraiser.id}`
+                : `/buyer/fundraiser/${fundraiser.id}`
+            }
+          >
+            View Details
+          </Link>
         </Button>
       </CardFooter>
     </Card>
