@@ -55,13 +55,10 @@ export default async function FundraiserPage({
   return (
     <div className="flex flex-col">
       <div className="p-10">
-        {fundraiser.imageUrls.length > 0 ? (
+        {fundraiser.imageUrls.length > 0 && (
           <FundraiserGallerySlider images={fundraiser.imageUrls} />
-        ) : (
-          <div className="w-full h-40 sm:h-50 md:h-58 lg:h-64 bg-gray-200 rounded-lg mb-6 flex items-center justify-center">
-            <p className="text-gray-500">No images available</p>
-          </div>
         )}
+
         <h1 className="text-3xl font-bold mb-2">{fundraiser.name}</h1>
         <p className="text-gray-600 mb-4">{fundraiser.description}</p>
 
