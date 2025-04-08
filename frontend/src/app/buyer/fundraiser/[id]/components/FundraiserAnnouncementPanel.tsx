@@ -43,31 +43,29 @@ export function FundraiserAnnouncementPanel({
       </button>
 
       {/* Dropdown Content */}
-      {announcements.length > 1 && (
-        <div
-          className={cn(
-            "mt-2 overflow-hidden transition-all duration-300 ease-in-out",
-            isOpen ? "opacity-100" : "max-h-0 opacity-0"
-          )}
-        >
-          <div className="space-y-4 pt-2">
-            {announcements.map((announcement) => (
-              <div
-                key={announcement.id}
-                className="bg-white p-4 rounded-md border"
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-medium text-gray-900">Announcement</h3>
-                  <span className="text-xs text-gray-500">
-                    {format(announcement.createdAt, "MMM d, yyyy 'at' h:mm a")}
-                  </span>
-                </div>
-                <p className="text-gray-600 text-sm">{announcement.message}</p>
+      <div
+        className={cn(
+          "mt-2 overflow-hidden transition-all duration-300 ease-in-out",
+          isOpen ? "opacity-100" : "max-h-0 opacity-0"
+        )}
+      >
+        <div className="space-y-4 pt-2">
+          {announcements.map((announcement) => (
+            <div
+              key={announcement.id}
+              className="bg-white p-4 rounded-md border"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-medium text-gray-900">Announcement</h3>
+                <span className="text-xs text-gray-500">
+                  {format(announcement.createdAt, "MMM d, yyyy 'at' h:mm a")}
+                </span>
               </div>
-            ))}
-          </div>
+              <p className="text-gray-600 text-sm">{announcement.message}</p>
+            </div>
+          ))}
         </div>
-      )}
+      </div>
     </div>
   );
 }
