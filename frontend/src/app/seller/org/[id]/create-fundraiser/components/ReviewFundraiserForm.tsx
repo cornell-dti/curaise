@@ -87,11 +87,11 @@ export function ReviewFundraiserForm({
         {items.length > 0 && (
           <div className="space-y-2">
             <h3 className="text-lg font-medium">Items ({items.length})</h3>
-            <div className="space-y-2 p-4 border rounded-lg">
+            <div className="space-y-2">
               {items.map((item, index) => (
                 <div
                   key={index}
-                  className="p-3 border rounded flex justify-between items-start"
+                  className="p-4 border rounded-lg flex justify-between items-start"
                 >
                   <div>
                     <p className="font-medium">{item.name}</p>
@@ -111,8 +111,8 @@ export function ReviewFundraiserForm({
 
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-sm text-yellow-800">
-            <strong>Note:</strong> Once created, you'll be able to add
-            fundraiser images and send announcements to supporters.
+            <strong>Note:</strong> Once created, you'll be able to edit
+            fundraiser info, add more items, and send announcements to buyers.
           </p>
         </div>
       </CardContent>

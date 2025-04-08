@@ -67,8 +67,8 @@ export function FundraiserAddItemsForm({
     };
 
     setItems((prev) => [...prev, newItem]);
-    form.reset();
     setOpen(false);
+    form.reset();
   };
 
   const handleRemoveItem = (index: number) => {
@@ -80,7 +80,8 @@ export function FundraiserAddItemsForm({
       <CardHeader>
         <CardTitle>Add Items to Your Fundraiser</CardTitle>
         <CardDescription>
-          Add items that people can purchase to support your fundraiser.
+          Add items that people can purchase to support your fundraiser. You can
+          always add more items after the creation of this fundraiser.
         </CardDescription>
       </CardHeader>
       <CardContent>
