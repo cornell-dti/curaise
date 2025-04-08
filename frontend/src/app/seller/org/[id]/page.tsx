@@ -76,7 +76,7 @@ export default async function OrganizationPage({
 
   // Check if user is an admin of the organization
   if (!org.admins.map((admin) => admin.id).includes(user.id)) {
-    return <p>naw</p>;
+    throw new Error("You are not authorized to view this page.");
   }
 
   // Separate fundraisers into three categories: future, active, and past
