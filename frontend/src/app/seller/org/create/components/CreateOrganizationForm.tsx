@@ -1,7 +1,7 @@
 "use client";
 
 import { redirect } from "next/navigation";
-import { CreateOrganizationBody } from "common";
+import { CreateOrganizationBody, UserSchema } from "common";
 import { toast } from "sonner";
 import { z } from "zod";
 import MultiStepForm from "../../../../../components/custom/MultiStepForm";
@@ -11,6 +11,8 @@ import { OrganizationAddAdminsForm } from "./OrganizationAddAdminsForm";
 import { ReviewOrganizationForm } from "./ReviewOrganizationForm";
 
 export function CreateOrganizationForm({ token }: { token: string }) {
+  const [admins, setAdmins] = useState<z.infer<typeof UserSchema>[]>([]);
+
   const [formData, setFormData] = useState<
     z.infer<typeof CreateOrganizationBody>
   >({
@@ -24,6 +26,11 @@ export function CreateOrganizationForm({ token }: { token: string }) {
   });
 
   async function onSubmit() {
+    const dataToSubmit = {
+      ...formData,
+      addedAdminsIds: admins.map((admin) => admin.id),
+    };
+
     const response = await fetch(
       process.env.NEXT_PUBLIC_API_URL + "/organization/create",
       {
@@ -32,7 +39,7 @@ export function CreateOrganizationForm({ token }: { token: string }) {
           "Content-Type": "application/json",
           Authorization: "Bearer " + token,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSubmit),
       }
     );
 
@@ -63,6 +70,8 @@ export function CreateOrganizationForm({ token }: { token: string }) {
         />
 
         <OrganizationAddAdminsForm
+          admins={admins}
+          setAdmins={setAdmins}
           onSubmit={(data) => {
             setFormData((prev) => ({ ...prev, ...data }));
             setCurrentStep(2);
@@ -71,6 +80,7 @@ export function CreateOrganizationForm({ token }: { token: string }) {
         />
 
         <ReviewOrganizationForm
+          admins={admins}
           formData={formData}
           onSubmit={onSubmit}
           onBack={() => setCurrentStep(1)}
