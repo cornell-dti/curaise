@@ -52,10 +52,10 @@ export default async function OrganizationPage({
   const fundraisers = await getFundraisers(id);
 
   const currentAndFutureFundraisers = fundraisers.filter(
-    (fundraiser) => !isPast(fundraiser.buyingStartsAt)
+    (fundraiser) => !isPast(fundraiser.pickupEndsAt)
   );
   const pastFundraisers = fundraisers.filter((fundraiser) =>
-    isPast(fundraiser.buyingEndsAt)
+    isPast(fundraiser.pickupEndsAt)
   );
 
   return (
