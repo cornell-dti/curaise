@@ -155,10 +155,7 @@ export function FundraiserBasicInfoForm({
                 <FormItem>
                   <FormLabel>Pickup Location</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="Where items can be picked up"
-                      {...field}
-                    />
+                    <Input placeholder="Where items are picked up" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
