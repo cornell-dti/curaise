@@ -53,7 +53,7 @@ export default async function CreateFundraiserPage({
 
   // Check if user is an admin of the organization
   if (!org.admins.map((admin) => admin.id).includes(user.id)) {
-    return <p>naw</p>;
+    throw new Error("User is not an admin of the organization");
   }
 
   return (
