@@ -43,15 +43,15 @@ export const CreateFundraiserBody = z.object({
 });
 
 export const UpdateFundraiserBody = z.object({
-  name: z.string().min(1).max(255).optional(),
-  description: z.string().optional(),
+  name: z.string().min(1).max(255),
+  description: z.string(),
   goalAmount: MoneySchema.optional(),
   pickupLocation: z.string(),
-  imageUrls: z.array(z.string().url()).optional(),
-  buyingStartsAt: z.coerce.date().optional(),
-  buyingEndsAt: z.coerce.date().optional(),
-  pickupStartsAt: z.coerce.date().optional(),
-  pickupEndsAt: z.coerce.date().optional(),
+  imageUrls: z.array(z.string().url()),
+  buyingStartsAt: z.coerce.date(),
+  buyingEndsAt: z.coerce.date(),
+  pickupStartsAt: z.coerce.date(),
+  pickupEndsAt: z.coerce.date(),
 });
 
 export const CreateFundraiserItemBody = z.object({
@@ -59,15 +59,15 @@ export const CreateFundraiserItemBody = z.object({
   description: z.string(),
   price: MoneySchema,
   imageUrl: z.string().url().optional(),
-  offsale: z.boolean().optional(),
+  offsale: z.boolean(),
 });
 
 export const UpdateFundraiserItemBody = z.object({
-  name: z.string().min(1).max(255).optional(),
-  description: z.string().optional(),
-  price: MoneySchema.optional(),
+  name: z.string().min(1).max(255),
+  description: z.string(),
+  price: MoneySchema,
   imageUrl: z.string().url().optional(),
-  offsale: z.boolean().optional(),
+  offsale: z.boolean(),
 });
 
 export const CreateAnnouncementBody = z.object({
