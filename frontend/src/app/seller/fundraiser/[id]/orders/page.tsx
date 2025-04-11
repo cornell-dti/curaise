@@ -370,89 +370,100 @@ export default async function FundraiserOrdersPage({
                     )}
 
                     {/* Payment Type Section */}
-                    <div className="mb-4">
-                      <h3 className="font-medium text-sm mb-2 text-muted-foreground">Payment Type</h3>
-                      <div className="space-y-2">
-                        {paymentTypes.map((type) => (
-                          <div
-                            key={type}
-                            className="flex items-center space-x-2 rounded-md p-1"
-                          >
-                            <Checkbox
-                              id={`payment-${type}`}
-                              name="paymentType"
-                              value={type}
-                              defaultChecked={activeFilters.paymentType.includes(type)}
-                            />
-                            <label
-                              htmlFor={`payment-${type}`}
-                              className="flex flex-1 cursor-pointer select-none items-center justify-between text-sm"
+                    {paymentTypes.length > 0 && (
+                      <div className="mb-4">
+                        <h3 className="font-medium text-sm mb-2 text-muted-foreground">Payment Type</h3>
+                        <div className="space-y-2">
+                          {paymentTypes.map((type) => (
+                            <div
+                              key={type}
+                              className="flex items-center space-x-2 rounded-md p-1"
                             >
-                              {type}
-                            </label>
-                          </div>
-                        ))}
+                              <Checkbox
+                                id={`payment-${type}`}
+                                name="paymentType"
+                                value={type}
+                                defaultChecked={activeFilters.paymentType.includes(type)}
+                              />
+                              <label
+                                htmlFor={`payment-${type}`}
+                                className="flex flex-1 cursor-pointer select-none items-center justify-between text-sm"
+                              >
+                                {type}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Order Status Section */}
-                    <div className="mb-4">
-                      <h3 className="font-medium text-sm mb-2 text-muted-foreground">Order Status</h3>
-                      <div className="space-y-2">
-                        {orderStatuses.map((status) => (
-                          <div
-                            key={status}
-                            className="flex items-center space-x-2 rounded-md p-1"
-                          >
-                            <Checkbox
-                              id={`status-${status}`}
-                              name="status"
-                              value={status}
-                              defaultChecked={activeFilters.status.includes(status)}
-                            />
-                            <label
-                              htmlFor={`status-${status}`}
-                              className="flex flex-1 cursor-pointer select-none items-center justify-between text-sm"
+                    {orderStatuses.length > 0 && (
+                      <div className="mb-4">
+                        <h3 className="font-medium text-sm mb-2 text-muted-foreground">Order Status</h3>
+                        <div className="space-y-2">
+                          {orderStatuses.map((status) => (
+                            <div
+                              key={status}
+                              className="flex items-center space-x-2 rounded-md p-1"
                             >
-                              {status}
-                            </label>
-                          </div>
-                        ))}
+                              <Checkbox
+                                id={`status-${status}`}
+                                name="status"
+                                value={status}
+                                defaultChecked={activeFilters.status.includes(status)}
+                              />
+                              <label
+                                htmlFor={`status-${status}`}
+                                className="flex flex-1 cursor-pointer select-none items-center justify-between text-sm"
+                              >
+                                {status}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Items Section */}
-                    <div className="mb-4">
-                      <h3 className="font-medium text-sm mb-2 text-muted-foreground">Items</h3>
-                      <div className="space-y-2 max-h-[150px] overflow-y-auto">
-                        {availableItems.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center space-x-2 rounded-md p-1"
-                          >
-                            <Checkbox
-                              id={`item-${item.id}`}
-                              name="items"
-                              value={item.id}
-                              defaultChecked={activeFilters.items.includes(item.id)}
-                            />
-                            <label
-                              htmlFor={`item-${item.id}`}
-                              className="flex flex-1 cursor-pointer select-none items-center justify-between text-sm"
+                    {availableItems.length > 0 && (
+                      <div className="mb-4">
+                        <h3 className="font-medium text-sm mb-2 text-muted-foreground">Items</h3>
+                        <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                          {availableItems.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-center space-x-2 rounded-md p-1"
                             >
-                              {item.name}
-                            </label>
-                          </div>
-                        ))}
+                              <Checkbox
+                                id={`item-${item.id}`}
+                                name="items"
+                                value={item.id}
+                                defaultChecked={activeFilters.items.includes(item.id)}
+                              />
+                              <label
+                                htmlFor={`item-${item.id}`}
+                                className="flex flex-1 cursor-pointer select-none items-center justify-between text-sm"
+                              >
+                                {item.name}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
+
+                    {/* No Filters Available */}
+                    {paymentTypes.length === 0 && orderStatuses.length === 0 && availableItems.length === 0 && (
+                      <p className="text-sm text-muted-foreground">No Filters Available</p>
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between pt-4 border-t mt-4">
-                    <a href={createClearFiltersUrl()} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-primary-foreground hover:bg-primary/90 h-9 px-3">
+                    <a href={createClearFiltersUrl()} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 text-primary-foreground hover:bg-primary/90 h-9 px-3 bg-primary text-white">
                       Clear filters
                     </a>
-                    <Button size="sm" type="submit">
+                    <Button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 text-primary-foreground hover:bg-primary/90 h-9 px-3 bg-primary text-white" type="submit">
                       Apply filters
                     </Button>
                   </div>
