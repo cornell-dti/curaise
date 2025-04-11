@@ -96,7 +96,38 @@ const getItemsByFundraiser = async (fundraiserId: string, token: string) => {
   return data.data;
 };
 
-const getOrdersByFundraiser = async (fundraiserId: string, token: string) => {
+// const getOrdersByFundraiser = async (fundraiserId: string, token: string) => {
+//   const response = await fetch(
+//     process.env.NEXT_PUBLIC_API_URL + "/fundraiser/" + fundraiserId + "/orders",
+//     {
+//       headers: {
+//         Authorization: "Bearer " + token,
+//       },
+//     }
+//   );
+  
+//   const result = await response.json();
+//   if (!response.ok) {
+//     throw new Error(result.message);
+//   }
+//   console.log(result);
+
+//   const data = z.array(CompleteOrderSchema).safeParse(result.cleanedOrders);
+//   if (!data.success) {
+//     throw new Error("Could not parse orders data");
+//   }
+//   return data.data;
+// };
+
+type Order = z.infer<typeof CompleteOrderSchema>;
+type OrderResponse = {
+  data?: {
+    cleanedOrders?: Order[];
+  };
+  message?: string;
+};
+
+const getOrdersByFundraiser = async (fundraiserId: string, token: string): Promise<Order[]> => {
   const response = await fetch(
     process.env.NEXT_PUBLIC_API_URL + "/fundraiser/" + fundraiserId + "/orders",
     {
@@ -105,18 +136,17 @@ const getOrdersByFundraiser = async (fundraiserId: string, token: string) => {
       },
     }
   );
-  
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-  console.log(result);
 
-  const data = z.array(CompleteOrderSchema).safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse orders data");
+  const result = (await response.json()) as OrderResponse;
+  // Log the API call output
+  console.log("API Response:", result);
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch orders");
   }
-  return data.data;
+  // Access the cleanedOrders array from the response
+  return Array.isArray(result.data?.cleanedOrders)
+    ? result.data.cleanedOrders
+    : [];
 };
 
 export default async function SellerHomepage({
@@ -171,15 +201,15 @@ export default async function SellerHomepage({
       })
     );
 
-    // const ordersCounts = await Promise.all(
-    //   fundraisersArray.map(async (fundraiser) => {
-    //     const orders = await getOrdersByFundraiser(fundraiser.id, session.access_token);
-    //     return {
-    //       fundraiserId: fundraiser.id,
-    //       orderCount: orders.length,
-    //     };
-    //   })
-    // );
+    const ordersCounts = await Promise.all(
+      fundraisersArray.map(async (fundraiser) => {
+        const orders = await getOrdersByFundraiser(fundraiser.id, session.access_token);
+        return {
+          fundraiserId: fundraiser.id,
+          orderCount: orders.length,
+        };
+      })
+    );
 
   const now = new Date();
 
