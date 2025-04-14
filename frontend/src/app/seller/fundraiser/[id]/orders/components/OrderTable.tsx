@@ -228,6 +228,12 @@ export function OrderTable({
     }
   };
 
+  const getPickedUpBadgeClass = (isPickedUp: boolean): string => {
+    return isPickedUp
+      ? "bg-green-200 hover:bg-green-300 text-green-800"
+      : "bg-yellow-200 hover:bg-yellow-300 text-yellow-800";
+  };
+
   // Apply filters to the orders
   const filteredOrders = useMemo(() => {
     let result = [...orders];
@@ -462,7 +468,7 @@ export function OrderTable({
         </div>
       </div>
 
-      {/* The table with updated column structure */}
+      {/* Order Table */}
       <div className="overflow-x-auto">
         <Table className="bg-[#F7F7F7] text-black">
           <TableHeader className="bg-[#e0e0e0]">
@@ -518,7 +524,7 @@ export function OrderTable({
                     className={`hover:bg-gray-200 ${isPickedUp ? 'bg-[#E6F9E6]' : ''} cursor-pointer`}
                     onClick={() => setSelectedOrder(order)}
                   >
-                    {/* Status cell now has checkbox */}
+                    {/* Status Badge */}
                     <TableCell className="px-4 py-3 text-black text-center" onClick={(e) => e.stopPropagation()}>
                       <PickupButton order={order} token={token} />
                     </TableCell>
@@ -529,9 +535,9 @@ export function OrderTable({
                         {order.paymentStatus || "Unknown"}
                       </Badge>
                     </TableCell>
-                    {/* Picked Up cell now has status badge */}
+                    {/* Picked Up Badge */}
                     <TableCell className="px-4 py-3 text-black">
-                      <Badge className={isPickedUp ? "bg-green-200 hover:bg-green-300 text-green-800" : "bg-yellow-200 hover:bg-yellow-300 text-yellow-800"}>
+                      <Badge className={getPickedUpBadgeClass(isPickedUp)}>
                         {isPickedUp ? "Picked Up" : "Not Picked Up"}
                       </Badge>
                     </TableCell>

@@ -168,7 +168,6 @@ export default async function FundraiserOrdersPage({
       </div>
 
       <Card className="rounded-lg shadow-md bg-[#F7F7F7]">
-        {/* Order Table */}
         <OrderTable
           orders={orders}
           resolvedSearchParams={resolvedSearchParams}
