@@ -29,26 +29,35 @@ import { ExportButton } from "@/app/seller/fundraiser/[id]/orders/components/Exp
 type Order = z.infer<typeof CompleteOrderSchema>;
 type OrderItem = Order['items'][0];
 
-// Updated PickupButton to only allow marking as completed (one-way)
-function PickupButton({ order, token }: { order: Order; token: string }) {
+function PickupButton({
+  order,
+  token,
+  onSuccess,
+  className,
+}: {
+  order: Order;
+  token: string;
+  onSuccess?: () => void;
+  className?: string;
+}) {
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { data, mutate } = useSWR(
     `/order/${order.id}`,
     null,
     {
       fallbackData: order,
-      revalidateOnFocus: false
+      revalidateOnFocus: false,
     }
   );
-  
+
   const isPickedUp = data.pickedUp;
-  
+
   async function markAsPickedUp() {
     if (isPickedUp) return; // Already picked up, do nothing
-    
+
     setIsLoading(true);
-    
+
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/order/${order.id}/complete-pickup`,
@@ -62,19 +71,20 @@ function PickupButton({ order, token }: { order: Order; token: string }) {
       );
 
       const result = await response.json();
-      
+
       if (!response.ok) {
         toast.error(result.message || "Failed to update pickup status");
       } else {
         mutate(
           {
             ...data,
-            pickedUp: true
+            pickedUp: true,
           },
           false
         );
-        
+
         toast.success("Order marked as picked up");
+        if (onSuccess) onSuccess();
       }
     } catch (error) {
       toast.error("An error occurred while updating pickup status");
@@ -85,19 +95,18 @@ function PickupButton({ order, token }: { order: Order; token: string }) {
   }
 
   return (
-    <div className="flex items-center justify-center space-x-2">
-      <Checkbox 
+    <div className={`flex items-center justify-center space-x-2 ${className || ""}`}>
+      <Checkbox
         id={`pickup-${order.id}`}
         checked={isPickedUp}
         onChange={() => markAsPickedUp()}
         disabled={isLoading || isPickedUp}
         className="h-5 w-5"
       />
-      <label 
+      <label
         htmlFor={`pickup-${order.id}`}
         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 select-none cursor-pointer"
-      >
-      </label>
+      ></label>
     </div>
   );
 }
@@ -278,7 +287,6 @@ export function OrderTable({
       
       result = result.filter(order => {
         // Convert pickup status to string for comparison
-        // Handle the case where order.pickedUp might be undefined
         const isPickedUp = order.pickedUp === true ? "true" : "false";
         return pickupStatuses.includes(isPickedUp);
       });
@@ -540,7 +548,7 @@ export function OrderTable({
                   >
                     {/* Status Badge */}
                     <TableCell className="px-4 py-3 text-black text-center" onClick={(e) => e.stopPropagation()}>
-                      <PickupButton order={order} token={token} />
+                      <PickupButton order={order} token={token} onSuccess={() => window.location.reload()} />
                     </TableCell>
                     <TableCell className="px-4 py-3 text-black">{order.buyer?.name || "Unknown"}</TableCell>
                     <TableCell className="px-4 py-3 text-black">{order.buyer?.email || "Unknown"}</TableCell>
@@ -624,6 +632,21 @@ export function OrderTable({
               </div>
               
               <div className="pt-4">
+                {selectedOrder && !selectedOrder.pickedUp && (
+                  <Button
+                    className="w-full mb-2 bg-gray-700 text-white hover:bg-gray-800"
+                    onClick={async () => {
+                      const pickupButton = document.getElementById(`pickup-${selectedOrder.id}`);
+                      if (pickupButton) {
+                        pickupButton.click();
+                      }
+                      setSelectedOrder(null); // Close the sheet after clicking
+                      window.location.reload(); // Refresh the table
+                    }}
+                  >
+                    Mark as Picked Up
+                  </Button>
+                )}
                 <Button 
                   className="w-full" 
                   variant="outline" 
