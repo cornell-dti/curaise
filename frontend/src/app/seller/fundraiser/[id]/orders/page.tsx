@@ -9,7 +9,6 @@ import { OrderTable } from "@/app/seller/fundraiser/[id]/orders/components/Order
 
 type Order = z.infer<typeof CompleteOrderSchema>;
 
-// Add missing type definitions
 type OrderResponse = {
   data?: {
     cleanedOrders: Order[];

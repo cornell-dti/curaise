@@ -606,6 +606,13 @@ export function OrderTable({
               </div>
               
               <div>
+                <h3 className="font-medium text-sm mb-2">Pickup Status</h3>
+                <p className="text-sm text-muted-foreground">
+                  {selectedOrder.pickedUp ? "Picked Up" : "Not Picked Up"}
+                </p>
+              </div>
+              
+              <div>
                 <h3 className="font-medium text-sm mb-2">Items</h3>
                 <div className="space-y-3">
                   {selectedOrder.items.map((item, index) => (

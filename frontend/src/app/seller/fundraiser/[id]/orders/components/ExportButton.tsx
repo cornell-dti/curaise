@@ -15,7 +15,16 @@ export function ExportButton({ orders, fundraiserName }: { orders: Order[], fund
     setIsExporting(true);
     
     try {
-      const headers = ["Name", "Email", "NetID", "Order Details", "Payment Method", "Order Total"];
+      const headers = [
+        "Name", 
+        "Email", 
+        "NetID", 
+        "Order Details", 
+        "Payment Method", 
+        "Payment Status", 
+        "Pickup Status", 
+        "Order Total"
+      ];
       
       const rows = orders.map(order => {
         const orderTotal = order.items.reduce(
@@ -32,6 +41,8 @@ export function ExportButton({ orders, fundraiserName }: { orders: Order[], fund
           order.buyer?.email?.split('@')[0] || "Unknown",
           orderDetails,
           order.paymentMethod || "Unknown",
+          order.paymentStatus || "Unknown",
+          order.pickedUp ? "Picked Up" : "Not Picked Up",
           `$${orderTotal.toFixed(2)}`
         ];
       });
