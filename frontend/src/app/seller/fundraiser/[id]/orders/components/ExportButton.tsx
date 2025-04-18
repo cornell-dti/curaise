@@ -77,7 +77,7 @@ export function ExportButton({ orders, fundraiserName }: { orders: Order[], fund
   return (
     <Button 
       variant="outline" 
-      className="h-10 px-4" 
+      className="font-[400] h-8 px-4 shadow-none rounded-lg border border-solid border-[#68b0ab]" 
       onClick={handleExport}
       disabled={isExporting}
     >

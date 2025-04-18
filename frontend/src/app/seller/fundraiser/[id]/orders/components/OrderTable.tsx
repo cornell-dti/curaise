@@ -2,7 +2,7 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUpDown, ArrowUp, ArrowDown, Filter, Search } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, Search } from "lucide-react";
 import { z } from "zod";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { toast } from "sonner";
@@ -147,14 +147,14 @@ export function OrderTable({
 }) {
   // State for selected order (for sheet display)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  
+
   // Calculate total selected filters
-  const totalSelectedFilters = 
-    selectedPaymentTypes.length + 
-    selectedStatuses.length + 
-    selectedItems.length + 
+  const totalSelectedFilters =
+    selectedPaymentTypes.length +
+    selectedStatuses.length +
+    selectedItems.length +
     selectedPickupStatuses.length;
-  
+
   // Define pickup status options
   const pickupStatuses = [
     { value: "true", label: "Picked Up" },
@@ -167,7 +167,7 @@ export function OrderTable({
     const form = document.createElement('form');
     form.method = 'get';
     form.action = '';
-    
+
     // Preserve search and sort if they exist
     if (resolvedSearchParams.search) {
       const input = document.createElement('input');
@@ -176,7 +176,7 @@ export function OrderTable({
       input.value = resolvedSearchParams.search;
       form.appendChild(input);
     }
-    
+
     if (resolvedSearchParams.sort) {
       const input = document.createElement('input');
       input.type = 'hidden';
@@ -184,7 +184,7 @@ export function OrderTable({
       input.value = resolvedSearchParams.sort;
       form.appendChild(input);
     }
-    
+
     if (resolvedSearchParams.order) {
       const input = document.createElement('input');
       input.type = 'hidden';
@@ -192,12 +192,12 @@ export function OrderTable({
       input.value = resolvedSearchParams.order;
       form.appendChild(input);
     }
-    
+
     document.body.appendChild(form);
     form.submit();
     document.body.removeChild(form);
   };
-  
+
   const createSortUrl = (field: string): string => {
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(resolvedSearchParams)) {
@@ -246,72 +246,72 @@ export function OrderTable({
   // Apply filters to the orders
   const filteredOrders = useMemo(() => {
     let result = [...orders];
-    
+
     // Apply search filter
     if (resolvedSearchParams.search) {
       const searchTerm = resolvedSearchParams.search.toLowerCase();
-      result = result.filter(order => 
-        order.buyer?.name?.toLowerCase().includes(searchTerm) || 
+      result = result.filter(order =>
+        order.buyer?.name?.toLowerCase().includes(searchTerm) ||
         order.buyer?.email?.toLowerCase().includes(searchTerm) ||
         order.items.some(item => item.item.name.toLowerCase().includes(searchTerm))
       );
     }
-    
+
     // Filter by payment type
     if (resolvedSearchParams.paymentType && resolvedSearchParams.paymentType.length > 0) {
-      const paymentTypes = Array.isArray(resolvedSearchParams.paymentType) 
-        ? resolvedSearchParams.paymentType 
+      const paymentTypes = Array.isArray(resolvedSearchParams.paymentType)
+        ? resolvedSearchParams.paymentType
         : [resolvedSearchParams.paymentType];
-        
-      result = result.filter(order => 
+
+      result = result.filter(order =>
         paymentTypes.includes(order.paymentMethod || "Unknown")
       );
     }
-    
+
     // Filter by status
     if (resolvedSearchParams.status && resolvedSearchParams.status.length > 0) {
-      const statuses = Array.isArray(resolvedSearchParams.status) 
-        ? resolvedSearchParams.status 
+      const statuses = Array.isArray(resolvedSearchParams.status)
+        ? resolvedSearchParams.status
         : [resolvedSearchParams.status];
-        
-      result = result.filter(order => 
+
+      result = result.filter(order =>
         statuses.includes(order.paymentStatus || "Unknown")
       );
     }
-    
+
     // Filter by pickup status
     if (resolvedSearchParams.pickupStatus && resolvedSearchParams.pickupStatus.length > 0) {
-      const pickupStatuses = Array.isArray(resolvedSearchParams.pickupStatus) 
-        ? resolvedSearchParams.pickupStatus 
+      const pickupStatuses = Array.isArray(resolvedSearchParams.pickupStatus)
+        ? resolvedSearchParams.pickupStatus
         : [resolvedSearchParams.pickupStatus];
-      
+
       result = result.filter(order => {
         // Convert pickup status to string for comparison
         const isPickedUp = order.pickedUp === true ? "true" : "false";
         return pickupStatuses.includes(isPickedUp);
       });
     }
-    
+
     // Filter by items
     if (resolvedSearchParams.items && resolvedSearchParams.items.length > 0) {
-      const items = Array.isArray(resolvedSearchParams.items) 
-        ? resolvedSearchParams.items 
+      const items = Array.isArray(resolvedSearchParams.items)
+        ? resolvedSearchParams.items
         : [resolvedSearchParams.items];
-        
-      result = result.filter(order => 
-        order.items.some(item => 
+
+      result = result.filter(order =>
+        order.items.some(item =>
           items.includes(item.item.name)
         )
       );
     }
-    
+
     // Apply sorting
     if (resolvedSearchParams.sort) {
       const isAsc = resolvedSearchParams.order !== 'desc';
-      
+
       result.sort((a, b) => {
         let valueA, valueB;
-        
+
         switch (resolvedSearchParams.sort) {
           case 'name':
             valueA = a.buyer?.name || '';
@@ -342,39 +342,43 @@ export function OrderTable({
           default:
             return 0;
         }
-        
+
         if (valueA < valueB) return isAsc ? -1 : 1;
         if (valueA > valueB) return isAsc ? 1 : -1;
         return 0;
       });
     }
-    
+
     return result;
   }, [orders, resolvedSearchParams]);
 
   return (
     <div className="bg-[#F7F7F7]">
-      {/* Filter controls */}
+      {/* Header controls */}
       <div className="p-4 flex justify-between items-center bg-[#F7F7F7]">
         {/* Search Bar */}
         <div className="relative flex items-center">
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#959494]" />
           <form>
             <Input
-              className="w-64 h-9 pl-10 bg-white rounded-lg border border-[#68B0AB] text-[#959494] text-xs font-light"
+              className="w-64 h-8 pl-10 bg-white rounded-lg border border-[#68B0AB] text-[#959494] text-xs font-light"
               placeholder="Search Orders"
               name="search"
               defaultValue={resolvedSearchParams.search || ''}
             />
           </form>
         </div>
+
         <div className="flex gap-3">
+          {/* Export Button */}
+          <ExportButton orders={orders} fundraiserName={fundraiserName} />
+
           {/* Filter Popover */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="h-10 px-4">
+              <Button variant="outline" className="shadow-none h-8 px-4 font-[400] bg-[#68b0ab] rounded-lg text-white border-[#68b0ab]">
                 <span>Filter</span>
-                <Filter className="h-4 w-4 ml-2" />
+                <ChevronDown className="h-4 w-4" />
                 {totalSelectedFilters > 0 && (
                   <span className="ml-1 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
                     {totalSelectedFilters}
@@ -394,72 +398,72 @@ export function OrderTable({
                 {resolvedSearchParams.order && (
                   <input type="hidden" name="order" value={resolvedSearchParams.order} />
                 )}
-                
+
                 <div className="space-y-4">
                   <h4 className="font-medium text-sm">Payment Type</h4>
                   <div className="grid grid-cols-2 gap-2">
                     {paymentTypes.map((type) => (
                       <div key={type} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`paymentType-${type}`} 
-                          name="paymentType" 
+                        <Checkbox
+                          id={`paymentType-${type}`}
+                          name="paymentType"
                           value={type}
-                          defaultChecked={selectedPaymentTypes.includes(type)} 
+                          defaultChecked={selectedPaymentTypes.includes(type)}
                         />
                         <Label htmlFor={`paymentType-${type}`}>{type}</Label>
                       </div>
                     ))}
                   </div>
-                  
+
                   <h4 className="font-medium text-sm">Payment Status</h4>
                   <div className="grid grid-cols-2 gap-2">
                     {statuses.map((status) => (
                       <div key={status} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`status-${status}`} 
-                          name="status" 
+                        <Checkbox
+                          id={`status-${status}`}
+                          name="status"
                           value={status}
-                          defaultChecked={selectedStatuses.includes(status)} 
+                          defaultChecked={selectedStatuses.includes(status)}
                         />
                         <Label htmlFor={`status-${status}`}>{status}</Label>
                       </div>
                     ))}
                   </div>
-                  
+
                   <h4 className="font-medium text-sm">Pickup Status</h4>
                   <div className="grid grid-cols-2 gap-2">
                     {pickupStatuses.map((status) => (
                       <div key={status.value} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`pickupStatus-${status.value}`} 
-                          name="pickupStatus" 
+                        <Checkbox
+                          id={`pickupStatus-${status.value}`}
+                          name="pickupStatus"
                           value={status.value}
-                          defaultChecked={selectedPickupStatuses.includes(status.value)} 
+                          defaultChecked={selectedPickupStatuses.includes(status.value)}
                         />
                         <Label htmlFor={`pickupStatus-${status.value}`}>{status.label}</Label>
                       </div>
                     ))}
                   </div>
-                  
+
                   <h4 className="font-medium text-sm">Items</h4>
                   <div className="space-y-2">
                     {itemsList.map((item) => (
                       <div key={item} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`item-${item}`} 
-                          name="items" 
+                        <Checkbox
+                          id={`item-${item}`}
+                          name="items"
                           value={item}
-                          defaultChecked={selectedItems.includes(item)} 
+                          defaultChecked={selectedItems.includes(item)}
                         />
                         <Label htmlFor={`item-${item}`}>{item}</Label>
                       </div>
                     ))}
                   </div>
-                  
+
                   <div className="flex justify-between pt-2">
-                    <Button 
-                      variant="outline" 
-                      type="button" 
+                    <Button
+                      variant="outline"
+                      type="button"
                       onClick={handleReset}
                     >
                       Reset
@@ -470,9 +474,6 @@ export function OrderTable({
               </form>
             </PopoverContent>
           </Popover>
-          
-          {/* Export */}
-          <ExportButton orders={orders} fundraiserName={fundraiserName} />
         </div>
       </div>
 
@@ -527,8 +528,8 @@ export function OrderTable({
                 const isPickedUp = order.pickedUp === true;
 
                 return (
-                  <TableRow 
-                    key={order.id} 
+                  <TableRow
+                    key={order.id}
                     className={`hover:bg-gray-200 ${isPickedUp ? 'bg-[#E6F9E6]' : ''} cursor-pointer mb-2`}
                     onClick={() => setSelectedOrder(order)}
                   >
@@ -557,7 +558,7 @@ export function OrderTable({
           </TableBody>
         </Table>
       </div>
-      
+
       {/* Sheet for displaying order items */}
       <Sheet open={selectedOrder !== null} onOpenChange={(open) => !open && setSelectedOrder(null)}>
         <SheetContent className="sm:max-w-md">
@@ -577,7 +578,7 @@ export function OrderTable({
                   Email: {selectedOrder.buyer?.email || "Unknown"}
                 </p>
               </div>
-              
+
               <div>
                 <h3 className="font-medium text-sm mb-2">Payment Details</h3>
                 <p className="text-sm text-muted-foreground">
@@ -587,14 +588,14 @@ export function OrderTable({
                   Status: {selectedOrder.paymentStatus || "Unknown"}
                 </p>
               </div>
-              
+
               <div>
                 <h3 className="font-medium text-sm mb-2">Pickup Status</h3>
                 <p className="text-sm text-muted-foreground">
                   {selectedOrder.pickedUp ? "Picked Up" : "Not Picked Up"}
                 </p>
               </div>
-              
+
               <div>
                 <h3 className="font-medium text-sm mb-2">Items</h3>
                 <div className="space-y-3">
@@ -612,7 +613,7 @@ export function OrderTable({
                   ))}
                 </div>
               </div>
-              
+
               <div className="flex justify-between items-center pt-4 border-t font-medium">
                 <span>Total</span>
                 <span>${selectedOrder.items.reduce(
@@ -620,7 +621,7 @@ export function OrderTable({
                   0
                 ).toFixed(2)}</span>
               </div>
-              
+
               <div className="pt-4">
                 {selectedOrder && !selectedOrder.pickedUp && (
                   <Button
@@ -637,9 +638,9 @@ export function OrderTable({
                     Mark as Picked Up
                   </Button>
                 )}
-                <Button 
-                  className="w-full" 
-                  variant="outline" 
+                <Button
+                  className="w-full"
+                  variant="outline"
                   onClick={() => setSelectedOrder(null)}
                 >
                   Close
