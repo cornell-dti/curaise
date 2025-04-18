@@ -158,8 +158,8 @@ export default async function FundraiserOrdersPage({
   return (
     <div className="container mx-auto px-4 py-6 max-w-6xl">
       <div className="mb-4">
-        <h1 className="text-2xl font-bold text-gray-800">
-          Welcome back, <span className="text-blue-600">{organizationName}</span>
+        <h1 className="text-2xl font-light text-gray-800">
+          Welcome back, <span className="text-blue-600 font-bold">{organizationName}</span>
         </h1>
         <p className="text-muted-foreground mt-1">
           View all orders associated with <span className="font-semibold">{fundraiserName}</span>
