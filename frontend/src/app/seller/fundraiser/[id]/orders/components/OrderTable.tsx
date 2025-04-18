@@ -358,10 +358,10 @@ export function OrderTable({
       <div className="p-4 flex justify-between items-center bg-[#F7F7F7]">
         {/* Search Bar */}
         <div className="relative flex items-center">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500" />
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 " />
           <form>
             <Input
-              className="w-64 h-10 pl-10 bg-white rounded-md border border-gray-300"
+              className="w-64 h-10 pl-10 bg-white rounded-md border border-gray-300 text-neutral-400 text-xs font-light"
               placeholder="Search orders"
               name="search"
               defaultValue={resolvedSearchParams.search || ''}
@@ -492,8 +492,8 @@ export function OrderTable({
 
       {/* Order Table */}
       <div className="overflow-x-auto">
-        <Table className="bg-[#F7F7F7] text-black">
-          <TableHeader className="bg-[#e0e0e0]">
+        <Table className="bg-[#ffffff] text-black">
+          <TableHeader className="bg-[#ffffff] mb-3">
             <TableRow>
               <TableHead className="px-4 py-3 text-center text-black">
                 Status
@@ -543,7 +543,7 @@ export function OrderTable({
                 return (
                   <TableRow 
                     key={order.id} 
-                    className={`hover:bg-gray-200 ${isPickedUp ? 'bg-[#E6F9E6]' : ''} cursor-pointer`}
+                    className={`hover:bg-gray-200 ${isPickedUp ? 'bg-[#E6F9E6]' : ''} cursor-pointer mb-2`}
                     onClick={() => setSelectedOrder(order)}
                   >
                     {/* Status Badge */}
@@ -570,9 +570,6 @@ export function OrderTable({
             )}
           </TableBody>
         </Table>
-        <div className="p-4 text-sm text-muted-foreground bg-[#F7F7F7]">
-          {filteredOrders.length} {filteredOrders.length === 1 ? 'order' : 'orders'} found
-        </div>
       </div>
       
       {/* Sheet for displaying order items */}

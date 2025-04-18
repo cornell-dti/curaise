@@ -156,17 +156,17 @@ export default async function FundraiserOrdersPage({
     : resolvedSearchParams.pickupStatus ? [resolvedSearchParams.pickupStatus] : [];
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-6xl">
+    <div className="container mx-auto px-4 py-6 max-w-6xl ">
       <div className="mb-4">
-        <h1 className="text-2xl font-light text-gray-800">
-          Welcome back, <span className="text-blue-600 font-bold">{organizationName}</span>
+        <h1 className="text-2xl font-[Manrope] font-[400] text-gray-800">
+          Welcome back, <span className="text-blue-600 text-2xl font-bold font-['Manrope'] tracking-wide">{organizationName}</span>
         </h1>
-        <p className="text-muted-foreground mt-1">
-          View all orders associated with <span className="font-semibold">{fundraiserName}</span>
+        <p className="text-black text-base ">
+          View all orders for <span className="font-[700]">{fundraiserName}</span>
         </p>
       </div>
 
-      <Card className="rounded-lg shadow-md bg-[#F7F7F7]">
+      <Card className="relative bg-[#F7F7F7] shadow-none outline outline-5 outline-offset-[-1px] outline-stone-300 overflow-hidden">
         <OrderTable
           orders={orders}
           resolvedSearchParams={resolvedSearchParams}
