@@ -358,29 +358,15 @@ export function OrderTable({
       <div className="p-4 flex justify-between items-center bg-[#F7F7F7]">
         {/* Search Bar */}
         <div className="relative flex items-center">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 " />
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#959494]" />
           <form>
             <Input
-              className="w-64 h-10 pl-10 bg-white rounded-md border border-gray-300 text-neutral-400 text-xs font-light"
-              placeholder="Search orders"
+              className="w-64 h-9 pl-10 bg-white rounded-lg border border-[#68B0AB] text-[#959494] text-xs font-light"
+              placeholder="Search Orders"
               name="search"
               defaultValue={resolvedSearchParams.search || ''}
             />
           </form>
-          <Button 
-            variant="outline" 
-            className="h-10 px-4 ml-2" 
-            onClick={() => {
-              const form = document.createElement('form');
-              form.method = 'get';
-              form.action = '';
-              document.body.appendChild(form);
-              form.submit();
-              document.body.removeChild(form);
-            }}
-          >
-            Clear
-          </Button>
         </div>
         <div className="flex gap-3">
           {/* Filter Popover */}
