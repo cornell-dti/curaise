@@ -63,7 +63,10 @@ export function CreateFundraiserForm({
   // State for fundraiser items list
   const [fundraiserItems, setFundraiserItems] = useState<
     z.infer<typeof CreateFundraiserItemBody>[]
-  >([]);
+    >([]);
+  
+  // State for fundraiser image urls
+  const [fundraiserImageUrls, setFundraiserImageUrls] = useState<z.infer<typeof CreateFundraiserBody>["imageUrls"]>([]);
 
   async function onSubmit() {
     // First create the fundraiser
@@ -154,33 +157,32 @@ export function CreateFundraiserForm({
   const [currentStep, setCurrentStep] = useState(0);
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-4xl">
-      <MultiStepForm
-        labels={["Basic Information", "Add Items", "Review Fundraiser"]}
-        currentStep={currentStep}
-      >
-        <FundraiserBasicInfoForm
+		<div className="container mx-auto px-4 py-6 max-w-4xl">
+			<MultiStepForm
+				labels={["Basic Information", "Add Items", "Review Fundraiser"]}
+				currentStep={currentStep}>
+				<FundraiserBasicInfoForm
           defaultValues={formData}
-          onSubmit={(data) => {
-            setFormData((prev) => ({ ...prev, ...data }));
-            setCurrentStep(1);
-          }}
-        />
+					onSubmit={(data) => {
+						setFormData((prev) => ({ ...prev, ...data }));
+						setCurrentStep(1);
+					}}
+				/>
 
-        <FundraiserAddItemsForm
-          items={fundraiserItems}
-          setItems={setFundraiserItems}
-          onSubmit={() => setCurrentStep(2)}
-          onBack={() => setCurrentStep(0)}
-        />
+				<FundraiserAddItemsForm
+					items={fundraiserItems}
+					setItems={setFundraiserItems}
+					onSubmit={() => setCurrentStep(2)}
+					onBack={() => setCurrentStep(0)}
+				/>
 
-        <ReviewFundraiserForm
-          formData={formData}
-          items={fundraiserItems}
-          onSubmit={onSubmit}
-          onBack={() => setCurrentStep(1)}
-        />
-      </MultiStepForm>
-    </div>
-  );
+				<ReviewFundraiserForm
+					formData={formData}
+					items={fundraiserItems}
+					onSubmit={onSubmit}
+					onBack={() => setCurrentStep(1)}
+				/>
+			</MultiStepForm>
+		</div>
+	);
 }
