@@ -30,7 +30,7 @@ import {
 } from "common";
 import { getOrganization } from "../organization/organization.services";
 import { z } from "zod";
-import { emailService } from "../../utils/email";
+import { sendAnnouncementEmail } from "../../utils/email";
 
 export const getAllFundraisersHandler = async (req: Request, res: Response) => {
   const fundraisers = await getAllFundraisers();
@@ -357,7 +357,7 @@ export const createAnnouncementHandler = async (
     if (orders && orders.length > 0) {
       const buyers = orders.map((order) => order.buyer);
 
-      await emailService.sendAnnouncementEmail({
+      await sendAnnouncementEmail({
         fundraiser,
         announcement,
         recipients: buyers,

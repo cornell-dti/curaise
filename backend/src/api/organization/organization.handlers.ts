@@ -14,8 +14,8 @@ import {
   UpdateOrganizationBody,
 } from "common";
 import { z } from "zod";
-import { emailService } from "../../utils/email";
 import { getUsersByIds, getUser } from "../user/user.services";
+import { sendOrganizationInviteEmail } from "../../utils/email";
 
 export const getOrganizationHandler = async (
   req: Request<OrganizationRouteParams, any, {}, {}>,
@@ -93,7 +93,7 @@ export const createOrganizationHandler = async (
       const invitedAdmins = await getUsersByIds(addedAdminsIds);
 
       if (invitedAdmins && invitedAdmins.length > 0) {
-        await emailService.sendOrganizationInviteEmail({
+        await sendOrganizationInviteEmail({
           organization: organization,
           creator,
           invitedAdmins,
@@ -147,6 +147,33 @@ export const updateOrganizationHandler = async (
   if (!updatedOrganization) {
     res.status(500).json({ message: "Failed to update organization" });
     return;
+  }
+
+  // Send email to invited admins
+  const creatorId = res.locals.user!.id;
+  const creator = await getUser(creatorId);
+  if (!creator) {
+    res.status(500).json({ message: "Creator user not found" });
+    return;
+  }
+
+  const addedAdminsIds = req.body.addedAdminsIds || [];
+  if (addedAdminsIds.length > 0) {
+    try {
+      const invitedAdmins = await getUsersByIds(addedAdminsIds);
+
+      if (invitedAdmins && invitedAdmins.length > 0) {
+        await sendOrganizationInviteEmail({
+          organization: organization,
+          creator,
+          invitedAdmins,
+        });
+
+        console.log(`Invitation emails sent to ${invitedAdmins.length} admins`);
+      }
+    } catch (error) {
+      console.error("Failed to send admin invitation emails:", error);
+    }
   }
 
   // Remove irrelevant fields from returned order
