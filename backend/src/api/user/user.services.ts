@@ -10,6 +10,25 @@ export const getUser = async (userId: string) => {
   return user;
 };
 
+export const getUsersByIds = async (userIds: string[]) => {
+  try {
+    const uniqueIds = [...new Set(userIds)];
+
+    const users = await prisma.user.findMany({
+      where: {
+        id: {
+          in: uniqueIds,
+        },
+      },
+    });
+
+    return users;
+  } catch (error) {
+    console.error("Error fetching users by IDs:", error);
+    return null;
+  }
+};
+
 export const getUserOrders = async (userId: string) => {
   const orders = await prisma.order.findMany({
     where: { buyerId: userId },
