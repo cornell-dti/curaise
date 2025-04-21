@@ -151,7 +151,7 @@ export function FundraiserAddItemsForm({
 												<FormItem>
 													<FormLabel>Image</FormLabel>
 														<UploadImageComponent
-															setItemImageUrl={setCurrentImageUrl}
+															setImageUrl={setCurrentImageUrl}
 															folder="items"
 														/>
 													<FormMessage />

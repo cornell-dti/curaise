@@ -142,7 +142,7 @@ export function FundraiserBasicInfoForm({
 								<FormItem>
 									<FormLabel>Images (Optional)</FormLabel>
 									<UploadImageComponent
-										setFundraiserImageUrls={setCurrentImageUrls}
+										setImageUrl={setCurrentImageUrls}
 										folder="fundraisers"
 									/>
 									<FormMessage />

@@ -16,18 +16,14 @@ import { X, Upload } from "lucide-react";
 import type { z } from "zod";
 
 interface UploadImageComponentProps {
-	setFundraiserImageUrls?: Dispatch<
-		SetStateAction<z.infer<typeof CreateFundraiserBody>["imageUrls"]>
-	>;
-	setItemImageUrl?: Dispatch<
+	setImageUrl?: Dispatch<
 		SetStateAction<z.infer<typeof CreateFundraiserItemBody>["imageUrl"]>
-	>;
+	> | Dispatch<SetStateAction<z.infer<typeof CreateFundraiserBody>["imageUrls"]>>;
 	folder?: string;
 }
 
 function UploadImageComponent({
-	setFundraiserImageUrls,
-	setItemImageUrl,
+	setImageUrl,
 	folder = "uploads",
 }: UploadImageComponentProps) {
 	const imageInputRef = useRef<HTMLInputElement>(null);
@@ -37,7 +33,7 @@ function UploadImageComponent({
 	const [isDragging, setIsDragging] = useState(false);
 
 	// Determine if multiple selection is allowed
-	const allowMultiple = !setItemImageUrl;
+	const allowMultiple = folder === "fundraisers";
 
 	const processFiles = async (files: File[]) => {
 		if (!files.length) return;
@@ -81,18 +77,24 @@ function UploadImageComponent({
 			}
 
 			if (urls.length > 0) {
-				// Update parent component state
-				if (setFundraiserImageUrls) {
-					setFundraiserImageUrls((prevUrls) => [...prevUrls, ...urls]);
-					setUploadedUrls((prev) => [...prev, ...urls]);
-				}
+				setUploadedUrls((prev) =>
+					allowMultiple ? [...prev, ...urls] : [urls[0]]
+				);
 
-				if (setItemImageUrl) {
-					setItemImageUrl(urls[0]);
-					setUploadedUrls((prev) => [urls[0]]);
+				if (setImageUrl) {
+					if (allowMultiple) {
+						// For fundraiser images
+						(setImageUrl as Dispatch<SetStateAction<string[]>>)((prev) => {
+							const prevArray = Array.isArray(prev) ? prev : [];
+							return [...prevArray, ...urls];
+						});
+					} else {
+						// For single item image
+						(setImageUrl as Dispatch<SetStateAction<string | undefined>>)(
+							urls[0]
+						);
+					}
 				}
-
-				// Replace previews with actual URLs
 				setPreviewUrls([]);
 			}
 		});
@@ -135,16 +137,19 @@ function UploadImageComponent({
 		const newUrls = uploadedUrls.filter((_, index) => index !== indexToRemove);
 		setUploadedUrls(newUrls);
 
-		// Then update parent states
-		if (setFundraiserImageUrls) {
-			setFundraiserImageUrls((prevUrls) =>
-				prevUrls.filter((url) => url !== removedUrl)
-			);
-		}
-
-		// For single image upload, if removing the only image, reset to empty
-		if (setItemImageUrl && newUrls.length === 0) {
-			setItemImageUrl("");
+		// Then update parent states using the same setter with appropriate typing
+		if (setImageUrl) {
+			if (allowMultiple) {
+				// For fundraiser images
+				(setImageUrl as Dispatch<SetStateAction<string[]>>)((prevUrls) =>
+					prevUrls.filter((url) => url !== removedUrl)
+				);
+			} else if (newUrls.length === 0) {
+				// For single item image
+				(setImageUrl as Dispatch<SetStateAction<string | undefined>>)(
+					undefined
+				);
+			}
 		}
 	};
 
