@@ -8,6 +8,7 @@ import {
   AnnouncementSchema,
   CompleteOrganizationSchema,
 } from "common";
+import { format } from "date-fns";
 
 type Order = z.infer<typeof BasicOrderSchema>;
 
@@ -213,36 +214,25 @@ export const sendOrderConfirmation = async (order: Order): Promise<any> => {
   const paymentMethodText =
     order.paymentMethod === "VENMO" ? "Venmo" : "Other payment method";
 
-  // Format pickup dates
-  const pickupStartsFormatted = fundraiser.pickupStartsAt.toLocaleDateString(
-    undefined,
-    {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }
+  // Format pickup dates using date-fns
+  const pickupStartsFormatted = format(
+    fundraiser.pickupStartsAt,
+    "EEEE, MMMM d, yyyy, h:mm a"
   );
 
-  const pickupEndsFormatted = fundraiser.pickupEndsAt.toLocaleDateString(
-    undefined,
-    {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }
+  const pickupEndsFormatted = format(
+    fundraiser.pickupEndsAt,
+    "EEEE, MMMM d, yyyy, h:mm a"
   );
+
+  // Format order creation date
+  const orderDateFormatted = format(order.createdAt, "MMMM d, yyyy");
 
   const text = `
     Thank you for your order #${order.id}!
     
     Fundraiser: ${fundraiser.name}
-    Date: ${order.createdAt.toLocaleDateString()}
+    Date: ${orderDateFormatted}
     Payment Method: ${paymentMethodText}
     Status: ${paymentStatusMessage}
     
@@ -258,7 +248,7 @@ export const sendOrderConfirmation = async (order: Order): Promise<any> => {
     <p>Your order #${order.id} for ${fundraiser.name} has been received.</p>
     
     <h2>Order Details</h2>
-    <p><strong>Date:</strong> ${order.createdAt.toLocaleDateString()}</p>
+    <p><strong>Date:</strong> ${orderDateFormatted}</p>
     <p><strong>Payment Method:</strong> ${paymentMethodText}</p>
     <p><strong>Status:</strong> ${paymentStatusMessage}</p>
     
@@ -266,9 +256,7 @@ export const sendOrderConfirmation = async (order: Order): Promise<any> => {
     <p><strong>Location:</strong> ${fundraiser.pickupLocation}</p>
     <p><strong>Pickup Window:</strong> ${pickupStartsFormatted} to ${pickupEndsFormatted}</p>
     
-    <p>If you have any questions, please contact ${
-      fundraiser.organization.name
-    }.</p>
+    <p>If you have any questions, please contact ${fundraiser.organization.name}.</p>
   `;
 
   return sendEmail({
