@@ -2,7 +2,7 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, Search } from "lucide-react";
+import { ChevronsDownUp, ChevronUp, ChevronDown, Search } from "lucide-react";
 import { z } from "zod";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { toast } from "sonner";
@@ -217,10 +217,10 @@ export function OrderTable({
   const getSortIcon = (field: string) => {
     if (resolvedSearchParams.sort === field) {
       return resolvedSearchParams.order === 'asc'
-        ? <ArrowUp className="ml-2 h-4 w-4 text-blue-600" />
-        : <ArrowDown className="ml-2 h-4 w-4 text-blue-600" />;
+        ? <ChevronUp className="ml-2 h-4 w-4 text-blue-600" />
+        : <ChevronDown className="ml-2 h-4 w-4 text-blue-600" />;
     }
-    return <ArrowUpDown className="ml-2 h-4 w-4" />;
+    return <ChevronsDownUp className="ml-2 h-4 w-4" />;
   };
 
   const getStatusBadgeClass = (status: string | undefined): string => {
