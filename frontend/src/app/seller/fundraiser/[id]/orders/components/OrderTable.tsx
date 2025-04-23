@@ -227,7 +227,7 @@ export function OrderTable({
     const isPaid = order.paymentStatus?.toLowerCase() === "confirmed";
     const isPickedUp = order.pickedUp === true;
 
-    if (isPaid && isPickedUp) {
+    if (isPickedUp) {
       return (
         <Badge className="bg-[#DCEBDE] text-[#086A19] rounded-full px-3 py-1 hover:bg-[#c5e0c6] hover:text-[#065a13] font-[700] text-md">
           <span className="inline-block w-3 h-3 mr-3 bg-[#086A19] rounded-full hover:bg-[#065a13]"></span>
@@ -363,7 +363,7 @@ export function OrderTable({
   return (
     <div className="bg-[#F7F7F7]">
       {/* Header controls */}
-      <div className="p-4 flex justify-between items-center bg-[#F7F7F7]">
+      <div className="p-4 flex justify-between items-center bg-[#F7F7F7] border-b border-[#c1c1c1]">
         {/* Search Bar */}
         <div className="relative flex items-center">
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#959494]" />
@@ -488,7 +488,7 @@ export function OrderTable({
       {/* Order Table */}
       <div className="overflow-x-auto">
         <Table className="bg-[#f7f7f7] text-black border-separate border-spacing-y-1">
-          <TableHeader className="bg-[#ffffff] mb-3">
+          <TableHeader className="bg-[#ffffff]">
             <TableRow>
               <TableHead className="px-4 py-3 text-center text-black font-[400]">
                 Picked Up
@@ -513,6 +513,15 @@ export function OrderTable({
                 </a>
               </TableHead>
               <TableHead className="px-4 py-3 text-left text-black font-[400]">
+                <a href="#" onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = createSortUrl('payment');
+                }} className="flex items-center text-black">
+                  Payment Method
+                  {getSortIcon('payment')}
+                </a>
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left text-black font-[400]">
                 Order Status
               </TableHead>
             </TableRow>
@@ -520,7 +529,7 @@ export function OrderTable({
           <TableBody>
             {filteredOrders.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-4 text-black font-[400]">
+                <TableCell colSpan={7} className="text-center py-4 text-black font-[400]">
                   No orders available
                 </TableCell>
               </TableRow>
@@ -534,7 +543,7 @@ export function OrderTable({
                 return (
                   <TableRow
                     key={order.id}
-                    className={`hover:bg-gray-200 bg-white`}
+                    className="hover:bg-[#f7f7f7] bg-white"
                   >
                     {/* Status Badge */}
                     <TableCell className="px-4 py-3 text-black text-center" onClick={(e) => e.stopPropagation()}>
@@ -543,6 +552,7 @@ export function OrderTable({
                     <TableCell className="px-4 py-3 text-black font-[400]">{order.buyer?.name || "Unknown"}</TableCell>
                     <TableCell className="px-4 py-3 text-black font-[400]">{order.buyer?.email?.split('@')[0] || "Unknown"}</TableCell>
                     <TableCell className="px-4 py-3 text-black font-[400]">${orderTotal.toFixed(2)}</TableCell>
+                    <TableCell className="px-4 py-3 text-black font-[400]">{order.paymentMethod || "Unknown"}</TableCell>
                     <TableCell className="px-4 py-3 text-black">
                       {getOrderStatusBadge(order)}
                     </TableCell>
@@ -554,97 +564,6 @@ export function OrderTable({
         </Table>
       </div>
 
-      {/* Sheet for displaying order items
-      <Sheet open={selectedOrder !== null} onOpenChange={(open) => !open && setSelectedOrder(null)}>
-        <SheetContent className="sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>Order Details</SheetTitle>
-            <SheetDescription>
-              {selectedOrder && (
-                <span>Order for {selectedOrder.buyer?.name || "Unknown"}</span>
-              )}
-            </SheetDescription>
-          </SheetHeader>
-          {selectedOrder && (
-            <div className="mt-6 space-y-6">
-              <div>
-                <h3 className="font-medium text-sm mb-2">Contact Information</h3>
-                <p className="text-sm text-muted-foreground">
-                  Email: {selectedOrder.buyer?.email || "Unknown"}
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-medium text-sm mb-2">Payment Details</h3>
-                <p className="text-sm text-muted-foreground">
-                  Method: {selectedOrder.paymentMethod || "Unknown"}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Status: {selectedOrder.paymentStatus || "Unknown"}
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-medium text-sm mb-2">Pickup Status</h3>
-                <p className="text-sm text-muted-foreground">
-                  {selectedOrder.pickedUp ? "Picked Up" : "Not Picked Up"}
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-medium text-sm mb-2">Items</h3>
-                <div className="space-y-3">
-                  {selectedOrder.items.map((item, index) => (
-                    <div key={index} className="flex justify-between items-center pb-2">
-                      <div>
-                        <p className="font-medium">{item.item.name}</p>
-                        <p className="text-sm text-muted-foreground">{item.item.description}</p>
-                      </div>
-                      <div className="text-right">
-                        <p>{item.quantity} × ${Number(item.item.price).toFixed(2)}</p>
-                        <p className="font-medium">${(item.quantity * Number(item.item.price)).toFixed(2)}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center pt-4 border-t font-medium">
-                <span>Total</span>
-                <span>${selectedOrder.items.reduce(
-                  (total, item) => total + item.quantity * Number(item.item.price),
-                  0
-                ).toFixed(2)}</span>
-              </div>
-
-              <div className="pt-4">
-                {selectedOrder && !selectedOrder.pickedUp && (
-                  <Button
-                    className="w-full mb-2 bg-gray-700 text-white hover:bg-gray-800"
-                    onClick={async () => {
-                      const pickupButton = document.getElementById(`pickup-${selectedOrder.id}`);
-                      if (pickupButton) {
-                        pickupButton.click();
-                      }
-                      setSelectedOrder(null); // Close the sheet after clicking
-                      window.location.reload(); // Refresh the table
-                    }}
-                  >
-                    Mark as Picked Up
-                  </Button>
-                )}
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  onClick={() => setSelectedOrder(null)}
-                >
-                  Close
-                </Button>
-              </div>
-            </div>
-          )}
-        </SheetContent>
-      </Sheet> */}
     </div>
   );
 }

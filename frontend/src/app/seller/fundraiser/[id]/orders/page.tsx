@@ -161,7 +161,7 @@ export default async function FundraiserOrdersPage({
         <h1 className="text-2xl font-[Manrope] font-[400] text-gray-800">
           Welcome back, <span className="text-blue-600 text-2xl font-bold font-['Manrope'] tracking-wide">{organizationName}</span>
         </h1>
-        <p className="text-black text-base ">
+        <p className="text-black text-base font-[400]">
           View all orders for <span className="font-[700]">{fundraiserName}</span>
         </p>
       </div>
