@@ -15,13 +15,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+// import {
+//   Sheet,
+//   SheetContent,
+//   SheetDescription,
+//   SheetHeader,
+//   SheetTitle,
+// } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ExportButton } from "@/app/seller/fundraiser/[id]/orders/components/ExportButton";
@@ -101,7 +101,7 @@ function PickupButton({
         checked={isPickedUp}
         onChange={() => markAsPickedUp()}
         disabled={isLoading || isPickedUp}
-        className="h-5 w-5"
+        className="h-5 w-5 cursor-pointer"
       />
       <label
         htmlFor={`pickup-${order.id}`}
@@ -146,7 +146,7 @@ export function OrderTable({
   selectedPickupStatuses: string[];
 }) {
   // State for selected order (for sheet display)
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  // const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   // Calculate total selected filters
   const totalSelectedFilters =
@@ -223,24 +223,17 @@ export function OrderTable({
     return <ChevronsDownUp className="ml-2 h-4 w-4" />;
   };
 
-  const getStatusBadgeClass = (status: string | undefined): string => {
-    if (!status) return "bg-gray-100 hover:bg-gray-200 text-gray-800";
-    const lowercaseStatus = status.toLowerCase();
-    if (lowercaseStatus === "confirmed") {
-      return "bg-green-200 hover:bg-green-300 text-green-800";
-    } else if (lowercaseStatus === "unverifiable") {
-      return "bg-red-200 hover:bg-red-300 text-red-800";
-    } else if (lowercaseStatus === "pending") {
-      return "bg-yellow-200 hover:bg-yellow-300 text-yellow-800";
-    } else {
-      return "bg-gray-100 hover:bg-gray-200 text-gray-800";
-    }
-  };
+  const getOrderStatusBadgeClass = (order: Order): string => {
+    const isPaid = order.paymentStatus?.toLowerCase() === "confirmed";
+    const isPickedUp = order.pickedUp === true;
 
-  const getPickedUpBadgeClass = (isPickedUp: boolean): string => {
-    return isPickedUp
-      ? "bg-green-200 hover:bg-green-300 text-green-800"
-      : "bg-yellow-200 hover:bg-yellow-300 text-yellow-800";
+    if (isPaid && isPickedUp) {
+      return "bg-green-200 hover:bg-green-300 text-green-800"; // Fulfilled
+    } else if (!isPaid) {
+      return "bg-red-200 hover:bg-red-300 text-red-800"; // Unfulfilled
+    } else {
+      return "bg-yellow-200 hover:bg-yellow-300 text-yellow-800"; // Pending
+    }
   };
 
   // Apply filters to the orders
@@ -490,16 +483,13 @@ export function OrderTable({
                   e.preventDefault();
                   window.location.href = createSortUrl('name');
                 }} className="flex items-center text-black">
-                  Recipient
+                  Name
                   {getSortIcon('name')}
                 </a>
               </TableHead>
-              <TableHead className="px-4 py-3 text-left text-black">Contact</TableHead>
+              <TableHead className="px-4 py-3 text-left text-black">NetId</TableHead>
               <TableHead className="px-4 py-3 text-left text-black">
-                Payment Status
-              </TableHead>
-              <TableHead className="px-4 py-3 text-left text-black">
-                Picked Up
+                Status
               </TableHead>
               <TableHead className="px-4 py-3 text-left text-black">
                 <a href="#" onClick={(e) => {
@@ -525,13 +515,12 @@ export function OrderTable({
                   (total: number, item: OrderItem) => total + item.quantity * Number(item.item.price),
                   0
                 );
-                const isPickedUp = order.pickedUp === true;
 
                 return (
                   <TableRow
                     key={order.id}
-                    className={`hover:bg-gray-200 ${isPickedUp ? 'bg-[#E6F9E6]' : ''} cursor-pointer mb-2`}
-                    onClick={() => setSelectedOrder(order)}
+                    className={`hover:bg-gray-200  mb-2`}
+                    // onClick={() => setSelectedOrder(order)}
                   >
                     {/* Status Badge */}
                     <TableCell className="px-4 py-3 text-black text-center" onClick={(e) => e.stopPropagation()}>
@@ -540,14 +529,18 @@ export function OrderTable({
                     <TableCell className="px-4 py-3 text-black">{order.buyer?.name || "Unknown"}</TableCell>
                     <TableCell className="px-4 py-3 text-black">{order.buyer?.email || "Unknown"}</TableCell>
                     <TableCell className="px-4 py-3 text-black">
-                      <Badge className={getStatusBadgeClass(order.paymentStatus)}>
-                        {order.paymentStatus || "Unknown"}
-                      </Badge>
-                    </TableCell>
-                    {/* Picked Up Badge */}
-                    <TableCell className="px-4 py-3 text-black">
-                      <Badge className={getPickedUpBadgeClass(isPickedUp)}>
-                        {isPickedUp ? "Picked Up" : "Not Picked Up"}
+                      <Badge className={getOrderStatusBadgeClass(order)}>
+                        {(() => {
+                          const isPaid = order.paymentStatus?.toLowerCase() === "confirmed";
+                          const isPickedUp = order.pickedUp === true;
+                          if (isPaid && isPickedUp) {
+                            return "Fulfilled";
+                          } else if (!isPaid) {
+                            return "Unfulfilled";
+                          } else {
+                            return "Pending";
+                          }
+                        })()}
                       </Badge>
                     </TableCell>
                     <TableCell className="px-4 py-3 font-medium text-black">${orderTotal.toFixed(2)}</TableCell>
@@ -559,7 +552,7 @@ export function OrderTable({
         </Table>
       </div>
 
-      {/* Sheet for displaying order items */}
+      {/* Sheet for displaying order items
       <Sheet open={selectedOrder !== null} onOpenChange={(open) => !open && setSelectedOrder(null)}>
         <SheetContent className="sm:max-w-md">
           <SheetHeader>
@@ -649,7 +642,7 @@ export function OrderTable({
             </div>
           )}
         </SheetContent>
-      </Sheet>
+      </Sheet> */}
     </div>
   );
 }
