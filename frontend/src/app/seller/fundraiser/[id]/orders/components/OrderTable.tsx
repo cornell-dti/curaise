@@ -504,6 +504,12 @@ export function OrderTable({
               </TableHead>
               <TableHead className="px-4 py-3 text-left text-black font-[400]">NetId</TableHead>
               <TableHead className="px-4 py-3 text-left text-black font-[400]">
+                Order Details
+              </TableHead>
+              <TableHead className="px-4 py-3 text-center text-black font-[400]">
+                Quantity
+              </TableHead>
+              <TableHead className="px-4 py-3 text-left text-black font-[400]">
                 <a href="#" onClick={(e) => {
                   e.preventDefault();
                   window.location.href = createSortUrl('total');
@@ -529,7 +535,7 @@ export function OrderTable({
           <TableBody>
             {filteredOrders.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-4 text-black font-[400]">
+                <TableCell colSpan={9} className="text-center py-4 text-black font-[400]">
                   No orders available
                 </TableCell>
               </TableRow>
@@ -539,6 +545,10 @@ export function OrderTable({
                   (total: number, item: OrderItem) => total + item.quantity * Number(item.item.price),
                   0
                 );
+
+                // Format items and quantities for display
+                const itemsList = order.items.map(item => item.item.name).join('\n');
+                const quantitiesList = order.items.map(item => item.quantity).join('\n');
 
                 return (
                   <TableRow
@@ -551,6 +561,12 @@ export function OrderTable({
                     </TableCell>
                     <TableCell className="px-4 py-3 text-black font-[400]">{order.buyer?.name || "Unknown"}</TableCell>
                     <TableCell className="px-4 py-3 text-black font-[400]">{order.buyer?.email?.split('@')[0] || "Unknown"}</TableCell>
+                    <TableCell className="px-4 py-3 text-black font-[400] whitespace-pre-line">
+                      {itemsList}
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-black font-[400] text-center whitespace-pre-line">
+                      {quantitiesList}
+                    </TableCell>
                     <TableCell className="px-4 py-3 text-black font-[400]">${orderTotal.toFixed(2)}</TableCell>
                     <TableCell className="px-4 py-3 text-black font-[400]">{order.paymentMethod || "Unknown"}</TableCell>
                     <TableCell className="px-4 py-3 text-black">
