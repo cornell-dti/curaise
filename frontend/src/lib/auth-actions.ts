@@ -38,3 +38,14 @@ export async function signOut() {
 
   redirect("/");
 }
+
+export async function getUser() {
+	const supabase = await createClient();
+	const { data, error } = await supabase.auth.getUser();
+	// Instead of throwing an error, just return null when no user is found
+	if (error || !data.user) {
+		console.log("No active user session");
+		return null;
+	}
+	return data.user;
+}
