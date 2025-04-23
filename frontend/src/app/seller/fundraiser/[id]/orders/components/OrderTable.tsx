@@ -223,16 +223,31 @@ export function OrderTable({
     return <ChevronsDownUp className="ml-2 h-4 w-4" />;
   };
 
-  const getOrderStatusBadgeClass = (order: Order): string => {
+  const getOrderStatusBadge = (order: Order) => {
     const isPaid = order.paymentStatus?.toLowerCase() === "confirmed";
     const isPickedUp = order.pickedUp === true;
 
     if (isPaid && isPickedUp) {
-      return "bg-green-200 hover:bg-green-300 text-green-800"; // Fulfilled
+      return (
+        <Badge className="bg-[#DCEBDE] text-[#086A19] rounded-lg p-2 hover:bg-[#c5e0c6] hover:text-[#065a13]">
+          <span className="inline-block w-2 h-2 mr-2 bg-[#086A19] rounded-full hover:bg-[#065a13]"></span>
+          Fulfilled
+        </Badge>
+      );
     } else if (!isPaid) {
-      return "bg-red-200 hover:bg-red-300 text-red-800"; // Unfulfilled
+      return (
+        <Badge className="bg-[#FBE6E6] text-[#E1080B] rounded-lg p-2 hover:bg-[#f5c6c6] hover:text-[#b30607]">
+          <span className="inline-block w-2 h-2 mr-2 bg-[#E1080B] rounded-full hover:bg-[#b30607]"></span>
+          Unfulfilled
+        </Badge>
+      );
     } else {
-      return "bg-yellow-200 hover:bg-yellow-300 text-yellow-800"; // Pending
+      return (
+        <Badge className="bg-[#FFEEC2] text-[#FEA839] rounded-lg p-2 hover:bg-[#fddc9e] hover:text-[#d97a2b]">
+          <span className="inline-block w-2 h-2 mr-2 bg-[#FEA839] rounded-full hover:bg-[#d97a2b]"></span>
+          Pending
+        </Badge>
+      );
     }
   };
 
@@ -472,7 +487,7 @@ export function OrderTable({
 
       {/* Order Table */}
       <div className="overflow-x-auto">
-        <Table className="bg-[#ffffff] text-black">
+        <Table className="bg-[#f7f7f7] text-black border-separate border-spacing-y-1">
           <TableHeader className="bg-[#ffffff] mb-3">
             <TableRow>
               <TableHead className="px-4 py-3 text-center text-black">
@@ -519,8 +534,7 @@ export function OrderTable({
                 return (
                   <TableRow
                     key={order.id}
-                    className={`hover:bg-gray-200  mb-2`}
-                    // onClick={() => setSelectedOrder(order)}
+                    className={`hover:bg-gray-200 bg-white`}
                   >
                     {/* Status Badge */}
                     <TableCell className="px-4 py-3 text-black text-center" onClick={(e) => e.stopPropagation()}>
@@ -529,19 +543,7 @@ export function OrderTable({
                     <TableCell className="px-4 py-3 text-black">{order.buyer?.name || "Unknown"}</TableCell>
                     <TableCell className="px-4 py-3 text-black">{order.buyer?.email || "Unknown"}</TableCell>
                     <TableCell className="px-4 py-3 text-black">
-                      <Badge className={getOrderStatusBadgeClass(order)}>
-                        {(() => {
-                          const isPaid = order.paymentStatus?.toLowerCase() === "confirmed";
-                          const isPickedUp = order.pickedUp === true;
-                          if (isPaid && isPickedUp) {
-                            return "Fulfilled";
-                          } else if (!isPaid) {
-                            return "Unfulfilled";
-                          } else {
-                            return "Pending";
-                          }
-                        })()}
-                      </Badge>
+                      {getOrderStatusBadge(order)}
                     </TableCell>
                     <TableCell className="px-4 py-3 font-medium text-black">${orderTotal.toFixed(2)}</TableCell>
                   </TableRow>
