@@ -166,7 +166,7 @@ export default async function FundraiserOrdersPage({
         </p>
       </div>
 
-      <Card className="relative bg-[#F7F7F7] shadow-none outline outline-5 outline-offset-[-1px] outline-stone-300 overflow-hidden">
+      <Card className="relative bg-[#F7F7F7] shadow-none outline outline-5 outline-offset-[-1px] outline-stone-300 overflow-hidden rounded-lg">
         <OrderTable
           orders={orders}
           resolvedSearchParams={resolvedSearchParams}
