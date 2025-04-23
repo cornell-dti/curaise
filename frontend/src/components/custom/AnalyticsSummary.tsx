@@ -1,9 +1,7 @@
-"use client";
 import { z } from "zod";
 import { BasicFundraiserSchema } from "common";
 import ProgressCircle from "./ProgressCircle";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { SeeMoreLink } from "./SeeMoreLink";
 export function AnalyticsSummaryCard({
   fundraiser,
   raised,
@@ -17,7 +15,6 @@ export function AnalyticsSummaryCard({
   totalOrders: number;
   profit: number;
 }) {
-  const currentPath = usePathname();
   return (
     <div className="p-6 bg-paleGreen rounded-lg shadow-md flex flex-col justify-between">
       
@@ -41,7 +38,7 @@ export function AnalyticsSummaryCard({
     </div>
   ) : (
 
-    <div>
+    <div className="flex flex-col justify-between h-full">
       <div>
         <h1 className="text-1xl">Analytics Summary</h1>
       </div>
@@ -67,14 +64,9 @@ export function AnalyticsSummaryCard({
         ></ProgressCircle>
       </div>
 
-      <div className="w-full flex flex-row justify-end">
-        <Link href={`${currentPath}/orders`}>
-          <p className="text-[#3197F7] underline hover:text-[#1f6dc2] cursor-pointer">
-            See More
-          </p>
-        </Link>
-      </div>
+      <SeeMoreLink path="analytics"></SeeMoreLink>
     </div>
+
   )}
     </div>
   );

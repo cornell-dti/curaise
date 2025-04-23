@@ -1,4 +1,4 @@
-import { CompleteFundraiserSchema, CompleteOrderSchema } from "common";
+import { BasicOrganizationSchema, CompleteFundraiserSchema, CompleteOrderSchema, CompleteOrganizationSchema, UserSchema } from "common";
 import { createClient } from "@/utils/supabase/server";
 import { AnalyticsSummaryCard } from "@/components/custom/AnalyticsSummary";
 import { z } from "zod";
@@ -8,6 +8,8 @@ import Checklist from "@/components/custom/Checklist";
 import Link from "next/link";
 import { MdArrowOutward } from "react-icons/md";
 import { AppSidebar } from "@/components/ui/app-sidebar";
+import { redirect } from "next/navigation";
+import { SeeMoreLink } from "@/components/custom/SeeMoreLink";
 
 const getFundraiser = async (id: string, token: string) => {
   const response = await fetch(
@@ -53,8 +55,7 @@ const getOrdersByFundraiser = async (
   );
 
   const result = (await response.json()) as OrderResponse;
-  // Log the API call output
-  console.log("API Response:", result);
+
   if (!response.ok) {
     throw new Error(result.message || "Failed to fetch orders");
   }
@@ -73,6 +74,14 @@ export default async function FundraiserPage({
   const id = (await params).id;
 
   const {
+    data: { user },
+    error: error1,
+  } = await supabase.auth.getUser();
+  if (error1 || !user) {
+    redirect("/login");
+  }
+
+  const {
     data: { session },
     error: error2,
   } = await supabase.auth.getSession();
@@ -86,15 +95,7 @@ export default async function FundraiserPage({
     fundraiser.id,
     session.access_token
   );
-  // const orderCosts = orders.map((order) =>
-  //   order.items
-  //     .reduce(
-  //       (total, item) =>
-  //         total.plus(Decimal(item.item.price).times(item.quantity)),
-  //       new Decimal(0)
-  //     )
-  //     .toFixed(2)
-  // );
+
   const totalOrderAmount = orders
     .reduce((total, order) => {
       const orderTotal = order.items.reduce(
@@ -117,14 +118,15 @@ export default async function FundraiserPage({
 
   // Calculate the total number of picked-up orders
   const totalOrdersPickedUp = orders.filter((order) => order.pickedUp).length;
+
   return (
     <div>
       <aside className="w-10 h-full hidden md:block fixed md:relative">
-        <AppSidebar />
+        <AppSidebar org={fundraiser.organization.name}/>
       </aside>
       <main>
         <div className="flex flex-col w-full">
-          <div className="md:mt-[100] md:ml-[100] mt-[20] ml-[20]">
+          <div className="md:mt-[20] md:ml-[20]">
             <h1 className=" text-3xl tracking-tight md:text-3xl lg:text-4xl">
               {fundraiser.name}
             </h1>
@@ -185,13 +187,7 @@ export default async function FundraiserPage({
                     <p>${latestOrderCost}</p>
                   </div>
 
-                  <div className="flex w-full justify-end">
-                    <Link href={`/orders`}>
-                      <p className="text-[#3197F7] underline hover:text-[#1f6dc2] cursor-pointer">
-                        See More
-                      </p>
-                    </Link>
-                  </div>
+                  <SeeMoreLink path="orders"></SeeMoreLink>
                 </div>
 
                 <div className="flex flex-col h-fit min-w-[400] max-w-[400] gap-2 bg-[#A8CCC9] shadow-md rounded-lg p-6">
