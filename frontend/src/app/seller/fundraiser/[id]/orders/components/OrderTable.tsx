@@ -229,22 +229,22 @@ export function OrderTable({
 
     if (isPaid && isPickedUp) {
       return (
-        <Badge className="bg-[#DCEBDE] text-[#086A19] rounded-lg p-2 hover:bg-[#c5e0c6] hover:text-[#065a13]">
-          <span className="inline-block w-2 h-2 mr-2 bg-[#086A19] rounded-full hover:bg-[#065a13]"></span>
+        <Badge className="bg-[#DCEBDE] text-[#086A19] rounded-full px-3 py-1 hover:bg-[#c5e0c6] hover:text-[#065a13] font-[700] text-md">
+          <span className="inline-block w-3 h-3 mr-3 bg-[#086A19] rounded-full hover:bg-[#065a13]"></span>
           Fulfilled
         </Badge>
       );
     } else if (!isPaid) {
       return (
-        <Badge className="bg-[#FBE6E6] text-[#E1080B] rounded-lg p-2 hover:bg-[#f5c6c6] hover:text-[#b30607]">
-          <span className="inline-block w-2 h-2 mr-2 bg-[#E1080B] rounded-full hover:bg-[#b30607]"></span>
+        <Badge className="bg-[#FBE6E6] text-[#E1080B] rounded-full px-3 py-1 hover:bg-[#f5c6c6] hover:text-[#b30607] font-[700] text-md">
+          <span className="inline-block w-3 h-3 mr-3 bg-[#E1080B] rounded-full hover:bg-[#b30607]"></span>
           Unfulfilled
         </Badge>
       );
     } else {
       return (
-        <Badge className="bg-[#FFEEC2] text-[#FEA839] rounded-lg p-2 hover:bg-[#fddc9e] hover:text-[#d97a2b]">
-          <span className="inline-block w-2 h-2 mr-2 bg-[#FEA839] rounded-full hover:bg-[#d97a2b]"></span>
+        <Badge className="bg-[#FFEEC2] text-[#FEA839] rounded-full px-3 py-1 hover:bg-[#fddc9e] hover:text-[#d97a2b] font-[700] text-md">
+          <span className="inline-block w-3 h-3 mr-3 bg-[#FEA839] rounded-full hover:bg-[#d97a2b]"></span>
           Pending
         </Badge>
       );
@@ -490,10 +490,10 @@ export function OrderTable({
         <Table className="bg-[#f7f7f7] text-black border-separate border-spacing-y-1">
           <TableHeader className="bg-[#ffffff] mb-3">
             <TableRow>
-              <TableHead className="px-4 py-3 text-center text-black">
-                Status
+              <TableHead className="px-4 py-3 text-center text-black font-[400]">
+                Picked Up
               </TableHead>
-              <TableHead className="px-4 py-3 text-left text-black">
+              <TableHead className="px-4 py-3 text-left text-black font-[400]">
                 <a href="#" onClick={(e) => {
                   e.preventDefault();
                   window.location.href = createSortUrl('name');
@@ -502,11 +502,8 @@ export function OrderTable({
                   {getSortIcon('name')}
                 </a>
               </TableHead>
-              <TableHead className="px-4 py-3 text-left text-black">NetId</TableHead>
-              <TableHead className="px-4 py-3 text-left text-black">
-                Status
-              </TableHead>
-              <TableHead className="px-4 py-3 text-left text-black">
+              <TableHead className="px-4 py-3 text-left text-black font-[400]">NetId</TableHead>
+              <TableHead className="px-4 py-3 text-left text-black font-[400]">
                 <a href="#" onClick={(e) => {
                   e.preventDefault();
                   window.location.href = createSortUrl('total');
@@ -515,12 +512,15 @@ export function OrderTable({
                   {getSortIcon('total')}
                 </a>
               </TableHead>
+              <TableHead className="px-4 py-3 text-left text-black font-[400]">
+                Order Status
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredOrders.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-4 text-black">
+                <TableCell colSpan={6} className="text-center py-4 text-black font-[400]">
                   No orders available
                 </TableCell>
               </TableRow>
@@ -540,12 +540,12 @@ export function OrderTable({
                     <TableCell className="px-4 py-3 text-black text-center" onClick={(e) => e.stopPropagation()}>
                       <PickupButton order={order} token={token} onSuccess={() => window.location.reload()} />
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-black">{order.buyer?.name || "Unknown"}</TableCell>
-                    <TableCell className="px-4 py-3 text-black">{order.buyer?.email || "Unknown"}</TableCell>
+                    <TableCell className="px-4 py-3 text-black font-[400]">{order.buyer?.name || "Unknown"}</TableCell>
+                    <TableCell className="px-4 py-3 text-black font-[400]">{order.buyer?.email?.split('@')[0] || "Unknown"}</TableCell>
+                    <TableCell className="px-4 py-3 text-black font-[400]">${orderTotal.toFixed(2)}</TableCell>
                     <TableCell className="px-4 py-3 text-black">
                       {getOrderStatusBadge(order)}
                     </TableCell>
-                    <TableCell className="px-4 py-3 font-medium text-black">${orderTotal.toFixed(2)}</TableCell>
                   </TableRow>
                 );
               })
