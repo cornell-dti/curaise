@@ -2,36 +2,30 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/utils/supabase/server";
 import { connection } from "next/server";
-import { BasicOrganizationSchema } from "common";
-import {
-  OrganizationCard,
-  CreateOrganizationCard,
-} from "@/components/custom/OrganizationCard";
+import { CreateFundraiserForm } from "@/app/seller/org/[id]/create-fundraiser/components/CreateFundraiserForm";
+import { CompleteOrganizationSchema } from "common";
 
-const getOrganizations = async (userId: string, token: string) => {
+const getOrganization = async (id: string) => {
   const response = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + "/user/" + userId + "/organizations",
-    {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    }
+    process.env.NEXT_PUBLIC_API_URL + "/organization/" + id
   );
   const result = await response.json();
   if (!response.ok) {
     throw new Error(result.message);
   }
 
-  // parse org data
-  const data = BasicOrganizationSchema.array().safeParse(result.data);
+  const data = CompleteOrganizationSchema.safeParse(result.data);
   if (!data.success) {
     throw new Error("Could not parse order data");
   }
-
   return data.data;
 };
 
-export default async function SellerHome() {
+export default async function CreateFundraiserPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   await connection(); // ensures server component is dynamically rendered at runtime, not statically rendered at build time
 
   const supabase = await createClient();
@@ -54,18 +48,17 @@ export default async function SellerHome() {
     throw new Error("Session invalid");
   }
 
-  const organizations = await getOrganizations(user.id, session.access_token);
+  const id = (await params).id;
+  const org = await getOrganization(id);
+
+  // Check if user is an admin of the organization
+  if (!org.admins.map((admin) => admin.id).includes(user.id)) {
+    throw new Error("User is not an admin of the organization");
+  }
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-4">
-      <h1 className="text-2xl font-bold">Organizations</h1>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {organizations.map((org) => (
-          <OrganizationCard key={org.id} organization={org} />
-        ))}
-        <CreateOrganizationCard />
-      </div>
+    <div>
+      <CreateFundraiserForm token={session.access_token} organizationId={id} />
     </div>
   );
 }

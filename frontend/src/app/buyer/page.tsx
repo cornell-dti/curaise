@@ -2,13 +2,11 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Clock, ShoppingBag } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BasicOrderSchema, UserSchema } from "common";
-import { z } from "zod";
-import Link from "next/link";
 import { OrderCard } from "@/components/custom/OrderCard";
 import { isPast } from "date-fns";
+import { EditBuyerInfoDialog } from "@/components/custom/EditBuyerInfoDialog";
 
 const getUserProfile = async (userId: string, token: string) => {
   const response = await fetch(
@@ -92,23 +90,16 @@ export default async function BuyerHome() {
           <div className="bg-blue-100 rounded-full p-3">
             <ShoppingBag className="h-6 w-6 text-blue-600" />
           </div>
-          <div>
-            <h2 className="font-bold text-xl">
-              Welcome back, {userProfile.name}!
-            </h2>
-            <p className="text-muted-foreground mt-1">
-              You currently have {inProgressOrders.length} active{" "}
-              {inProgressOrders.length == 1 ? "order" : "orders"}.
-            </p>
-          </div>
+          <p className="text-lg my-auto">
+            You currently have {inProgressOrders.length} active{" "}
+            {inProgressOrders.length == 1 ? "order" : "orders"}.
+          </p>
         </div>
       </div>
 
       <div className="flex items-center justify-between space-x-4 mb-6 p-4">
         <p>Looking to edit your account information?</p>
-        <Button variant="outline" asChild>
-          <Link href="/buyer/account">Edit Info</Link>
-        </Button>
+        <EditBuyerInfoDialog user={userProfile} token={session.access_token} />
       </div>
 
       <div className="flex flex-col space-y-4">
