@@ -366,10 +366,10 @@ export function OrderTable({
       <div className="p-4 flex justify-between items-center bg-[#F7F7F7] border-b border-[#c1c1c1]">
         {/* Search Bar */}
         <div className="relative flex items-center">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#959494]" />
+          <Search className="absolute left-2 h-5 w-5 text-[#959494]" />
           <form>
             <Input
-              className="w-64 h-8 pl-10 bg-white rounded-lg border border-[#68B0AB] text-[#959494] text-xs font-light"
+              className="w-48 h-8 pl-10 bg-white rounded-lg border border-[#68B0AB] text-[#959494] text-xs font-light"
               placeholder="Search Orders"
               name="search"
               defaultValue={resolvedSearchParams.search || ''}
@@ -384,11 +384,11 @@ export function OrderTable({
           {/* Filter Popover */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="shadow-none h-8 px-4 font-[400] bg-[#68b0ab] rounded-lg text-white border-[#68b0ab]">
+              <Button variant="outline" className="shadow-none h-8 px-3 font-[400] bg-[#68b0ab] rounded-lg text-white border-[#68b0ab]">
                 <span>Filter</span>
                 <ChevronDown className="h-4 w-4" />
                 {totalSelectedFilters > 0 && (
-                  <span className="ml-1 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                  <span className="ml-1 bg-white text-[#68b0ab] font-[700] rounded-full w-5 h-5 flex items-center justify-center text-xs">
                     {totalSelectedFilters}
                   </span>
                 )}
@@ -418,7 +418,7 @@ export function OrderTable({
                           value={type}
                           defaultChecked={selectedPaymentTypes.includes(type)}
                         />
-                        <Label htmlFor={`paymentType-${type}`}>{type}</Label>
+                        <Label htmlFor={`paymentType-${type}`} className="font-[400]">{type}</Label>
                       </div>
                     ))}
                   </div>
@@ -433,7 +433,7 @@ export function OrderTable({
                           value={status}
                           defaultChecked={selectedStatuses.includes(status)}
                         />
-                        <Label htmlFor={`status-${status}`}>{status}</Label>
+                        <Label htmlFor={`status-${status}`} className="font-[400]">{status}</Label>
                       </div>
                     ))}
                   </div>
@@ -448,12 +448,12 @@ export function OrderTable({
                           value={status.value}
                           defaultChecked={selectedPickupStatuses.includes(status.value)}
                         />
-                        <Label htmlFor={`pickupStatus-${status.value}`}>{status.label}</Label>
+                        <Label htmlFor={`pickupStatus-${status.value}`} className="font-[400]">{status.label}</Label>
                       </div>
                     ))}
                   </div>
 
-                  <h4 className="font-medium text-sm">Items</h4>
+                  <h4 className="font-medium text-sm">Item(s)</h4>
                   <div className="space-y-2">
                     {itemsList.map((item) => (
                       <div key={item} className="flex items-center space-x-2">
@@ -463,7 +463,7 @@ export function OrderTable({
                           value={item}
                           defaultChecked={selectedItems.includes(item)}
                         />
-                        <Label htmlFor={`item-${item}`}>{item}</Label>
+                        <Label htmlFor={`item-${item}`} className="font-[400]">{item}</Label>
                       </div>
                     ))}
                   </div>
@@ -493,42 +493,56 @@ export function OrderTable({
               <TableHead className="px-4 py-3 text-center text-black font-[400]">
                 Picked Up
               </TableHead>
-              <TableHead className="px-4 py-3 text-left text-black font-[400]">
+              <TableHead className="px-4 py-3 text-center text-black font-[400]">
                 <a href="#" onClick={(e) => {
                   e.preventDefault();
                   window.location.href = createSortUrl('name');
-                }} className="flex items-center text-black">
+                }} className="flex items-center justify-center text-black">
                   Name
                   {getSortIcon('name')}
                 </a>
               </TableHead>
-              <TableHead className="px-4 py-3 text-left text-black font-[400]">NetId</TableHead>
-              <TableHead className="px-4 py-3 text-left text-black font-[400]">
+              <TableHead className="px-4 py-3 text-center text-black font-[400]">
+                <a href="#" onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = createSortUrl('netid');
+                }} className="flex items-center justify-center text-black">
+                  NetId
+                  {getSortIcon('netid')}
+                </a>
+              </TableHead>
+              <TableHead className="px-4 py-3 text-center text-black font-[400]">
                 Order Details
               </TableHead>
               <TableHead className="px-4 py-3 text-center text-black font-[400]">
                 Quantity
               </TableHead>
-              <TableHead className="px-4 py-3 text-left text-black font-[400]">
+              <TableHead className="px-4 py-3 text-center text-black font-[400]">
                 <a href="#" onClick={(e) => {
                   e.preventDefault();
                   window.location.href = createSortUrl('total');
-                }} className="flex items-center text-black">
+                }} className="flex items-center justify-center text-black">
                   Order Total
                   {getSortIcon('total')}
                 </a>
               </TableHead>
-              <TableHead className="px-4 py-3 text-left text-black font-[400]">
+              <TableHead className="px-4 py-3 text-center text-black font-[400]">
                 <a href="#" onClick={(e) => {
                   e.preventDefault();
                   window.location.href = createSortUrl('payment');
-                }} className="flex items-center text-black">
+                }} className="flex items-center justify-center text-black">
                   Payment Method
                   {getSortIcon('payment')}
                 </a>
               </TableHead>
-              <TableHead className="px-4 py-3 text-left text-black font-[400]">
-                Order Status
+              <TableHead className="px-4 py-3 text-center text-black font-[400]">
+                <a href="#" onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = createSortUrl('status');
+                }} className="flex items-center justify-center text-black">
+                  Order Status
+                  {getSortIcon('status')}
+                </a>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -559,17 +573,17 @@ export function OrderTable({
                     <TableCell className="px-4 py-3 text-black text-center" onClick={(e) => e.stopPropagation()}>
                       <PickupButton order={order} token={token} onSuccess={() => window.location.reload()} />
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-black font-[400]">{order.buyer?.name || "Unknown"}</TableCell>
-                    <TableCell className="px-4 py-3 text-black font-[400]">{order.buyer?.email?.split('@')[0] || "Unknown"}</TableCell>
-                    <TableCell className="px-4 py-3 text-black font-[400] whitespace-pre-line">
+                    <TableCell className="px-4 py-3 text-black font-[400] text-center">{order.buyer?.name || "Unknown"}</TableCell>
+                    <TableCell className="px-4 py-3 text-black font-[400] text-center">{order.buyer?.email?.split('@')[0] || "Unknown"}</TableCell>
+                    <TableCell className="px-4 py-3 text-black font-[400] text-center whitespace-pre-line">
                       {itemsList}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-black font-[400] text-center whitespace-pre-line">
                       {quantitiesList}
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-black font-[400]">${orderTotal.toFixed(2)}</TableCell>
-                    <TableCell className="px-4 py-3 text-black font-[400]">{order.paymentMethod || "Unknown"}</TableCell>
-                    <TableCell className="px-4 py-3 text-black">
+                    <TableCell className="px-4 py-3 text-black font-[400] text-center">${orderTotal.toFixed(2)}</TableCell>
+                    <TableCell className="px-4 py-3 text-black font-[400] text-center">{order.paymentMethod || "Unknown"}</TableCell>
+                    <TableCell className="px-4 py-3 text-black text-center">
                       {getOrderStatusBadge(order)}
                     </TableCell>
                   </TableRow>
