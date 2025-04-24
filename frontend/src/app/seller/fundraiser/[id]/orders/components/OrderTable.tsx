@@ -15,13 +15,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-// import {
-//   Sheet,
-//   SheetContent,
-//   SheetDescription,
-//   SheetHeader,
-//   SheetTitle,
-// } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { ExportButton } from "@/app/seller/fundraiser/[id]/orders/components/ExportButton";
@@ -116,7 +109,6 @@ export function OrderTable({
   resolvedSearchParams,
   token,
   fundraiserName,
-  // Filter-related props
   paymentTypes,
   statuses,
   itemsList,
@@ -145,9 +137,6 @@ export function OrderTable({
   selectedItems: string[];
   selectedPickupStatuses: string[];
 }) {
-  // State for selected order (for sheet display)
-  // const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-
   // Calculate total selected filters
   const totalSelectedFilters =
     selectedPaymentTypes.length +
@@ -593,7 +582,6 @@ export function OrderTable({
           </TableBody>
         </Table>
       </div>
-
     </div>
   );
 }
