@@ -1,15 +1,15 @@
 import { BasicOrganizationSchema, CompleteFundraiserSchema, CompleteOrderSchema, CompleteOrganizationSchema, UserSchema } from "common";
 import { createClient } from "@/utils/supabase/server";
-import { AnalyticsSummaryCard } from "@/components/custom/AnalyticsSummary";
+import { AnalyticsSummaryCard } from "@/app/seller/fundraiser/[id]/components/AnalyticsSummary";
 import { z } from "zod";
 import Decimal from "decimal.js";
-import TodoList from "@/components/custom/TodoList";
-import Checklist from "@/components/custom/Checklist";
+import TodoList from "@/app/seller/fundraiser/[id]/components/TodoList";
+import Checklist from "@/app/seller/fundraiser/[id]/components/Checklist";
 import Link from "next/link";
 import { MdArrowOutward } from "react-icons/md";
 import { AppSidebar } from "@/components/ui/app-sidebar";
 import { redirect } from "next/navigation";
-import { SeeMoreLink } from "@/components/custom/SeeMoreLink";
+import { SeeMoreLink } from "@/app/seller/fundraiser/[id]/components/SeeMoreLink";
 
 const getFundraiser = async (id: string, token: string) => {
   const response = await fetch(
@@ -122,7 +122,7 @@ export default async function FundraiserPage({
   return (
     <div>
       <aside className="w-10 h-full hidden md:block fixed md:relative">
-        <AppSidebar org={fundraiser.organization.name}/>
+        <AppSidebar org={fundraiser.organization.name} icon={fundraiser.organization.logoUrl || ""}/>
       </aside>
       <main>
         <div className="flex flex-col w-full">

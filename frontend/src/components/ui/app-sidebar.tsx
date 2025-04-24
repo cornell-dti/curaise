@@ -14,12 +14,12 @@ import { House, ChartLine, ShoppingBag } from "lucide-react";
 
 type AppSidebarProps = React.HTMLAttributes<HTMLDivElement> & {
   org: string;
+  icon?: string;
 };
 
 export async function AppSidebar({
   org,
-  className,
-  ...props
+  icon
 }: AppSidebarProps) {
   const supabase = createClient();
   const {
@@ -32,14 +32,29 @@ export async function AppSidebar({
 
   return (
     <Sidebar className="h-screen flex flex-col items-center justify-center">
-      <div className="flex p-2">
-        <CircleUserRound className="w-6 h-6 mr-2" />
-        {org}
-      </div>
       <SidebarContent className="flex flex-col items-center mt-[25vh] h-full">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-10">
+            <SidebarMenu className="gap-7">
+              <SidebarMenuItem key={org}>
+                <SidebarMenuButton asChild className="p-2">
+                <a href="" className="text-xl md:text-[28px]">
+                  <div className="flex">
+                    {icon!="" ? (
+                      <img
+                        src={icon}
+                        alt="Organization Logo"
+                        className="w-6 h-6 mr-2 rounded-full"
+                      />
+                    ) : (
+                      <CircleUserRound className="w-6 h-6 mr-2" />
+                    )}
+                    {org}
+                  </div>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
               <SidebarMenuItem key={"overview"}>
                 <SidebarMenuButton asChild className="p-2">
                   <a href="" className="text-lg md:text-xl">
