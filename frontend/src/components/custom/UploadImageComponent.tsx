@@ -1,43 +1,35 @@
 "use client";
+
 import {
   type ChangeEvent,
   useRef,
   useState,
   useTransition,
-  type Dispatch,
-  type SetStateAction,
   type DragEvent,
 } from "react";
 import Image from "next/image";
-import { UploadImage } from "@/utils/supabase/storage/client";
-import type { CreateFundraiserItemBody, CreateFundraiserBody } from "common";
+import { uploadImage } from "@/utils/supabase/storage/client";
 import { X, Upload } from "lucide-react";
-import type { z } from "zod";
-import { convertBlobUrlToFile } from "@/lib/urlToFile";
+import { toast } from "sonner";
 
 interface UploadImageComponentProps {
-  setImageUrl?:
-    | Dispatch<
-        SetStateAction<z.infer<typeof CreateFundraiserItemBody>["imageUrl"]>
-      >
-    | Dispatch<
-        SetStateAction<z.infer<typeof CreateFundraiserBody>["imageUrls"]>
-      >;
+  imageUrls: string[];
+  setImageUrls: (newImageUrls: string[]) => void;
   folder?: string;
+  allowMultiple?: boolean;
 }
 
 function UploadImageComponent({
-  setImageUrl,
+  imageUrls,
+  setImageUrls,
   folder,
+  allowMultiple,
 }: UploadImageComponentProps) {
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [numUploading, setNumUploading] = useState<number>(0);
   const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
   const [isDragging, setIsDragging] = useState(false);
-
-  // Determine if multiple selection is allowed
-  const allowMultiple = folder === "fundraisers";
 
   const processFiles = async (files: File[]) => {
     if (!files.length) return;
@@ -53,28 +45,26 @@ function UploadImageComponent({
       URL.createObjectURL(file)
     );
 
-    // Set preview URLs
-    setPreviewUrls(newImageUrls);
+    setNumUploading(newImageUrls.length);
 
     // Automatically upload
     startTransition(async () => {
       const urls: string[] = [];
 
-      for (const url of newImageUrls) {
+      for (const file of filesToProcess) {
         try {
-          const file = await convertBlobUrlToFile(url);
-          const { imageUrl, error } = await UploadImage({
+          const { imageUrl, error } = await uploadImage({
             file,
             bucket: "images",
             folder,
           });
 
-          if (error) {
-            console.error("Upload error:", error);
+          if (!imageUrl) {
+            toast.error(error);
             continue;
+          } else {
+            urls.push(imageUrl);
           }
-
-          urls.push(imageUrl);
         } catch (err) {
           console.error("Error processing image:", err);
         }
@@ -85,21 +75,15 @@ function UploadImageComponent({
           allowMultiple ? [...prev, ...urls] : [urls[0]]
         );
 
-        if (setImageUrl) {
-          if (allowMultiple) {
-            // For fundraiser images
-            (setImageUrl as Dispatch<SetStateAction<string[]>>)((prev) => {
-              const prevArray = Array.isArray(prev) ? prev : [];
-              return [...prevArray, ...urls];
-            });
-          } else {
-            // For single item image
-            (setImageUrl as Dispatch<SetStateAction<string | undefined>>)(
-              urls[0]
-            );
-          }
+        // populate parent component's fields
+        if (allowMultiple) {
+          setImageUrls([...imageUrls, ...urls]);
+        } else {
+          // For single item image
+          setImageUrls([urls[0]]);
         }
-        setPreviewUrls([]);
+
+        setNumUploading(0);
       }
     });
   };
@@ -141,20 +125,8 @@ function UploadImageComponent({
     const newUrls = uploadedUrls.filter((_, index) => index !== indexToRemove);
     setUploadedUrls(newUrls);
 
-    // Then update parent states using the same setter with appropriate typing
-    if (setImageUrl) {
-      if (allowMultiple) {
-        // For fundraiser images
-        (setImageUrl as Dispatch<SetStateAction<string[]>>)((prevUrls) =>
-          prevUrls.filter((url) => url !== removedUrl)
-        );
-      } else if (newUrls.length === 0) {
-        // For single item image
-        (setImageUrl as Dispatch<SetStateAction<string | undefined>>)(
-          undefined
-        );
-      }
-    }
+    // Then update parent component states
+    setImageUrls(imageUrls.filter((url) => url !== removedUrl));
   };
 
   return (
@@ -200,30 +172,13 @@ function UploadImageComponent({
         </div>
       </div>
 
-      {/* Show uploading previews */}
-      {previewUrls.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-          {previewUrls.map((url, index) => (
-            <div
-              key={index}
-              className="relative aspect-square bg-gray-100 rounded-md"
-            >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Show uploaded images */}
       {uploadedUrls.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+          {/* Show uploaded images */}
           {uploadedUrls.map((url, index) => (
             <div
               key={index}
-              className="relative aspect-video bg-gray-50 rounded-md border overflow-hidden group"
-              style={{ minHeight: "150px" }}
+              className="relative aspect-video bg-gray-50 rounded-md border overflow-hidden group min-h-[150px]"
             >
               <Image
                 src={url || "/placeholder.svg"}
@@ -242,6 +197,16 @@ function UploadImageComponent({
               </button>
             </div>
           ))}
+
+          {/* Show uploading previews */}
+          {numUploading > 0 &&
+            Array.from({ length: numUploading }, (_, i) => (
+              <div key={i} className="relative bg-gray-100 rounded-md ">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              </div>
+            ))}
         </div>
       )}
     </div>
