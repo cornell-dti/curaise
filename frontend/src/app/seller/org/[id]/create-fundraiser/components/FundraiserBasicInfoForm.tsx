@@ -23,9 +23,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { DateTimePicker } from "@/components/custom/DateTimePicker";
 import { ControllerRenderProps } from "react-hook-form";
+import UploadImageComponent from "@/components/custom/UploadImageComponent";
 
 const BasicInformationSchema = CreateFundraiserBody.omit({
-  imageUrls: true,
   organizationId: true,
 })
   .refine(
@@ -118,6 +118,25 @@ export function FundraiserBasicInfoForm({
                       className="min-h-24"
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="imageUrls"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Images (Optional)</FormLabel>
+                  <UploadImageComponent
+                    imageUrls={form.getValues("imageUrls")}
+                    setImageUrls={(imageUrls: string[]) => {
+                      form.setValue("imageUrls", imageUrls);
+                    }}
+                    folder="fundraisers"
+                    allowMultiple
+                  />
                   <FormMessage />
                 </FormItem>
               )}
