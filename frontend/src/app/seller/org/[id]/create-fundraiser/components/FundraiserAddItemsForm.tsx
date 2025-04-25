@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CreateFundraiserItemBody } from "common";
-import { Dispatch, SetStateAction, useState, useEffect } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { z } from "zod";
 import { PlusCircle, X, ShoppingCart } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";

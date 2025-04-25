@@ -23,11 +23,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { DateTimePicker } from "@/components/custom/DateTimePicker";
 import { ControllerRenderProps } from "react-hook-form";
-import { useState, useEffect } from "react";
 import UploadImageComponent from "@/components/custom/UploadImageComponent";
 
 const BasicInformationSchema = CreateFundraiserBody.omit({
-  // imageUrls: true,
   organizationId: true,
 })
   .refine(
@@ -73,20 +71,10 @@ export function FundraiserBasicInfoForm({
   defaultValues: z.infer<typeof BasicInformationSchema>;
   onSubmit: (data: z.infer<typeof BasicInformationSchema>) => void;
 }) {
-  // State for fundraisers image urls
-  const [currentImageUrls, setCurrentImageUrls] = useState<string[]>([]);
-
   const form = useForm<z.infer<typeof BasicInformationSchema>>({
     resolver: zodResolver(BasicInformationSchema),
     defaultValues: defaultValues,
   });
-
-  // Update form when image URL changes
-  useEffect(() => {
-    if (currentImageUrls) {
-      form.setValue("imageUrls", currentImageUrls);
-    }
-  }, [currentImageUrls, form]);
 
   return (
     <Card>
@@ -142,9 +130,9 @@ export function FundraiserBasicInfoForm({
                 <FormItem>
                   <FormLabel>Images (Optional)</FormLabel>
                   <UploadImageComponent
-                    imageUrls={currentImageUrls}
+                    imageUrls={form.getValues("imageUrls")}
                     setImageUrls={(imageUrls: string[]) => {
-                      setCurrentImageUrls(imageUrls);
+                      form.setValue("imageUrls", imageUrls);
                     }}
                     folder="fundraisers"
                     allowMultiple
