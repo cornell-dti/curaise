@@ -1,3 +1,4 @@
+import BuyerNavbar from "@/components/custom/BuyerNavbar";
 export default function BuyerLayout({
   children,
 }: Readonly<{
@@ -5,7 +6,7 @@ export default function BuyerLayout({
 }>) {
   return (
     <div className="flex flex-col min-h-screen">
-      {/* ADD BUYER NAVBAR HERE */}
+      <BuyerNavbar />
       <main className="flex-grow">{children}</main>
     </div>
   );

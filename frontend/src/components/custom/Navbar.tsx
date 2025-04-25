@@ -18,21 +18,19 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetClose,
 } from "@/components/ui/sheet";
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
 import { signInWithGoogle, signOut, getUser } from "@/lib/auth-actions";
+import { redirect } from "next/navigation";
 
 type UserRole = "buyer" | "seller";
 
-export default function Navbar() {
-  const [role, setRole] = useState<UserRole>("buyer");
+type NavbarProps = {
+	userRole: UserRole;
+	userDesktopButtons?: React.ReactNode;
+	userMobileButtons?: React.ReactNode;
+};
+
+export default function Navbar({ userRole, userDesktopButtons, userMobileButtons }: NavbarProps ) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -48,7 +46,11 @@ export default function Navbar() {
   }, []);
 
   const toggleRole = () => {
-    setRole(role === "buyer" ? "seller" : "buyer");
+	  if (userRole === "buyer") {
+		  redirect("/seller");
+	  } else if (userRole === "seller") {
+		  redirect("/buyer");
+	  }
   };
 
   const handleLogout = () => {
@@ -71,45 +73,8 @@ export default function Navbar() {
         </div>
 
         {/* Desktop Navigation - With even spacing */}
-        <div className="hidden md:flex md:flex-1 justify-end">
-          {role === "buyer" ? (
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <Link href="/buyer" legacyBehavior passHref>
-                    <NavigationMenuLink
-                      className={`${navigationMenuTriggerStyle()} text-lg font-medium`}
-                    >
-                      Browse
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-                <NavigationMenuItem>
-                  <Link href="/buyer" legacyBehavior passHref>
-                    <NavigationMenuLink
-                      className={`${navigationMenuTriggerStyle()} text-lg font-medium`}
-                    >
-                      Orders
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
-          ) : (
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <Link href="/seller" legacyBehavior passHref>
-                    <NavigationMenuLink
-                      className={`${navigationMenuTriggerStyle()} text-lg font-medium`}
-                    >
-                      Organizations
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
-          )}
+		<div className="hidden md:flex md:flex-1 justify-end">
+			{userDesktopButtons}
         </div>
 
         {/* User Menu (Desktop) */}
@@ -129,7 +94,7 @@ export default function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-35">
                   <DropdownMenuItem onClick={toggleRole} className="text-base">
-                    Switch to {role === "buyer" ? "Seller" : "Buyer"}
+                    Switch to {userRole === "buyer" ? "Seller" : "Buyer"}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -163,44 +128,14 @@ export default function Navbar() {
                 <SheetTitle className="text-2xl">CuRaise</SheetTitle>
               </SheetHeader>
               <div className="grid gap-4 py-4">
-                {role === "buyer" ? (
-                  <>
-                    <SheetClose asChild>
-                      <Link
-                        href="/buyer"
-                        className="flex items-center py-2 text-xl font-semibold"
-                      >
-                        Browse
-                      </Link>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <Link
-                        href="/buyer"
-                        className="flex items-center py-2 text-xl font-semibold"
-                      >
-                        Orders
-                      </Link>
-                    </SheetClose>
-                  </>
-                ) : (
-                  <>
-                    <SheetClose asChild>
-                      <Link
-                        href="/seller"
-                        className="flex items-center py-2 text-xl font-semibold"
-                      >
-                        Organizations
-                      </Link>
-                    </SheetClose>
-                  </>
-                )}
+                {userMobileButtons}
                 <div className="border-t pt-4">
                   <Button
                     variant="outline"
                     className="w-full justify-start text-lg"
                     onClick={toggleRole}
                   >
-                    Switch to {role === "buyer" ? "Seller" : "Buyer"}
+                    Switch to {userRole === "buyer" ? "Seller" : "Buyer"}
                   </Button>
                   {isLoggedIn ? (
                     <Button

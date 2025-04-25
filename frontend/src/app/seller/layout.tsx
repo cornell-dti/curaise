@@ -1,3 +1,4 @@
+import SellerNavbar from "@/components/custom/SellerNavbar";
 export default function SellerLayout({
   children,
 }: Readonly<{
@@ -5,7 +6,7 @@ export default function SellerLayout({
 }>) {
   return (
     <div className="flex flex-col min-h-screen">
-      {/* ADD SELLER NAVBAR HERE */}
+      <SellerNavbar />
       <main className="flex-grow">{children}</main>
     </div>
   );
