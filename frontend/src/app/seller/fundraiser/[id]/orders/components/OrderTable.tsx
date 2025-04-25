@@ -578,10 +578,10 @@ export function OrderTable({
                     </TableCell>
                     <TableCell className="px-4 py-3 text-black font-[400] text-center">{order.buyer?.name || "Unknown"}</TableCell>
                     <TableCell className="px-4 py-3 text-black font-[400] text-center">{order.buyer?.email?.split('@')[0] || "Unknown"}</TableCell>
-                    <TableCell className="px-4 py-3 text-black font-[400] text-center whitespace-pre-line">
+                    <TableCell className="px-4 py-3 text-black font-[400] text-center whitespace-pre-line text-nowrap">
                       {itemsList}
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-black font-[400] text-center whitespace-pre-line">
+                    <TableCell className="px-4 py-3 text-black font-[400] text-center whitespace-pre-line text-nowrap">
                       {quantitiesList}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-black font-[400] text-center">${orderTotal.toFixed(2)}</TableCell>
