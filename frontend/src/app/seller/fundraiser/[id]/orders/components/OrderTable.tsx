@@ -213,31 +213,39 @@ export function OrderTable({
   };
 
   const getOrderStatusBadge = (order: Order) => {
-    const isPaid = order.paymentStatus?.toLowerCase() === "confirmed";
+    const paymentStatus = order.paymentStatus?.toLowerCase();
     const isPickedUp = order.pickedUp === true;
 
     if (isPickedUp) {
       return (
-        <Badge className="bg-[#DCEBDE] text-[#086A19] rounded-full px-3 py-1 hover:bg-[#c5e0c6] hover:text-[#065a13] font-[700] text-md">
-          <span className="inline-block w-3 h-3 mr-3 bg-[#086A19] rounded-full hover:bg-[#065a13]"></span>
-          Fulfilled
+        <Badge className="flex justify-center items-center min-w-[120px] bg-[#DCEBDE] text-[#086A19] rounded-full px-3 py-1 hover:bg-[#c5e0c6] hover:text-[#065a13] font-[700] text-md">
+          Picked Up
         </Badge>
       );
-    } else if (!isPaid) {
+    } else if (paymentStatus === "unverifiable") {
       return (
-        <Badge className="bg-[#FBE6E6] text-[#E1080B] rounded-full px-3 py-1 hover:bg-[#f5c6c6] hover:text-[#b30607] font-[700] text-md">
-          <span className="inline-block w-3 h-3 mr-3 bg-[#E1080B] rounded-full hover:bg-[#b30607]"></span>
-          Unfulfilled
+        <Badge className="flex justify-center items-center min-w-[120px] bg-[#FBE6E6] text-[#E1080B] rounded-full px-3 py-1 hover:bg-[#f5c6c6] hover:text-[#b30607] font-[700] text-md">
+          Unverifiable
         </Badge>
       );
-    } else {
+    } else if (paymentStatus === "pending") {
       return (
-        <Badge className="bg-[#FFEEC2] text-[#FEA839] rounded-full px-3 py-1 hover:bg-[#fddc9e] hover:text-[#d97a2b] font-[700] text-md">
-          <span className="inline-block w-3 h-3 mr-3 bg-[#FEA839] rounded-full hover:bg-[#d97a2b]"></span>
+        <Badge className="flex justify-center items-center min-w-[120px] bg-[#FFEEC2] text-[#FEA839] rounded-full px-3 py-1 hover:bg-[#fddc9e] hover:text-[#d97a2b] font-[700] text-md">
           Pending
         </Badge>
       );
+    } else if (paymentStatus === "confirmed") {
+      return (
+        <Badge className="flex justify-center items-center min-w-[120px] bg-[#FBE6E6] text-[#E1080B] rounded-full px-3 py-1 hover:bg-[#f5c6c6] hover:text-[#b30607] font-[700] text-md">
+          Not Picked Up
+        </Badge>
+      );
     }
+    return (
+      <Badge className="flex justify-center items-center min-w-[120px] bg-[#F7F7F7] text-[#959494] rounded-full px-3 py-1 font-[700] text-md hover:bg-[#e5e5e5] hover:text-[#6e6e6e]">
+        Unknown
+      </Badge>
+    );
   };
 
   // Apply filters to the orders
