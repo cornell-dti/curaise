@@ -27,7 +27,7 @@ export default function ProgressCircle({
 
   return (
     <div className="flex items-center justify-center h-full">
-      <div className="relative w-[140px] h-[140px] sm:w-[170px] sm:h-[170px] md:w-[200px] md:h-[200px]">
+      <div className="relative w-[150px] h-[150px] lg:w-[170px] lg:h-[170px] md:w-[200px] md:h-[200px]">
         <svg className="absolute top-0 left-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
           <circle cx="50" cy="50" r="40" fill="transparent" stroke="white" strokeWidth="7" />
           <circle

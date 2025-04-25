@@ -160,9 +160,8 @@ let totalOrdersPickedUp = 0;
         orgId={fundraiser.organization.id}
         fundraiserId={fundraiser.id}/>
       </aside>
-      <main>
+      <main className="flex-1 p-5">
         <div className="flex flex-col w-full">
-          <div className="p-7 md:mt-[20] md:ml-[20]">
             <h1 className="text-3xl tracking-tight md:text-3xl lg:text-4xl">
               {fundraiser.name!="" ? fundraiser.name : "Fundraiser Name"}
             </h1>
@@ -181,8 +180,8 @@ let totalOrdersPickedUp = 0;
                 minute: "2-digit",
               }) : "End Time"}
             </p>
-
-            <div className="max-w-3xl mr-6 flex flex-col lg:flex-row gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-6px-2">
+            <div className="md:cols-span-5 lg:col-span-7 max-w-[800px] mr-4 mb-4">
               <AnalyticsSummaryCard
                 fundraiser={fundraiser}
                 raised={Number(totalOrderAmount)}
@@ -190,9 +189,9 @@ let totalOrdersPickedUp = 0;
                 totalOrders={orders.length}
                 profit={23}
               ></AnalyticsSummaryCard>
-
-              <section className="flex flex-col gap-6">
-                <div className="flex flex-col justify-between h-fit min-w-[400] gap-2 bg-[#EEF09A] shadow-md rounded-lg p-6">
+              </div>
+              <section className="md:col-span-3 lg:col-span-5 space-y-6 md:mt-3 ">
+                <div className="flex flex-col justify-between h-fit min-w-[400] max-w-[600px] gap-2 bg-[#EEF09A] shadow-md rounded-lg p-6">
                   <div className="flex flex-row gap-1">
                     <h1 className="text-[20px]">Recent Orders</h1>
                   </div>
@@ -248,17 +247,18 @@ let totalOrdersPickedUp = 0;
                   </div>
                 </div>
               </section>
-            </div>
 
-            <h1 className="text-2xl mt-6">Fundraiser Checklist</h1>
-            <section className="flex flex-row gap-6 mr-6">
-              <div className="py-4 flex-grow max-w-3xl">
+            <div className="flex flex-col gap-2 w-screen px-2">
+            <h1 className="text-2xl mt-6 min-w-[400px]">Fundraiser Checklist</h1>
+            <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+              <div className="lg:col-span-5 min-w-[400] max-w-[400px]">
                 <Checklist nullItems={nullFields}></Checklist>
               </div>
-              <div className="py-4 flex-grow max-w-md">
+              <div className="lg:col-span-5 max-w-[400px]">
                 <TodoList></TodoList>
               </div>
             </section>
+            </div>
           </div>
         </div>
       </main>

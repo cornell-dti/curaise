@@ -59,7 +59,7 @@ useEffect(() => {
   }
 
   return (
-    <Card className="max-w-3xl border-none shadow-none">
+    <Card className="max-w-3xl min-w-3xl border-none shadow-none">
       <CardContent className="p-0">
 
         <div className="space-y-3">
