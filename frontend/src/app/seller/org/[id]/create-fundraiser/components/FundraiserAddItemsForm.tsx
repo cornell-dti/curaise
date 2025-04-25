@@ -31,6 +31,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import UploadImageComponent from "@/components/custom/UploadImageComponent";
 
 export function FundraiserAddItemsForm({
   items,
@@ -62,7 +63,6 @@ export function FundraiserAddItemsForm({
     // Add a temporary ID to the new item
     const newItem: z.infer<typeof CreateFundraiserItemBody> = {
       ...data,
-      imageUrl: data.imageUrl || undefined, // Ensure imageUrl is either the value or null
       offsale: false, // Always set to false
     };
 
@@ -130,6 +130,27 @@ export function FundraiserAddItemsForm({
                               className="min-h-20"
                             />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="imageUrl"
+                      render={() => (
+                        <FormItem>
+                          <FormLabel>Image</FormLabel>
+                          <UploadImageComponent
+                            imageUrls={[form.getValues("imageUrl") || ""]}
+                            setImageUrls={(imageUrls: string[]) => {
+                              if (imageUrls.length > 0) {
+                                form.setValue("imageUrl", imageUrls[0]);
+                              } else {
+                                form.setValue("imageUrl", undefined);
+                              }
+                            }}
+                            folder="items"
+                          />
                           <FormMessage />
                         </FormItem>
                       )}
