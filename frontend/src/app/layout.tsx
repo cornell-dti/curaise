@@ -5,27 +5,27 @@ import { Toaster } from "@/components/ui/sonner";
 import Navbar from "@/components/custom/Navbar";
 
 const inter = Inter({
-	subsets: ["latin"],
-	variable: "--font-inter",
+  subsets: ["latin"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
-	title: "CURaise",
-	description: "Make fundraisers easy",
+  title: "CURaise",
+  description: "Make fundraisers easy",
 };
 
 export default function RootLayout({
-	children,
+  children,
 }: Readonly<{
-	children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-	return (
-		<html lang="en">
-			<body className={`${inter.variable} font-sans`}>
-				<Navbar />
-				{children}
-				<Toaster />
-			</body>
-		</html>
-	);
+  return (
+    <html lang="en">
+      <body className={`${inter.variable} font-sans`}>
+        <Navbar />
+        {children}
+        <Toaster />
+      </body>
+    </html>
+  );
 }
