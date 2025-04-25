@@ -404,39 +404,10 @@ export function OrderTable({
                   <input type="hidden" name="order" value={resolvedSearchParams.order} />
                 )}
 
-                <div className="space-y-4">
-                  <h4 className="font-medium text-sm">Payment Type</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {paymentTypes.map((type) => (
-                      <div key={type} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`paymentType-${type}`}
-                          name="paymentType"
-                          value={type}
-                          defaultChecked={selectedPaymentTypes.includes(type)}
-                        />
-                        <Label htmlFor={`paymentType-${type}`} className="font-[400]">{type}</Label>
-                      </div>
-                    ))}
-                  </div>
+                <div className="">
 
-                  <h4 className="font-medium text-sm">Payment Status</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {statuses.map((status) => (
-                      <div key={status} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`status-${status}`}
-                          name="status"
-                          value={status}
-                          defaultChecked={selectedStatuses.includes(status)}
-                        />
-                        <Label htmlFor={`status-${status}`} className="font-[400]">{status}</Label>
-                      </div>
-                    ))}
-                  </div>
-
-                  <h4 className="font-medium text-sm">Pickup Status</h4>
-                  <div className="grid grid-cols-2 gap-2">
+                  <h4 className="font-[700] text-md mb-2">Pickup Status</h4>
+                  <div className="flex flex-col gap-1 mb-4">
                     {pickupStatuses.map((status) => (
                       <div key={status.value} className="flex items-center space-x-2">
                         <Checkbox
@@ -445,13 +416,43 @@ export function OrderTable({
                           value={status.value}
                           defaultChecked={selectedPickupStatuses.includes(status.value)}
                         />
-                        <Label htmlFor={`pickupStatus-${status.value}`} className="font-[400]">{status.label}</Label>
+                        <Label htmlFor={`pickupStatus-${status.value}`} className="font-[400] text-sm">{status.label}</Label>
                       </div>
                     ))}
                   </div>
 
-                  <h4 className="font-medium text-sm">Item(s)</h4>
-                  <div className="space-y-2">
+                  <h4 className="font-[700] text-md mb-2">Payment Type</h4>
+                  <div className="flex flex-col gap-1 mb-4">
+                    {paymentTypes.map((type) => (
+                      <div key={type} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`paymentType-${type}`}
+                          name="paymentType"
+                          value={type}
+                          defaultChecked={selectedPaymentTypes.includes(type)}
+                        />
+                        <Label htmlFor={`paymentType-${type}`} className="font-[400] text-sm">{type}</Label>
+                      </div>
+                    ))}
+                  </div>
+
+                  <h4 className="font-[700] text-md mb-2">Payment Status</h4>
+                  <div className="flex flex-col gap-1 mb-4">
+                    {statuses.map((status) => (
+                      <div key={status} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`status-${status}`}
+                          name="status"
+                          value={status}
+                          defaultChecked={selectedStatuses.includes(status)}
+                        />
+                        <Label htmlFor={`status-${status}`} className="font-[400] text-sm">{status}</Label>
+                      </div>
+                    ))}
+                  </div>
+
+                  <h4 className="font-[700] text-md mb-2">Item(s)</h4>
+                  <div className="flex flex-col gap-1 mb-4">
                     {itemsList.map((item) => (
                       <div key={item} className="flex items-center space-x-2">
                         <Checkbox
@@ -460,7 +461,7 @@ export function OrderTable({
                           value={item}
                           defaultChecked={selectedItems.includes(item)}
                         />
-                        <Label htmlFor={`item-${item}`} className="font-[400]">{item}</Label>
+                        <Label htmlFor={`item-${item}`} className="font-[400] text-sm">{item}</Label>
                       </div>
                     ))}
                   </div>
@@ -473,7 +474,12 @@ export function OrderTable({
                     >
                       Reset
                     </Button>
-                    <Button type="submit">Apply Filters</Button>
+                    <Button
+                      type="submit"
+                      className="font-[400] bg-[#68b0ab] rounded-lg text-white hover:bg-[#579591]"
+                    >
+                      Apply Filters
+                    </Button>
                   </div>
                 </div>
               </form>
