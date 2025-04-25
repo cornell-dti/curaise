@@ -344,6 +344,10 @@ export function OrderTable({
               0
             );
             break;
+          case 'createdAt':
+            valueA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            valueB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            break;
           default:
             return 0;
         }
@@ -515,6 +519,15 @@ export function OrderTable({
                 </a>
               </TableHead>
               <TableHead className="px-4 py-3 text-center text-black font-[400]">
+                <a href="#" onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = createSortUrl('createdAt');
+                }} className="flex items-center justify-center text-black">
+                  Created At
+                  {getSortIcon('createdAt')}
+                </a>
+              </TableHead>
+              <TableHead className="px-4 py-3 text-center text-black font-[400]">
                 Order Details
               </TableHead>
               <TableHead className="px-4 py-3 text-center text-black font-[400]">
@@ -563,9 +576,10 @@ export function OrderTable({
                   0
                 );
 
-                // Format items and quantities for display
                 const itemsList = order.items.map(item => item.item.name).join('\n');
                 const quantitiesList = order.items.map(item => item.quantity).join('\n');
+                const createdAt = order.createdAt ? new Date(order.createdAt) : null;
+                const createdAtStr = createdAt ? `${createdAt.getFullYear()}-${String(createdAt.getMonth()+1).padStart(2,'0')}-${String(createdAt.getDate()).padStart(2,'0')} ${String(createdAt.getHours()).padStart(2,'0')}:${String(createdAt.getMinutes()).padStart(2,'0')}` : 'N/A';
 
                 return (
                   <TableRow
@@ -578,6 +592,7 @@ export function OrderTable({
                     </TableCell>
                     <TableCell className="px-4 py-3 text-black font-[400] text-center">{order.buyer?.name || "Unknown"}</TableCell>
                     <TableCell className="px-4 py-3 text-black font-[400] text-center">{order.buyer?.email?.split('@')[0] || "Unknown"}</TableCell>
+                    <TableCell className="px-4 py-3 text-black font-[400] text-center">{createdAtStr}</TableCell>
                     <TableCell className="px-4 py-3 text-black font-[400] text-center whitespace-pre-line text-nowrap">
                       {itemsList}
                     </TableCell>
