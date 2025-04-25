@@ -158,7 +158,7 @@ export default function Navbar() {
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="right">
+            <SheetContent side="top">
               <SheetHeader className="mb-4">
                 <SheetTitle className="text-2xl">CuRaise</SheetTitle>
               </SheetHeader>
