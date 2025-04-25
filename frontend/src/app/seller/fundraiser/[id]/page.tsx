@@ -21,6 +21,7 @@ const getFundraiser = async (id: string, token: string) => {
     }
   );
   const result = await response.json();
+  console.log(result);
   if (!response.ok) {
     throw new Error(result.message);
   }
@@ -96,7 +97,26 @@ export default async function FundraiserPage({
     session.access_token
   );
 
-  const totalOrderAmount = orders
+  let totalOrderAmount = "0.00";
+let latestOrder: Order = {
+  id: "",
+  paymentMethod: "VENMO",
+  paymentStatus: "UNVERIFIABLE",
+  pickedUp: false,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  buyer: {
+    id: "",
+    name: "",
+    email: "",
+  },
+  fundraiser: fundraiser,
+  items: [],
+};
+let latestOrderCost = "0.00";
+let totalOrdersPickedUp = 0;
+  if(orders.length!=0) {
+  totalOrderAmount = orders
     .reduce((total, order) => {
       const orderTotal = order.items.reduce(
         (orderSum, item) =>
@@ -106,9 +126,10 @@ export default async function FundraiserPage({
       return total.plus(orderTotal);
     }, new Decimal(0))
     .toFixed(2);
+ 
 
-  const latestOrder = orders[orders.length - 1];
-  const latestOrderCost = latestOrder.items
+  latestOrder = orders[orders.length - 1];
+  latestOrderCost = latestOrder.items
     .reduce(
       (total, item) =>
         total.plus(Decimal(item.item.price).times(item.quantity)),
@@ -117,33 +138,48 @@ export default async function FundraiserPage({
     .toFixed(2);
 
   // Calculate the total number of picked-up orders
-  const totalOrdersPickedUp = orders.filter((order) => order.pickedUp).length;
+  totalOrdersPickedUp = orders.filter((order) => order.pickedUp).length;
+ }
+
+ type Fundraiser = z.infer<typeof CompleteFundraiserSchema>;
+ function getNullFields(obj: Fundraiser): string[] {
+  return Object.entries(obj)
+    .filter(([_, value]) => value === null ||
+        (typeof value === "string" && value.trim() === "") )
+    .map(([key]) => key);
+}
+  const nullFields = getNullFields(fundraiser);
+
 
   return (
     <div>
       <aside className="w-10 h-full hidden md:block fixed md:relative">
-        <AppSidebar org={fundraiser.organization.name} icon={fundraiser.organization.logoUrl || ""}/>
+        <AppSidebar 
+        org={fundraiser.organization.name} 
+        icon={fundraiser.organization.logoUrl || ""} 
+        orgId={fundraiser.organization.id}
+        fundraiserId={fundraiser.id}/>
       </aside>
       <main>
         <div className="flex flex-col w-full">
-          <div className="md:mt-[20] md:ml-[20]">
-            <h1 className=" text-3xl tracking-tight md:text-3xl lg:text-4xl">
-              {fundraiser.name}
+          <div className="p-7 md:mt-[20] md:ml-[20]">
+            <h1 className="text-3xl tracking-tight md:text-3xl lg:text-4xl">
+              {fundraiser.name!="" ? fundraiser.name : "Fundraiser Name"}
             </h1>
             <p className="py-2">
-              {fundraiser.pickupLocation}
+              {fundraiser.pickupLocation?.trim() ? fundraiser.pickupLocation : "Location"}
               {", "}
-              {fundraiser.pickupStartsAt.toLocaleDateString()}
+              {fundraiser.pickupStartsAt ? new Date(fundraiser.pickupStartsAt).toLocaleDateString() : "Date"}
               {", "}
-              {fundraiser.pickupStartsAt.toLocaleTimeString("en-US", {
+              {fundraiser.pickupStartsAt ? new Date(fundraiser.pickupStartsAt).toLocaleTimeString("en-US", {
                 hour: "2-digit",
                 minute: "2-digit",
-              })}
+              }) : "Start Time"}
               {"-"}
-              {fundraiser.pickupEndsAt.toLocaleTimeString("en-US", {
+              {fundraiser.pickupEndsAt ? new Date(fundraiser.pickupEndsAt).toLocaleTimeString("en-US", {
                 hour: "2-digit",
                 minute: "2-digit",
-              })}
+              }) : "End Time"}
             </p>
 
             <div className="max-w-3xl mr-6 flex flex-col lg:flex-row gap-6">
@@ -160,6 +196,7 @@ export default async function FundraiserPage({
                   <div className="flex flex-row gap-1">
                     <h1 className="text-[20px]">Recent Orders</h1>
                   </div>
+                  {latestOrder.id!="" && (
                   <div className="flex flex-row gap-3 items-center justify-between">
                     <p>
                       {new Date(latestOrder.createdAt).toLocaleTimeString(
@@ -186,7 +223,7 @@ export default async function FundraiserPage({
 
                     <p>${latestOrderCost}</p>
                   </div>
-
+                )}
                   <SeeMoreLink path="orders"></SeeMoreLink>
                 </div>
 
@@ -216,7 +253,7 @@ export default async function FundraiserPage({
             <h1 className="text-2xl mt-6">Fundraiser Checklist</h1>
             <section className="flex flex-row gap-6 mr-6">
               <div className="py-4 flex-grow max-w-3xl">
-                <Checklist></Checklist>
+                <Checklist nullItems={nullFields}></Checklist>
               </div>
               <div className="py-4 flex-grow max-w-md">
                 <TodoList></TodoList>

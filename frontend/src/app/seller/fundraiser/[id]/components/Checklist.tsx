@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Check, Edit, Plus, Trash2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,26 +13,19 @@ interface Task {
   completed: boolean
 }
 
-export default function Checklist() {
-  const [tasks, setTasks] = useState<Task[]>([
-  ])
+export default function Checklist({nullItems} : {nullItems: string[]}) {
+  const [tasks, setTasks] = useState<Task[]>([]);
 
-  const [newTask, setNewTask] = useState("")
+useEffect(() => {
+    setTasks(nullItems.map((item, index) => ({
+      id: `task-${index}`,
+      text: "Set a " + item.replace(/([A-Z])/g, " $1").replace(/^./, (str) => str.toUpperCase()),
+      completed: false,
+    })));
+  }, [nullItems]);
+
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editText, setEditText] = useState("")
-
-  const addTask = () => {
-    if (newTask.trim() === "") return
-
-    const newItem: Task = {
-      id: Date.now().toString(),
-      text: newTask,
-      completed: false,
-    }
-
-    setTasks([...tasks, newItem])
-    setNewTask("")
-  }
 
   const deleteTask = (id: string) => {
     setTasks(tasks.filter((task) => task.id !== id))
@@ -66,12 +59,12 @@ export default function Checklist() {
   }
 
   return (
-    <Card className="max-w-3xl shadow-md">
-      <CardContent className="p-3 sm:p-6 pb-6">
+    <Card className="max-w-3xl border-none shadow-none">
+      <CardContent className="p-0">
 
         <div className="space-y-3">
           {tasks.length === 0 ? (
-            <p className="text-center text-muted-foreground py-4">No assignments yet. Add one above!</p>
+            <p className="text-muted-foreground">Finished filling out all necessary fields :)</p>
           ) : (
             tasks.map((task) => (
               <div
@@ -147,23 +140,6 @@ export default function Checklist() {
               </div>
             ))
           )}
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2 mt-6">
-          <Input
-            type="text"
-            placeholder="Add a new assignment..."
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") addTask()
-            }}
-            className="flex-1"
-          />
-          <Button onClick={addTask} size="icon" className="w-full sm:w-6 mt-2 sm:mt-0">
-            <Plus className="h-4 w-4 mr-2 sm:mr-0" />
-            <span className="sm:hidden">Add Assignment</span>
-          </Button>
         </div>
       </CardContent>
     </Card>

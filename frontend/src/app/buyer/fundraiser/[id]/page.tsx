@@ -29,6 +29,7 @@ const getFundraiserItems = async (id: string) => {
   if (!response.ok) {
     throw new Error(result.message);
   }
+  console.log(result);
   const data = CompleteItemSchema.array().safeParse(result.data);
   if (!data.success) {
     throw new Error("Could not parse fundraiser items data");

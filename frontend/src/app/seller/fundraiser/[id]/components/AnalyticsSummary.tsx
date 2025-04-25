@@ -16,29 +16,10 @@ export function AnalyticsSummaryCard({
   profit: number;
 }) {
   return (
-    <div className="p-6 bg-paleGreen rounded-lg shadow-md flex flex-col justify-between">
-      
-      {itemsPicked === 0 && (
-        <div className="mb-4 p-4 border border-yellow-400 bg-yellow-100 text-yellow-800 rounded">
-          <h2 className="font-semibold">No data yet...</h2>
-          <p className="text-sm">
-            Once available, data will show up here!
-          </p>
-        </div>
-      )}
+    <div>
+    <div className="relative p-6 bg-paleGreen rounded-lg shadow-md flex flex-col justify-between">
 
-  {itemsPicked === 0 ? (
-    <div className="text-center text-gray-700">
-      <div className="mb-4 p-4 border border-yellow-400 bg-yellow-100 text-yellow-800 rounded">
-          <h2 className="font-semibold">No data yet...</h2>
-          <p className="text-sm">
-            Once available, data will show up here!
-          </p>
-        </div>
-    </div>
-  ) : (
-
-    <div className="flex flex-col justify-between h-full">
+    <div className={`flex flex-col justify-between h-full ${totalOrders === 0 ? "opacity-50" : "opacity-100"}`}>
       <div>
         <h1 className="text-1xl">Analytics Summary</h1>
       </div>
@@ -46,13 +27,17 @@ export function AnalyticsSummaryCard({
       <div className="flex flex-row justify-center items-center gap-4">
         <ProgressCircle
           color={"#FEA839"}
-          percent={raised / (Number(fundraiser.goalAmount) || 100)}
+          percent={!isNaN(Number(fundraiser.goalAmount)) && Number(fundraiser.goalAmount) > 0
+            ? raised / Number(fundraiser.goalAmount)
+            : 0}
           amount={raised}
           title={"raised"}
         ></ProgressCircle>
         <ProgressCircle
           color={"#838383"}
-          percent={itemsPicked / totalOrders}
+          percent={!isNaN(itemsPicked) && itemsPicked > 0
+            ? itemsPicked / totalOrders
+            : 0}
           amount={itemsPicked}
           title={"items picked"}
         ></ProgressCircle>
@@ -67,7 +52,15 @@ export function AnalyticsSummaryCard({
       <SeeMoreLink path="analytics"></SeeMoreLink>
     </div>
 
-  )}
+    {itemsPicked === 0 && (
+        <div className="absolute ml-[15%] mt-[10%] md:ml-[25%] text-center p-4 border bg-gray-100 shadow-md rounded-lg">
+          <h2 className="font-semibold text-xl">No data yet...</h2>
+          <p className="text-sm mt-2">
+            Once available, data will show up here!
+          </p>
+        </div>
+      )}
+    </div>
     </div>
   );
 }

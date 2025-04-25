@@ -79,7 +79,7 @@ export default function TodoList() {
             value={newTask}
             onChange={(e) => setNewTask(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addTask()}
-            placeholder="Add a new task..."
+            placeholder="Add custom tasks..."
             className="bg-transparent border-none shadow-none focus-visible:ring-0 font-handwriting placeholder:text-amber-800/50 text-gray-800"
           />
           <Button onClick={addTask} size="icon" variant="ghost" className="text-gray-800 hover:bg-amber-300">
