@@ -205,10 +205,10 @@ export default function RevenueChart({ initialData }: RevenueChartProps) {
       <div>
         <div className="flex space-x-2 mb-4">
           {[
+            { label: "Last 3 days", value: 3 },
             { label: "Last 7 days", value: 7 },
             { label: "Last 14 days", value: 14 },
             { label: "Last 30 days", value: 30 },
-            { label: "Last 90 days", value: 90 },
           ].map((option) => (
             <div
               key={option.value}
@@ -235,10 +235,10 @@ export default function RevenueChart({ initialData }: RevenueChartProps) {
       {/* Time window selector */}
       <div className="flex space-x-2 mb-4">
         {[
+          { label: "Last 3 days", value: 3 },
           { label: "Last 7 days", value: 7 },
           { label: "Last 14 days", value: 14 },
           { label: "Last 30 days", value: 30 },
-          { label: "Last 90 days", value: 90 },
         ].map((option) => (
           <button
             key={option.value}
@@ -295,7 +295,7 @@ export default function RevenueChart({ initialData }: RevenueChartProps) {
       </div>
 
       {/* Data table section */}
-      <details className="mt-4">
+      {/* <details className="mt-4">
         <summary className="cursor-pointer text-sm font-medium text-gray-500">
           View revenue data as table
         </summary>
@@ -321,7 +321,7 @@ export default function RevenueChart({ initialData }: RevenueChartProps) {
             </tbody>
           </table>
         </div>
-      </details>
+      </details> */}
     </div>
   );
 }

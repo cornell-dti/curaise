@@ -13,7 +13,6 @@ import { z } from "zod";
 import Decimal from "decimal.js";
 import dynamic from "next/dynamic";
 
-// Dynamically import the client component with SSR disabled
 const RevenueChart = dynamic(() => import("../components/RevenueChart"));
 
 const getFundraiser = async (id: string, token: string) => {
