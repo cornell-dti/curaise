@@ -31,12 +31,18 @@ type NavbarProps = {
 };
 
 export default function Navbar({ userRole, userDesktopButtons, userMobileButtons }: NavbarProps ) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const getInitialState = () => {
+		const user = sessionStorage.getItem("user");
+		return user ? JSON.parse(user) : null;
+  };
+  
+  const [isLoggedIn, setIsLoggedIn] = useState(!!getInitialState());
 
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
         const user = await getUser();
+        sessionStorage.setItem("user", JSON.stringify(user?.email));
         setIsLoggedIn(!!user);
       } catch (error) {
         console.error("Error checking login status:", error);
