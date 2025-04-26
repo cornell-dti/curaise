@@ -26,34 +26,34 @@ function UploadImageComponent({
 	allowMultiple,
 }: UploadImageComponentProps) {
 	const imageInputRef = useRef<HTMLInputElement>(null);
-	const [numUploading, setNumUploading] = useState<number>(0);
 	const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
 	const [isPending, startTransition] = useTransition();
-	const [isDragging, setIsDragging] = useState(false);
 
 	const processFiles = async (files: File[]) => {
+		// Check if files are empty
 		if (!files.length) return;
 
-		// Filter for only image files
+		// Filter for only IMAGE files
 		const imageFiles = files.filter((file) => file.type.startsWith("image/"));
 		if (imageFiles.length === 0) return;
 
 		// For single image upload, only use the first image
 		const filesToProcess = allowMultiple ? imageFiles : [imageFiles[0]];
 
-		const newImageUrls = filesToProcess.map((file) =>
-			URL.createObjectURL(file)
-		);
-
-		setNumUploading(newImageUrls.length);
-
 		startTransition(async () => {
 			const urls: string[] = [];
 
 			for (const file of filesToProcess) {
 				try {
+					// Generate a unique filename
+					const uniqueFilename = `${Date.now()}_${file.name}`;
+
+					const uniqueFile = new File([file], uniqueFilename, {
+						type: file.type,
+					});
+
 					const { imageUrl, error } = await uploadImage({
-						file,
+						file: uniqueFile,
 						bucket: "images",
 						folder,
 					});
@@ -73,20 +73,20 @@ function UploadImageComponent({
 				setUploadedUrls((prev) =>
 					allowMultiple ? [...prev, ...urls] : [urls[0]]
 				);
-
-				// populate parent component's fields
+				// Set the image URLs in the parent component (this is for the form field values)
 				if (allowMultiple) {
 					setImageUrls([...imageUrls, ...urls]);
 				} else {
 					// For single item image
 					setImageUrls([urls[0]]);
 				}
-
-				setNumUploading(0);
 			}
 		});
 	};
 
+	// Handle file selection from the file input
+	// If user selects no files, do nothing
+	// If user selects files, convert files to an array and process them
 	const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
 		if (!e.target.files?.length) return;
 		const filesArray = Array.from(e.target.files);
@@ -96,20 +96,19 @@ function UploadImageComponent({
 	const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
 		e.preventDefault();
 		e.stopPropagation();
-		setIsDragging(true);
 	};
 
 	const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
 		e.preventDefault();
 		e.stopPropagation();
-		setIsDragging(false);
 	};
 
 	const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
 		e.preventDefault();
 		e.stopPropagation();
-		setIsDragging(false);
 
+		// Check if files are dropped in
+		// If files are dropped, convert files to an array and process them
 		if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
 			const filesArray = Array.from(e.dataTransfer.files);
 			await processFiles(filesArray);
@@ -119,19 +118,18 @@ function UploadImageComponent({
 	const removeUploadedImage = async (indexToRemove: number) => {
 		// Get the URL that's being removed
 		const removedUrl = uploadedUrls[indexToRemove];
-		console.log("Removed URL:", removedUrl);
 
-		// Update local state first
+		// Update local state first (update the preview image urls by filtering out the removed image)
 		const newUrls = uploadedUrls.filter((_, index) => index !== indexToRemove);
 		setUploadedUrls(newUrls);
 
 		// Or to delete an image using its full URL
-		const result = await deleteImage({
+		const _ = await deleteImage({
 			bucket: "images",
 			path: removedUrl,
 		});
 
-		// Then update parent component states
+		// Then update parent component states (update form field values)
 		setImageUrls(imageUrls.filter((url) => url !== removedUrl));
 	};
 
@@ -148,11 +146,7 @@ function UploadImageComponent({
 			/>
 
 			<div
-				className={`border-2 border-dashed rounded-lg p-6 transition-colors ${
-					isDragging
-						? "border-primary bg-primary/10"
-						: "border-gray-300 hover:border-primary/50"
-				}`}
+				className={`border-2 border-dashed rounded-lg p-6 transition-colors`}
 				onDragOver={handleDragOver}
 				onDragLeave={handleDragLeave}
 				onDrop={handleDrop}
@@ -200,16 +194,6 @@ function UploadImageComponent({
 							</button>
 						</div>
 					))}
-
-					{/* Show uploading previews */}
-					{numUploading > 0 &&
-						Array.from({ length: numUploading }, (_, i) => (
-							<div key={i} className="relative bg-gray-100 rounded-md ">
-								<div className="absolute inset-0 flex items-center justify-center">
-									<div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-								</div>
-							</div>
-						))}
 				</div>
 			)}
 		</div>

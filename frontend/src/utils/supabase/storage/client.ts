@@ -1,6 +1,19 @@
 import imageCompression from "browser-image-compression";
 import { createClient } from "../client";
 
+/**
+ * `uploadImage` is an asynchronous function that uploads an IMAGE file to a specified
+ * bucket in Supabase storage.
+ * 
+ * @remarks
+ * This functions is used in the `UploadImageComponent` component to upload images to Supabase storage.
+ * It compresses large images files to a maximum size of 1MB before uploading (Supabase Storage has limit 
+ * on the size of files that can be uploaded). Then, it constructs the public URL for the uploaded image.
+ * 
+ * @param file - The image file to be uploaded.
+ * @param bucket - The name of the Supabase storage bucket ("images" ) where the image will be uploaded.
+ * @param folder - A folder (e.g fundraisers, items) path within the bucket where the image will be stored.
+*/
 export const uploadImage = async ({
 	file,
 	bucket,
@@ -56,6 +69,17 @@ export const uploadImage = async ({
 	return { imageUrl, error: null };
 };
 
+/**
+ * `deleteImage` is an asynchronous function that deletes an image file from a specified
+ * bucket in Supabase storage.
+ * 
+ * @remarks
+ * This functions is used in the `UploadImageComponent` component to delete images from Supabase storage
+ * when the user removes an image. It extracts the path from the full URL if necessary,
+ * 
+ * @param bucket - The name of the Supabase storage bucket ("images" ) where the image is stored
+ * @param path - The path to the image file in the bucket. This can be a full URL or just the path.
+*/
 export const deleteImage = async ({
 	bucket,
 	path,
@@ -72,7 +96,7 @@ export const deleteImage = async ({
 			error: string;
 	  }
 > => {
-	// Early return if path is empty or undefined
+	// If no path is provided, return an error
 	if (!path) {
 		return {
 			success: false,
@@ -82,28 +106,8 @@ export const deleteImage = async ({
 
 	const supabase = createClient();
 
-	// Remove any URL prefix to get just the path part after the bucket
-	let cleanPath = path;
-
-	// If the path contains the full URL, extract just the path portion
-	if (path.includes("/storage/v1/object/public/")) {
-		// Parse out the path after the bucket name
-		try {
-			const urlParts = path.split(`/${bucket}/`);
-			if (urlParts.length > 1) {
-				cleanPath = urlParts[1];
-			}
-		} catch (error) {
-			console.error("Error parsing image path:", error);
-			return {
-				success: false,
-				error: "Invalid image path format",
-			};
-		}
-	}
-
 	// Perform the deletion
-	const { error } = await supabase.storage.from(bucket).remove([cleanPath]);
+	const { error } = await supabase.storage.from(bucket).remove([path]);
 
 	if (error) {
 		console.error("Error deleting image:", error.message);
