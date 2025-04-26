@@ -92,6 +92,7 @@ export const getAllFundraisers = async () => {
   const fundraisers = await prisma.fundraiser.findMany({
     include: {
       organization: true,
+      announcements: true,
     },
     orderBy: {
       createdAt: "desc",
