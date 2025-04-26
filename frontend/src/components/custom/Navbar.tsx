@@ -25,17 +25,21 @@ import { redirect } from "next/navigation";
 type UserRole = "buyer" | "seller";
 
 type NavbarProps = {
-	userRole: UserRole;
-	userDesktopButtons?: React.ReactNode;
-	userMobileButtons?: React.ReactNode;
+  userRole: UserRole;
+  userDesktopButtons?: React.ReactNode;
+  userMobileButtons?: React.ReactNode;
 };
 
-export default function Navbar({ userRole, userDesktopButtons, userMobileButtons }: NavbarProps ) {
+export default function Navbar({
+  userRole,
+  userDesktopButtons,
+  userMobileButtons,
+}: NavbarProps) {
   const getInitialState = () => {
-		const user = sessionStorage.getItem("user");
-		return user ? JSON.parse(user) : null;
+    const user = sessionStorage.getItem("user");
+    return user ? JSON.parse(user) : null;
   };
-  
+
   const [isLoggedIn, setIsLoggedIn] = useState(!!getInitialState());
 
   useEffect(() => {
@@ -52,11 +56,11 @@ export default function Navbar({ userRole, userDesktopButtons, userMobileButtons
   }, []);
 
   const toggleRole = () => {
-	  if (userRole === "buyer") {
-		  redirect("/seller");
-	  } else if (userRole === "seller") {
-		  redirect("/buyer");
-	  }
+    if (userRole === "buyer") {
+      redirect("/seller");
+    } else if (userRole === "seller") {
+      redirect("/buyer");
+    }
   };
 
   const handleLogout = () => {
@@ -79,8 +83,8 @@ export default function Navbar({ userRole, userDesktopButtons, userMobileButtons
         </div>
 
         {/* Desktop Navigation - With even spacing */}
-		<div className="hidden md:flex md:flex-1 justify-end">
-			{userDesktopButtons}
+        <div className="hidden md:flex md:flex-1 justify-end">
+          {userDesktopButtons}
         </div>
 
         {/* User Menu (Desktop) */}
@@ -126,12 +130,12 @@ export default function Navbar({ userRole, userDesktopButtons, userMobileButtons
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
                 <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
+                <span className="sr-only">Toggle Menu</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="top">
               <SheetHeader className="mb-4">
-                <SheetTitle className="text-2xl">CuRaise</SheetTitle>
+                <SheetTitle className="text-2xl">CURaise</SheetTitle>
               </SheetHeader>
               <div className="grid gap-4 py-4">
                 {userMobileButtons}
