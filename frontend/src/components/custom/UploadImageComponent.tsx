@@ -45,8 +45,14 @@ function UploadImageComponent({
 
 			for (const file of filesToProcess) {
 				try {
+					// If image has spaces in the name, replace them with underscores
+					// This is to avoid issues with file names when uploading
+					// regex \s+ matches one or more whitespace characters
+					// g is for global search (replace all occurrences of the pattern)
+					const filename = file.name.replace(/\s+/g, "_");
+
 					// Generate a unique filename
-					const uniqueFilename = `${Date.now()}_${file.name}`;
+					const uniqueFilename = `${Date.now()}_${filename}`;
 
 					const uniqueFile = new File([file], uniqueFilename, {
 						type: file.type,
@@ -117,7 +123,13 @@ function UploadImageComponent({
 
 	const removeUploadedImage = async (indexToRemove: number) => {
 		// Get the URL that's being removed
-		const removedUrl = uploadedUrls[indexToRemove];
+		let removedUrl = uploadedUrls[indexToRemove];
+		const folderPos = removedUrl.indexOf(`${folder}/`);
+		if (folderPos !== -1) {
+			// Return everything from "fundraisers/" to the end of the string
+			removedUrl = removedUrl.substring(folderPos);
+		}
+		console.log("Removing image:", removedUrl);
 
 		// Update local state first (update the preview image urls by filtering out the removed image)
 		const newUrls = uploadedUrls.filter((_, index) => index !== indexToRemove);
