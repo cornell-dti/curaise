@@ -2,7 +2,6 @@ import { RefreshCw, BarChart2 } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
-import { AnalyticsSummaryCard } from "@/app/seller/fundraiser/[id]/components/AnalyticsSummary";
 import { processOrderAnalytics } from "@/app/seller/fundraiser/[id]/analytics/analytics";
 import {
   CompleteFundraiserSchema,
@@ -272,6 +271,44 @@ const getYAxisDomain = (data: any[]) => {
   }
 };
 
+// Function to aggregate item sales data (group by item)
+const processItemSales = (orders: Order[]) => {
+  const itemMap = new Map<
+    string,
+    {
+      id: string;
+      name: string;
+      price: number;
+      quantity: number;
+      total: number;
+    }
+  >();
+
+  orders.forEach((order) => {
+    order.items.forEach((orderItem) => {
+      const { item, quantity } = orderItem;
+      const itemId = item.id;
+      const price = Number(item.price);
+
+      if (itemMap.has(itemId)) {
+        const existingItem = itemMap.get(itemId)!;
+        existingItem.quantity += quantity;
+        existingItem.total += price * quantity;
+      } else {
+        itemMap.set(itemId, {
+          id: itemId,
+          name: item.name,
+          price: price,
+          quantity: quantity,
+          total: price * quantity,
+        });
+      }
+    });
+  });
+
+  return Array.from(itemMap.values());
+};
+
 export default async function FundraiserAnalyticsPage({
   params,
 }: {
@@ -332,12 +369,18 @@ export default async function FundraiserAnalyticsPage({
   // We'll process revenue data for the chart with 30 days as default
   const revenueData = processRevenueOverTime(processableOrders, 30);
 
-  // Calculate values needed for the summary card
-  const totalOrderAmount = analytics.totalRevenue;
+  // Process aggregated item sales
+  const aggregatedItemSales = processItemSales(processableOrders);
+
+  // Calculate values needed for the summary cards
+  const totalRevenue = analytics.totalRevenue;
   const totalOrdersPickedUp = analytics.totalOrdersPickedUp;
+  const totalProfit = Number(totalRevenue) * 0.2; // Assuming 20% profit
+  const goalProfit = 150; // Example goal value, could be set dynamically
+  const progressPercent = Math.min((totalProfit / goalProfit) * 100, 100);
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-gray-50">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">
@@ -359,75 +402,174 @@ export default async function FundraiserAnalyticsPage({
         </div>
       ) : (
         <>
-          <AnalyticsSummaryCard
-            fundraiser={fundraiser}
-            raised={Number(totalOrderAmount)}
-            itemsPicked={totalOrdersPickedUp}
-            totalOrders={orders.length}
-            profit={23}
-          />
+          {/* Key Stats and Goal Progress Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+            {/* Key Stats Card */}
+            <div className="bg-white rounded-lg shadow lg:col-span-3 p-6">
+              <h2 className="text-xl font-semibold mb-4">Key Stats</h2>
 
-          {/* Item Sales Breakdown */}
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold mb-4">Item Sales</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white rounded-lg overflow-hidden">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Item Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Price
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Quantity Sold
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total Revenue
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {analytics.processedItems.map((item, idx) => (
-                    <tr key={`${item.id}-${idx}`} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {item.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        ${item.price}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {item.quantity}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        ${item.total}
-                      </td>
-                    </tr>
-                  ))}
-                  {analytics.processedItems.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="px-6 py-4 text-center text-gray-500"
-                      >
-                        No items sold yet
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* Total Revenue Stat */}
+                <div className="bg-[#BDCDB3] rounded-lg p-4">
+                  <div className="text-sm text-gray-600">Total Revenue ($)</div>
+                  <div className="text-3xl font-bold">
+                    {Number(totalRevenue).toFixed(2)}
+                  </div>
+                  <div className="text-xs text-gray-500">Sold</div>
+                </div>
+
+                {/* Total Profit Stat */}
+                <div className="bg-[#BDCDB3] rounded-lg p-4">
+                  <div className="text-sm text-gray-600">Total Profit ($)</div>
+                  <div className="text-3xl font-bold">
+                    {totalProfit.toFixed(2)}
+                  </div>
+                  <div className="text-xs text-gray-500">Sold</div>
+                </div>
+
+                {/* Total Orders Stat */}
+                <div className="bg-[#BDCDB3] rounded-lg p-4">
+                  <div className="text-sm text-gray-600">Total Orders</div>
+                  <div className="text-3xl font-bold">{orders.length}</div>
+                  <div className="text-xs text-gray-500">Sold</div>
+                </div>
+
+                {/* Orders Picked Up Stat */}
+                <div className="bg-[#BDCDB3] rounded-lg p-4">
+                  <div className="text-sm text-gray-600">Orders Picked Up</div>
+                  <div className="text-3xl font-bold">
+                    {totalOrdersPickedUp}
+                  </div>
+                  <div className="text-xs text-gray-500">Completed</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Goal Progress Card */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-semibold mb-4">Goal</h2>
+              <div className="flex justify-center items-center h-40">
+                <div className="relative">
+                  {/* SVG Circle showing progress */}
+                  <svg className="w-32 h-32" viewBox="0 0 36 36">
+                    {/* Background circle */}
+                    <circle
+                      cx="18"
+                      cy="18"
+                      r="15.91549430918954"
+                      fill="transparent"
+                      stroke="#C9E4C7"
+                      strokeWidth="3"
+                    ></circle>
+
+                    {/* Progress circle */}
+                    <circle
+                      cx="18"
+                      cy="18"
+                      r="15.91549430918954"
+                      fill="transparent"
+                      stroke="#138808"
+                      strokeWidth="3"
+                      strokeDasharray={`${progressPercent} ${
+                        100 - progressPercent
+                      }`}
+                      strokeDashoffset="25"
+                      transform="rotate(-90 18 18)"
+                    ></circle>
+                  </svg>
+
+                  {/* Text in the middle */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-2xl font-bold">
+                      ${totalProfit.toFixed(0)}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      out of ${goalProfit}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Revenue Chart and Recent Orders in a row */}
-          <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Order Stats Row */}
+          <div className="bg-white rounded-lg shadow mb-6 p-6">
+            <h2 className="text-xl font-semibold mb-4">Order Stats</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+              {/* Total Stats */}
+              <div>
+                <h3 className="text-lg font-medium mb-3">Total</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Total Orders Box */}
+                  <div className="border rounded-lg overflow-hidden">
+                    <div className="p-2 text-center text-sm text-gray-600 bg-gray-50">
+                      Total Orders
+                    </div>
+                    <div className="p-4 bg-[#BDCDB3] text-center">
+                      <div className="text-3xl font-bold">{orders.length}</div>
+                      <div className="text-xs text-gray-500">Sold</div>
+                    </div>
+                  </div>
+
+                  {/* Orders Pending Box */}
+                  <div className="border rounded-lg overflow-hidden">
+                    <div className="p-2 text-center text-sm text-gray-600 bg-gray-50">
+                      Orders Pending
+                    </div>
+                    <div className="p-4 bg-[#BDCDB3] text-center">
+                      <div className="text-3xl font-bold">
+                        {orders.length - totalOrdersPickedUp}
+                      </div>
+                      <div className="text-xs text-gray-500">Left</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Item Stats */}
+              <div>
+                <h3 className="text-lg font-medium mb-3">Item(s)</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  {/* Generate item stats boxes for top 3 items */}
+                  {aggregatedItemSales
+                    .sort((a, b) => b.quantity - a.quantity)
+                    .slice(0, 3)
+                    .map((item) => (
+                      <div
+                        key={item.id}
+                        className="border rounded-lg overflow-hidden"
+                      >
+                        <div className="p-2 text-center text-sm text-gray-600 bg-gray-50 truncate">
+                          {item.name}
+                        </div>
+                        <div className="p-4 bg-[#BDCDB3] text-center">
+                          <div className="text-3xl font-bold">
+                            {item.quantity}
+                          </div>
+                          <div className="text-xs text-gray-500">Sold</div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Revenue Chart and Recent Orders Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Revenue Over Time Chart */}
             <div className="bg-white rounded-lg shadow">
               <div className="p-4 border-b">
                 <h2 className="text-xl font-semibold">
                   Total Revenue Over Time
                 </h2>
+                {/* <div className="flex items-center text-sm text-gray-600">
+                  Your key stats for the{" "}
+                  <span className="text-blue-600 font-medium ml-1">
+                    last 3 days
+                  </span>
+                </div> */}
               </div>
               <div className="p-4">
                 {revenueData.length > 0 ? (
@@ -514,6 +656,61 @@ export default async function FundraiserAnalyticsPage({
                   </table>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Item Sales Table */}
+          <div className="bg-white rounded-lg shadow">
+            <div className="p-4 border-b">
+              <h2 className="text-xl font-semibold">Item Sales</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Item Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Price
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Quantity Sold
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total Revenue
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {aggregatedItemSales.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {item.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        ${item.price.toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {item.quantity}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        ${item.total.toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                  {aggregatedItemSales.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-6 py-4 text-center text-gray-500"
+                      >
+                        No items sold yet
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </>
