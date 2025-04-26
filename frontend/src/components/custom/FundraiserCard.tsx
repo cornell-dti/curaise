@@ -23,6 +23,7 @@ export function FundraiserCard({
   return (
     <Card className="overflow-hidden border shadow-sm">
       <CardHeader className="pb-2">
+        {/* TODO: ADD IMAGES */}
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="text-base">{fundraiser.name}</CardTitle>
