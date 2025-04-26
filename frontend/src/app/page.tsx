@@ -1,8 +1,19 @@
 import { SignInWithGoogleButton } from "../components/auth/SignInWithGoogleButton";
 import Image from "next/image";
 import loginLaptopView from "../../public/images/login-laptop-view.png";
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  // Check if the user is logged in
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  // If logged in, redirect to buyer page
+  if (session) {
+    redirect('/buyer/');
+  }
+
   return (
     <div className="relative flex items-center justify-center min-h-svh w-full bg-white overflow-hidden">
       {/* Light green half-circle - responsive positioning */}
