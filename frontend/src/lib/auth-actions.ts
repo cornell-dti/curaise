@@ -22,7 +22,7 @@ export async function signInWithGoogle() {
 
   if (error) {
     console.log(error);
-    redirect("/login"); // TODO: add error page
+    redirect("/"); // TODO: add error page
   }
 
   redirect(data.url);
