@@ -1,3 +1,5 @@
+// TODO: REMOVE FILE AND MERGE IT INTO OLD FUNDRAISER CARD
+
 "use client";
 
 import { format } from "date-fns";
