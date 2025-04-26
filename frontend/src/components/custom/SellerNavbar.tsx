@@ -18,8 +18,7 @@ export default function SellerNavbar() {
 				<NavigationMenuList>
 					<NavigationMenuItem>
 						<Link href="/seller" legacyBehavior passHref>
-							<NavigationMenuLink
-								className={`${navigationMenuTriggerStyle()} text-lg font-medium`}>
+							<NavigationMenuLink className={navigationMenuTriggerStyle()}>
 								Organizations
 							</NavigationMenuLink>
 						</Link>
@@ -30,22 +29,20 @@ export default function SellerNavbar() {
 	};
 	const sellerMobileButtons = () => {
 		return (
-			<>
-				<SheetClose asChild>
-					<Link
-						href="/seller"
-						className="flex items-center py-2 text-xl font-semibold">
-						Organizations
-					</Link>
-				</SheetClose>
-			</>
+			<SheetClose asChild>
+				<Link
+					href="/seller"
+					className="flex items-center py-2 text-xl font-semibold">
+					Organizations
+				</Link>
+			</SheetClose>
 		);
 	};
 	return (
 		<Navbar
 			userRole="seller"
-			userDesktopButtons={sellerDesktopButtons()}
-			userMobileButtons={sellerMobileButtons()}
+			desktopButtons={sellerDesktopButtons()}
+			mobileButtons={sellerMobileButtons()}
 		/>
 	);
 }

@@ -18,16 +18,14 @@ export default function BuyerNavbar() {
 				<NavigationMenuList>
 					<NavigationMenuItem>
 						<Link href="/buyer" legacyBehavior passHref>
-							<NavigationMenuLink
-								className={`${navigationMenuTriggerStyle()} text-lg font-medium`}>
+							<NavigationMenuLink className={navigationMenuTriggerStyle()}>
 								Browse
 							</NavigationMenuLink>
 						</Link>
 					</NavigationMenuItem>
 					<NavigationMenuItem>
 						<Link href="/buyer" legacyBehavior passHref>
-							<NavigationMenuLink
-								className={`${navigationMenuTriggerStyle()} text-lg font-medium`}>
+							<NavigationMenuLink className={navigationMenuTriggerStyle()}>
 								Orders
 							</NavigationMenuLink>
 						</Link>
@@ -59,8 +57,8 @@ export default function BuyerNavbar() {
 	return (
 		<Navbar
 			userRole="buyer"
-			userDesktopButtons={buyerDesktopButtons()}
-			userMobileButtons={buyerMobileButtons()}
+			desktopButtons={buyerDesktopButtons()}
+			mobileButtons={buyerMobileButtons()}
 		/>
 	);
 }
