@@ -42,7 +42,6 @@ export const getAllFundraisersHandler = async (req: Request, res: Response) => {
   const parsedFundraisers =
     CompleteFundraiserSchema.array().safeParse(fundraisers);
   if (!parsedFundraisers.success) {
-    console.error("Fundraiser validation errors:", parsedFundraisers.error);
     res.status(500).json({ message: "Couldn't parse fundraisers" });
     return;
   }
