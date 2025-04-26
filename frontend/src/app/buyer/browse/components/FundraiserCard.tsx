@@ -3,13 +3,13 @@
 import { format } from "date-fns";
 import { MapPin, ShoppingBag } from "lucide-react";
 import Link from "next/link";
-import type { CompleteFundraiserSchema } from "common";
+import type { BasicFundraiserSchema } from "common";
 import type { z } from "zod";
 
 export function FundraiserCard({
   fundraiser,
 }: {
-  fundraiser: z.infer<typeof CompleteFundraiserSchema>;
+  fundraiser: z.infer<typeof BasicFundraiserSchema>;
 }) {
   const now = new Date();
   const isBuyingActive =

@@ -1,6 +1,6 @@
 import { connection } from "next/server";
 import { FundraisersGrid } from "./components/FundraisersGrid";
-import { CompleteFundraiserSchema } from "common";
+import { BasicFundraiserSchema } from "common";
 
 const getAllFundraisers = async () => {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fundraiser`);
@@ -8,7 +8,7 @@ const getAllFundraisers = async () => {
   if (!response.ok) {
     throw new Error(result.message);
   }
-  const data = CompleteFundraiserSchema.array().safeParse(result.data);
+  const data = BasicFundraiserSchema.array().safeParse(result.data);
   if (!data.success) {
     throw new Error("Could not parse fundraiser data");
   }

@@ -1,11 +1,11 @@
-import { CompleteFundraiserSchema } from "common";
+import { BasicFundraiserSchema } from "common";
 import { FundraiserCard } from "./FundraiserCard";
 import { z } from "zod";
 
 export async function FundraisersGrid({
   fundraisers,
 }: {
-  fundraisers: z.infer<typeof CompleteFundraiserSchema>[];
+  fundraisers: z.infer<typeof BasicFundraiserSchema>[];
 }) {
   if (fundraisers.length === 0) {
     return (
