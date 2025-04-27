@@ -9,6 +9,7 @@ import {
 import { BasicOrderSchema, CompleteOrderSchema, CreateOrderBody } from "common";
 import { getFundraiser } from "../fundraiser/fundraiser.services";
 import { z } from "zod";
+import { sendOrderConfirmation } from "../../utils/email";
 
 export const getOrderHandler = async (
   req: Request<OrderRouteParams, any, {}, {}>,
@@ -81,6 +82,13 @@ export const createOrderHandler = async (
   const cleanedOrder = parsedOrder.data;
 
   // TODO: ADD LOGIC TO SEND EMAIL WITH QR CODE
+  // For now, just send email to buyer with order details without QR code
+  try {
+    await sendOrderConfirmation(cleanedOrder);
+    console.log("Order confirmation email sent");
+  } catch (error) {
+    console.error("Failed to send order confirmation email:", error);
+  }
 
   res.status(201).json({ message: "Order created", data: cleanedOrder });
 };
