@@ -29,7 +29,11 @@ function UploadImageComponent({
   const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
   const [isPending, startTransition] = useTransition();
 
-  const processFiles = async (files: File[]) => {
+const processFiles = async (files: File[]) => {
+	if (imageInputRef.current) {
+		imageInputRef.current.value = "";
+	}
+		
     // Check if files are empty
     if (!files.length) return;
 
