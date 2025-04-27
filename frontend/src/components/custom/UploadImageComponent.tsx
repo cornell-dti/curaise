@@ -29,6 +29,10 @@ function UploadImageComponent({
 	const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
 	const [isPending, startTransition] = useTransition();
 
+	console.log("Image Input Ref: ", imageInputRef.current?.value);
+
+	console.log("Uploaded URLs:", uploadedUrls);
+
 	const processFiles = async (files: File[]) => {
 		// Check if files are empty
 		if (!files.length) return;
@@ -143,6 +147,14 @@ function UploadImageComponent({
 
 		// Then update parent component states (update form field values)
 		setImageUrls(imageUrls.filter((url) => url !== removedUrl));
+
+		// When an image is uploaded, the value of imageInputRef is set to the image path
+		// When we remove an image from the input, the value of the ref does not get reset thus
+		// the onChange event of input component does not get triggered.
+		// To allow the user to upload the same image again, we need to reset the value of the input
+		if (imageInputRef.current) {
+			imageInputRef.current.value = "";
+		}
 	};
 
 	return (
