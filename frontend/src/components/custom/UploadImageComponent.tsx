@@ -29,10 +29,6 @@ function UploadImageComponent({
 	const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
 	const [isPending, startTransition] = useTransition();
 
-	console.log("Image Input Ref: ", imageInputRef.current?.value);
-
-	console.log("Uploaded URLs:", uploadedUrls);
-
 	const processFiles = async (files: File[]) => {
 		// Check if files are empty
 		if (!files.length) return;
@@ -133,7 +129,6 @@ function UploadImageComponent({
 			// Return everything from "fundraisers/" to the end of the string
 			removedUrl = removedUrl.substring(folderPos);
 		}
-		console.log("Removing image:", removedUrl);
 
 		// Update local state first (update the preview image urls by filtering out the removed image)
 		const newUrls = uploadedUrls.filter((_, index) => index !== indexToRemove);
