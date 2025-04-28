@@ -17,7 +17,7 @@ export default function BuyerNavbar() {
 			<NavigationMenu>
 				<NavigationMenuList>
 					<NavigationMenuItem>
-						<Link href="/buyer" legacyBehavior passHref>
+						<Link href="/buyer/browse" legacyBehavior passHref>
 							<NavigationMenuLink className={navigationMenuTriggerStyle()}>
 								Browse
 							</NavigationMenuLink>
