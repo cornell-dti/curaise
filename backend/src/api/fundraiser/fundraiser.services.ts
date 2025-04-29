@@ -60,6 +60,7 @@ export const getFundraiserOrders = async (fundraiserId: string) => {
           name: true,
           description: true,
           goalAmount: true,
+          imageUrls: true,
           pickupLocation: true,
           buyingStartsAt: true,
           buyingEndsAt: true,

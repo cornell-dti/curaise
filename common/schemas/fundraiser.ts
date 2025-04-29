@@ -19,10 +19,10 @@ export const BasicFundraiserSchema = z.object({
   pickupStartsAt: z.coerce.date(),
   pickupEndsAt: z.coerce.date(),
   organization: BasicOrganizationSchema,
+  imageUrls: z.array(z.string().url()),
 });
 
 export const CompleteFundraiserSchema = BasicFundraiserSchema.extend({
-  imageUrls: z.array(z.string().url()),
   announcements: z.array(AnnouncementSchema),
 });
 
