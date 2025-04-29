@@ -1,8 +1,10 @@
 "use client";
+
 import { CompleteItemSchema } from "common";
 import { z } from "zod";
 import { FundraiserItemModal } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemModal";
 import { useCartStore } from "@/lib/store/useCartStore";
+import useStore from "@/lib/store/useStore";
 
 export function FundraiserItemsPanel({
   fundraiserId,
@@ -11,12 +13,12 @@ export function FundraiserItemsPanel({
   fundraiserId: string;
   items: z.infer<typeof CompleteItemSchema>[];
 }) {
-  const { addItem, removeItem, updateQuantity, getCartItems } = useCartStore();
+  const { addItem, removeItem, updateQuantity } = useCartStore();
+  // fixes nextjs hydration issue: https://github.com/pmndrs/zustand/issues/938#issuecomment-1481801942
+  const cart = useStore(useCartStore, (state) => state.carts[fundraiserId]);
 
   const handleIncrement = (item: z.infer<typeof CompleteItemSchema>) => {
-    const cartItem = getCartItems(fundraiserId).find(
-      (cartItem) => cartItem.item.id === item.id
-    );
+    const cartItem = cart?.find((cartItem) => cartItem.item.id === item.id);
     if (cartItem) {
       updateQuantity(fundraiserId, item, cartItem.quantity + 1);
     } else {
@@ -25,9 +27,7 @@ export function FundraiserItemsPanel({
   };
 
   const handleDecrement = (item: z.infer<typeof CompleteItemSchema>) => {
-    const cartItem = getCartItems(fundraiserId).find(
-      (cartItem) => cartItem.item.id === item.id
-    );
+    const cartItem = cart?.find((cartItem) => cartItem.item.id === item.id);
     if (cartItem) {
       if (cartItem.quantity > 1) {
         updateQuantity(fundraiserId, item, cartItem.quantity - 1);
@@ -52,9 +52,8 @@ export function FundraiserItemsPanel({
               key={item.id}
               item={item}
               amount={
-                getCartItems(fundraiserId).find(
-                  (cartItem) => cartItem.item.id === item.id
-                )?.quantity || 0
+                cart?.find((cartItem) => cartItem.item.id === item.id)
+                  ?.quantity || 0
               }
               increment={() => handleIncrement(item)}
               decrement={() => handleDecrement(item)}
