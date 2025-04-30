@@ -128,7 +128,7 @@ export default async function FundraiserAnalyticsPage({
     fundraiser.id,
     session.access_token
   );
-  const recentOrders = sortOrdersByDate(orders, true).slice(0, 5);
+  const recentOrders = sortOrdersByDate(orders, false).slice(0, 5);
 
   // TODO: @STEVEN CHANGE THIS TO NOT USE .toString()
 
@@ -226,24 +226,24 @@ export default async function FundraiserAnalyticsPage({
                 <h3 className="text-lg font-medium mb-3">Total</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="border rounded-lg overflow-hidden">
-                    <div className="p-2 text-center text-sm text-gray-600 bg-gray-50">
+                    <div className="p-2 text-center text-sm text-black bg-gray-300">
                       Total Orders
                     </div>
-                    <div className="p-4 bg-[#BDCDB3] text-center">
+                    <div className="p-4 bg-gray-100 text-center">
                       <div className="text-3xl font-bold">{orders.length}</div>
-                      <div className="text-xs text-gray-500">Sold</div>
+                      <div className="text-xs text-black">Sold</div>
                     </div>
                   </div>
 
                   <div className="border rounded-lg overflow-hidden">
-                    <div className="p-2 text-center text-sm text-gray-600 bg-gray-50">
+                    <div className="p-2 text-center text-sm text-black bg-gray-300">
                       Orders Pending
                     </div>
-                    <div className="p-4 bg-[#BDCDB3] text-center">
+                    <div className="p-4 bg-gray-100 text-center">
                       <div className="text-3xl font-bold">
                         {orders.length - totalOrdersPickedUp}
                       </div>
-                      <div className="text-xs text-gray-500">Left</div>
+                      <div className="text-xs text-black">Left</div>
                     </div>
                   </div>
                 </div>
