@@ -10,7 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { getYAxisDomain } from "../analytics-utils";
+import { generateDateRange, getYAxisDomain } from "../analytics-utils";
 
 type RevenueDataPoint = {
   date: string;
@@ -21,46 +21,6 @@ type RevenueDataPoint = {
 
 type RevenueChartProps = {
   initialData: RevenueDataPoint[];
-};
-
-/**
- * Utility function to format date to YYYY-MM-DD
- */
-const formatDateToString = (date: Date): string => {
-  return date.toISOString().split("T")[0];
-};
-
-/**
- * Utility function to format date for display (e.g., "Jan 15")
- */
-const formatDisplayDate = (dateStr: string): string => {
-  const date = new Date(dateStr + "T00:00:00Z");
-  return date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  });
-};
-
-/**
- * Generate all dates between start and end date (inclusive)
- */
-const generateDateRange = (
-  startDate: Date,
-  endDate: Date
-): { dateStr: string; displayDate: string }[] => {
-  const dates = [];
-  const currentDate = new Date(startDate);
-
-  while (currentDate <= endDate) {
-    const dateStr = formatDateToString(currentDate);
-    dates.push({
-      dateStr,
-      displayDate: formatDisplayDate(dateStr),
-    });
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-
-  return dates;
 };
 
 export default function RevenueChart({ initialData }: RevenueChartProps) {

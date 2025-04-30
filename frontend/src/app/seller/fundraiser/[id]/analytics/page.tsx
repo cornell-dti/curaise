@@ -5,6 +5,7 @@ import {
   calculateGoalProgress,
   processRevenueOverTime,
   processItemSales,
+  sortOrdersByDate,
 } from "./analytics-utils";
 import dynamic from "next/dynamic";
 import StatCard from "./components/StatsCard";
@@ -124,10 +125,8 @@ const getRecentOrders = async (
     ? result.data.cleanedOrders
     : [];
 
-  // Sort by createdAt in descending order (newest first)
-  const sortedOrders = [...allOrders].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  // Use sortOrdersByDate utility instead of manual sorting
+  const sortedOrders = sortOrdersByDate(allOrders);
 
   // Return only the first 'limit' orders
   return sortedOrders.slice(0, limit);

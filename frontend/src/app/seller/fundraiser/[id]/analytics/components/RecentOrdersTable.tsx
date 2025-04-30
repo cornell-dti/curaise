@@ -1,7 +1,10 @@
 import React from "react";
-import { formatRelativeTime } from "../analytics-utils";
 import { z } from "zod";
 import { CompleteOrderSchema } from "common";
+import {
+  formatRelativeTime,
+  calculateOrderTotalString,
+} from "../analytics-utils";
 
 type RecentOrdersTableProps = {
   orders: z.infer<typeof CompleteOrderSchema>[];
@@ -34,37 +37,29 @@ export default function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
-          {orders.map((order) => {
-            // Calculate order total
-            const orderTotal = order.items.reduce(
-              (sum, item) => sum + Number(item.item.price) * item.quantity,
-              0
-            );
-
-            return (
-              <tr key={order.id} className="hover:bg-gray-50">
-                <td className="px-4 py-2 whitespace-nowrap">
-                  {order.buyer.name}
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap">
-                  {formatRelativeTime(new Date(order.createdAt))}
-                </td>
-                <td className="px-4 py-2">
-                  <div className="max-h-24 overflow-y-auto">
-                    {order.items.map((item, idx) => (
-                      <div key={idx} className="mb-1">
-                        <span className="font-medium">{item.quantity}x</span>{" "}
-                        {item.item.name}
-                      </div>
-                    ))}
-                  </div>
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap">
-                  ${orderTotal.toFixed(2)}
-                </td>
-              </tr>
-            );
-          })}
+          {orders.map((order) => (
+            <tr key={order.id} className="hover:bg-gray-50">
+              <td className="px-4 py-2 whitespace-nowrap">
+                {order.buyer.name}
+              </td>
+              <td className="px-4 py-2 whitespace-nowrap">
+                {formatRelativeTime(order.createdAt)}
+              </td>
+              <td className="px-4 py-2">
+                <div className="max-h-24 overflow-y-auto">
+                  {order.items.map((item, idx) => (
+                    <div key={idx} className="mb-1">
+                      <span className="font-medium">{item.quantity}x</span>{" "}
+                      {item.item.name}
+                    </div>
+                  ))}
+                </div>
+              </td>
+              <td className="px-4 py-2 whitespace-nowrap">
+                ${calculateOrderTotalString(order)}
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
