@@ -129,9 +129,7 @@ export const getFundraiserOrdersHandler = async (
   }
   const cleanedOrders = parsedOrders.data;
 
-  res
-    .status(200)
-    .json({ message: "Orders retrieved", data: { cleanedOrders } });
+  res.status(200).json({ message: "Orders retrieved", data: cleanedOrders });
 };
 
 export const createFundraiserHandler = async (
