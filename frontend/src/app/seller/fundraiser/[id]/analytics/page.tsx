@@ -195,7 +195,7 @@ export default async function FundraiserAnalyticsPage({
   const totalRevenue = analytics.totalRevenue;
   const totalOrdersPickedUp = analytics.totalOrdersPickedUp;
   const totalProfit = Number(totalRevenue) * 0.2; // Assuming 20% profit
-  const goalProfit = 150; // Example goal value, could be set dynamically
+  const goalProfit = fundraiser.goalAmount ? Number(fundraiser.goalAmount) : 0;
   const progressPercent = calculateGoalProgress(totalProfit, goalProfit);
 
   return (
@@ -252,6 +252,7 @@ export default async function FundraiserAnalyticsPage({
                 currentAmount={totalProfit}
                 goalAmount={goalProfit}
                 progressPercent={progressPercent}
+                hasGoal={goalProfit > 0}
               />
             </div>
           </div>
