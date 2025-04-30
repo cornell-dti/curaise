@@ -1,17 +1,17 @@
 "use client";
-import { CartItem } from "@/lib/store/useCartStore";
+
 import Link from "next/link";
 import Decimal from "decimal.js";
 import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
+import { useCartStore } from "@/lib/store/useCartStore";
+import { useStore } from "zustand";
 
-export const ShoppingCart = ({
-  cart,
-  fundraiserId,
-}: {
-  cart: CartItem[];
-  fundraiserId?: string;
-}) => {
+export const ShoppingCart = ({ fundraiserId }: { fundraiserId?: string }) => {
+  // fixes nextjs hydration issue: https://github.com/pmndrs/zustand/issues/938#issuecomment-1481801942
+  const cart =
+    useStore(useCartStore, (state) => state.carts[fundraiserId ?? ""]) || [];
+
   const orderTotal = cart
     .reduce(
       (total, item) =>

@@ -18,10 +18,8 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { SheetClose } from "@/components/ui/sheet";
-import { useCartStore } from "@/lib/store/useCartStore";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useStore } from "zustand";
 import { ShoppingCart } from "./ShoppingCart";
 import { Menu, ShoppingCart as ShoppingCartIcon } from "lucide-react";
 import DesktopUserMenu from "./DesktopUserMenu";
@@ -41,10 +39,6 @@ export default function BuyerNavbar() {
   };
 
   const fundraiserId = getFundraiserId();
-
-  // fixes nextjs hydration issue: https://github.com/pmndrs/zustand/issues/938#issuecomment-1481801942
-  const cart =
-    useStore(useCartStore, (state) => state.carts[fundraiserId ?? ""]) || [];
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
@@ -79,7 +73,7 @@ export default function BuyerNavbar() {
                   <NavigationMenuTrigger>Cart</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <div className="w-[300px] p-4">
-                      <ShoppingCart cart={cart} fundraiserId={fundraiserId} />
+                      <ShoppingCart fundraiserId={fundraiserId} />
                     </div>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
@@ -106,7 +100,7 @@ export default function BuyerNavbar() {
               <SheetHeader className="mb-4">
                 <SheetTitle className="text-2xl">Cart</SheetTitle>
               </SheetHeader>
-              <ShoppingCart cart={cart} fundraiserId={fundraiserId} />
+              <ShoppingCart fundraiserId={fundraiserId} />
             </SheetContent>
           </Sheet>
 
