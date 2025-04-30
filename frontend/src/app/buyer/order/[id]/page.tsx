@@ -21,6 +21,7 @@ import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { Separator } from "@/components/ui/separator";
 import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
 import { format } from "date-fns";
+import Link from "next/link";
 
 // data fetching function
 const getOrder = async (id: string, token: string) => {
@@ -184,7 +185,7 @@ export default async function OrderPage({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {order.items.map((orderItem, index) => (
+              {order.items.map((orderItem,) => (
                 <div
                   key={orderItem.item.id}
                   className="flex flex-col sm:flex-row gap-4 pb-4 border-b last:border-0 last:pb-0"
@@ -242,24 +243,26 @@ export default async function OrderPage({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <ShoppingBag className="h-5 w-5" />
-                <CardTitle>Fundraiser</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div>
-                <p className="font-medium mt-2 sm:mt-0">
-                  {order.fundraiser.name}
-                </p>
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {order.fundraiser.description}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <Link href={`/buyer/fundraiser/${order.fundraiser.id}`}>
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <ShoppingBag className="h-5 w-5" />
+                  <CardTitle>Fundraiser</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div>
+                  <p className="font-medium mt-2 sm:mt-0">
+                    {order.fundraiser.name}
+                  </p>
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {order.fundraiser.description}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
     </div>

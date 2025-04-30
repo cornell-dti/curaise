@@ -30,6 +30,7 @@ import {
 } from "common";
 import { getOrganization } from "../organization/organization.services";
 import { z } from "zod";
+import { sendAnnouncementEmail } from "../../utils/email";
 
 export const getAllFundraisersHandler = async (req: Request, res: Response) => {
   const fundraisers = await getAllFundraisers();
@@ -349,7 +350,24 @@ export const createAnnouncementHandler = async (
     return;
   }
 
-  // TODO: SEND EMAIL WHEN CREATING ANNOUNCEMENT
+  // send announcement email to buyers
+  try {
+    const orders = await getFundraiserOrders(req.params.id);
+
+    if (orders && orders.length > 0) {
+      const buyers = orders.map((order) => order.buyer);
+
+      await sendAnnouncementEmail({
+        fundraiser,
+        announcement,
+        recipients: buyers,
+      });
+
+      console.log(`Announcement email sent to ${buyers.length} buyers`);
+    }
+  } catch (error) {
+    console.error("Failed to send announcement emails:", error);
+  }
 
   // remove irrelevant fields
   const parsedAnnouncement = AnnouncementSchema.safeParse(announcement);

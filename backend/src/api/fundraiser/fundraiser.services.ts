@@ -60,6 +60,7 @@ export const getFundraiserOrders = async (fundraiserId: string) => {
           name: true,
           description: true,
           goalAmount: true,
+          imageUrls: true,
           pickupLocation: true,
           buyingStartsAt: true,
           buyingEndsAt: true,
@@ -141,7 +142,7 @@ export const updateFundraiser = async (
     data: {
       name: fundraiserBody.name,
       description: fundraiserBody.description,
-      goalAmount: fundraiserBody.goalAmount,
+      goalAmount: fundraiserBody.goalAmount ?? null,
       pickupLocation: fundraiserBody.pickupLocation,
       imageUrls: fundraiserBody.imageUrls,
       buyingStartsAt: fundraiserBody.buyingStartsAt,
@@ -188,7 +189,7 @@ export const updateFundraiserItem = async (
       name: itemBody.name,
       description: itemBody.description,
       price: itemBody.price,
-      imageUrl: itemBody.imageUrl,
+      imageUrl: itemBody.imageUrl ?? null,
       offsale: itemBody.offsale,
     },
   });

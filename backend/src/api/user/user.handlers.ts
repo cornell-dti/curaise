@@ -1,6 +1,7 @@
 import { Request, Response } from "express-serve-static-core";
-import { UserRouteParams } from "./user.types";
+import { UserRouteParams, UserSearchQueryParams } from "./user.types";
 import {
+  findUserByEmail,
   getUser,
   getUserOrders,
   getUserOrganizations,
@@ -117,4 +118,24 @@ export const updateUserHandler = async (
   const cleanedUser = parsedUser.data;
 
   res.status(200).json({ message: "User updated", data: cleanedUser });
+};
+
+export const findUserByEmailHandler = async (
+  req: Request<{}, {}, {}, UserSearchQueryParams>,
+  res: Response
+) => {
+  const user = await findUserByEmail(req.query.email);
+  if (!user) {
+    res.status(404).json({ message: "User not found" });
+    return;
+  }
+
+  const parsedUser = UserSchema.safeParse(user);
+  if (!parsedUser.success) {
+    res.status(500).json({ message: "Couldn't parse user" });
+    return;
+  }
+  const cleanedUser = parsedUser.data;
+
+  res.status(200).json({ message: "User retrieved", data: cleanedUser });
 };
