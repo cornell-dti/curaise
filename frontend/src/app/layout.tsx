@@ -8,6 +8,11 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+const nunito = Nunito({
+  subsets: ["latin"],
+  variable: "--font-nunito",
+});
+
 export const metadata: Metadata = {
   title: "CURaise",
   description: "Make fundraisers easy",
@@ -20,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans`}>
+      <body className={`${nunito.variable} font-sans`}>
         {children}
         <Toaster />
       </body>
