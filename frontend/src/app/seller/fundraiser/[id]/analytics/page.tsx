@@ -25,14 +25,6 @@ import { StringPriceOrder } from "./analytics";
 // Dynamically import the chart component to handle client-side rendering
 const RevenueChart = dynamic(() => import("./components/RevenueChart"));
 
-type Order = z.infer<typeof CompleteOrderSchema>;
-type OrderResponse = {
-  data?: {
-    cleanedOrders?: Order[];
-  };
-  message?: string;
-};
-
 const getFundraiser = async (id: string, token: string) => {
   const response = await fetch(
     process.env.NEXT_PUBLIC_API_URL + "/fundraiser/" + id,
@@ -75,10 +67,7 @@ const getOrganization = async (organization_id: string, token: string) => {
   return data.data;
 };
 
-const getOrdersByFundraiser = async (
-  fundraiserId: string,
-  token: string
-): Promise<Order[]> => {
+const getOrdersByFundraiser = async (fundraiserId: string, token: string) => {
   const response = await fetch(
     process.env.NEXT_PUBLIC_API_URL + "/fundraiser/" + fundraiserId + "/orders",
     {
@@ -88,48 +77,17 @@ const getOrdersByFundraiser = async (
     }
   );
 
-  const result = (await response.json()) as OrderResponse;
+  const result = await response.json();
 
   if (!response.ok) {
     throw new Error(result.message || "Failed to fetch orders");
   }
-  // Access the cleanedOrders array from the response
-  return Array.isArray(result.data?.cleanedOrders)
-    ? result.data.cleanedOrders
-    : [];
-};
 
-const getRecentOrders = async (
-  fundraiserId: string,
-  token: string,
-  limit = 10
-): Promise<Order[]> => {
-  // Get all orders without query parameters, then sort and limit in JavaScript
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/orders`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
-  const result = (await response.json()) as OrderResponse;
-
-  if (!response.ok) {
-    throw new Error(result.message || "Failed to fetch recent orders");
+  const data = CompleteOrderSchema.array().safeParse(result.data);
+  if (!data.success) {
+    throw new Error("Could not parse order data");
   }
-
-  // Get all orders and sort them by createdAt in descending order
-  const allOrders = Array.isArray(result.data?.cleanedOrders)
-    ? result.data.cleanedOrders
-    : [];
-
-  // Use sortOrdersByDate utility instead of manual sorting
-  const sortedOrders = sortOrdersByDate(allOrders);
-
-  // Return only the first 'limit' orders
-  return sortedOrders.slice(0, limit);
+  return data.data;
 };
 
 export default async function FundraiserAnalyticsPage({
@@ -167,11 +125,8 @@ export default async function FundraiserAnalyticsPage({
     fundraiser.id,
     session.access_token
   );
-  const recentOrders = await getRecentOrders(
-    fundraiser.id,
-    session.access_token,
-    10
-  );
+
+  const recentOrders = sortOrdersByDate(orders, true).slice(0, 5);
 
   // Process data for analytics
   // Convert any Decimal price values to strings for compatibility
