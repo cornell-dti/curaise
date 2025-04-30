@@ -8,7 +8,7 @@ import {
   sortOrdersByDate,
 } from "./analytics-utils";
 import dynamic from "next/dynamic";
-import StatCard from "./components/StatsCard";
+import StatsCard from "./components/StatsCard";
 import GoalProgressCircle from "./components/GoalProgressCircle";
 import ItemStatGrid from "./components/ItemStatGrid";
 import RecentOrdersTable from "./components/RecentOrdersTable";
@@ -222,22 +222,22 @@ export default async function FundraiserAnalyticsPage({
               <h2 className="text-xl font-semibold mb-4">Key Stats</h2>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <StatCard
+                <StatsCard
                   label="Total Revenue ($)"
                   value={Number(totalRevenue).toFixed(2)}
                   subtitle="Sold"
                 />
-                <StatCard
+                <StatsCard
                   label="Total Profit ($)"
                   value={totalProfit.toFixed(2)}
                   subtitle="Sold"
                 />
-                <StatCard
+                <StatsCard
                   label="Total Orders"
                   value={orders.length}
                   subtitle="Sold"
                 />
-                <StatCard
+                <StatsCard
                   label="Orders Picked Up"
                   value={totalOrdersPickedUp}
                   subtitle="Completed"

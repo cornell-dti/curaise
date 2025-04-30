@@ -1,18 +1,18 @@
 import React from "react";
 
-type StatCardProps = {
+type StatsCardProps = {
   label: string;
   value: string | number;
   subtitle?: string;
   backgroundColor?: string;
 };
 
-export default function StatCard({
+export default function StatsCard({
   label,
   value,
   subtitle = "Total",
   backgroundColor = "#BDCDB3",
-}: StatCardProps) {
+}: StatsCardProps) {
   return (
     <div className="bg-[#BDCDB3] rounded-lg p-4" style={{ backgroundColor }}>
       <div className="text-sm text-gray-600">{label}</div>
