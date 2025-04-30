@@ -196,7 +196,8 @@ export default async function FundraiserAnalyticsPage({
   const totalOrdersPickedUp = analytics.totalOrdersPickedUp;
   const totalProfit = Number(totalRevenue) * 0.2; // Assuming 20% profit
   const goalProfit = fundraiser.goalAmount ? Number(fundraiser.goalAmount) : 0;
-  const progressPercent = calculateGoalProgress(totalProfit, goalProfit);
+  const progressPercent =
+    goalProfit > 0 ? calculateGoalProgress(totalProfit, goalProfit) : 0;
 
   return (
     <div className="p-6 bg-gray-50">
