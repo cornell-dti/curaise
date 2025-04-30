@@ -11,6 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { getYAxisDomain } from "../analytics-utils";
 
 type RevenueDataPoint = {
   date: string;
@@ -179,21 +180,6 @@ export default function RevenueChart({ initialData }: RevenueChartProps) {
     setData(filledData);
   };
 
-  // Function to calculate reasonable Y-axis domain
-  const getYAxisDomain = () => {
-    if (data.length === 0) return [0, 10];
-
-    const maxRevenue = Math.max(...data.map((item) => item.cumulativeRevenue));
-    // Round up to nearest 50 or 100 for a cleaner chart
-    if (maxRevenue < 100) {
-      return [0, Math.ceil(maxRevenue / 10) * 10];
-    } else if (maxRevenue < 1000) {
-      return [0, Math.ceil(maxRevenue / 50) * 50];
-    } else {
-      return [0, Math.ceil(maxRevenue / 100) * 100];
-    }
-  };
-
   // Initialize with the default time window (30 days)
   useEffect(() => {
     filterDataByTimeWindow(30);
@@ -269,7 +255,7 @@ export default function RevenueChart({ initialData }: RevenueChartProps) {
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="date" tickMargin={10} />
               <YAxis
-                domain={getYAxisDomain()}
+                domain={getYAxisDomain(data)}
                 tickFormatter={(value: number) => `$${value}`}
               />
               <Tooltip
