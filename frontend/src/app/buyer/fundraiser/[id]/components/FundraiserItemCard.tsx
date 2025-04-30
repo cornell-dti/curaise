@@ -10,11 +10,16 @@ import { cn } from "@/lib/utils";
 
 export function FundraiserItemCard({
   item,
+  amount,
+  increment,
+  decrement,
 }: {
   item: z.infer<typeof CompleteItemSchema>;
+  amount: number;
+  increment: () => void;
+  decrement: () => void;
 }) {
-  const [showQuantity, setShowQuantity] = useState(false);
-  const [quantity, setQuantity] = useState(0);
+  const [showAmount, setShowAmount] = useState(false);
   const selectorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -23,7 +28,7 @@ export function FundraiserItemCard({
       if (
         selectorRef.current &&
         !selectorRef.current.contains(event.target as Node) &&
-        showQuantity
+        showAmount
       ) {
         handleClose();
       }
@@ -32,45 +37,45 @@ export function FundraiserItemCard({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showQuantity]);
+  }, [showAmount]);
 
   const handlePlusClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event
-    if (!showQuantity) {
-      setShowQuantity(true);
+    if (!showAmount) {
+      setShowAmount(true);
     } else {
-      setQuantity((prev) => prev + 1);
+      increment();
     }
   };
 
   const handleMinusClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event
-    if (quantity > 1) {
-      setQuantity((prev) => prev - 1);
+    if (amount > 1) {
+      decrement();
     } else {
-      setShowQuantity(false);
+      setShowAmount(false);
     }
   };
 
   const handleClose = () => {
     setTimeout(() => {
-      setShowQuantity(false);
+      setShowAmount(false);
     }, 300);
   };
 
   const handleOpen = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event
-    setShowQuantity(true);
-    if (quantity === 0) {
-      setQuantity(1);
+    setShowAmount(true);
+    if (amount === 0) {
+      increment();
     }
   };
 
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click event
     setTimeout(() => {
-      setShowQuantity(false);
-      setQuantity(0);
+      setShowAmount(false);
+      decrement();
     }, 300);
   };
 
@@ -103,13 +108,13 @@ export function FundraiserItemCard({
               ref={selectorRef}
               className={cn(
                 "quantity-selector flex items-center justify-center bg-gray-100 rounded-full h-8 shadow-sm",
-                showQuantity ? "w-24" : "w-8",
+                showAmount ? "w-24" : "w-8",
                 "origin-right overflow-hidden whitespace-nowrap transition-all duration-300 ease-out"
               )}
             >
-              {showQuantity ? (
+              {showAmount ? (
                 <>
-                  {quantity > 1 ? (
+                  {amount > 1 ? (
                     <button
                       onClick={handleMinusClick}
                       className="p-2 mx-1 hover:bg-gray-200 rounded-full transition-colors flex-shrink-0"
@@ -125,7 +130,7 @@ export function FundraiserItemCard({
                     </button>
                   )}
                   <span className="px-2 font-medium text-gray-800 text-center flex-shrink-0">
-                    {quantity}
+                    {amount}
                   </span>
                   <button
                     onClick={handlePlusClick}
@@ -134,7 +139,7 @@ export function FundraiserItemCard({
                     <Plus className="w-4 h-4 text-gray-700" />
                   </button>
                 </>
-              ) : quantity > 0 ? (
+              ) : amount > 0 ? (
                 <span
                   className="px-2 font-medium text-gray-800 text-center flex-shrink-0"
                   onClick={(e) => {
@@ -142,7 +147,7 @@ export function FundraiserItemCard({
                     handleOpen(e);
                   }}
                 >
-                  {quantity}
+                  {amount}
                 </span>
               ) : (
                 <button

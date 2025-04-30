@@ -88,7 +88,10 @@ export default async function FundraiserPage({
       </div>
 
       <FundraiserAnnouncementPanel announcements={fundraiser.announcements} />
-      <FundraiserItemsPanel items={fundraiserItems} />
+      <FundraiserItemsPanel
+        fundraiserId={fundraiser.id}
+        items={fundraiserItems}
+      />
     </div>
   );
 }

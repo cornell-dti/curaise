@@ -14,31 +14,31 @@ import type { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { FundraiserItemCard } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemCard";
 import { useState } from "react";
-import { Plus, Minus } from "lucide-react";
+import { Plus, Minus, Trash } from "lucide-react";
 
 export function FundraiserItemModal({
   item,
+  amount,
+  increment,
+  decrement,
 }: {
   item: z.infer<typeof CompleteItemSchema>;
+  amount: number;
+  increment: () => void;
+  decrement: () => void;
 }) {
-  const [quantity, setQuantity] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
-
-  const incrementQuantity = () => {
-    setQuantity((prev) => prev + 1);
-  };
-
-  const decrementQuantity = () => {
-    if (quantity > 1) {
-      setQuantity((prev) => prev - 1);
-    }
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <div className="cursor-pointer">
-          <FundraiserItemCard item={item} />
+          <FundraiserItemCard
+            item={item}
+            amount={amount}
+            increment={increment}
+            decrement={decrement}
+          />
         </div>
       </DialogTrigger>
 
@@ -58,23 +58,20 @@ export function FundraiserItemModal({
           <Button
             variant="outline"
             size="icon"
-            onClick={decrementQuantity}
-            disabled={quantity <= 1}
+            onClick={decrement}
+            disabled={amount <= 0}
           >
-            <Minus className="h-4 w-4" />
+            {amount <= 1 ? (
+              <Trash className="w-4 h-4 text-gray-500" />
+            ) : (
+              <Minus className="h-4 w-4" />
+            )}
           </Button>
-          <span className="text-lg font-medium w-8 text-center">
-            {quantity}
-          </span>
-          <Button variant="outline" size="icon" onClick={incrementQuantity}>
+          <span className="text-lg font-medium w-8 text-center">{amount}</span>
+          <Button variant="outline" size="icon" onClick={increment}>
             <Plus className="h-4 w-4" />
           </Button>
         </div>
-        <DialogFooter>
-          <Button className="w-full">
-            Add {quantity} {quantity === 1 ? "item" : "items"}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
