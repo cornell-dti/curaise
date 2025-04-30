@@ -1,3 +1,5 @@
+// TODO: @STEVEN convert to shadcn table
+
 import React from "react";
 
 type ItemSale = {

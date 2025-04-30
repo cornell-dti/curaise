@@ -1,3 +1,5 @@
+// TODO: @STEVEN REFACTOR THIS TO USE SHADCN UI TABLE COMPONENT
+
 import React from "react";
 import { z } from "zod";
 import { CompleteOrderSchema } from "common";

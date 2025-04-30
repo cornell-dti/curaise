@@ -1,3 +1,5 @@
+// TODO: @STEVEN look over this again
+
 import React from "react";
 
 type ItemStat = {

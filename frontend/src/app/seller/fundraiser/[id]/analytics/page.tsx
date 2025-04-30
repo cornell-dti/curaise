@@ -1,3 +1,5 @@
+// TODO: @STEVEN: put analytics calculations in backend, remove analytics.ts and analytics-utils.ts
+
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { processOrderAnalytics } from "@/app/seller/fundraiser/[id]/analytics/analytics";
@@ -121,12 +123,14 @@ export default async function FundraiserAnalyticsPage({
     fundraiser.organization.id,
     session.access_token
   );
+
   const orders = await getOrdersByFundraiser(
     fundraiser.id,
     session.access_token
   );
-
   const recentOrders = sortOrdersByDate(orders, true).slice(0, 5);
+
+  // TODO: @STEVEN CHANGE THIS TO NOT USE .toString()
 
   // Process data for analytics
   // Convert any Decimal price values to strings for compatibility
