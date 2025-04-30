@@ -27,7 +27,7 @@ export default function SellerNavbar() {
       <div className="flex h-16 items-center justify-between px-4 md:px-8 lg:px-12">
         {/* Logo */}
         <div className="flex items-center">
-          <Link href="/" className="text-2xl font-bold">
+          <Link href="/seller" className="text-2xl font-bold">
             CURaise
           </Link>
         </div>
