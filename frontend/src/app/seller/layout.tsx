@@ -6,8 +6,10 @@ export default function SellerLayout({
 }>) {
   return (
     <div className="flex flex-col min-h-screen">
-      <SellerNavbar />
-      <main className="flex-grow">{children}</main>
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <SellerNavbar />
+      </div>
+      <main className="flex-grow pt-16">{children}</main>
     </div>
   );
 }
