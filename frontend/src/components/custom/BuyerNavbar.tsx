@@ -28,9 +28,15 @@ import MobileUserMenu from "./MobileUserMenu";
 export default function BuyerNavbar() {
   const pathname = usePathname();
 
+  const showCart =
+    pathname.includes("/buyer/fundraiser/") && !pathname.includes("/checkout");
+
   const getFundraiserId = () => {
     // Check if we're on a buyer fundraiser page
-    if (pathname.includes("/buyer/fundraiser/")) {
+    if (
+      pathname.includes("/buyer/fundraiser/") &&
+      !pathname.includes("/checkout")
+    ) {
       // Split the path by '/' and get the last segment
       const segments = pathname.split("/");
       return segments[segments.length - 1];
@@ -68,7 +74,7 @@ export default function BuyerNavbar() {
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
-              {fundraiserId && (
+              {showCart && fundraiserId && (
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>Cart</NavigationMenuTrigger>
                   <NavigationMenuContent>
@@ -89,20 +95,22 @@ export default function BuyerNavbar() {
 
         {/* Mobile Menu */}
         <div className="md:hidden">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <ShoppingCartIcon className="h-5 w-5" />
-                <span className="sr-only">Cart</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="top">
-              <SheetHeader className="mb-4">
-                <SheetTitle className="text-2xl">Cart</SheetTitle>
-              </SheetHeader>
-              <ShoppingCart fundraiserId={fundraiserId} />
-            </SheetContent>
-          </Sheet>
+          {showCart && fundraiserId && (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <ShoppingCartIcon className="h-5 w-5" />
+                  <span className="sr-only">Cart</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="top">
+                <SheetHeader className="mb-4">
+                  <SheetTitle className="text-2xl">Cart</SheetTitle>
+                </SheetHeader>
+                <ShoppingCart fundraiserId={fundraiserId} />
+              </SheetContent>
+            </Sheet>
+          )}
 
           <Sheet>
             <SheetTrigger asChild>
