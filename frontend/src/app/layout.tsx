@@ -8,26 +8,6 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const manrope = Manrope({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
-
-const nunito = Nunito({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
-
-const work_sans = Work_Sans({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
-
 export const metadata: Metadata = {
   title: "CURaise",
   description: "Make fundraisers easy",
