@@ -27,14 +27,14 @@ export const CompleteOrderSchema = BasicOrderSchema.extend({
 // CRUD BODIES:
 
 export const CreateOrderBody = z.object({
-	fundraiserId: z.string().uuid(),
-	items: z
-		.array(
-			z.object({
-				itemId: z.string().uuid(),
-				quantity: z.number().int().positive(),
-			})
-		)
-		.min(1),
-	payment_method: z.enum(["VENMO", "OTHER"]),
+  fundraiserId: z.string().uuid(),
+  items: z
+    .array(
+      z.object({
+        itemId: z.string().uuid(),
+        quantity: z.number().int().positive(),
+      })
+    )
+    .min(1),
+  payment_method: z.enum(["VENMO", "OTHER"]),
 });
