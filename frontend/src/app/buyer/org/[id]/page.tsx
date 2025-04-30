@@ -22,7 +22,7 @@ const getOrganization = async (id: string) => {
   return data.data;
 };
 
-export const getFundraisers = async (organizationId: string) => {
+const getFundraisers = async (organizationId: string) => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/organization/${organizationId}/fundraisers`
   );
