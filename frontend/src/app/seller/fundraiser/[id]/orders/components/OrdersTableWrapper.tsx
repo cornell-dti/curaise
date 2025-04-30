@@ -1,3 +1,5 @@
+// @STEVEN CHECK THIS FUNCTION
+
 "use client";
 
 import { OrderTable2 } from "./OrderTable";
@@ -8,23 +10,23 @@ import { z } from "zod";
 type Order = z.infer<typeof CompleteOrderSchema>;
 
 interface OrdersClientWrapperProps {
-	orders: Order[];
-	token: string;
-	fundraiserName: string;
+  orders: Order[];
+  token: string;
+  fundraiserName: string;
 }
 
 export function OrdersTableWrapper({
-	orders,
-	token,
-	fundraiserName,
+  orders,
+  token,
+  fundraiserName,
 }: OrdersClientWrapperProps) {
-	const tableColumns = getColumns(token);
+  const tableColumns = getColumns(token);
 
-	return (
-		<OrderTable2
-			columns={tableColumns}
-			data={orders}
-			fundraiserName={fundraiserName}
-		/>
-	);
+  return (
+    <OrderTable2
+      columns={tableColumns}
+      data={orders}
+      fundraiserName={fundraiserName}
+    />
+  );
 }
