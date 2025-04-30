@@ -3,12 +3,12 @@ import { z } from "zod";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-const CartItem = z.object({
+export const CartItem = z.object({
   item: CompleteItemSchema,
   quantity: z.number().int().nonnegative(),
 });
 
-type CartItem = z.infer<typeof CartItem>;
+export type CartItem = z.infer<typeof CartItem>;
 
 interface CartState {
   // Map fundraiser IDs to cart items
