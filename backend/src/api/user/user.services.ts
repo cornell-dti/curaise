@@ -40,6 +40,7 @@ export const getUserOrders = async (userId: string) => {
           name: true,
           description: true,
           goalAmount: true,
+          imageUrls: true,
           pickupLocation: true,
           buyingStartsAt: true,
           buyingEndsAt: true,
