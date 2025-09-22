@@ -6,9 +6,7 @@
   "scripts": {
     "assemble": "pnpm i && pnpm --filter 'common' build && pnpm --filter 'backend' prisma:generate",
     "dev": "pnpm -r --parallel run dev",
-    "heroku-postbuild": "pnpm --filter 'backend' prisma:generate && pnpm --filter 'backend' build",
-    "start:backend": "pnpm --filter 'backend' start",
-    "start:frontend": "pnpm --filter 'frontend' start"
+    "heroku-postbuild": "pnpm --filter 'backend' prisma:generate && pnpm --filter 'backend' build"
   },
   "keywords": [],
   "author": "",

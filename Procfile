@@ -1,1 +1,1 @@
-web: pnpm start:backend
+web: pnpm --filter 'backend' start
