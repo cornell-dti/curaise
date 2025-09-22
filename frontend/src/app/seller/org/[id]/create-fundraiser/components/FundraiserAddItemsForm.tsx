@@ -194,8 +194,8 @@ export function FundraiserAddItemsForm({
           <div className="flex flex-col items-center justify-center p-8 text-center border rounded-lg border-dashed">
             <ShoppingCart className="w-12 h-12 text-gray-400 mb-4" />
             <p className="text-sm text-gray-500">
-              No items added yet. Click "Add Item" to create items for your
-              fundraiser.
+              No items added yet. Click &quot;Add Item&quot; to create items for
+              your fundraiser.
             </p>
           </div>
         ) : (

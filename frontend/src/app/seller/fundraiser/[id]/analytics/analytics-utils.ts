@@ -233,6 +233,8 @@ export const processRevenueOverTime = (
 /**
  * Calculate the reasonable Y-axis range for charts
  */
+// todo: @steven delete this
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getYAxisDomain = (data: any[], key = "cumulativeRevenue") => {
   if (data.length === 0) return [0, 10];
 

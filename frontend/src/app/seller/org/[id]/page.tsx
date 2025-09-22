@@ -124,7 +124,7 @@ export default async function OrganizationPage({
             <div className="text-center py-6">
               <h3 className="text-lg font-medium">No active fundraisers</h3>
               <p className="text-muted-foreground">
-                {org.name} doesn't have any currently active fundraisers.
+                {org.name} doesn&apos;t have any currently active fundraisers.
               </p>
             </div>
           )}
@@ -143,7 +143,7 @@ export default async function OrganizationPage({
             <div className="text-center py-6">
               <h3 className="text-lg font-medium">No past fundraisers</h3>
               <p className="text-muted-foreground">
-                {org.name} doesn't have any past fundraisers.
+                {org.name} doesn&apos;t have any past fundraisers.
               </p>
             </div>
           )}

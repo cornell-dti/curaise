@@ -59,6 +59,7 @@ const BasicInformationSchema = CreateFundraiserBody.omit({
 const DateTimeFieldAdapter = ({
   field,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   field: ControllerRenderProps<any, any>;
 }) => {
   return <DateTimePicker value={field.value} onChange={field.onChange} />;
