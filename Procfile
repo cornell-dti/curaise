@@ -1,1 +1,1 @@
-web: pnpm run --filter backend start
+web: pnpm start:backend

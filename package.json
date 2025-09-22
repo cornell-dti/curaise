@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "assemble": "pnpm i && pnpm --filter 'common' build && pnpm --filter 'backend' prisma:generate",
-    "dev": "pnpm -r --parallel run dev"
+    "dev": "pnpm -r --parallel run dev",
+    "start:backend": "pnpm --filter 'backend' start",
+    "start:frontend": "pnpm --filter 'frontend' start"
   },
   "keywords": [],
   "author": "",
