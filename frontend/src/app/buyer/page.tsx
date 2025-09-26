@@ -121,7 +121,7 @@ export default async function BuyerHome() {
                 <Clock className="mx-auto h-12 w-12 text-muted-foreground" />
                 <h3 className="mt-4 text-lg font-medium">No active orders</h3>
                 <p className="text-muted-foreground">
-                  You don't have any active orders at the moment.
+                  You don&apos;t have any active orders at the moment.
                 </p>
               </div>
             )}
@@ -135,7 +135,7 @@ export default async function BuyerHome() {
                 <Clock className="mx-auto h-12 w-12 text-muted-foreground" />
                 <h3 className="mt-4 text-lg font-medium">No orders</h3>
                 <p className="text-muted-foreground">
-                  You haven't placed any orders yet.
+                  You haven&apos;t placed any orders yet.
                 </p>
               </div>
             )}
