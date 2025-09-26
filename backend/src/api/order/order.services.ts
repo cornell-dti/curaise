@@ -163,3 +163,30 @@ export const confirmOrderPayment = async (orderId: string) => {
 
   return order;
 };
+
+/**
+ * Calculate the total amount for an order based on its items and quantities
+ */
+export const calculateOrderTotal = async (orderId: string): Promise<number> => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      items: {
+        include: {
+          item: true,
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    throw new Error("Order not found");
+  }
+
+  const total = order.items.reduce((sum, orderItem) => {
+    const itemPrice = parseFloat(orderItem.item.price.toString());
+    return sum + itemPrice * orderItem.quantity;
+  }, 0);
+
+  return total;
+};
