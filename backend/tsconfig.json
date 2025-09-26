@@ -13,7 +13,10 @@
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
-    "strictFunctionTypes": true,
+    "strictFunctionTypes": true
+  },
+  "ts-node": {
+    "files": true
   },
   "include": ["src/**/*", "prisma/seed.ts"],
   "exclude": ["node_modules"]
