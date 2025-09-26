@@ -14,9 +14,12 @@ export default function ErrorPage({
     <div className="flex items-center min-h-screen px-4 py-12 sm:px-6 md:px-8 lg:px-12 xl:px-16">
       <div className="w-full space-y-6 text-center">
         <div className="space-y-3">
-          <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl">
+          <h1 className="text-4xl font-bold tracking-tighter sm:text-2xl">
             {error.message}
           </h1>
+          <h2 className="text-2xl tracking-tighter sm:text-xl">
+            {error.digest}
+          </h2>
           <div className="flex items-center justify-center space-x-2">
             <Button onClick={reset}>Try again</Button>
             <Button variant="outline" asChild>

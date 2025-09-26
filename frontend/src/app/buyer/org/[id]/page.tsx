@@ -72,7 +72,7 @@ export default async function OrganizationPage({
           {org.websiteUrl && (
             <Button asChild variant="outline" size="lg" className="h-10 w-full">
               <Link href={org.websiteUrl} className="no-underline">
-                <ExternalLink /> {org.name}'s website
+                <ExternalLink /> {org.name}&apos;s website
               </Link>
             </Button>
           )}
@@ -114,7 +114,8 @@ export default async function OrganizationPage({
             <div className="text-center py-6">
               <h3 className="text-lg font-medium">No active fundraisers</h3>
               <p className="text-muted-foreground">
-                {org.name} doesn't have any active fundraisers at the moment.
+                {org.name} doesn&apos;t have any active fundraisers at the
+                moment.
               </p>
             </div>
           )}
@@ -133,7 +134,7 @@ export default async function OrganizationPage({
             <div className="text-center py-6">
               <h3 className="text-lg font-medium">No past fundraisers</h3>
               <p className="text-muted-foreground">
-                {org.name} doesn't have any past fundraisers.
+                {org.name} doesn&apos;t have any past fundraisers.
               </p>
             </div>
           )}

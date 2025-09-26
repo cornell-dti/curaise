@@ -2,8 +2,8 @@
   "name": "common",
   "version": "1.0.0",
   "description": "Common code (e.g. Zod objects) shared between frontend and backend",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc --build"
   },
