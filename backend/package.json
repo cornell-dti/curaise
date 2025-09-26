@@ -41,7 +41,6 @@
     "@types/express-serve-static-core": "^5.0.6",
     "@types/node": "^22.13.9",
     "dotenv-cli": "^8.0.0",
-    "install": "^0.13.0",
     "nodemon": "^3.1.9",
     "prisma": "^6.4.1",
     "ts-node": "^10.9.2",
