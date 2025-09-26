@@ -1,19 +1,51 @@
 import { Request, Response } from "express-serve-static-core";
-import { PostmarkInboundEmailBody } from "./email.types";
+import { MailgunInboundEmailBody } from "./email.types";
+import {
+  parseUnverifiedVenmoEmail,
+  updateOrderPaymentStatus,
+} from "./email.services";
+import { isValidVenmoEmail } from "../../utils/email";
+import { z } from "zod";
 
-// TODO
 export const parseEmailHandler = async (
-  req: Request<{}, any, PostmarkInboundEmailBody, {}>,
+  req: Request<{}, any, z.infer<typeof MailgunInboundEmailBody>, {}>,
   res: Response
 ) => {
-  // https://postmarkapp.com/developer/user-guide/inbound/parse-an-email
+  try {
+    const bodyHtml = req.body["body-html"];
+    const bodyPlain = req.body["Body-plain"];
+    const { from, subject } = req.body;
 
-  // parse email HtmlBody
-  req.body.HtmlBody;
+    // Verify email is from Venmo
+    const isFromVenmo = isValidVenmoEmail(from);
+    if (!isFromVenmo) {
+      res.status(400).json({
+        message: "Email not from verified Venmo address",
+      });
+      return;
+    }
 
-  // verify email
+    // Use HTML body if available, otherwise use plain text
+    const emailContent = bodyHtml || bodyPlain;
 
-  // save email transaction to database
+    // Parse email to extract amount and order ID
+    const { parsedAmount, orderId } = parseUnverifiedVenmoEmail(emailContent);
 
-  res.status(200).json({ message: "Email parsed" });
+    // Update order payment status in database
+    const updatedOrder = await updateOrderPaymentStatus(orderId, parsedAmount);
+
+    res.status(200).json({
+      message: "Email parsed and order updated successfully",
+      data: {
+        amount: parsedAmount,
+        orderId,
+        orderStatus: updatedOrder.paymentStatus,
+        verified: isFromVenmo,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
 };

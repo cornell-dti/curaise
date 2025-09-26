@@ -266,3 +266,12 @@ export const sendOrderConfirmation = async (order: Order): Promise<any> => {
     html,
   });
 };
+
+/**
+ * Validate if an email address is from Venmo's official domain
+ */
+export const isValidVenmoEmail = (emailFrom: string): boolean => {
+  // Check if the email is from Venmo's official address
+  const venmoEmailPattern = /^venmo@venmo\.com$/i;
+  return venmoEmailPattern.test(emailFrom);
+};
