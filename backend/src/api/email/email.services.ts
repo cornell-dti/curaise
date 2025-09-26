@@ -1,10 +1,10 @@
 import * as cheerio from "cheerio";
-import { decode, encode } from "quoted-printable";
+import qp from "quoted-printable";
 
 export const parseUnverifiedVenmoEmail = (raw: string) => {
   // decode quoted-printable if present
   const htmlString = /=\r?\n|=3D|=20|=[A-F0-9]{2}/i.test(raw)
-    ? decode(raw)
+    ? qp.decode(raw)
     : raw;
 
   let parsedAmount: number | null = null;

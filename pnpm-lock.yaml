@@ -59,6 +59,9 @@ importers:
       '@types/node':
         specifier: ^22.13.9
         version: 22.13.9
+      '@types/quoted-printable':
+        specifier: ^1.0.2
+        version: 1.0.2
       dotenv-cli:
         specifier: ^8.0.0
         version: 8.0.0
@@ -1569,6 +1572,9 @@ packages:
 
   '@types/qs@6.9.18':
     resolution: {integrity: sha512-kK7dgTYDyGqS+e2Q4aK9X3D7q234CIZ1Bv0q/7Z5IwRDoADNU81xXJK/YVyLbLTZCoIwUoDoffFeF+p/eIklAA==}
+
+  '@types/quoted-printable@1.0.2':
+    resolution: {integrity: sha512-3B28oB1rRaZNb3N5dlxysm8lH1ujzvReDuYBiIO4jvpTIg9ksrILCNgPxSGVyTWE/qwuxzgHaVehwMK3CVqAtA==}
 
   '@types/range-parser@1.2.7':
     resolution: {integrity: sha512-hKormJbkJqzQGhziax5PItDUTMAM9uE2XXQmM37dyd4hVM+5aVl7oVxMVUiVQn2oCQFN/LKCZdvSM0pFRqbSmQ==}
@@ -4825,6 +4831,8 @@ snapshots:
   '@types/phoenix@1.6.6': {}
 
   '@types/qs@6.9.18': {}
+
+  '@types/quoted-printable@1.0.2': {}
 
   '@types/range-parser@1.2.7': {}
 
