@@ -1,11 +1,12 @@
 const memjs = require("memjs");
 
 // Configure the target memcache server for memjs client
+// Note that the env variables MEMCACHIER_SERVERS, MEMCACHIER_USER, MEMCACHIER_PASSWORD are only available in prod
+// When testing locally ensure that u have memcache installed and initialized by running:
+//	- `brew install memcached`
+//  - `brew services start memcached`
+//	- `brew services list` to check that Memcached is running
 const memclient = memjs.Client.create(process.env.MEMCACHIER_SERVERS, {
-	// MemCachier authentication (required in production)
-	username: process.env.MEMCACHIER_USERNAME,
-	password: process.env.MEMCACHIER_PASSWORD,
-
 	// Automatic failover to backup servers if primary server is unavailable
 	failover: true, // default: false
 
