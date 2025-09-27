@@ -234,6 +234,11 @@ export interface FundraiserAnalytics {
 	items: Record<string, number>;
 }
 
+/**
+ * Calculates fundraiser analytics from orders and caches the result
+ * @param fundraiserId - The ID of the fundraiser to calculate analytics for
+ * @returns Promise<FundraiserAnalytics> - Analytics data including revenue, orders, and item statistics
+ */
 export const calculateAndCacheFundraiserAnalytics = async (
 	fundraiserId: string
 ) => {
@@ -282,6 +287,11 @@ export const calculateAndCacheFundraiserAnalytics = async (
 	return analytics;
 };
 
+/**
+ * Retrieves fundraiser analytics from cache or calculates if not cached
+ * @param fundraiserId - The ID of the fundraiser to get analytics for
+ * @returns Promise<FundraiserAnalytics> - Analytics data from cache or freshly calculated
+ */
 export const getFundraiserAnalytics = async (fundraiserId: string) => {
 	// Fundraiser specific id to access the cache
 	const cacheKey = `fundraiser_analytics_${fundraiserId}`;
@@ -298,6 +308,11 @@ export const getFundraiserAnalytics = async (fundraiserId: string) => {
 	return await calculateAndCacheFundraiserAnalytics(fundraiserId);
 };
 
+/**
+ * Invalidates the cached analytics for a specific fundraiser
+ * @param fundraiserId - The ID of the fundraiser whose cache should be invalidated
+ * @returns Promise<void>
+ */
 // This is tentative for now, need to decide when the cache will be invalidated for the fundraiser
 export const invalidateFundraiserAnalyticsCache = async (
 	fundraiserId: string

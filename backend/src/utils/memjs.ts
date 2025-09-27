@@ -6,6 +6,7 @@ const memjs = require("memjs");
 //	- `brew install memcached`
 //  - `brew services start memcached`
 //	- `brew services list` to check that Memcached is running
+// https://devcenter.heroku.com/articles/expressjs-memcache
 const memclient = memjs.Client.create(process.env.MEMCACHIER_SERVERS, {
 	// Automatic failover to backup servers if primary server is unavailable
 	failover: true, // default: false
