@@ -53,6 +53,9 @@ importers:
       '@types/express-serve-static-core':
         specifier: ^5.0.6
         version: 5.0.6
+      '@types/memjs':
+        specifier: ^1.3.3
+        version: 1.3.3
       '@types/node':
         specifier: ^22.13.9
         version: 22.13.9
@@ -1551,6 +1554,9 @@ packages:
 
   '@types/json5@0.0.29':
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
+
+  '@types/memjs@1.3.3':
+    resolution: {integrity: sha512-OqZuZ2T0ErrygA/WUqQjmsB1GpxAt84OCgKPKbsSWwYKA/oe/lTiqvqMgFOv/Ngl8p+nytgdhrdxJtikOgimCg==}
 
   '@types/mime@1.3.5':
     resolution: {integrity: sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==}
@@ -4733,6 +4739,10 @@ snapshots:
   '@types/json-schema@7.0.15': {}
 
   '@types/json5@0.0.29': {}
+
+  '@types/memjs@1.3.3':
+    dependencies:
+      '@types/node': 22.13.9
 
   '@types/mime@1.3.5': {}
 

@@ -1,4 +1,4 @@
-const memjs = require("memjs");
+import memjs from "memjs";
 
 // Configure the target memcache server for memjs client
 // Note that the env variables MEMCACHIER_SERVERS, MEMCACHIER_USER, MEMCACHIER_PASSWORD are only available in prod
