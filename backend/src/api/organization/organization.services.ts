@@ -39,7 +39,6 @@ export const createOrganization = async (
       logoUrl: organizationBody.logoUrl,
       websiteUrl: organizationBody.websiteUrl,
       instagramUsername: organizationBody.instagramUsername,
-      venmoUsername: organizationBody.venmoUsername,
 
       admins: {
         connect: [
@@ -69,7 +68,6 @@ export const updateOrganization = async (
       logoUrl: organizationBody.logoUrl ?? null,
       websiteUrl: organizationBody.websiteUrl ?? null,
       instagramUsername: organizationBody.instagramUsername ?? null,
-      venmoUsername: organizationBody.venmoUsername ?? null,
 
       admins: {
         connect: organizationBody.addedAdminsIds?.map((id) => ({ id })), // TODO: possible bug

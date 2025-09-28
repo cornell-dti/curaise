@@ -48,11 +48,6 @@ export function ReviewOrganizationForm({
               Instagram Username: <b>@{formData.instagramUsername}</b>
             </p>
           )}
-          {formData.venmoUsername && (
-            <p>
-              Venmo Username: <b>@{formData.venmoUsername}</b>
-            </p>
-          )}
         </div>
         {admins.length > 0 && (
           <div className="mt-4 space-y-2">

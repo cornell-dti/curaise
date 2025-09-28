@@ -61,7 +61,6 @@ export function EditOrgInfoDialog({
       logoUrl: data.logoUrl ?? undefined, // Keep this in the form values but don't render the field
       websiteUrl: data.websiteUrl ?? "",
       instagramUsername: data.instagramUsername ?? "",
-      venmoUsername: data.venmoUsername ?? "",
       addedAdminsIds: [], // This will be populated with the IDs of additional admins
     },
     resetOptions: {
@@ -215,19 +214,6 @@ export function EditOrgInfoDialog({
                     <FormLabel>Instagram Username (optional)</FormLabel>
                     <FormControl>
                       <Input placeholder="username (without @)" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="venmoUsername"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Venmo Username (optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="venmo-username" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
