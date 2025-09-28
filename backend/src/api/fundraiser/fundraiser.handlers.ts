@@ -15,6 +15,7 @@ import {
   updateFundraiserItem,
   createAnnouncement,
   deleteAnnouncement,
+  getFundraiserAnalytics,
 } from "./fundraiser.services";
 import {
   AnnouncementSchema,
@@ -408,4 +409,43 @@ export const deleteAnnouncementHandler = async (
   }
 
   res.status(200).json({ message: "Successfully deleted announcement" });
+};
+
+export const getFundraiserAnalyticsHandler = async (
+  req: Request<FundraiserRouteParams, any, {}, {}>,
+  res: Response
+) => {
+  const fundraiser = await getFundraiser(req.params.id);
+  if (!fundraiser) {
+    res.status(404).json({ message: "Fundraiser not found" });
+    return;
+  }
+
+  // Check if user is admin of fundraiser's organization
+  if (
+    !fundraiser.organization.admins.some(
+      (admin) => admin.id === res.locals.user!.id
+    )
+  ) {
+    res
+      .status(403)
+      .json({ message: "Unauthorized to view fundraiser analytics" });
+    return;
+  }
+
+  try {
+    const analytics = await getFundraiserAnalytics(req.params.id);
+    if (!analytics) {
+      res.status(500).json({ message: "Failed to retrieve analytics" });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Analytics retrieved",
+      data: analytics,
+    });
+  } catch (error) {
+    console.error("Analytics handler error:", error);
+    res.status(500).json({ message: "Failed to retrieve analytics" });
+  }
 };

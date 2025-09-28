@@ -23,6 +23,7 @@ import {
   updateFundraiserItemHandler,
   createAnnouncementHandler,
   deleteAnnouncementHandler,
+  getFundraiserAnalyticsHandler,
 } from "./fundraiser.handlers";
 import { authenticate } from "../../middleware/authenticate";
 
@@ -92,6 +93,13 @@ fundraiserRouter.delete(
   validate({ params: DeleteAnnouncementRouteParams }),
   authenticate,
   deleteAnnouncementHandler
+);
+
+fundraiserRouter.get(
+  "/:id/analytics",
+  validate({ params: FundraiserRouteParams }),
+  authenticate,
+  getFundraiserAnalyticsHandler
 );
 
 export default fundraiserRouter;
