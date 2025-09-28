@@ -1,4 +1,24 @@
 import { load } from "cheerio";
+
+export const parseUnverifiedVenmoEmail = (raw: string) => {
+  let parsedAmount: number | null = null;
+  let orderId: string | null = null;
+
+  const $ = load(raw);
+  const amount = $('span[style="color:#148572;float:right;"]').text().trim();
+  parsedAmount = parseFloat(amount.replace("$", "").replace("+", ""));
+  if (isNaN(parsedAmount)) {
+    console.log("Parsed amount is NaN");
+    parsedAmount = null;
+    throw new Error("Failed to parse payment amount");
+  }
+  orderId = $('table[role="presentation"] tbody tr div p').text().trim();
+  if (!orderId) {
+    throw new Error("Failed to parse venmo message for retreiving orderId");
+  }
+
+  return { parsedAmount: parsedAmount, orderId: orderId };
+};
 import { Decimal } from "decimal.js";
 
 export const parseVerifiedVenmoEmail = (raw: string) => {
