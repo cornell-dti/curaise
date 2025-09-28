@@ -41,7 +41,6 @@
     "@types/express-serve-static-core": "^5.0.6",
     "@types/memjs": "^1.3.3",
     "@types/node": "^22.13.9",
-    "@types/quoted-printable": "^1.0.2",
     "dotenv-cli": "^8.0.0",
     "nodemon": "^3.1.9",
     "prisma": "^6.4.1",
