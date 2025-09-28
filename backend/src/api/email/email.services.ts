@@ -1,4 +1,4 @@
-import * as cheerio from "cheerio";
+import { load } from "cheerio";
 import qp from "quoted-printable";
 
 export const parseUnverifiedVenmoEmail = (raw: string) => {
@@ -10,7 +10,7 @@ export const parseUnverifiedVenmoEmail = (raw: string) => {
   let parsedAmount: number | null = null;
   let orderId: string | null = null;
 
-  const $ = cheerio.load(htmlString);
+  const $ = load(htmlString);
   const amount = $('span[style="color:#148572;float:right;"]').text().trim();
   parsedAmount = parseFloat(amount.replace("$", "").replace("+", ""));
   if (isNaN(parsedAmount)) {

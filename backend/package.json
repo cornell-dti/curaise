@@ -12,7 +12,8 @@
     "prisma:generate": "prisma generate",
     "migrate:dev": "cp .env.dev .env && prisma migrate dev",
     "migrate:prod": "cp .env.prod .env && prisma migrate deploy",
-    "seed:dev": "cp .env.dev .env && prisma db seed"
+    "seed:dev": "cp .env.dev .env && prisma db seed",
+    "test": "jest"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
