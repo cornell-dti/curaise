@@ -3,22 +3,21 @@ import * as cheerio from "cheerio";
 import { PostmarkInboundEmailBody } from "./email.types";
 
 
-// // TODO
-// export const parseEmailHandler = async (
-//   req: Request<{}, any, PostmarkInboundEmailBody, {}>,
-//   res: Response
-// ) => {
-//   // https://postmarkapp.com/developer/user-guide/inbound/parse-an-email
+export const parseEmailHandler = async (
+  req: Request<{}, any, PostmarkInboundEmailBody, {}>,
+  res: Response
+) => {
+  // https://postmarkapp.com/developer/user-guide/inbound/parse-an-email
 
-//   // parse email HtmlBody
-//   req.body.HtmlBody;
+  // parse email HtmlBody
+  req.body.HtmlBody;
 
-//   // verify email
+  // verify email
 
-//   // save email transaction to database
+  // save email transaction to database
 
-//   res.status(200).json({ message: "Email parsed" });
-// };
+  res.status(200).json({ message: "Email parsed" });
+};
 
 export const parseVerifiedVenmoAccountEmailHandler = async (
   req: Request<{}, any, PostmarkInboundEmailBody, {}>,
