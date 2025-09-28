@@ -21,7 +21,6 @@ export function CreateOrganizationForm({ token }: { token: string }) {
     logoUrl: undefined, // temporarily undefined because form doesn't populate these values
     websiteUrl: "",
     instagramUsername: "",
-    venmoUsername: undefined, // temporarily undefined because form doesn't populate these values
     addedAdminsIds: [],
   });
 

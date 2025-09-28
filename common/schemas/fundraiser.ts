@@ -12,6 +12,7 @@ export const BasicFundraiserSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(255),
   description: z.string(),
+  venmoUsername: z.string().min(1).max(255).nullish(),
   goalAmount: MoneySchema.nullish(),
   pickupLocation: z.string(),
   buyingStartsAt: z.coerce.date(),
@@ -31,6 +32,13 @@ export const CompleteFundraiserSchema = BasicFundraiserSchema.extend({
 export const CreateFundraiserBody = z.object({
   name: z.string().min(1).max(255),
   description: z.string(),
+  venmoUsername: z
+    .string()
+    .optional()
+    .transform((value) =>
+      value ? (value.length === 0 ? undefined : value) : undefined
+    )
+    .pipe(z.string().min(5).max(30).optional()),
   imageUrls: z.array(z.string().url()),
   goalAmount: MoneySchema.optional(),
   pickupLocation: z.string(),
@@ -45,6 +53,13 @@ export const CreateFundraiserBody = z.object({
 export const UpdateFundraiserBody = z.object({
   name: z.string().min(1).max(255),
   description: z.string(),
+  venmoUsername: z
+    .string()
+    .optional()
+    .transform((value) =>
+      value ? (value.length === 0 ? undefined : value) : undefined
+    )
+    .pipe(z.string().min(5).max(30).optional()),
   goalAmount: MoneySchema.optional(),
   pickupLocation: z.string(),
   imageUrls: z.array(z.string().url()),

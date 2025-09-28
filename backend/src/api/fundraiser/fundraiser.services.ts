@@ -110,6 +110,7 @@ export const createFundraiser = async (
     data: {
       name: fundraiserBody.name,
       description: fundraiserBody.description,
+      venmoUsername: fundraiserBody.venmoUsername,
       goalAmount: fundraiserBody.goalAmount,
       pickupLocation: fundraiserBody.pickupLocation,
       imageUrls: fundraiserBody.imageUrls,
@@ -143,6 +144,7 @@ export const updateFundraiser = async (
     data: {
       name: fundraiserBody.name,
       description: fundraiserBody.description,
+      venmoUsername: fundraiserBody.venmoUsername ?? null,
       goalAmount: fundraiserBody.goalAmount ?? null,
       pickupLocation: fundraiserBody.pickupLocation,
       imageUrls: fundraiserBody.imageUrls,
