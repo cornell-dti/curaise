@@ -20,6 +20,106 @@ import { toast } from "sonner";
 
 type Order = z.infer<typeof CompleteOrderSchema>;
 
+// Component for the pickup status cell
+const PickupStatusCell = ({
+  order,
+  token,
+}: {
+  order: Order;
+  token: string;
+}) => {
+  const { data, mutate } = useSWR(`/order/${order.id}`, null, {
+    fallbackData: order, // Use the original order data as fallback (default)
+    revalidateOnFocus: false, // Don't revalidate on focus
+  });
+
+  // Triggers pickup status update when checkbox is clicked
+  const togglePickedUp = async () => {
+    try {
+      await completePickup(order.id, token);
+
+      // Mutate the cached data to reflect the updated status
+      mutate(
+        {
+          ...data,
+          pickedUp: true,
+        },
+        false // Without revalidation
+      );
+
+      toast.success("Pickup status updated successfully");
+    } catch (error) {
+      console.error("Error updating pickup status:", error);
+      toast.error("Failed to update pickup status");
+    }
+  };
+  // Check if the order is picked up
+  const isPickedUp = data?.pickedUp === true;
+
+  return (
+    <div className="flex items-center justify-center">
+      <Checkbox
+        checked={isPickedUp}
+        onChange={!isPickedUp ? togglePickedUp : undefined}
+        disabled={isPickedUp}
+        aria-label={isPickedUp ? "Mark as not picked up" : "Mark as picked up"}
+      />
+    </div>
+  );
+};
+
+// Component for the payment status cell
+const PaymentStatusCell = ({ order }: { order: Order }) => {
+  const { data } = useSWR(`/order/${order.id}`, null, {
+    fallbackData: order,
+    revalidateOnFocus: false,
+  });
+
+  const paymentStatus = data?.paymentStatus as string;
+  const isPickedUp = data?.pickedUp === true;
+
+  if (isPickedUp) {
+    return (
+      <div className="flex justify-center">
+        <Badge className="flex justify-center items-center min-w-[90px] bg-[#DCEBDE] text-[#086A19] rounded-full px-3 py-1 hover:bg-[#c5e0c6] hover:text-[#065a13] font-[700] text-md">
+          Picked Up
+        </Badge>
+      </div>
+    );
+  } else if (paymentStatus === "UNVERIFIABLE") {
+    return (
+      <div className="flex justify-center">
+        <Badge className="flex justify-center items-center min-w-[90px] bg-[#FBE6E6] text-[#E1080B] rounded-full px-3 py-1 hover:bg-[#f5c6c6] hover:text-[#b30607] font-[700] text-md">
+          Unverifiable
+        </Badge>
+      </div>
+    );
+  } else if (paymentStatus === "PENDING") {
+    return (
+      <div className="flex justify-center">
+        <Badge className="flex justify-center items-center min-w-[90px] bg-[#FFEEC2] text-[#FEA839] rounded-full px-3 py-1 hover:bg-[#fddc9e] hover:text-[#d97a2b] font-[700] text-md">
+          Pending
+        </Badge>
+      </div>
+    );
+  } else if (paymentStatus === "CONFIRMED") {
+    return (
+      <div className="flex justify-center">
+        <Badge className="flex justify-center items-center min-w-[90px] bg-[#FBE6E6] text-[#E1080B] rounded-full px-3 py-1 hover:bg-[#f5c6c6] hover:text-[#b30607] font-[700] text-md">
+          Not Picked Up
+        </Badge>
+      </div>
+    );
+  }
+  return (
+    <div className="flex justify-center">
+      <Badge className="flex justify-center items-center min-w-[90px] bg-[#F7F7F7] text-[#959494] rounded-full px-3 py-1 font-[700] text-md hover:bg-[#e5e5e5] hover:text-[#6e6e6e]">
+        Unknown
+      </Badge>
+    </div>
+  );
+};
+
 // API call to complete pickup
 // This function posts to the API to update the pickup status of an order
 const completePickup = async (orderId: string, token: string) => {
@@ -58,49 +158,8 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
       return filterValue.includes(value);
     },
     cell: ({ row }) => {
-      // Get the original, unmodified data object for this particular row
-      // We need the order id (immutable) to make the API call to the correct route
       const order = row.original;
-      const { data, mutate } = useSWR(`/order/${order.id}`, null, {
-        fallbackData: order, // Use the original order data as fallback (default)
-        revalidateOnFocus: false, // Don't revalidate on focus
-      });
-
-      // Triggers pickup status update when checkbox is clicked
-      const togglePickedUp = async () => {
-        try {
-          await completePickup(order.id, token);
-
-          // Mutate the cached data to reflect the updated status
-          mutate(
-            {
-              ...data,
-              pickedUp: true,
-            },
-            false // Without revalidation
-          );
-
-          toast.success("Pickup status updated successfully");
-        } catch (error) {
-          console.error("Error updating pickup status:", error);
-          toast.error("Failed to update pickup status");
-        }
-      };
-      // Check if the order is picked up
-      const isPickedUp = data?.pickedUp === true;
-
-      return (
-        <div className="flex items-center justify-center">
-          <Checkbox
-            checked={isPickedUp}
-            onChange={!isPickedUp ? togglePickedUp : undefined}
-            disabled={isPickedUp}
-            aria-label={
-              isPickedUp ? "Mark as not picked up" : "Mark as picked up"
-            }
-          />
-        </div>
-      );
+      return <PickupStatusCell order={order} token={token} />;
     },
   },
   {
@@ -300,54 +359,7 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
     filterFn: "arrIncludesSome",
     cell: ({ row }) => {
       const order = row.original;
-      const { data } = useSWR(`/order/${order.id}`, null, {
-        fallbackData: order,
-        revalidateOnFocus: false,
-      });
-
-      const paymentStatus = data?.paymentStatus as string;
-      const isPickedUp = data?.pickedUp === true;
-
-      if (isPickedUp) {
-        return (
-          <div className="flex justify-center">
-            <Badge className="flex justify-center items-center min-w-[90px] bg-[#DCEBDE] text-[#086A19] rounded-full px-3 py-1 hover:bg-[#c5e0c6] hover:text-[#065a13] font-[700] text-md">
-              Picked Up
-            </Badge>
-          </div>
-        );
-      } else if (paymentStatus === "UNVERIFIABLE") {
-        return (
-          <div className="flex justify-center">
-            <Badge className="flex justify-center items-center min-w-[90px] bg-[#FBE6E6] text-[#E1080B] rounded-full px-3 py-1 hover:bg-[#f5c6c6] hover:text-[#b30607] font-[700] text-md">
-              Unverifiable
-            </Badge>
-          </div>
-        );
-      } else if (paymentStatus === "PENDING") {
-        return (
-          <div className="flex justify-center">
-            <Badge className="flex justify-center items-center min-w-[90px] bg-[#FFEEC2] text-[#FEA839] rounded-full px-3 py-1 hover:bg-[#fddc9e] hover:text-[#d97a2b] font-[700] text-md">
-              Pending
-            </Badge>
-          </div>
-        );
-      } else if (paymentStatus === "CONFIRMED") {
-        return (
-          <div className="flex justify-center">
-            <Badge className="flex justify-center items-center min-w-[90px] bg-[#FBE6E6] text-[#E1080B] rounded-full px-3 py-1 hover:bg-[#f5c6c6] hover:text-[#b30607] font-[700] text-md">
-              Not Picked Up
-            </Badge>
-          </div>
-        );
-      }
-      return (
-        <div className="flex justify-center">
-          <Badge className="flex justify-center items-center min-w-[90px] bg-[#F7F7F7] text-[#959494] rounded-full px-3 py-1 font-[700] text-md hover:bg-[#e5e5e5] hover:text-[#6e6e6e]">
-            Unknown
-          </Badge>
-        </div>
-      );
+      return <PaymentStatusCell order={order} />;
     },
   },
   {

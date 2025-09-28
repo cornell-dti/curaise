@@ -1,5 +1,7 @@
 # CURaise
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/4c9d6af2-2a66-4407-85a2-36b046faef37/deploy-status)](https://app.netlify.com/projects/curaise/deploys)
+
 ## Contributors
 
 ### 2024-25

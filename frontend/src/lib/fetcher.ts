@@ -6,7 +6,7 @@ const supabase = createClient();
 // fetch data from API with the current user's auth token
 export const authFetcher =
   <T extends z.ZodTypeAny>(schema: T) =>
-  async (url: String): Promise<z.infer<T>> => {
+  async (url: string): Promise<z.infer<T>> => {
     const {
       data: { session },
       error,
@@ -35,7 +35,7 @@ export const authFetcher =
 
 export const noAuthFetcher =
   <T extends z.ZodTypeAny>(schema: T) =>
-  async (url: String): Promise<z.infer<T>> => {
+  async (url: string): Promise<z.infer<T>> => {
     const response = await fetch(process.env.NEXT_PUBLIC_API_URL! + url);
     const result = await response.json();
     if (!response.ok) {

@@ -111,7 +111,7 @@ export function ReviewFundraiserForm({
 
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-sm text-yellow-800">
-            <strong>Note:</strong> Once created, you'll be able to edit
+            <strong>Note:</strong> Once created, you&apos;ll be able to edit
             fundraiser info, add more items, and send announcements to buyers.
           </p>
         </div>
