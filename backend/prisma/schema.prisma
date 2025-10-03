@@ -9,82 +9,78 @@ datasource db {
 }
 
 model User {
-  id            String   @id @db.Uuid
-  email         String   @unique
+  id            String         @id @db.Uuid
+  email         String         @unique
   name          String
-  venmoUsername String?  @unique @map("venmo_username")
-  createdAt     DateTime @default(now()) @map("created_at")
-
-  organizations Organization[]
+  venmoUsername String?        @unique @map("venmo_username")
+  createdAt     DateTime       @default(now()) @map("created_at")
   orders        Order[]
+  organizations Organization[] @relation("OrganizationToUser")
 
   @@map("users")
 }
 
 model Organization {
-  id                String   @id @default(uuid()) @db.Uuid
-  name              String   @unique
+  id                String       @id @default(uuid()) @db.Uuid
+  name              String       @unique
   description       String
-  authorized        Boolean  @default(false)
-  logoUrl           String?  @map("logo_url")
-  websiteUrl        String?  @map("website_url")
-  instagramUsername String?  @map("instagram_username")
-  createdAt         DateTime @default(now()) @map("created_at")
-
-  admins      User[]
-  fundraisers Fundraiser[]
+  authorized        Boolean      @default(false)
+  logoUrl           String?      @map("logo_url")
+  websiteUrl        String?      @map("website_url")
+  instagramUsername String?      @map("instagram_username")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  fundraisers       Fundraiser[]
+  admins            User[]       @relation("OrganizationToUser")
 
   @@map("organizations")
 }
 
 model Fundraiser {
-  id             String   @id @default(uuid()) @db.Uuid
+  id             String         @id @default(uuid()) @db.Uuid
   name           String
   description    String
-  venmoUsername  String?  @map("venmo_username")
-  goalAmount     Decimal? @map("goal_amount") @db.Money
-  pickupLocation String   @map("pickup_location")
-  imageUrls      String[] @map("image_urls")
-  buyingStartsAt DateTime @map("buying_starts_at")
-  buyingEndsAt   DateTime @map("buying_ends_at")
-  pickupStartsAt DateTime @map("pickup_starts_at")
-  pickupEndsAt   DateTime @map("pickup_ends_at")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
-  organization   Organization   @relation(fields: [organizationId], references: [id])
+  goalAmount     Decimal?       @map("goal_amount") @db.Money
+  pickupLocation String         @map("pickup_location")
+  imageUrls      String[]       @map("image_urls")
+  buyingStartsAt DateTime       @map("buying_starts_at")
+  buyingEndsAt   DateTime       @map("buying_ends_at")
+  pickupStartsAt DateTime       @map("pickup_starts_at")
+  pickupEndsAt   DateTime       @map("pickup_ends_at")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
   organizationId String         @map("organization_id") @db.Uuid
+  venmoUsername  String?        @map("venmo_username")
+  venmoEmail     String?        @map("venmo_email")
+  announcements  Announcement[]
+  organization   Organization   @relation(fields: [organizationId], references: [id])
   items          Item[]
   orders         Order[]
-  announcements  Announcement[]
 
   @@map("fundraisers")
 }
 
 model Announcement {
-  id        String   @id @default(uuid()) @db.Uuid
-  message   String
-  createdAt DateTime @default(now()) @map("created_at")
-
-  fundraiser   Fundraiser @relation(fields: [fundraiserId], references: [id])
+  id           String     @id @default(uuid()) @db.Uuid
+  message      String
+  createdAt    DateTime   @default(now()) @map("created_at")
   fundraiserId String     @map("fundraiser_id") @db.Uuid
+  fundraiser   Fundraiser @relation(fields: [fundraiserId], references: [id])
 
   @@map("announcements")
 }
 
 model Item {
-  id          String   @id @default(uuid()) @db.Uuid
-  name        String
-  description String
-  imageUrl    String?  @map("image_url")
-  offsale     Boolean  @default(false)
-  limit       Int?
-  price       Decimal  @db.Money
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  fundraiser   Fundraiser   @relation(fields: [fundraiserId], references: [id])
+  id           String       @id @default(uuid()) @db.Uuid
+  name         String
+  description  String
+  imageUrl     String?      @map("image_url")
+  offsale      Boolean      @default(false)
+  limit        Int?
+  price        Decimal      @db.Money
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
   fundraiserId String       @map("fundraiser_id") @db.Uuid
+  fundraiser   Fundraiser   @relation(fields: [fundraiserId], references: [id])
   orders       OrderItems[]
 
   @@map("items")
@@ -97,24 +93,21 @@ model Order {
   pickedUp      Boolean       @default(false) @map("picked_up")
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
-
-  buyer        User         @relation(fields: [buyerId], references: [id])
-  buyerId      String       @map("buyer_id") @db.Uuid
-  fundraiser   Fundraiser   @relation(fields: [fundraiserId], references: [id])
-  fundraiserId String       @map("fundraiser_id") @db.Uuid
-  items        OrderItems[]
+  buyerId       String        @map("buyer_id") @db.Uuid
+  fundraiserId  String        @map("fundraiser_id") @db.Uuid
+  items         OrderItems[]
+  buyer         User          @relation(fields: [buyerId], references: [id])
+  fundraiser    Fundraiser    @relation(fields: [fundraiserId], references: [id])
 
   @@map("orders")
 }
 
-// Order <-> Items Association Table
 model OrderItems {
   quantity Int
-
-  order   Order  @relation(fields: [orderId], references: [id])
-  orderId String @map("order_id") @db.Uuid
-  item    Item   @relation(fields: [itemId], references: [id])
-  itemId  String @map("item_id") @db.Uuid
+  orderId  String @map("order_id") @db.Uuid
+  itemId   String @map("item_id") @db.Uuid
+  item     Item   @relation(fields: [itemId], references: [id])
+  order    Order  @relation(fields: [orderId], references: [id])
 
   @@id([orderId, itemId])
   @@map("order_items")
