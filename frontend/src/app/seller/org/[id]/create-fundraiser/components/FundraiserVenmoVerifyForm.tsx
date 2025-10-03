@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Dialog } from "@/components/ui/dialog";
 import {
   Form,
   FormField,
@@ -26,7 +25,21 @@ import { z } from "zod";
 const VenmoFormSchema = CreateFundraiserBody.pick({
   venmoUsername: true,
   venmoEmail: true,
-});
+}).refine(
+  (data) => {
+    if (
+      (!data.venmoUsername && !data.venmoEmail) ||
+      (data.venmoUsername && data.venmoEmail)
+    ) {
+      return true;
+    }
+    return false;
+  },
+  {
+    message: "You must provide both Venmo Username and Email together",
+    path: ["venmoUsername"],
+  }
+);
 
 export function FundraiserVenmoVerifyForm({
   defaultValues,
