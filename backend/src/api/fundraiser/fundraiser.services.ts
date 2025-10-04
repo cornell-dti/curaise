@@ -233,7 +233,14 @@ export interface FundraiserAnalytics {
   total_revenue: number;
   total_orders: number;
   orders_picked_up: number;
-  items: Record<string, number>;
+  items: Record<string, number>; // units sold for each item
+  pending_orders: number;
+  profit: number;
+  goal_amount: number;
+  sale_data: Record<string, number>; // orders sold on a particular day
+  revenue_data: Record<string, number>; // revenue earned on a particular day
+  start_date: string;
+  end_date: string;
 }
 
 /**
@@ -244,23 +251,33 @@ export interface FundraiserAnalytics {
 export const calculateAndCacheFundraiserAnalytics = async (
   fundraiserId: string
 ) => {
-  const orders = await prisma.order.findMany({
-    where: { fundraiserId },
-    include: {
-      items: {
-        select: {
-          quantity: true,
-          item: { select: { name: true, price: true } },
+  const [orders, fundraiser] = await Promise.all([
+    prisma.order.findMany({
+      where: { fundraiserId },
+      include: {
+        items: {
+          select: {
+            quantity: true,
+            item: { select: { name: true, price: true } },
+          },
         },
       },
-    },
-  });
+    }),
+    getFundraiser(fundraiserId),
+  ]);
 
   const analytics: FundraiserAnalytics = {
     total_revenue: 0,
     total_orders: orders.length,
     orders_picked_up: 0,
     items: {},
+    pending_orders: 0,
+    profit: 0,
+    goal_amount: Number(fundraiser?.goalAmount) ?? 0,
+    sale_data: {},
+    revenue_data: {},
+    start_date: fundraiser?.buyingStartsAt?.toISOString() ?? "",
+    end_date: fundraiser?.buyingEndsAt?.toISOString() ?? "",
   };
 
   orders.forEach((order) => {
@@ -277,8 +294,20 @@ export const calculateAndCacheFundraiserAnalytics = async (
 
     if (order.pickedUp) {
       analytics.orders_picked_up++;
+    } else {
+      analytics.pending_orders++;
     }
+
+    // Track sales by date
+    const orderDate = order.createdAt.toISOString().split("T")[0]; // Only keep the YYYY-MM-DD portion
+    analytics.sale_data[orderDate] = (analytics.sale_data[orderDate] || 0) + 1;
+
+    // Track revenue by date
+    analytics.revenue_data[orderDate] =
+      (analytics.revenue_data[orderDate] || 0) + orderTotal;
   });
+
+  analytics.profit = Math.round(analytics.total_revenue * 0.2 * 100) / 100; // Assuming 20% profit, rounded to 2 decimals
 
   const cacheKey = `fundraiser_analytics_${fundraiserId}`;
   try {
@@ -304,6 +333,7 @@ export const getFundraiserAnalytics = async (fundraiserId: string) => {
       console.log("This data is in cache");
       return JSON.parse(cached.value.toString());
     }
+    console.log("This data is NOT in cache");
   } catch (error) {
     console.error("Failed to get cached analytics:", error);
   }
