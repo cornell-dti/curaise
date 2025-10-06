@@ -9,7 +9,7 @@ import { useState } from "react";
 import { FundraiserBasicInfoForm } from "./FundraiserBasicInfoForm";
 import { FundraiserAddItemsForm } from "./FundraiserAddItemsForm";
 import { ReviewFundraiserForm } from "./ReviewFundraiserForm";
-import { FundraiserVenmoVerifyForm } from "./FundraiserVenmoVerifyForm";
+import { FundraiserVenmoInfoForm } from "./FundraiserVenmoInfoForm";
 
 const getDefaultDates = () => {
   const now = new Date();
@@ -175,7 +175,7 @@ export function CreateFundraiserForm({
           }}
         />
 
-        <FundraiserVenmoVerifyForm
+        <FundraiserVenmoInfoForm
           defaultValues={formData}
           onSubmit={(data) => {
             setFormData((prev) => ({ ...prev, ...data }));
