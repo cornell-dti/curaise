@@ -25,19 +25,9 @@ import { z } from "zod";
 const VenmoFormSchema = CreateFundraiserBody.pick({
   venmoUsername: true,
   venmoEmail: true,
-}).refine(
-  (data) => {
-    const hasVenmo = data.venmoUsername || data.venmoEmail;
-    const hasBoth = data.venmoUsername && data.venmoEmail;
-    return !hasVenmo || hasBoth;
-  },
-  {
-    message: "You must provide both Venmo Username and Email together",
-    path: ["venmoUsername"],
-  }
-);
+});
 
-export function FundraiserVenmoVerifyForm({
+export function FundraiserVenmoInfoForm({
   defaultValues,
   onSubmit,
   onBack,
