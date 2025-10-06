@@ -59,8 +59,6 @@ export function CreateFundraiserForm({
     pickupStartsAt: defaultDates.pickupStartsAt,
     pickupEndsAt: defaultDates.pickupEndsAt,
     organizationId: organizationId,
-    venmoUsername: undefined,
-    venmoEmail: undefined,
   });
 
   // State for fundraiser items list
@@ -159,12 +157,7 @@ export function CreateFundraiserForm({
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">
       <MultiStepForm
-        labels={[
-          "Basic Information",
-          "Venmo Information",
-          "Add Items",
-          "Review Fundraiser",
-        ]}
+        labels={["Basic Information", "Add Items", "Review Fundraiser"]}
         currentStep={currentStep}
       >
         <FundraiserBasicInfoForm
@@ -187,8 +180,8 @@ export function CreateFundraiserForm({
         <FundraiserAddItemsForm
           items={fundraiserItems}
           setItems={setFundraiserItems}
-          onSubmit={() => setCurrentStep(3)}
-          onBack={() => setCurrentStep(1)}
+          onSubmit={() => setCurrentStep(2)}
+          onBack={() => setCurrentStep(0)}
         />
 
         <ReviewFundraiserForm

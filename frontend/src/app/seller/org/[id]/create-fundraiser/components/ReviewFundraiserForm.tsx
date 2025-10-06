@@ -51,49 +51,15 @@ export function ReviewFundraiserForm({
                   : "No goal set"}
               </p>
             </div>
+            <div className="md:col-span-2">
+              <p className="text-sm font-medium text-gray-500">Description</p>
+              <p className="whitespace-pre-wrap">{formData.description}</p>
+            </div>
             <div>
               <p className="text-sm font-medium text-gray-500">
                 Pickup Location
               </p>
               <p>{formData.pickupLocation}</p>
-            </div>
-            <div className="md:col-span-2">
-              <p className="text-sm font-medium text-gray-500">Description</p>
-              {formData.description ? (
-                <p className="whitespace-pre-wrap">{formData.description}</p>
-              ) : (
-                <p className="whitespace-pre-wrap text-gray-400">
-                  No description provided
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <h3 className="text-lg font-medium">Venmo Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
-            <div>
-              <p className="text-sm font-medium text-gray-500">
-                Venmo Username
-              </p>
-              {formData.venmoUsername ? (
-                <p className="whitespace-pre-wrap">{formData.venmoUsername}</p>
-              ) : (
-                <p className="whitespace-pre-wrap text-gray-400">
-                  No Venmo Username provided
-                </p>
-              )}
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">Venmo Email</p>
-              {formData.venmoEmail ? (
-                <p className="whitespace-pre-wrap">{formData.venmoUsername}</p>
-              ) : (
-                <p className="whitespace-pre-wrap text-gray-400">
-                  No Venmo Email provided
-                </p>
-              )}
             </div>
           </div>
         </div>
