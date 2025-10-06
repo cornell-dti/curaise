@@ -198,6 +198,93 @@ export const sendAnnouncementEmail = async (options: {
 };
 
 /**
+ * Send Venmo email forwarding setup instructions
+ */
+export const sendVenmoSetupEmail = async (options: {
+  venmoEmail: string;
+  fundraiserName: string;
+}): Promise<void> => {
+  const { venmoEmail, fundraiserName } = options;
+
+  const subject = `Action Required: Set Up Email Forwarding for ${fundraiserName}`;
+
+  const text = `
+    Hello,
+
+    You need to set up email forwarding for your Venmo account to use it with ${fundraiserName} on CURaise.
+
+    Open this email on a desktop browser and follow the steps to add CURaise's email address as a valid forwarding address:
+
+    1. In the top right corner, click on Settings > See all settings, then click on the Forwarding and POP/IMAP tab.
+    2. Click on the Add a forwarding address button.
+    3. Enter sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org.
+    4. Please wait a minute, then refresh this page. CURaise will have auto-confirmed you have permission to forward to this address.
+
+    Now follow the steps below to create a forwarding filter just for the Venmo emails:
+
+    1. Navigate to the Search bar, click on the filter icon on the right-hand side.
+    2. Enter venmo@venmo.com in the From field.
+    3. Near the bottom of that window, click on the Create filter button.
+    4. Enable the Forward it to option and select sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org.
+    5. Click Create filter and you're done. All future emails will be automatically processed and turned into transactions by CURaise.
+
+    If you need to add your historical data, you can manually forward old receipt emails to sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org.
+
+    Questions? Contact our support team.
+
+    Thank you,
+    The CURaise Team
+  `;
+
+  const html = `
+    <h1>Action Required: Set Up Email Forwarding</h1>
+
+    <p>Hello,</p>
+
+    <p>You need to set up email forwarding for your Venmo account to use it with <strong>${fundraiserName}</strong> on CURaise.</p>
+
+    <p>Open this email on a desktop browser and follow the steps to add CURaise's email address as a valid forwarding address:</p>
+
+    <ol>
+      <li>In the top right corner, click on <strong>Settings &gt; See all settings</strong>, then click on the <strong>Forwarding and POP/IMAP</strong> tab.</li>
+      <li>Click on the <strong>Add a forwarding address</strong> button.</li>
+      <li>Enter <strong>sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org</strong>.</li>
+    </ol>
+
+    <p>Now follow the steps below to create a forwarding filter just for the Venmo emails:</p>
+
+    <ol>
+      <li>Navigate to the <strong>Search bar</strong>, click on the filter icon on the right-hand side.</li>
+      <li>Enter <strong>venmo@venmo.com</strong> in the From field.</li>
+      <li>Near the bottom of that window, click on the <strong>Create filter</strong> button.</li>
+      <li>Enable the <strong>Forward it to</strong> option and select <strong>sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org</strong>.</li>
+      <li>Click <strong>Create filter</strong> and you're done. All future emails will be automatically processed and turned into transactions by CURaise.</li>
+    </ol>
+
+    <p>If you need to add your historical data, you can manually forward old receipt emails to <strong>sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org</strong>.</p>
+
+    <p>Questions? Contact our support team.</p>
+
+    <p>Thank you,<br>
+    The CURaise Team</p>
+  `;
+
+  try {
+    await sendEmail({
+      to: venmoEmail,
+      subject,
+      text,
+      html,
+    });
+
+    console.log(`Venmo setup email sent to ${venmoEmail}`);
+  } catch (error) {
+    console.error(`Failed to send Venmo setup email to ${venmoEmail}:`, error);
+    throw error;
+  }
+};
+
+/**
  * Send order confirmation email to a buyer
  */
 export const sendOrderConfirmation = async (order: Order): Promise<any> => {
