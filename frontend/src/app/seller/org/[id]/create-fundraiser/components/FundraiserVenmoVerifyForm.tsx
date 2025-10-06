@@ -27,13 +27,9 @@ const VenmoFormSchema = CreateFundraiserBody.pick({
   venmoEmail: true,
 }).refine(
   (data) => {
-    if (
-      (!data.venmoUsername && !data.venmoEmail) ||
-      (data.venmoUsername && data.venmoEmail)
-    ) {
-      return true;
-    }
-    return false;
+    const hasVenmo = data.venmoUsername || data.venmoEmail;
+    const hasBoth = data.venmoUsername && data.venmoEmail;
+    return !hasVenmo || hasBoth;
   },
   {
     message: "You must provide both Venmo Username and Email together",
@@ -119,7 +115,7 @@ export function FundraiserVenmoVerifyForm({
             />
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline" onClick={onBack}>
+            <Button type="button" variant="outline" onClick={onBack}>
               Back
             </Button>
             <Button type="submit">Next</Button>
