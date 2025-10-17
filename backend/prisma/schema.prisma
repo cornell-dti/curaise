@@ -22,16 +22,14 @@ model User {
 }
 
 model Organization {
-  id                      String   @id @default(uuid()) @db.Uuid
-  name                    String   @unique
-  description             String
-  authorized              Boolean  @default(false)
-  logoUrl                 String?  @map("logo_url")
-  websiteUrl              String?  @map("website_url")
-  instagramUsername       String?  @map("instagram_username")
-  venmoUsername           String?  @unique @map("venmo_username")
-  venmoForwardingVerified Boolean  @default(false) @map("venmo_forwarding_verified")
-  createdAt               DateTime @default(now()) @map("created_at")
+  id                String   @id @default(uuid()) @db.Uuid
+  name              String   @unique
+  description       String
+  authorized        Boolean  @default(false)
+  logoUrl           String?  @map("logo_url")
+  websiteUrl        String?  @map("website_url")
+  instagramUsername String?  @map("instagram_username")
+  createdAt         DateTime @default(now()) @map("created_at")
 
   admins      User[]
   fundraisers Fundraiser[]
@@ -52,6 +50,9 @@ model Fundraiser {
   pickupEndsAt   DateTime @map("pickup_ends_at")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
+
+  venmoUsername String? @map("venmo_username")
+  venmoEmail    String? @map("venmo_email")
 
   organization   Organization   @relation(fields: [organizationId], references: [id])
   organizationId String         @map("organization_id") @db.Uuid

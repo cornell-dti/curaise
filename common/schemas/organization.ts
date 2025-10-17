@@ -12,8 +12,6 @@ export const BasicOrganizationSchema = z.object({
 export const CompleteOrganizationSchema = BasicOrganizationSchema.extend({
   websiteUrl: z.string().url().nullish(),
   instagramUsername: z.string().min(1).max(255).nullish(),
-  venmoUsername: z.string().min(1).max(255).nullish(),
-  venmoForwardingVerified: z.boolean(),
 
   admins: z.array(UserSchema),
 });
@@ -38,13 +36,6 @@ export const CreateOrganizationBody = z.object({
       value ? (value.length === 0 ? undefined : value) : undefined
     )
     .pipe(z.string().min(1).max(30).optional()),
-  venmoUsername: z
-    .string()
-    .optional()
-    .transform((value) =>
-      value ? (value.length === 0 ? undefined : value) : undefined
-    )
-    .pipe(z.string().min(5).max(30).optional()),
   addedAdminsIds: z.array(z.string().uuid()),
 });
 
@@ -66,12 +57,5 @@ export const UpdateOrganizationBody = z.object({
       value ? (value.length === 0 ? undefined : value) : undefined
     )
     .pipe(z.string().min(1).max(30).optional()),
-  venmoUsername: z
-    .string()
-    .optional()
-    .transform((value) =>
-      value ? (value.length === 0 ? undefined : value) : undefined
-    )
-    .pipe(z.string().min(5).max(30).optional()),
   addedAdminsIds: z.array(z.string().uuid()), // appends additional admin ids, doesn't replace original
 });

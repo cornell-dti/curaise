@@ -31,7 +31,7 @@ import {
 } from "common";
 import { getOrganization } from "../organization/organization.services";
 import { z } from "zod";
-import { sendAnnouncementEmail } from "../../utils/email";
+import { sendAnnouncementEmail, sendVenmoSetupEmail } from "../../utils/email";
 
 export const getAllFundraisersHandler = async (req: Request, res: Response) => {
   const fundraisers = await getAllFundraisers();
@@ -155,6 +155,19 @@ export const createFundraiserHandler = async (
     return;
   }
 
+  // Send Venmo setup email if venmoEmail is provided
+  if (req.body.venmoEmail) {
+    try {
+      await sendVenmoSetupEmail({
+        venmoEmail: req.body.venmoEmail,
+        fundraiserName: fundraiser.name,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to send Venmo setup email" });
+      return;
+    }
+  }
+
   // remove irrelevant fields
   const parsedFundraiser = BasicFundraiserSchema.safeParse(fundraiser);
   if (!parsedFundraiser.success) {
@@ -194,6 +207,10 @@ export const updateFundraiserHandler = async (
     return;
   }
 
+  // Check if venmoEmail was edited
+  const venmoEmailEdited =
+    req.body.venmoEmail && req.body.venmoEmail !== fundraiser.venmoEmail;
+
   const updatedFundraiser = await updateFundraiser({
     fundraiserId: req.params.id,
     ...req.body,
@@ -201,6 +218,19 @@ export const updateFundraiserHandler = async (
   if (!updatedFundraiser) {
     res.status(500).json({ message: "Failed to update fundraiser" });
     return;
+  }
+
+  // Send Venmo setup email if venmoEmail was edited
+  if (venmoEmailEdited) {
+    try {
+      await sendVenmoSetupEmail({
+        venmoEmail: req.body.venmoEmail!,
+        fundraiserName: updatedFundraiser.name,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to send Venmo setup email" });
+      return;
+    }
   }
 
   // remove irrelevant fields
