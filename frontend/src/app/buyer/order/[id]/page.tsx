@@ -87,20 +87,20 @@ export default async function OrderPage({
     )
     .toFixed(2);
 
-  // Extract order ID suffix for Venmo payment
-  const orderIdSuffix = order.id.slice(-12).replace(/-/g, '');
+  // Use full order ID for Venmo payment
+  const orderIdForPayment = order.id;
 
   // Get banner styling based on payment status
   const getBannerStyling = () => {
     switch (order.paymentStatus) {
-      case "PENDING":
-        return {
-          borderColor: "border-yellow-500",
-          bgColor: "bg-yellow-50 dark:bg-yellow-950/20",
-          textColor: "text-yellow-800 dark:text-yellow-200",
-          title: "Payment Required",
-          message: "Please complete your payment using the order ID below as your Venmo message.",
-        };
+        case "PENDING":
+          return {
+            borderColor: "border-yellow-500",
+            bgColor: "bg-yellow-50 dark:bg-yellow-950/20",
+            textColor: "text-yellow-800 dark:text-yellow-200",
+            title: "Payment Required",
+            message: "Click the Venmo link below to complete your payment.",
+          };
       case "CONFIRMED":
         return {
           borderColor: "border-green-500",
@@ -142,40 +142,56 @@ export default async function OrderPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm font-medium">Order ID:</span>
-                <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
-                  {orderIdSuffix}
-                </code>
-              </div>
-              {order.paymentStatus === "PENDING" && order.paymentMethod === "VENMO" && (
-                <p className="text-sm text-muted-foreground">
-                  Send this exact ID as your Venmo message to complete payment.
-                </p>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <CopyOrderIdButton orderId={orderIdSuffix} />
-              {order.paymentMethod === "VENMO" && order.fundraiser.venmoUsername && (
+          <div className="space-y-4">
+            {order.paymentMethod === "VENMO" && (
+              <div className="flex justify-center">
                 <Button
-                  variant="outline"
-                  size="sm"
+                  size="lg"
                   asChild
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 bg-[#3D95CE] hover:bg-[#2E7BB8] text-white font-semibold px-8 py-3"
                 >
                   <a
-                    href={`https://venmo.com/${order.fundraiser.venmoUsername}?txn=pay&note=${orderIdSuffix}&amount=${orderTotal}`}
+                    href={order.fundraiser.venmoUsername 
+                      ? `https://venmo.com/${order.fundraiser.venmoUsername}?txn=pay&note=${orderIdForPayment}&amount=${orderTotal}`
+                      : `https://venmo.com?txn=pay&note=${orderIdForPayment}&amount=${orderTotal}`
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <ExternalLink className="h-4 w-4" />
-                    Pay with Venmo
+                    <ExternalLink className="h-5 w-5" />
+                    {order.fundraiser.venmoUsername ? "Pay with Venmo" : "Open Venmo"}
                   </a>
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
+            
+            {order.paymentStatus === "PENDING" && order.paymentMethod === "VENMO" && (
+              <details className="text-sm text-muted-foreground">
+                <summary className="cursor-pointer hover:text-foreground">
+                  Link not working?
+                </summary>
+                <div className="mt-2 pl-4 border-l-2 border-muted">
+                  <p className="mb-1">Send this exact order ID as your Venmo message:</p>
+                  <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
+                    {orderIdForPayment}
+                  </code>
+                  <div className="mt-2">
+                    <p className="mb-1 text-sm">Amount to send:</p>
+                    <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
+                      ${orderTotal}
+                    </code>
+                  </div>
+                  {order.fundraiser.venmoUsername && (
+                    <div className="mt-2">
+                      <p className="mb-1 text-sm">Send to Venmo username:</p>
+                      <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
+                        @{order.fundraiser.venmoUsername}
+                      </code>
+                    </div>
+                  )}
+                </div>
+              </details>
+            )}
           </div>
         </CardContent>
       </Card>
