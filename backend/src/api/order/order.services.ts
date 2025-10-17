@@ -1,6 +1,7 @@
 import { prisma } from "../../utils/prisma";
 import { CreateOrderBody } from "common";
 import { z } from "zod";
+import { Decimal } from "decimal.js";
 
 export const getOrder = async (orderId: string) => {
   const order = await prisma.order.findUnique({
@@ -167,13 +168,17 @@ export const confirmOrderPayment = async (orderId: string) => {
 /**
  * Calculate the total amount for an order based on its items and quantities
  */
-export const calculateOrderTotal = async (orderId: string): Promise<number> => {
+export const calculateOrderTotal = async (orderId: string): Promise<Decimal> => {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: {
       items: {
         include: {
-          item: true,
+          item: {
+            select: {
+              price: true,
+            },
+          },
         },
       },
     },
@@ -183,10 +188,13 @@ export const calculateOrderTotal = async (orderId: string): Promise<number> => {
     throw new Error("Order not found");
   }
 
-  const total = order.items.reduce((sum, orderItem) => {
-    const itemPrice = parseFloat(orderItem.item.price.toString());
-    return sum + itemPrice * orderItem.quantity;
-  }, 0);
+  const total = order.items.reduce(
+    (sum, orderItem) =>
+      sum.plus(
+        new Decimal(orderItem.item.price.toString()).times(orderItem.quantity)
+      ),
+    new Decimal(0)
+  );
 
   return total;
 };
