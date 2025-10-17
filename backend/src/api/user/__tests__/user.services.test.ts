@@ -75,11 +75,19 @@ describe("User Services", () => {
     });
 
     it("should return null on error", async () => {
+      const consoleErrorSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation();
       prismaMock.user.findMany.mockRejectedValue(new Error("Database error"));
 
       const result = await getUsersByIds(["id1", "id2"]);
 
       expect(result).toBeNull();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Error fetching users by IDs:",
+        expect.any(Error)
+      );
+      consoleErrorSpy.mockRestore();
     });
 
     it("should handle empty array", async () => {
