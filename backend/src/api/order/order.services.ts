@@ -1,7 +1,7 @@
 import { prisma } from "../../utils/prisma";
 import { CreateOrderBody } from "common";
 import { z } from "zod";
-import { invalidateFundraiserAnalyticsCache } from "../fundraiser/fundraiser.services";
+import { updateCacheForNewOrder, updateCacheForOrderPickup } from "../fundraiser/fundraiser.services";
 
 export const getOrder = async (orderId: string) => {
   const order = await prisma.order.findUnique({
@@ -88,8 +88,8 @@ export const createOrder = async (
     },
   });
 
-  // Invalidate analytics cache for the fundraiser when a new order is created
-  await invalidateFundraiserAnalyticsCache(orderBody.fundraiserId);
+  // Update analytics cache for the fundraiser when a new order is created
+  await updateCacheForNewOrder(orderBody.fundraiserId, order.createdAt);
 
   return order;
 };
@@ -125,11 +125,14 @@ export const completeOrderPickup = async (orderId: string) => {
           },
         },
       },
+      items: {
+        select: { quantity: true, item: true },
+      },
     },
   });
 
-  // Invalidate analytics cache for the fundraiser when an order is picked up, so pending order and picked up order counts are not stale
-  await invalidateFundraiserAnalyticsCache(order.fundraiser.id);
+  // Update analytics cache for the fundraiser when an order is picked up, so pending order and picked up order counts are not stale
+  await updateCacheForOrderPickup(order.fundraiser.id, order);
 
   return order;
 };
