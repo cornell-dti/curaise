@@ -4,13 +4,15 @@ import { prisma } from "../../utils/prisma";
 import { calculateOrderTotal } from "../order/order.services";
 
 export const parseUnverifiedVenmoEmail = (raw: string) => {
-  let parsedAmount: number | null = null;
+  let parsedAmount: Decimal | null = null;
   let orderId: string | null = null;
 
   const $ = load(raw);
   const amount = $('span[style="color:#148572;float:right;"]').text().trim();
-  parsedAmount = parseFloat(amount.replace("$", "").replace("+", ""));
-  if (isNaN(parsedAmount)) {
+  const amountStr = amount.replace("$", "").replace("+", "");
+  parsedAmount = new Decimal(amountStr);
+
+  if (parsedAmount.isNaN()) {
     console.log("Parsed amount is NaN");
     parsedAmount = null;
     throw new Error("Failed to parse payment amount");
@@ -53,15 +55,17 @@ export const parseVerifiedVenmoEmail = (raw: string) => {
 
 export const updateOrderPaymentStatus = async (
   orderId: string,
-  paidAmount: number
+  paidAmount: Decimal
 ) => {
   try {
     // Calculate expected order total
     const expectedAmount = await calculateOrderTotal(orderId);
 
-    // Validate that paid amount matches expected amount (with small tolerance for floating point precision)
-    const tolerance = 0.01;
-    if (Math.abs(paidAmount - expectedAmount) > tolerance) {
+    // Validate that paid amount matches expected amount using Decimal comparison
+    const tolerance = new Decimal(0.01);
+    const difference = paidAmount.minus(expectedAmount).abs();
+
+    if (difference.greaterThan(tolerance)) {
       throw new Error(
         `Payment amount mismatch: expected $${expectedAmount.toFixed(
           2
