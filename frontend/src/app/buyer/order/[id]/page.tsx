@@ -16,12 +16,15 @@ import {
   MapPin,
   ShoppingBag,
   User,
+  ExternalLink,
 } from "lucide-react";
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { Separator } from "@/components/ui/separator";
 import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
 import { format } from "date-fns";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { CopyOrderIdButton } from "@/components/custom/CopyOrderIdButton";
 
 // data fetching function
 const getOrder = async (id: string, token: string) => {
@@ -84,6 +87,41 @@ export default async function OrderPage({
     )
     .toFixed(2);
 
+  // Extract order ID suffix for Venmo payment
+  const orderIdSuffix = order.id.slice(-12).replace(/-/g, '');
+
+  // Get banner styling based on payment status
+  const getBannerStyling = () => {
+    switch (order.paymentStatus) {
+      case "PENDING":
+        return {
+          borderColor: "border-yellow-500",
+          bgColor: "bg-yellow-50 dark:bg-yellow-950/20",
+          textColor: "text-yellow-800 dark:text-yellow-200",
+          title: "Payment Required",
+          message: "Please complete your payment using the order ID below as your Venmo message.",
+        };
+      case "CONFIRMED":
+        return {
+          borderColor: "border-green-500",
+          bgColor: "bg-green-50 dark:bg-green-950/20",
+          textColor: "text-green-800 dark:text-green-200",
+          title: "Payment Confirmed",
+          message: "Your payment has been verified. Your order ID for reference:",
+        };
+      case "UNVERIFIABLE":
+        return {
+          borderColor: "border-blue-500",
+          bgColor: "bg-blue-50 dark:bg-blue-950/20",
+          textColor: "text-blue-800 dark:text-blue-200",
+          title: "Payment Unverifiable",
+          message: "Your order ID for reference (cash payment or other unverifiable method):",
+        };
+    }
+  };
+
+  const bannerStyle = getBannerStyling();
+
   return (
     <div className="container max-w-4xl py-6 px-4 md:py-8 md:px-6 mx-auto">
       <div className="flex flex-col gap-2 mb-6">
@@ -92,6 +130,55 @@ export default async function OrderPage({
           View the details of your order from <b>{order.fundraiser.name}</b>
         </p>
       </div>
+
+      {/* Payment Banner */}
+      <Card className={`mb-6 ${bannerStyle.borderColor} ${bannerStyle.bgColor}`}>
+        <CardHeader className="pb-3">
+          <CardTitle className={bannerStyle.textColor}>
+            {bannerStyle.title}
+          </CardTitle>
+          <CardDescription className={bannerStyle.textColor}>
+            {bannerStyle.message}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-medium">Order ID:</span>
+                <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
+                  {orderIdSuffix}
+                </code>
+              </div>
+              {order.paymentStatus === "PENDING" && order.paymentMethod === "VENMO" && (
+                <p className="text-sm text-muted-foreground">
+                  Send this exact ID as your Venmo message to complete payment.
+                </p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <CopyOrderIdButton orderId={orderIdSuffix} />
+              {order.paymentMethod === "VENMO" && order.fundraiser.venmoUsername && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="flex items-center gap-2"
+                >
+                  <a
+                    href={`https://venmo.com/${order.fundraiser.venmoUsername}?txn=pay&note=${orderIdSuffix}&amount=${orderTotal}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Pay with Venmo
+                  </a>
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6">
         {/* Order Summary Card */}

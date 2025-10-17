@@ -37,7 +37,7 @@ export function CheckoutForm({
   const [formData, setFormData] = useState<z.infer<typeof CreateOrderBody>>({
     fundraiserId: fundraiser.id,
     items: cartItems,
-    payment_method: "OTHER", // default to other for now
+    payment_method: "VENMO", // default to venmo
   });
 
   async function onSubmit() {

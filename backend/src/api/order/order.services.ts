@@ -19,6 +19,8 @@ export const getOrder = async (orderId: string) => {
           buyingEndsAt: true,
           pickupStartsAt: true,
           pickupEndsAt: true,
+          venmoUsername: true,
+          venmoEmail: true,
           organization: {
             select: {
               id: true,
@@ -73,6 +75,8 @@ export const createOrder = async (
           buyingEndsAt: true,
           pickupStartsAt: true,
           pickupEndsAt: true,
+          venmoUsername: true,
+          venmoEmail: true,
           organization: {
             select: {
               id: true,
@@ -110,6 +114,8 @@ export const completeOrderPickup = async (orderId: string) => {
           buyingEndsAt: true,
           pickupStartsAt: true,
           pickupEndsAt: true,
+          venmoUsername: true,
+          venmoEmail: true,
           organization: {
             select: {
               id: true,
@@ -147,6 +153,8 @@ export const confirmOrderPayment = async (orderId: string) => {
           buyingEndsAt: true,
           pickupStartsAt: true,
           pickupEndsAt: true,
+          venmoUsername: true,
+          venmoEmail: true,
           organization: {
             select: {
               id: true,
