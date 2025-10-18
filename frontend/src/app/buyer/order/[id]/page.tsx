@@ -135,7 +135,7 @@ export default async function OrderPage({
 
       {/* Payment Banner */}
       <Card className={`${bannerStyle.borderColor} ${bannerStyle.bgColor}`}>
-        <CardHeader className="pb-3">
+        <CardHeader className="py-6">
           <CardTitle className={bannerStyle.textColor}>
             {bannerStyle.title}
           </CardTitle>
