@@ -169,8 +169,8 @@ export default async function OrderPage({
               {bannerStyle.message}
             </CardDescription>
           </CardHeader>
-           {/* Only show CardContent for PENDING orders */}
-           {order.paymentStatus === "PENDING" && (
+           {/* Only show CardContent for VENMO orders */}
+           {order.paymentStatus === "PENDING" && order.paymentMethod === "VENMO" && (
             <CardContent>
               <div className="space-y-4">
                 {/* Show Venmo button only for VENMO payment method */}
