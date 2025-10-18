@@ -192,27 +192,24 @@ export default async function OrderPage({
            {order.paymentStatus === "PENDING" && order.paymentMethod === "VENMO" && (
             <CardContent>
               <div className="space-y-4">
-                {/* Show Venmo button only for VENMO payment method */}
-                {order.paymentMethod === "VENMO" && (
-                  <div className="flex justify-center">
-                    <Button
-                      size="lg"
-                      asChild
-                      className="flex items-center gap-2 bg-[#3D95CE] hover:bg-[#2E7BB8] text-white font-semibold px-8 py-3 text-md"
+                <div className="flex justify-center">
+                  <Button
+                    size="lg"
+                    asChild
+                    className="flex items-center gap-2 bg-[#3D95CE] hover:bg-[#2E7BB8] text-white font-semibold px-8 py-3 text-md"
+                  >
+                    <a
+                      href={fundraiser.venmoUsername
+                        ? `https://venmo.com/${fundraiser.venmoUsername}?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`
+                        : `https://venmo.com?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
-                      <a
-                        href={fundraiser.venmoUsername
-                          ? `https://venmo.com/${fundraiser.venmoUsername}?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`
-                          : `https://venmo.com?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <ExternalLink className="h-5 w-5" />
-                        Pay with Venmo</a>
-                    </Button>
-                  </div>
-                )}
+                      <ExternalLink className="h-5 w-5" />
+                      Pay with Venmo</a>
+                  </Button>
+                </div>
 
                 {/* Show payment details only for VENMO orders */}
                 <details className="text-sm text-muted-foreground">
