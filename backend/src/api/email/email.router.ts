@@ -5,6 +5,10 @@ import validate from "../../middleware/validate";
 
 const emailRouter = Router();
 
-emailRouter.post("/parse", validate({ body: MailgunInboundEmailBody }), parseEmailHandler);
+emailRouter.post(
+  "/parse",
+  validate({ body: MailgunInboundEmailBody }),
+  parseEmailHandler
+);
 
 export default emailRouter;

@@ -1,51 +1,90 @@
 import { Request, Response } from "express-serve-static-core";
+import { load } from "cheerio";
 import { MailgunInboundEmailBody } from "./email.types";
 import {
   parseUnverifiedVenmoEmail,
+  parseVerifiedVenmoEmail,
   updateOrderPaymentStatus,
 } from "./email.services";
-import { isValidVenmoEmail } from "../../utils/email";
-import { z } from "zod";
 
 export const parseEmailHandler = async (
-  req: Request<{}, any, z.infer<typeof MailgunInboundEmailBody>, {}>,
+  req: Request<{}, any, MailgunInboundEmailBody, {}>,
   res: Response
 ) => {
   try {
-    const bodyHtml = req.body["body-html"];
-    const bodyPlain = req.body["Body-plain"];
-    const { from, subject } = req.body;
+    const {
+      from,
+      subject,
+      "body-html": bodyHtml,
+      "body-plain": bodyPlain,
+      timestamp,
+      token,
+      signature,
+    } = req.body;
 
-    // Verify email is from Venmo
-    const isFromVenmo = isValidVenmoEmail(from);
-    if (!isFromVenmo) {
-      res.status(400).json({
-        message: "Email not from verified Venmo address",
-      });
+    // TODO: Verify Mailgun signature
+
+    // Confirm sender is Venmo
+    if (from !== "venmo@venmo.com") {
+      res.status(406).json({ message: "ignored sender" });
       return;
     }
 
-    // Use HTML body if available, otherwise use plain text
-    const emailContent = bodyHtml || bodyPlain;
+    // Choose content
+    const emailContent = bodyHtml || bodyPlain || "";
+    if (!emailContent) {
+      // Nothing to parse; treat as processed to avoid retry storms
+      res.status(200).json({ message: "no content" });
+      return;
+    }
 
-    // Parse email to extract amount and order ID
-    const { parsedAmount, orderId } = parseUnverifiedVenmoEmail(emailContent);
+    // Detect format
+    let isVerifiedFormat = false;
+    try {
+      const $ = load(emailContent);
+      isVerifiedFormat =
+        $("div.amount-container__amount-text").length > 0 ||
+        $("div.amount-container__text-high").length > 0;
+    } catch {
+      isVerifiedFormat = false;
+    }
 
-    // Update order payment status in database
-    const updatedOrder = await updateOrderPaymentStatus(orderId, parsedAmount);
+    // Parse
+    let parsedAmount: any;
+    let orderId: string;
+    try {
+      if (isVerifiedFormat) {
+        const result = parseVerifiedVenmoEmail(emailContent);
+        parsedAmount = result.Decimal;
+        orderId = result.orderId;
+      } else {
+        const result = parseUnverifiedVenmoEmail(emailContent);
+        parsedAmount = result.parsedAmount;
+        orderId = result.orderId;
+      }
+      if (!orderId || parsedAmount == null) {
+        // Parse failed—do not retry
+        res.status(200).json({ message: "parsed incomplete" });
+        return;
+      }
+    } catch (err) {
+      console.error("Failed to parse Venmo email:", err, { subject });
+      res.status(200).json({ message: "parse error" });
+      return;
+    }
 
-    res.status(200).json({
-      message: "Email parsed and order updated successfully",
-      data: {
-        amount: parsedAmount,
-        orderId,
-        orderStatus: updatedOrder.paymentStatus,
-        verified: isFromVenmo,
-      },
-    });
-  } catch (error) {
-    res.status(400).json({
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
+    // Persist
+    try {
+      await updateOrderPaymentStatus(orderId, parsedAmount);
+    } catch (err) {
+      console.error("Failed to update order payment status:", err, { orderId });
+      res.status(200).json({ message: "update error" });
+      return;
+    }
+
+    res.status(200).json({ message: "ok" });
+  } catch (err) {
+    console.error("Unexpected error in parseEmailHandler:", err);
+    res.status(200).json({ message: "handled" });
   }
 };
