@@ -98,7 +98,6 @@ export default async function OrderPage({
       if (order.paymentStatus === "CONFIRMED") {
         return {
           borderColor: "border-green-500",
-          bgColor: "",
           textColor: "text-green-800 dark:text-green-200",
           title: "Payment Confirmed",
           message: "Your payment has been verified. No further action is required.",
@@ -107,7 +106,6 @@ export default async function OrderPage({
         // OTHER + PENDING or OTHER + UNVERIFIABLE both show UNVERIFIABLE messaging
         return {
           borderColor: "border-blue-500",
-          bgColor: "",
           textColor: "text-blue-800 dark:text-blue-200",
           title: "Order Processed",
           message: "Your order has been received. Payment will have to be manually verified by the fundraiser managers.",
@@ -120,7 +118,6 @@ export default async function OrderPage({
       case "PENDING":
         return {
           borderColor: "border-blue-500",
-          bgColor: "",
           textColor: "text-blue-800 dark:text-blue-200",
           title: "Payment Required",
           message: "Complete your payment to confirm your order.",
@@ -128,7 +125,6 @@ export default async function OrderPage({
       case "CONFIRMED":
         return {
           borderColor: "border-green-500",
-          bgColor: "",
           textColor: "text-green-800 dark:text-green-200",
           title: "Payment Confirmed",
           message: "Your payment has been verified. No further action is required.",
@@ -137,7 +133,6 @@ export default async function OrderPage({
         // This shouldn't happen for VENMO orders, but handle it gracefully
         return {
           borderColor: "border-blue-500",
-          bgColor: "",
           textColor: "text-blue-800 dark:text-blue-200",
           title: "Order Processed",
           message: "Your order has been received. Payment will have to be manually verified by the fundraiser managers.",
@@ -160,7 +155,7 @@ export default async function OrderPage({
       <div className="grid gap-6">
 
         {/* Payment Banner */}
-        <Card className={`${bannerStyle.borderColor} ${bannerStyle.bgColor}`}>
+        <Card className={`${bannerStyle.borderColor}`}>
           <CardHeader className="py-6">
             <CardTitle className={bannerStyle.textColor}>
               {bannerStyle.title}
@@ -183,8 +178,8 @@ export default async function OrderPage({
                     >
                       <a
                         href={order.fundraiser.venmoUsername
-                          ? `https://venmo.com/${order.fundraiser.venmoUsername}?txn=pay&note=${orderIdForPayment}&amount=${orderTotal}`
-                          : `https://venmo.com?txn=pay&note=${orderIdForPayment}&amount=${orderTotal}`
+                          ? `https://venmo.com/${order.fundraiser.venmoUsername}?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`
+                          : `https://venmo.com?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`
                         }
                         target="_blank"
                         rel="noopener noreferrer"
