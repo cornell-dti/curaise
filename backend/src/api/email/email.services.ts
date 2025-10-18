@@ -66,6 +66,8 @@ export const updateOrderPaymentStatus = async (
     const difference = paidAmount.minus(expectedAmount).abs();
 
     if (difference.greaterThan(tolerance)) {
+      // TODO: Handle amount mismatch (e.g., log, alert, etc.)
+
       throw new Error(
         `Payment amount mismatch: expected $${expectedAmount.toFixed(
           2
