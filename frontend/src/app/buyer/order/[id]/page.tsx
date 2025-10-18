@@ -188,7 +188,7 @@ export default async function OrderPage({
               {bannerStyle.message}
             </CardDescription>
           </CardHeader>
-           {/* Only show CardContent for VENMO orders */}
+           {/* Show CardContent for PENDING VENMO orders */}
            {order.paymentStatus === "PENDING" && order.paymentMethod === "VENMO" && (
             <CardContent>
               <div className="space-y-4">
@@ -211,7 +211,7 @@ export default async function OrderPage({
                   </Button>
                 </div>
 
-                {/* Show payment details only for VENMO orders */}
+                {/* Show payment details */}
                 <details className="text-sm text-muted-foreground">
                   <summary className="cursor-pointer hover:text-foreground">
                     Link not working?
