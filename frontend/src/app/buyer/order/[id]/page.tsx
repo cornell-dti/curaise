@@ -181,7 +181,7 @@ export default async function OrderPage({
                           <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
                             @{order.fundraiser.venmoUsername}
                           </code>
-                          <CopyOrderIdButton orderId={order.fundraiser.venmoUsername} />
+                          <CopyOrderIdButton orderId={`${order.fundraiser.venmoUsername}`} />
                         </div>
                       </>
                     )}
@@ -192,7 +192,7 @@ export default async function OrderPage({
                         <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
                           ${orderTotal}
                         </code>
-                        <CopyOrderIdButton orderId={orderTotal} />
+                        <CopyOrderIdButton orderId={`$${orderTotal}`} />
                       </div>
                     </div>
 
