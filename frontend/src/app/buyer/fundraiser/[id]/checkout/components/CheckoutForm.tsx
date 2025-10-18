@@ -63,7 +63,7 @@ export function CheckoutForm({
       return;
     } else {
       toast.success(result.message);
-      redirect("/buyer/order/" + result.data.id);
+      redirect("/buyer/order/" + result.data.id + "?fromCheckout=true");
     }
   }
 
