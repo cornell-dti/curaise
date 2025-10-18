@@ -1,7 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { CompleteOrderSchema } from "common";
+import { CompleteOrderSchema, BasicFundraiserSchema } from "common";
 import Decimal from "decimal.js";
 import {
   Card,
@@ -50,6 +50,29 @@ const getOrder = async (id: string, token: string) => {
   return data.data;
 };
 
+// fundraiser data fetching function
+const getFundraiser = async (id: string, token: string) => {
+  const response = await fetch(
+    process.env.NEXT_PUBLIC_API_URL + "/fundraiser/" + id,
+    {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    }
+  );
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message);
+  }
+
+  // parse fundraiser data
+  const data = BasicFundraiserSchema.safeParse(result.data);
+  if (!data.success) {
+    throw new Error("Could not parse fundraiser data");
+  }
+  return data.data;
+};
+
 export default async function OrderPage({
   params,
 }: {
@@ -79,6 +102,7 @@ export default async function OrderPage({
   }
 
   const order = await getOrder(id, session.access_token);
+  const fundraiser = await getFundraiser(order.fundraiser.id, session.access_token);
 
   const orderTotal = order.items
     .reduce(
@@ -177,8 +201,8 @@ export default async function OrderPage({
                       className="flex items-center gap-2 bg-[#3D95CE] hover:bg-[#2E7BB8] text-white font-semibold px-8 py-3 text-md"
                     >
                       <a
-                        href={order.fundraiser.venmoUsername
-                          ? `https://venmo.com/${order.fundraiser.venmoUsername}?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`
+                        href={fundraiser.venmoUsername
+                          ? `https://venmo.com/${fundraiser.venmoUsername}?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`
                           : `https://venmo.com?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`
                         }
                         target="_blank"
@@ -199,14 +223,14 @@ export default async function OrderPage({
                     <p className="mb-1 text-sm">
                       Manual entry details (enter exactly as shown, or the order may not be processed correctly):
                     </p>
-                    {order.fundraiser.venmoUsername && (
+                    {fundraiser.venmoUsername && (
                       <>
                         <p className="mb-1 text-sm">Send to Venmo username:</p>
                         <div className="flex items-center gap-2">
                           <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
-                            @{order.fundraiser.venmoUsername}
+                            @{fundraiser.venmoUsername}
                           </code>
-                          <CopyOrderIdButton orderId={`${order.fundraiser.venmoUsername}`} />
+                          <CopyOrderIdButton orderId={`${fundraiser.venmoUsername}`} />
                         </div>
                       </>
                     )}
