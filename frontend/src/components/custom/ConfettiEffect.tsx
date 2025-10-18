@@ -5,6 +5,7 @@ import Confetti from "react-confetti";
 
 export function ConfettiEffect() {
   const [showConfetti, setShowConfetti] = useState(false);
+  const [pieceCount, setPieceCount] = useState(1000);
   const [windowDimensions, setWindowDimensions] = useState({
     width: typeof window !== "undefined" ? window.innerWidth : 0,
     height: typeof window !== "undefined" ? window.innerHeight : 0,
@@ -16,45 +17,72 @@ export function ConfettiEffect() {
     const isFromCheckout = urlParams.get("fromCheckout") === "true";
     
     if (isFromCheckout) {
-      setShowConfetti(true);
-      
       // Update window dimensions
       setWindowDimensions({
         width: window.innerWidth,
         height: window.innerHeight,
       });
 
-       // Stop confetti after 1 second
-      const timer = setTimeout(() => {
-        setShowConfetti(false);
-      }, 1000);
-
-      // Clean up URL parameter
+      // Clean up URL parameter immediately
       const url = new URL(window.location.href);
       url.searchParams.delete("fromCheckout");
       window.history.replaceState({}, "", url.toString());
 
-      return () => clearTimeout(timer);
+      // Start confetti immediately
+      setShowConfetti(true);
+      
+      // Use performance.now() for consistent timing regardless of page load speed
+      const startTime = performance.now();
+      
+      const updatePieceCount = () => {
+        const elapsed = performance.now() - startTime;
+        
+        if (elapsed < 1000) {
+          setPieceCount(1000); // Full density for first second
+        } else if (elapsed < 1500) {
+          setPieceCount(500); // Half density for next 0.5 seconds
+        } else if (elapsed < 2000) {
+          setPieceCount(200); // Low density for next 0.5 seconds
+        } else {
+          setPieceCount(0); // Stop spawning after 2 seconds
+          return; // Stop the animation loop
+        }
+        
+        requestAnimationFrame(updatePieceCount);
+      };
+      
+      requestAnimationFrame(updatePieceCount);
     }
   }, []);
 
   if (!showConfetti) return null;
 
   return (
-    <Confetti
-      width={windowDimensions.width || window.innerWidth}
-      height={windowDimensions.height || window.innerHeight}
-      recycle={false}
-      numberOfPieces={1500}
-      gravity={2.0}
-      initialVelocityY={50}
-      colors={[
-        "#4CAF50", // Green
-        "#FF9800", // Orange
-        "#E91E63", // Pink
-        "#9C27B0", // Purple
-        "#2196F3", // Blue
-      ]}
-    />
+    <div style={{ 
+      position: 'fixed', 
+      top: 0, 
+      left: 0, 
+      width: '100vw', 
+      height: '100vh', 
+      pointerEvents: 'none',
+      overflow: 'visible',
+    }}>
+      <Confetti
+        width={windowDimensions.width || window.innerWidth}
+        height={windowDimensions.height || window.innerHeight}
+        recycle={false}
+        numberOfPieces={pieceCount}
+        gravity={1.2}
+        initialVelocityY={10}
+        run={showConfetti}
+        colors={[
+          "#4CAF50", // Green
+          "#FF9800", // Orange
+          "#E91E63", // Pink
+          "#9C27B0", // Purple
+          "#2196F3", // Blue
+        ]}
+      />
+    </div>
   );
 }
