@@ -5,6 +5,7 @@ import {
   DeleteAnnouncementRouteParams,
   DeleteFundraiserItemRouteParams,
   PickupEventRouteParams,
+  DeleteFundraiserItemRouteParams,
 } from "./fundraiser.types";
 import {
   CreateFundraiserBody,
@@ -33,6 +34,7 @@ import {
   createPickupEventHandler,
   updatePickupEventHandler,
   deletePickupEventHandler,
+  deleteFundraiserItemHandler,
 } from "./fundraiser.handlers";
 import { authenticate } from "../../middleware/authenticate";
 
