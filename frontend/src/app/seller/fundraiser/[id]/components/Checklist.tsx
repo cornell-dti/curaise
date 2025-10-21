@@ -160,7 +160,7 @@ export default function ListPage({
                 onClick={() => !item.completed && setSelectedItem(item)}
                 disabled={item.completed}
                 className={cn(
-                  "w-full rounded-lg border px-4 py-3 text-left transition-colors",
+                  "w-full rounded-lg px-4 py-3 text-left transition-colors",
                   item.completed
                     ? "cursor-not-allowed border-border bg-muted/50 text-muted-foreground line-through"
                     : "cursor-pointer border-border bg-card hover:border-ring hover:bg-accent",
@@ -172,19 +172,19 @@ export default function ListPage({
                 <div className="flex items-center gap-3">
                   <div
                     className={cn(
-                      "h-5 w-5 rounded-full border-2",
+                      "h-5 w-5 rounded-full border-[1px] flex items-center justify-center",
                       item.completed
-                        ? "border-muted-foreground bg-muted-foreground"
+                        ? "border-muted-foreground"
                         : "border-foreground"
                     )}
                   >
                     {item.completed && (
                       <svg
-                        className="h-full w-full text-background"
+                        className="h-full w-full text-muted-foreground"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
-                        strokeWidth={3}
+                        strokeWidth={2}
                       >
                         <path
                           strokeLinecap="round"
