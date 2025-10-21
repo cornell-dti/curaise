@@ -202,6 +202,16 @@ export const updateFundraiserItem = async (
   return item;
 };
 
+export const deleteFundraiserItem = async (itemId: string) => {
+  const item = await prisma.item.delete({
+    where: {
+      id: itemId,
+    },
+  });
+
+  return item;
+};
+
 export const createAnnouncement = async (
   announcementBody: z.infer<typeof CreateAnnouncementBody> & {
     fundraiserId: string;
