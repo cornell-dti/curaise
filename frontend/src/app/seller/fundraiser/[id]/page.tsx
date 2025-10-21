@@ -1,4 +1,3 @@
-import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { connection } from "next/server";
@@ -61,13 +60,19 @@ export default async function FundraiserPage({
   const id = (await params).id;
   const fundraiser = await getFundraiser(id);
   const currentFundraiserItems = await getFundraiserItems(fundraiser.id);
+  const formattedFundraiserItems = (currentFundraiserItems ?? []).map(
+    ({ id: _omit, imageUrl, ...rest }) => ({
+      ...rest,
+      imageUrl: imageUrl ?? undefined,
+    })
+  );
 
   return (
     <div className="h-full py-[64px] bg-[#F6F6F6] flex flex-col items-center">
       <FundraiserTop
         token={session.access_token}
         fundraiser={fundraiser}
-        fundraiserItems={currentFundraiserItems}
+        fundraiserItems={formattedFundraiserItems}
       />
     </div>
   );
