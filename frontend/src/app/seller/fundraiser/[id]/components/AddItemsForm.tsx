@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CreateFundraiserItemBody } from "common";
+import { CompleteItemSchema } from "common";
 import { Dispatch, SetStateAction, useState } from "react";
 import { z } from "zod";
 import { PlusCircle, X, ShoppingCart } from "lucide-react";
@@ -39,17 +39,15 @@ export function FundraiserAddItemsForm({
   onSubmit,
   onBack,
 }: {
-  items: z.infer<typeof CreateFundraiserItemBody>[];
-  setItems: Dispatch<
-    SetStateAction<z.infer<typeof CreateFundraiserItemBody>[]>
-  >;
+  items: z.infer<typeof CompleteItemSchema>[];
+  setItems: Dispatch<SetStateAction<z.infer<typeof CompleteItemSchema>[]>>;
   onSubmit: () => void;
   onBack: () => void;
 }) {
   const [open, setOpen] = useState(false);
 
-  const form = useForm<z.infer<typeof CreateFundraiserItemBody>>({
-    resolver: zodResolver(CreateFundraiserItemBody),
+  const form = useForm<z.infer<typeof CompleteItemSchema>>({
+    resolver: zodResolver(CompleteItemSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -59,9 +57,9 @@ export function FundraiserAddItemsForm({
     },
   });
 
-  const handleAddItem = (data: z.infer<typeof CreateFundraiserItemBody>) => {
+  const handleAddItem = (data: z.infer<typeof CompleteItemSchema>) => {
     // Add a temporary ID to the new item
-    const newItem: z.infer<typeof CreateFundraiserItemBody> = {
+    const newItem: z.infer<typeof CompleteItemSchema> = {
       ...data,
       offsale: false, // Always set to false
     };

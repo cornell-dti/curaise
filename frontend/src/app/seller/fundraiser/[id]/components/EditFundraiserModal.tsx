@@ -86,7 +86,7 @@ export function EditFundraiserModal({
     const fundraiserId = result.data.id;
 
     // Then add items if there are any
-    if (fundraiserItems.length > 0) {
+    if (currentFundraiserItems.length < fundraiserItems.length) {
       const itemResults = await Promise.allSettled(
         fundraiserItems.map(async (item, index) => {
           const itemResponse = await fetch(
