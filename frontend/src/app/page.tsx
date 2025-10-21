@@ -7,11 +7,13 @@ import { redirect } from "next/navigation";
 export default async function LoginPage() {
   // Check if the user is logged in
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
   // If logged in, redirect to buyer page
   if (session) {
-    redirect('/buyer/');
+    redirect("/buyer/");
   }
 
   return (
@@ -23,13 +25,14 @@ export default async function LoginPage() {
 
       <div className="container mx-auto px-4 sm:px-6 md:px-10 flex flex-col-reverse md:flex-row items-center justify-center relative z-10 gap-8 md:gap-12 py-8 md:py-12 h-full">
         {/* Left side content - vertically centered */}
-        <div className="w-full md:w-2/5 lg:w-2/5 font-[nunito] flex items-center justify-center">
+        <div className="w-full md:w-2/5 lg:w-2/5 font-[dm_sans] flex items-center justify-center">
           <div className="max-w-lg mx-auto md:mx-0 w-full flex flex-col gap-6">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-[700] mb-0 text-black text-center md:text-left">
               Welcome to CURaise
             </h1>
             <p className="text-base sm:text-xl md:text-2xl text-black mb-0 font-[400] text-center md:text-left">
-              Your one stop platform for fundraising, organization, discovery and impact.
+              Your one stop platform for fundraising, organization, discovery
+              and impact.
             </p>
             <div className="flex justify-center md:justify-start">
               <SignInWithGoogleButton />
@@ -40,9 +43,9 @@ export default async function LoginPage() {
         {/* Right side image - enlarged further to take up more space */}
         <div className="w-full md:w-3/5 lg:w-3/5 flex justify-center items-center my-6 md:my-0">
           <div className="relative w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl">
-            <Image 
+            <Image
               src={loginLaptopView}
-              alt="CURaise Dashboard Preview" 
+              alt="CURaise Dashboard Preview"
               priority
               className="drop-shadow-xl w-full h-auto"
               sizes="(max-width: 640px) 100vw, (max-width: 768px) 100vw, (max-width: 1200px) 55vw, 45vw"
