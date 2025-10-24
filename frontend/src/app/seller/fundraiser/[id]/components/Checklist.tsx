@@ -46,7 +46,7 @@ const checkListData = [
       <SendHorizontal className="stroke-[#265B34]" strokeWidth={2} size={30} />
     ),
     button: "Add Venmo Info",
-    step: 1,
+    step: 2,
     completed: false,
   },
   {
@@ -86,7 +86,7 @@ const checkListData = [
       <ShoppingCart className="stroke-[#265B34]" strokeWidth={2} size={30} />
     ),
     button: "Add Fundraiser Items",
-    step: 2,
+    step: 1,
     completed: false,
   },
 ];

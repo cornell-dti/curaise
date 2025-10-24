@@ -48,6 +48,8 @@ export function EditFundraiserModal({
     pickupStartsAt: fundraiser.pickupStartsAt,
     pickupEndsAt: fundraiser.pickupEndsAt,
     organizationId: fundraiser.organization.id,
+    venmoEmail: fundraiser.venmoEmail ?? undefined,
+    venmoUsername: fundraiser.venmoUsername ?? undefined,
   });
   const [fundraiserItems, setFundraiserItems] = useState<
     z.infer<typeof CreateFundraiserItemBody>[]
@@ -168,8 +170,8 @@ export function EditFundraiserModal({
           <MultiStepForm
             labels={[
               "Basic Information",
-              "Venmo Information",
               "Add Items",
+              "Venmo Information",
               "Review Fundraiser",
             ]}
             currentStep={currentStep}
@@ -182,20 +184,20 @@ export function EditFundraiserModal({
               }}
             />
 
+            <FundraiserAddItemsForm
+              items={fundraiserItems}
+              setItems={setFundraiserItems}
+              onSubmit={() => setCurrentStep(2)}
+              onBack={() => setCurrentStep(0)}
+            />
+
             <FundraiserVenmoInfoForm
               defaultValues={formData}
               onSubmit={(data) => {
                 setFormData((prev) => ({ ...prev, ...data }));
-                setCurrentStep(2);
+                setCurrentStep(3);
               }}
-              onBack={() => setCurrentStep(0)}
-            />
-
-            <FundraiserAddItemsForm
-              items={fundraiserItems}
-              setItems={setFundraiserItems}
-              onSubmit={() => setCurrentStep(3)}
-              onBack={() => setCurrentStep(0)}
+              onBack={() => setCurrentStep(1)}
             />
 
             <ReviewFundraiserForm

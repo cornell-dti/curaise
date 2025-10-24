@@ -63,6 +63,8 @@ export function CreateFundraiserForm({
       },
     ],
     organizationId: organizationId,
+    venmoEmail: "",
+    venmoUsername: "",
   });
 
   // State for fundraiser items list
@@ -163,8 +165,8 @@ export function CreateFundraiserForm({
       <MultiStepForm
         labels={[
           "Basic Information",
-          "Venmo Information",
           "Add Items",
+          "Venmo Information",
           "Review Fundraiser",
         ]}
         currentStep={currentStep}
@@ -177,19 +179,19 @@ export function CreateFundraiserForm({
           }}
         />
 
+        <FundraiserAddItemsForm
+          items={fundraiserItems}
+          setItems={setFundraiserItems}
+          onSubmit={() => setCurrentStep(2)}
+          onBack={() => setCurrentStep(0)}
+        />
+
         <FundraiserVenmoInfoForm
           defaultValues={formData}
           onSubmit={(data) => {
             setFormData((prev) => ({ ...prev, ...data }));
-            setCurrentStep(2);
+            setCurrentStep(3);
           }}
-          onBack={() => setCurrentStep(0)}
-        />
-
-        <FundraiserAddItemsForm
-          items={fundraiserItems}
-          setItems={setFundraiserItems}
-          onSubmit={() => setCurrentStep(3)}
           onBack={() => setCurrentStep(1)}
         />
 
