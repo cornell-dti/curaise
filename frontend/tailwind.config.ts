@@ -10,7 +10,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-nunito)"],
+        sans: ["var(--font-dm-sans)"],
         mono: ["var(--font-roboto-mono)"],
       },
       colors: {

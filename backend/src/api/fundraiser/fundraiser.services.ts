@@ -146,7 +146,7 @@ export const updateFundraiser = async (
       name: fundraiserBody.name,
       description: fundraiserBody.description,
       venmoUsername: fundraiserBody.venmoUsername ?? null,
-      venmoEmail: fundraiserBody.venmoEmail,
+      venmoEmail: fundraiserBody.venmoEmail ?? null,
       goalAmount: fundraiserBody.goalAmount ?? null,
       pickupLocation: fundraiserBody.pickupLocation,
       imageUrls: fundraiserBody.imageUrls,
@@ -196,6 +196,16 @@ export const updateFundraiserItem = async (
       price: itemBody.price,
       imageUrl: itemBody.imageUrl ?? null,
       offsale: itemBody.offsale,
+    },
+  });
+
+  return item;
+};
+
+export const deleteFundraiserItem = async (itemId: string) => {
+  const item = await prisma.item.delete({
+    where: {
+      id: itemId,
     },
   });
 
