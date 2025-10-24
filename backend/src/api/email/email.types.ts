@@ -5,17 +5,17 @@ export const MailgunInboundEmailBody = z.object({
   sender: z.string(),
   from: z.string(),
   subject: z.string().default(""),
-  "body-plain": z.string().default(""),
+  "Body-plain": z.string().default(""),
   "stripped-text": z.string().optional(),
   "stripped-signature": z.string().optional(),
   "body-html": z.string().optional(),
   "stripped-html": z.string().optional(),
-  "attachment-count": z.coerce.number().default(0),
+  "Attachment-count": z.coerce.number().default(0),
   timestamp: z.coerce.number(),
   token: z.string(),
   signature: z.string(),
   "message-headers": z.string().optional(),
-  "content-id-map": z.string().optional(),
+  "Content-id-map": z.string().optional(),
 });
 
 export type MailgunInboundEmailBody = z.infer<typeof MailgunInboundEmailBody>;

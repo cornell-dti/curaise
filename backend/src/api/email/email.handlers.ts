@@ -16,7 +16,7 @@ export const parseEmailHandler = async (
       from,
       subject,
       "body-html": bodyHtml,
-      "body-plain": bodyPlain,
+      "Body-plain": bodyPlain,
       timestamp,
       token,
       signature,
