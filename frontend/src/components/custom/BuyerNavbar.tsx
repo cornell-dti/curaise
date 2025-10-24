@@ -24,6 +24,9 @@ import { ShoppingCart } from "./ShoppingCart";
 import { Menu, ShoppingCart as ShoppingCartIcon } from "lucide-react";
 import DesktopUserMenu from "./DesktopUserMenu";
 import MobileUserMenu from "./MobileUserMenu";
+import useStore from "@/lib/store/useStore";
+import { useCartStore } from "@/lib/store/useCartStore";
+import { Badge } from "../ui/badge";
 
 export default function BuyerNavbar() {
   const pathname = usePathname();
@@ -45,6 +48,9 @@ export default function BuyerNavbar() {
   };
 
   const fundraiserId = getFundraiserId();
+  const cart =
+    useStore(useCartStore, (state) => state.carts[fundraiserId ?? ""]) || [];
+  console.log(cart);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
@@ -76,7 +82,17 @@ export default function BuyerNavbar() {
               </NavigationMenuItem>
               {showCart && fundraiserId && (
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger>Cart</NavigationMenuTrigger>
+                  <NavigationMenuTrigger className="gap-2">
+                    Cart{" "}
+                    {cart.length > 0 && (
+                      <Badge
+                        variant="destructive"
+                        className="p-0 w-5 h-5 flex justify-center text-[10px] font-medium rounded-full"
+                      >
+                        {cart.length}
+                      </Badge>
+                    )}
+                  </NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <div className="w-[300px] p-4">
                       <ShoppingCart fundraiserId={fundraiserId} />
@@ -100,6 +116,14 @@ export default function BuyerNavbar() {
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden">
                   <ShoppingCartIcon className="h-5 w-5" />
+                  {cart.length > 0 && (
+                    <Badge
+                      variant="destructive"
+                      className="px-1 w-4 h-4 text-[8px] rounded-full"
+                    >
+                      {cart.length}
+                    </Badge>
+                  )}
                   <span className="sr-only">Cart</span>
                 </Button>
               </SheetTrigger>
