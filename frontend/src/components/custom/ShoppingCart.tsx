@@ -11,6 +11,7 @@ export const ShoppingCart = ({ fundraiserId }: { fundraiserId?: string }) => {
   // fixes nextjs hydration issue: https://github.com/pmndrs/zustand/issues/938#issuecomment-1481801942
   const cart =
     useStore(useCartStore, (state) => state.carts[fundraiserId ?? ""]) || [];
+  const getTotalQuantity = useCartStore((state) => state.getTotalQuantity);
 
   const orderTotal = cart
     .reduce(
@@ -20,8 +21,15 @@ export const ShoppingCart = ({ fundraiserId }: { fundraiserId?: string }) => {
     )
     .toFixed(2);
 
-  return cart.length > 0 ? (
+  const totalItems = getTotalQuantity(fundraiserId ?? "");
+
+  return totalItems > 0 ? (
     <div>
+      {/* Total # of items line */}
+      <div className="flex justify-between mb-2">
+        <span className="text-sm font-medium">Total Items</span>
+        <span className="text-sm font-bold">{totalItems}</span>
+      </div>
       <div className="space-y-4">
         {cart.map((cartItem) => (
           <div
