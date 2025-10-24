@@ -32,6 +32,7 @@ interface CartState {
   clearCart: (fundraiserId: string) => void;
   clearAllCarts: () => void;
   getCartItems: (fundraiserId: string) => CartItem[];
+  getTotalQuantity: (fundraiserId: string) => number;
   prepareOrderItems: (
     fundraiserId: string
   ) => { itemId: string; quantity: number }[];
@@ -138,6 +139,11 @@ export const useCartStore = create<CartState>()(
 
       getCartItems: (fundraiserId) => {
         return get().carts[fundraiserId] || [];
+      },
+
+      getTotalQuantity: (fundraiserId) => {
+        const currentCart = get().carts[fundraiserId] || [];
+        return currentCart.reduce((total, cartItem) => total + cartItem.quantity, 0);
       },
 
       // prepare for CreateOrderBody
