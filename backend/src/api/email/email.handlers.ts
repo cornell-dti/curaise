@@ -1,5 +1,6 @@
 import { Request, Response } from "express-serve-static-core";
 import { load } from "cheerio";
+import { Decimal } from "decimal.js";
 import { MailgunInboundEmailBody } from "./email.types";
 import {
   parseUnverifiedVenmoEmail,
@@ -50,12 +51,12 @@ export const parseEmailHandler = async (
     }
 
     // Parse
-    let parsedAmount: any;
+    let parsedAmount: Decimal;
     let orderId: string;
     try {
       if (isVerifiedFormat) {
         const result = parseVerifiedVenmoEmail(emailContent);
-        parsedAmount = result.Decimal;
+        parsedAmount = result.parsedAmount;
         orderId = result.orderId;
       } else {
         const result = parseUnverifiedVenmoEmail(emailContent);

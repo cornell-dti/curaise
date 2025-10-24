@@ -50,7 +50,7 @@ export const parseVerifiedVenmoEmail = (raw: string) => {
     throw new Error("Failed to parse payment amount");
   }
 
-  return { Decimal: parsedAmount, orderId: transactionNote };
+  return { parsedAmount, orderId: transactionNote };
 };
 
 export const updateOrderPaymentStatus = async (
