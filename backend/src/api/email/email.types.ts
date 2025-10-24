@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+// https://documentation.mailgun.com/docs/mailgun/user-manual/receive-forward-store/receive-http
 export const MailgunInboundEmailBody = z.object({
   recipient: z.string(),
   sender: z.string(),
