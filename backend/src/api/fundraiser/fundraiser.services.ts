@@ -146,7 +146,7 @@ export const updateFundraiser = async (
       name: fundraiserBody.name,
       description: fundraiserBody.description,
       venmoUsername: fundraiserBody.venmoUsername ?? null,
-      venmoEmail: fundraiserBody.venmoEmail,
+      venmoEmail: fundraiserBody.venmoEmail ?? null,
       goalAmount: fundraiserBody.goalAmount ?? null,
       pickupLocation: fundraiserBody.pickupLocation,
       imageUrls: fundraiserBody.imageUrls,
