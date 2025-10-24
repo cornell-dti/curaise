@@ -11,7 +11,6 @@ export const ShoppingCart = ({ fundraiserId }: { fundraiserId?: string }) => {
   // fixes nextjs hydration issue: https://github.com/pmndrs/zustand/issues/938#issuecomment-1481801942
   const cart =
     useStore(useCartStore, (state) => state.carts[fundraiserId ?? ""]) || [];
-  const getTotalQuantity = useCartStore((state) => state.getTotalQuantity);
 
   const orderTotal = cart
     .reduce(
@@ -21,7 +20,7 @@ export const ShoppingCart = ({ fundraiserId }: { fundraiserId?: string }) => {
     )
     .toFixed(2);
 
-  const totalItems = getTotalQuantity(fundraiserId ?? "");
+  const totalItems = cart.reduce((total, cartItem) => total + cartItem.quantity, 0);
 
   return totalItems > 0 ? (
     <div>
