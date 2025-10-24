@@ -45,7 +45,10 @@ export function FundraiserTop({
               </Button>
             </Link>
             <Button
-              onClick={() => setOpenEdit(true)}
+              onClick={() => {
+                setStep(0);
+                setOpenEdit(true);
+              }}
               className="text-[#265B34] border border-current bg-transparent hover:bg-[#e6f0ea]"
             >
               Edit

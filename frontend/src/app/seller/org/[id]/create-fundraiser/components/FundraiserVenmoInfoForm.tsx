@@ -34,7 +34,7 @@ const VenmoFormSchema = CreateFundraiserBody.pick({
   {
     message:
       "Both Venmo username and email must be provided together, or both must be empty",
-    path: ["venmoUsername"],
+    path: ["venmoUsername", "venmoEmail"],
   }
 );
 
@@ -63,6 +63,7 @@ export function FundraiserVenmoInfoForm({
 
       <Form {...form}>
         <form
+          autoComplete="off"
           onSubmit={form.handleSubmit((data) => {
             onSubmit(data);
           })}
@@ -78,11 +79,9 @@ export function FundraiserVenmoInfoForm({
                     <Input
                       placeholder="Venmo Username"
                       {...field}
-                      value={field.value?.toString() || ""}
+                      value={field.value ?? ""}
                       onChange={(e) => {
-                        const value = e.target.value
-                          ? e.target.value
-                          : undefined;
+                        const value = e.target.value || "";
                         field.onChange(value);
                       }}
                     />
@@ -101,11 +100,9 @@ export function FundraiserVenmoInfoForm({
                     <Input
                       placeholder="Venmo Email"
                       {...field}
-                      value={field.value?.toString() || ""}
+                      value={field.value ?? ""}
                       onChange={(e) => {
-                        const value = e.target.value
-                          ? e.target.value
-                          : undefined;
+                        const value = e.target.value || "";
                         field.onChange(value);
                       }}
                     />

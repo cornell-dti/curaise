@@ -65,6 +65,17 @@ export function EditFundraiserModal({
 
   async function onSubmit() {
     // Edit the fundraiser
+    // Map empty-string venmo fields to null so backend will clear them
+    const payload = {
+      ...formData,
+      venmoEmail: formData.venmoEmail === "" ? null : formData.venmoEmail,
+      venmoUsername:
+        formData.venmoUsername === "" ? null : formData.venmoUsername,
+    } as typeof formData & {
+      venmoEmail: string | null;
+      venmoUsername: string | null;
+    };
+
     const response = await fetch(
       process.env.NEXT_PUBLIC_API_URL + `/fundraiser/${fundraiser.id}/update`,
       {
@@ -73,7 +84,7 @@ export function EditFundraiserModal({
           "Content-Type": "application/json",
           Authorization: "Bearer " + token,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       }
     );
 
