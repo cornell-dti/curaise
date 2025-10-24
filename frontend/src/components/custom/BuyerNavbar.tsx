@@ -119,7 +119,7 @@ export default function BuyerNavbar() {
                   {fundraiserId && getTotalQuantity(fundraiserId) > 0 && (
                     <Badge
                       variant="destructive"
-                      className="px-1 w-4 h-4 text-[8px] rounded-full"
+                      className="px-1 w-4 h-4 text-[8px] rounded-full flex justify-center items-center"
                     >
                       {getTotalQuantity(fundraiserId)}
                     </Badge>
