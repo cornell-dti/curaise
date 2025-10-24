@@ -51,7 +51,6 @@ export default function BuyerNavbar() {
   const cart =
     useStore(useCartStore, (state) => state.carts[fundraiserId ?? ""]) || [];
   const getTotalQuantity = useCartStore((state) => state.getTotalQuantity);
-  console.log(cart);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background">
@@ -85,12 +84,12 @@ export default function BuyerNavbar() {
                 <NavigationMenuItem>
                   <NavigationMenuTrigger className="gap-2">
                     Cart{" "}
-                    {getTotalQuantity(fundraiserId ?? "") > 0 && (
+                    {fundraiserId && getTotalQuantity(fundraiserId) > 0 && (
                       <Badge
                         variant="destructive"
                         className="p-0 w-5 h-5 flex justify-center text-[10px] font-medium rounded-full"
                       >
-                        {getTotalQuantity(fundraiserId ?? "")}
+                        {getTotalQuantity(fundraiserId)}
                       </Badge>
                     )}
                   </NavigationMenuTrigger>
@@ -117,12 +116,12 @@ export default function BuyerNavbar() {
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden">
                   <ShoppingCartIcon className="h-5 w-5" />
-                  {getTotalQuantity(fundraiserId ?? "") > 0 && (
+                  {fundraiserId && getTotalQuantity(fundraiserId) > 0 && (
                     <Badge
                       variant="destructive"
                       className="px-1 w-4 h-4 text-[8px] rounded-full"
                     >
-                      {getTotalQuantity(fundraiserId ?? "")}
+                      {getTotalQuantity(fundraiserId)}
                     </Badge>
                   )}
                   <span className="sr-only">Cart</span>
