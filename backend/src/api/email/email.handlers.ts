@@ -26,8 +26,6 @@ export const parseEmailHandler = async (
     // TODO: Verify Mailgun signature
 
     // Confirm sender is Venmo
-    console.log("From field:", from);
-
     if (from !== "Venmo <venmo@venmo.com>") {
       res.status(406).json({ message: "ignored sender" });
       return;
