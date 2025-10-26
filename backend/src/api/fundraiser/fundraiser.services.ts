@@ -277,11 +277,13 @@ export const calculateAndCacheFundraiserAnalytics = async (
 
   orders.forEach((order) => {
     let orderTotal = 0;
+    const isPaidOrPickedUp = order.pickedUp || order.paymentStatus === 'CONFIRMED';
 
     if (order.pickedUp) {
       analytics.orders_picked_up++;
+    }
 
-      // The total revenue should only consider the orders that are picked up
+    if (isPaidOrPickedUp) {
       order.items.forEach((orderItem) => {
         const itemTotal = orderItem.quantity * Number(orderItem.item.price);
         orderTotal += itemTotal;
@@ -289,21 +291,23 @@ export const calculateAndCacheFundraiserAnalytics = async (
           (analytics.items[orderItem.item.name] || 0) + orderItem.quantity;
       });
 
+      // The total revenue should only consider the orders that are picked up or paid·
       analytics.total_revenue += orderTotal;
+
+      // Track revenue by date only for paid or picked up orders
+      const orderDate = order.createdAt.toISOString().split("T")[0];
+      analytics.revenue_data[orderDate] =
+        (analytics.revenue_data[orderDate] || 0) + orderTotal;
     } else {
       analytics.pending_orders++;
     }
 
-    // Track sales by date
+    // Track sales by date for all orders
     const orderDate = order.createdAt.toISOString().split("T")[0]; // Only keep the YYYY-MM-DD portion
     analytics.sale_data[orderDate] = (analytics.sale_data[orderDate] || 0) + 1;
-
-    // Track revenue by date
-    analytics.revenue_data[orderDate] =
-      (analytics.revenue_data[orderDate] || 0) + orderTotal;
   });
 
-  analytics.profit = Math.round(analytics.total_revenue * PROFIT_MARGIN * 100) / 100; // Assuming 20% profit, rounded to 2 decimals
+  analytics.profit = Math.round(analytics.total_revenue * PROFIT_MARGIN * 100) / 100;
 
   const cacheKey = `fundraiser_analytics_${fundraiserId}`;
   try {
@@ -326,11 +330,13 @@ export const getFundraiserAnalytics = async (fundraiserId: string) => {
   try {
     const cached = await memclient.get(cacheKey);
     if (cached.value) {
+      console.log("Found in cache")
       return JSON.parse(cached.value.toString());
     }
   } catch (error) {
     console.error("Failed to get cached analytics:", error);
   }
+  console.log("Cache miss - calculating fresh analytics");
   return await calculateAndCacheFundraiserAnalytics(fundraiserId);
 };
 
@@ -352,28 +358,32 @@ export const invalidateFundraiserAnalyticsCache = async (
 };
 
 /**
- * Helper function to get cached analytics or recalculate if cache doesn't exist
- * @param fundraiserId - The ID of the fundraiser
- * @returns Promise<FundraiserAnalytics | null> - Analytics data or null if cache doesn't exist
+ * Peek operation to check if cached analytics exist without computing new ones
+ * @param cacheKey - The cache key to check
+ * @returns Promise<FundraiserAnalytics | null> - Analytics data if cache exists, null otherwise
  */
-const getCachedAnalyticsOrRecalculate = async (
-  fundraiserId: string,
+const peekCachedAnalytics = async (
   cacheKey: string,
 ): Promise<FundraiserAnalytics | null> => {
-  const cached = await memclient.get(cacheKey);
+  try {
+    const cached = await memclient.get(cacheKey);
 
-  // If cache doesn't exist, calculate fresh analytics
-  if (!cached.value) {
-    await calculateAndCacheFundraiserAnalytics(fundraiserId);
+    // Return null if cache doesn't exist - do NOT recalculate
+    if (!cached.value) {
+      return null;
+    }
+
+    return JSON.parse(cached.value.toString());
+  } catch (error) {
+    console.error("Failed to peek cached analytics:", error);
     return null;
   }
-
-  return JSON.parse(cached.value.toString());
 };
 
 /**
  * Updates cached analytics when a new order is created
  * Increments total orders, pending orders, and updates sale/revenue data by date
+ * Only updates if cache already exists - does not create new cache
  * @param fundraiserId - The ID of the fundraiser
  * @param orderDate - The date the order was created
  * @returns Promise<void>
@@ -384,8 +394,12 @@ export const updateCacheForNewOrder = async (
 ) => {
   const cacheKey = `fundraiser_analytics_${fundraiserId}`;
   try {
-    const analytics = await getCachedAnalyticsOrRecalculate(fundraiserId, cacheKey);
-    if (!analytics) return;
+    // Peek at cache - only update if it exists
+    const analytics = await peekCachedAnalytics(cacheKey);
+    if (!analytics) {
+      console.log("No cache found for new order - skipping update");
+      return;
+    }
 
     // Increment counters
     analytics.total_orders++;
@@ -399,16 +413,16 @@ export const updateCacheForNewOrder = async (
 
     // Save updated analytics back to cache
     await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 7200 });
+    console.log("Cached value updated for new added order")
   } catch (error) {
     console.error("Failed to update cache for new order:", error);
-    // Fallback to recalculating if update fails
-    await calculateAndCacheFundraiserAnalytics(fundraiserId);
   }
 };
 
 /**
  * Updates cached analytics when an order is marked as picked up
  * Increments picked up count, decrements pending, adds revenue, items, and profit
+ * Only updates if cache already exists - does not create new cache
  * @param fundraiserId - The ID of the fundraiser
  * @param order - The order object with items included
  * @returns Promise<void>
@@ -428,8 +442,12 @@ export const updateCacheForOrderPickup = async (
 ) => {
   const cacheKey = `fundraiser_analytics_${fundraiserId}`;
   try {
-    const analytics = await getCachedAnalyticsOrRecalculate(fundraiserId, cacheKey);
-    if (!analytics) return;
+    // Peek at cache - only update if it exists
+    const analytics = await peekCachedAnalytics(cacheKey);
+    if (!analytics) {
+      console.log("No cache found for order pickup - skipping update");
+      return;
+    }
 
     // Calculate order total and update items
     let orderTotal = 0;
@@ -453,9 +471,8 @@ export const updateCacheForOrderPickup = async (
 
     // Save updated analytics back to cache
     await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 7200 });
+    console.log("Cached value updated for pickedup order")
   } catch (error) {
     console.error("Failed to update cache for order pickup:", error);
-    // Fallback to recalculating if update fails
-    await calculateAndCacheFundraiserAnalytics(fundraiserId);
   }
 };
