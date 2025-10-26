@@ -100,8 +100,9 @@ export function EditFundraiserModal({
 
     // Then add items if there are any
     if (currentFundraiserItems.length < fundraiserItems.length) {
+      const newItems = fundraiserItems.slice(currentFundraiserItems.length);
       const itemResults = await Promise.allSettled(
-        fundraiserItems.map(async (item, index) => {
+        newItems.map(async (item, index) => {
           const itemResponse = await fetch(
             process.env.NEXT_PUBLIC_API_URL +
               `/fundraiser/${fundraiserId}/items/create`,
