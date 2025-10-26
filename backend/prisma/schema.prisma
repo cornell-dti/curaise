@@ -41,7 +41,6 @@ model Fundraiser {
   id             String   @id @default(uuid()) @db.Uuid
   name           String
   description    String
-  venmoUsername  String?  @map("venmo_username")
   goalAmount     Decimal? @map("goal_amount") @db.Money
   pickupLocation String   @map("pickup_location")
   imageUrls      String[] @map("image_urls")
@@ -51,6 +50,9 @@ model Fundraiser {
   pickupEndsAt   DateTime @map("pickup_ends_at")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
+
+  venmoUsername String? @map("venmo_username")
+  venmoEmail    String? @map("venmo_email")
 
   organization   Organization   @relation(fields: [organizationId], references: [id])
   organizationId String         @map("organization_id") @db.Uuid

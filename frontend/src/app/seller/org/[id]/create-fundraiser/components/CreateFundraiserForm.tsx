@@ -9,6 +9,7 @@ import { useState } from "react";
 import { FundraiserBasicInfoForm } from "./FundraiserBasicInfoForm";
 import { FundraiserAddItemsForm } from "./FundraiserAddItemsForm";
 import { ReviewFundraiserForm } from "./ReviewFundraiserForm";
+import { FundraiserVenmoInfoForm } from "./FundraiserVenmoInfoForm";
 
 const getDefaultDates = () => {
   const now = new Date();
@@ -167,6 +168,15 @@ export function CreateFundraiserForm({
           }}
         />
 
+        <FundraiserVenmoInfoForm
+          defaultValues={formData}
+          onSubmit={(data) => {
+            setFormData((prev) => ({ ...prev, ...data }));
+            setCurrentStep(2);
+          }}
+          onBack={() => setCurrentStep(0)}
+        />
+
         <FundraiserAddItemsForm
           items={fundraiserItems}
           setItems={setFundraiserItems}
@@ -178,7 +188,7 @@ export function CreateFundraiserForm({
           formData={formData}
           items={fundraiserItems}
           onSubmit={onSubmit}
-          onBack={() => setCurrentStep(1)}
+          onBack={() => setCurrentStep(2)}
         />
       </MultiStepForm>
     </div>
