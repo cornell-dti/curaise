@@ -361,17 +361,17 @@ export const deleteFundraiserItemHandler = async (
       (admin) => admin.id === res.locals.user!.id
     )
   ) {
-    res.status(403).json({ message: "Unauthorized to delete announcement" });
+    res.status(403).json({ message: "Unauthorized to delete item" });
     return;
   }
 
   const item = await deleteFundraiserItem(req.params.itemId);
   if (!item) {
-    res.status(500).json({ message: "Failed to delete announcement" });
+    res.status(500).json({ message: "Failed to delete item" });
     return;
   }
 
-  res.status(200).json({ message: "Successfully deleted announcement" });
+  res.status(200).json({ message: "Successfully deleted item" });
 };
 
 export const createAnnouncementHandler = async (
