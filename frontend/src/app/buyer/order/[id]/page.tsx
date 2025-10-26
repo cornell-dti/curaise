@@ -117,51 +117,43 @@ export default async function OrderPage({
 
   // Get banner styling based on payment status and method
   const getBannerStyling = () => {
-    // Handle OTHER payment method - should always show UNVERIFIABLE messaging (except when CONFIRMED)
+    // If payment is confirmed, show confirmed UI regardless of payment method
+    if (order.paymentStatus === "CONFIRMED") {
+      return {
+        borderColor: "border-green-500",
+        textColor: "text-green-800 dark:text-green-200",
+        title: "Payment Confirmed",
+        message: "Your payment has been verified. No further action is required.",
+      };
+    }
+    
+    // If unverifiable AND venmo, show unverifiable message
+    if (order.paymentStatus === "UNVERIFIABLE" && order.paymentMethod === "VENMO") {
+      return {
+        borderColor: "border-blue-500",
+        textColor: "text-blue-800 dark:text-blue-200",
+        title: "Order Processed",
+        message: "Your order has been received. Payment will have to be manually verified by the fundraiser managers.",
+      };
+    }
+    
+    // For OTHER payment method (PENDING or UNVERIFIABLE), show unverifiable messaging
     if (order.paymentMethod === "OTHER") {
-      if (order.paymentStatus === "CONFIRMED") {
-        return {
-          borderColor: "border-green-500",
-          textColor: "text-green-800 dark:text-green-200",
-          title: "Payment Confirmed",
-          message: "Your payment has been verified. No further action is required.",
-        };
-      } else {
-        // OTHER + PENDING or OTHER + UNVERIFIABLE both show UNVERIFIABLE messaging
-        return {
-          borderColor: "border-blue-500",
-          textColor: "text-blue-800 dark:text-blue-200",
-          title: "Order Processed",
-          message: "Your order has been received. Payment will have to be manually verified by the fundraiser managers.",
-        };
-      }
+      return {
+        borderColor: "border-blue-500",
+        textColor: "text-blue-800 dark:text-blue-200",
+        title: "Order Processed",
+        message: "Your order has been received. Payment will have to be manually verified by the fundraiser managers.",
+      };
     }
-
-    // Handle VENMO payment method
-    switch (order.paymentStatus) {
-      case "PENDING":
-        return {
-          borderColor: "border-blue-500",
-          textColor: "text-blue-800 dark:text-blue-200",
-          title: "Payment Required",
-          message: "Complete your payment to confirm your order.",
-        };
-      case "CONFIRMED":
-        return {
-          borderColor: "border-green-500",
-          textColor: "text-green-800 dark:text-green-200",
-          title: "Payment Confirmed",
-          message: "Your payment has been verified. No further action is required.",
-        };
-      case "UNVERIFIABLE":
-        // This shouldn't happen for VENMO orders, but handle it gracefully
-        return {
-          borderColor: "border-blue-500",
-          textColor: "text-blue-800 dark:text-blue-200",
-          title: "Order Processed",
-          message: "Your order has been received. Payment will have to be manually verified by the fundraiser managers.",
-        };
-    }
+    
+    // Default case: VENMO + PENDING (show payment required message)
+    return {
+      borderColor: "border-blue-500",
+      textColor: "text-blue-800 dark:text-blue-200",
+      title: "Payment Required",
+      message: "Complete your payment to confirm your order.",
+    };
   };
 
   const bannerStyle = getBannerStyling();
