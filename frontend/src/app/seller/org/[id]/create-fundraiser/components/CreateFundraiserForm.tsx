@@ -186,14 +186,14 @@ export function CreateFundraiserForm({
           items={fundraiserItems}
           setItems={setFundraiserItems}
           onSubmit={() => setCurrentStep(3)}
-          onBack={() => setCurrentStep(0)}
+          onBack={() => setCurrentStep(1)}
         />
 
         <ReviewFundraiserForm
           formData={formData}
           items={fundraiserItems}
           onSubmit={onSubmit}
-          onBack={() => setCurrentStep(3)}
+          onBack={() => setCurrentStep(2)}
         />
       </MultiStepForm>
     </div>
