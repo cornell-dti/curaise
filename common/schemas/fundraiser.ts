@@ -12,6 +12,7 @@ export const BasicFundraiserSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(255),
   description: z.string(),
+  published: z.boolean(),
   venmoUsername: z.string().min(1).max(255).nullish(),
   venmoEmail: z.string().min(1).max(255).nullish(),
   goalAmount: MoneySchema.nullish(),
