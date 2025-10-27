@@ -17,10 +17,12 @@ import {
   getAllFundraisersHandler,
   getFundraiserHandler,
   updateFundraiserHandler,
+  publishFundraiserHandler,
   getFundraiserItemsHandler,
   getFundraiserOrdersHandler,
   createFundraiserItemHandler,
   updateFundraiserItemHandler,
+  deleteFundraiserItemHandler,
   createAnnouncementHandler,
   deleteAnnouncementHandler,
   getFundraiserAnalyticsHandler,
@@ -65,6 +67,13 @@ fundraiserRouter.post(
 );
 
 fundraiserRouter.post(
+  "/:id/publish",
+  validate({ params: FundraiserRouteParams }),
+  authenticate,
+  publishFundraiserHandler
+);
+
+fundraiserRouter.post(
   "/:id/items/create",
   validate({ params: FundraiserRouteParams, body: CreateFundraiserItemBody }),
   authenticate,
@@ -79,6 +88,15 @@ fundraiserRouter.post(
   }),
   authenticate,
   updateFundraiserItemHandler
+);
+
+fundraiserRouter.delete(
+  "/:fundraiserId/items/:itemId/delete",
+  validate({
+    params: FundraiserItemRouteParams,
+  }),
+  authenticate,
+  deleteFundraiserItemHandler
 );
 
 fundraiserRouter.post(

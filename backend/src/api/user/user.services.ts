@@ -39,6 +39,7 @@ export const getUserOrders = async (userId: string) => {
           id: true,
           name: true,
           description: true,
+          published: true,
           goalAmount: true,
           imageUrls: true,
           pickupLocation: true,

@@ -13,6 +13,7 @@ export const getOrder = async (orderId: string) => {
           id: true,
           name: true,
           description: true,
+          published: true,
           goalAmount: true,
           imageUrls: true,
           pickupLocation: true,
@@ -67,6 +68,7 @@ export const createOrder = async (
           id: true,
           name: true,
           description: true,
+          published: true,
           goalAmount: true,
           imageUrls: true,
           pickupLocation: true,
@@ -104,6 +106,7 @@ export const completeOrderPickup = async (orderId: string) => {
           id: true,
           name: true,
           description: true,
+          published: true,
           goalAmount: true,
           imageUrls: true,
           pickupLocation: true,
@@ -141,6 +144,7 @@ export const confirmOrderPayment = async (orderId: string) => {
           id: true,
           name: true,
           description: true,
+          published: true,
           goalAmount: true,
           imageUrls: true,
           pickupLocation: true,
@@ -168,7 +172,9 @@ export const confirmOrderPayment = async (orderId: string) => {
 /**
  * Calculate the total amount for an order based on its items and quantities
  */
-export const calculateOrderTotal = async (orderId: string): Promise<Decimal> => {
+export const calculateOrderTotal = async (
+  orderId: string
+): Promise<Decimal> => {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: {

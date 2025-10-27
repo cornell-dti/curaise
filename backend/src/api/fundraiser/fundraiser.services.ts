@@ -60,6 +60,7 @@ export const getFundraiserOrders = async (fundraiserId: string) => {
           id: true,
           name: true,
           description: true,
+          published: true,
           goalAmount: true,
           imageUrls: true,
           pickupLocation: true,
@@ -196,6 +197,16 @@ export const updateFundraiserItem = async (
       price: itemBody.price,
       imageUrl: itemBody.imageUrl ?? null,
       offsale: itemBody.offsale,
+    },
+  });
+
+  return item;
+};
+
+export const deleteFundraiserItem = async (itemId: string) => {
+  const item = await prisma.item.delete({
+    where: {
+      id: itemId,
     },
   });
 
