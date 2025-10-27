@@ -24,21 +24,28 @@ export function CheckoutForm({
   // fixes nextjs hydration issue: https://github.com/pmndrs/zustand/issues/938#issuecomment-1481801942
   const cart =
     useStore(useCartStore, (state) => state.carts[fundraiser.id]) || [];
-
+  const clearCart = useCartStore((state) => state.clearCart);
+  
   const cartItems = cart.map(({ item, quantity }) => ({
     itemId: item.id,
     quantity,
   }));
-
-  if (!cartItems || cartItems.length === 0) {
-    throw new Error("Cart items not found");
-  }
 
   const [formData, setFormData] = useState<z.infer<typeof CreateOrderBody>>({
     fundraiserId: fundraiser.id,
     items: cartItems,
     payment_method: "OTHER", // default to other for now
   });
+
+  const [currentStep, setCurrentStep] = useState(0);
+  const [orderPlaced, setOrderPlaced] = useState(false);
+
+  // Check if cart is empty after hooks are called
+  if ((!cartItems || cartItems.length === 0) && !orderPlaced) {
+    // If cart is empty and no order was just placed, redirect to the fundraiser page
+    redirect(`/buyer/fundraiser/${fundraiser.id}`);
+    return null;
+  }
 
   async function onSubmit() {
     const dataToSubmit = {
@@ -63,11 +70,12 @@ export function CheckoutForm({
       return;
     } else {
       toast.success(result.message);
+      // Mark order as placed and clear the cart
+      setOrderPlaced(true);
+      clearCart(fundraiser.id);
       redirect("/buyer/order/" + result.data.id);
     }
   }
-
-  const [currentStep, setCurrentStep] = useState(0);
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">
