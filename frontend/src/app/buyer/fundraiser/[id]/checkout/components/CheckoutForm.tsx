@@ -37,7 +37,7 @@ export function CheckoutForm({
   const [formData, setFormData] = useState<z.infer<typeof CreateOrderBody>>({
     fundraiserId: fundraiser.id,
     items: cartItems,
-    payment_method: "OTHER", // default to other for now
+    payment_method: "VENMO", // default to venmo
   });
 
   async function onSubmit() {
@@ -63,7 +63,7 @@ export function CheckoutForm({
       return;
     } else {
       toast.success(result.message);
-      redirect("/buyer/order/" + result.data.id);
+      redirect("/buyer/order/" + result.data.id + "?fromCheckout=true");
     }
   }
 
