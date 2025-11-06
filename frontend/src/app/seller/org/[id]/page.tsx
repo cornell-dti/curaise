@@ -25,9 +25,14 @@ const getOrganization = async (id: string) => {
   return data.data;
 };
 
-const getFundraisers = async (organizationId: string) => {
+const getFundraisers = async (organizationId: string, token: string) => {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/organization/${organizationId}/fundraisers`
+    `${process.env.NEXT_PUBLIC_API_URL}/organization/${organizationId}/fundraisers`,
+    {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    }
   );
   const result = await response.json();
   if (!response.ok) {
@@ -72,7 +77,7 @@ export default async function OrganizationPage({
   const id = (await params).id;
 
   const org = await getOrganization(id);
-  const fundraisers = await getFundraisers(id);
+  const fundraisers = await getFundraisers(id, session.access_token);
 
   // Check if user is an admin of the organization
   if (!org.admins.map((admin) => admin.id).includes(user.id)) {

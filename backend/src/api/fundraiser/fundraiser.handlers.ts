@@ -12,10 +12,13 @@ import {
   getFundraiserOrders,
   updateFundraiser,
   createFundraiserItem,
+  getFundraiserItem,
   updateFundraiserItem,
+  deleteFundraiserItem,
   createAnnouncement,
   deleteAnnouncement,
   getFundraiserAnalytics,
+  publishFundraiser,
 } from "./fundraiser.services";
 import {
   AnnouncementSchema,
@@ -207,6 +210,11 @@ export const updateFundraiserHandler = async (
     return;
   }
 
+  if (fundraiser.published) {
+    res.status(400).json({ message: "Cannot update a published fundraiser" });
+    return;
+  }
+
   // Check if venmoEmail was edited
   const venmoEmailEdited =
     req.body.venmoEmail && req.body.venmoEmail !== fundraiser.venmoEmail;
@@ -243,6 +251,51 @@ export const updateFundraiserHandler = async (
 
   res.status(200).json({
     message: "Successfully updated fundraiser",
+    data: cleanedFundraiser,
+  });
+};
+
+export const publishFundraiserHandler = async (
+  req: Request<FundraiserRouteParams, any, {}, {}>,
+  res: Response
+) => {
+  const fundraiser = await getFundraiser(req.params.id);
+  if (!fundraiser) {
+    res.status(404).json({ message: "Fundraiser not found" });
+    return;
+  }
+
+  // Check if user is admin of fundraiser's organization
+  if (
+    !fundraiser.organization.admins.some(
+      (admin) => admin.id === res.locals.user!.id
+    )
+  ) {
+    res.status(403).json({ message: "Unauthorized to update fundraiser" });
+    return;
+  }
+
+  if (fundraiser.published) {
+    res.status(400).json({ message: "Fundraiser is already published" });
+    return;
+  }
+
+  const updatedFundraiser = await publishFundraiser(req.params.id);
+  if (!updatedFundraiser) {
+    res.status(500).json({ message: "Failed to publish fundraiser" });
+    return;
+  }
+
+  // remove irrelevant fields
+  const parsedFundraiser = BasicFundraiserSchema.safeParse(updatedFundraiser);
+  if (!parsedFundraiser.success) {
+    res.status(500).json({ message: "Couldn't parse fundraiser" });
+    return;
+  }
+  const cleanedFundraiser = parsedFundraiser.data;
+
+  res.status(200).json({
+    message: "Successfully published fundraiser",
     data: cleanedFundraiser,
   });
 };
@@ -320,6 +373,24 @@ export const updateFundraiserItemHandler = async (
     return;
   }
 
+  // If fundraiser is published, check if price is being changed
+  if (fundraiser.published) {
+    // Get the existing item to compare prices
+    const existingItem = await getFundraiserItem(req.params.itemId);
+
+    if (!existingItem) {
+      res.status(404).json({ message: "Item not found" });
+      return;
+    }
+
+    if (!existingItem.price.equals(req.body.price)) {
+      res.status(400).json({
+        message: "Cannot change price of an item in a published fundraiser",
+      });
+      return;
+    }
+  }
+
   const item = await updateFundraiserItem({
     itemId: req.params.itemId,
     ...req.body,
@@ -340,6 +411,44 @@ export const updateFundraiserItemHandler = async (
   res.status(200).json({
     message: "Successfully updated fundraiser item",
     data: cleanedItem,
+  });
+};
+
+export const deleteFundraiserItemHandler = async (
+  req: Request<FundraiserItemRouteParams, any, {}, {}>,
+  res: Response
+) => {
+  const fundraiser = await getFundraiser(req.params.fundraiserId);
+  if (!fundraiser) {
+    res.status(404).json({ message: "Fundraiser not found" });
+    return;
+  }
+
+  // Check if user is admin of fundraiser's organization
+  if (
+    !fundraiser.organization.admins.some(
+      (admin) => admin.id === res.locals.user!.id
+    )
+  ) {
+    res.status(403).json({ message: "Unauthorized to delete fundraiser item" });
+    return;
+  }
+
+  if (fundraiser.published) {
+    res
+      .status(400)
+      .json({ message: "Cannot delete item from published fundraiser" });
+    return;
+  }
+
+  const item = await deleteFundraiserItem(req.params.itemId);
+  if (!item) {
+    res.status(500).json({ message: "Failed to delete fundraiser item" });
+    return;
+  }
+
+  res.status(200).json({
+    message: "Successfully deleted fundraiser item",
   });
 };
 
