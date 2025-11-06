@@ -3,6 +3,7 @@ import {
   FundraiserRouteParams,
   FundraiserItemRouteParams,
   DeleteAnnouncementRouteParams,
+  DeleteFundraiserItemRouteParams,
 } from "./fundraiser.types";
 import {
   CreateFundraiserBody,
@@ -26,6 +27,7 @@ import {
   createAnnouncementHandler,
   deleteAnnouncementHandler,
   getFundraiserAnalyticsHandler,
+  deleteFundraiserItemHandler,
 } from "./fundraiser.handlers";
 import { authenticate } from "../../middleware/authenticate";
 
@@ -94,6 +96,16 @@ fundraiserRouter.delete(
   "/:fundraiserId/items/:itemId/delete",
   validate({
     params: FundraiserItemRouteParams,
+  }),
+  authenticate,
+  deleteFundraiserItemHandler
+);
+
+fundraiserRouter.post(
+  "/:fundraiserId/items/:itemId/delete",
+  validate({
+    params: FundraiserItemRouteParams,
+    body: DeleteFundraiserItemRouteParams,
   }),
   authenticate,
   deleteFundraiserItemHandler
