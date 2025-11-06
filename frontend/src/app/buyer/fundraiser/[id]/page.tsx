@@ -6,6 +6,7 @@ import { FundraiserItemsPanel } from "@/app/buyer/fundraiser/[id]/components/Fun
 import { FundraiserGallerySlider } from "@/app/buyer/fundraiser/[id]/components/FundraiserGallerySlider";
 import { FundraiserAnnouncementPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserAnnouncementPanel";
 
+// TODO: @Chelsea - add UI element to let buyer know that this fundraiser is not published
 const getFundraiser = async (id: string) => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${id}`

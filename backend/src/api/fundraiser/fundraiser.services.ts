@@ -99,6 +99,9 @@ export const getAllFundraisers = async () => {
     orderBy: {
       createdAt: "desc",
     },
+    where: {
+      published: true,
+    },
   });
 
   return fundraisers;
