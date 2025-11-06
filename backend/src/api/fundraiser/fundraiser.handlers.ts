@@ -34,7 +34,6 @@ import {
 } from "common";
 import { getOrganization } from "../organization/organization.services";
 import { z } from "zod";
-import { Decimal } from "decimal.js";
 import { sendAnnouncementEmail, sendVenmoSetupEmail } from "../../utils/email";
 
 export const getAllFundraisersHandler = async (req: Request, res: Response) => {
