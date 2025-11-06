@@ -17,6 +17,7 @@ import {
   createAnnouncement,
   deleteAnnouncement,
   getFundraiserAnalytics,
+  publishFundraiser,
 } from "./fundraiser.services";
 import {
   AnnouncementSchema,
@@ -272,6 +273,30 @@ export const publishFundraiserHandler = async (
     res.status(403).json({ message: "Unauthorized to update fundraiser" });
     return;
   }
+
+  if (fundraiser.published) {
+    res.status(400).json({ message: "Fundraiser is already published" });
+    return;
+  }
+
+  const updatedFundraiser = await publishFundraiser(req.params.id);
+  if (!updatedFundraiser) {
+    res.status(500).json({ message: "Failed to publish fundraiser" });
+    return;
+  }
+
+  // remove irrelevant fields
+  const parsedFundraiser = BasicFundraiserSchema.safeParse(updatedFundraiser);
+  if (!parsedFundraiser.success) {
+    res.status(500).json({ message: "Couldn't parse fundraiser" });
+    return;
+  }
+  const cleanedFundraiser = parsedFundraiser.data;
+
+  res.status(200).json({
+    message: "Successfully published fundraiser",
+    data: cleanedFundraiser,
+  });
 };
 
 export const createFundraiserItemHandler = async (
