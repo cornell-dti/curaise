@@ -12,6 +12,7 @@ import {
   getFundraiserOrders,
   updateFundraiser,
   createFundraiserItem,
+  getFundraiserItem,
   updateFundraiserItem,
   deleteFundraiserItem,
   createAnnouncement,
@@ -33,6 +34,7 @@ import {
 } from "common";
 import { getOrganization } from "../organization/organization.services";
 import { z } from "zod";
+import { Decimal } from "decimal.js";
 import { sendAnnouncementEmail, sendVenmoSetupEmail } from "../../utils/email";
 
 export const getAllFundraisersHandler = async (req: Request, res: Response) => {
@@ -372,11 +374,22 @@ export const updateFundraiserItemHandler = async (
     return;
   }
 
+  // If fundraiser is published, check if price is being changed
   if (fundraiser.published) {
-    res
-      .status(400)
-      .json({ message: "Cannot update a published fundraiser item" });
-    return;
+    // Get the existing item to compare prices
+    const existingItem = await getFundraiserItem(req.params.itemId);
+
+    if (!existingItem) {
+      res.status(404).json({ message: "Item not found" });
+      return;
+    }
+
+    if (!existingItem.price.equals(req.body.price)) {
+      res.status(400).json({
+        message: "Cannot change price of an item in a published fundraiser",
+      });
+      return;
+    }
   }
 
   const item = await updateFundraiserItem({
@@ -419,6 +432,13 @@ export const deleteFundraiserItemHandler = async (
     )
   ) {
     res.status(403).json({ message: "Unauthorized to delete fundraiser item" });
+    return;
+  }
+
+  if (fundraiser.published) {
+    res
+      .status(400)
+      .json({ message: "Cannot delete item from published fundraiser" });
     return;
   }
 

@@ -207,6 +207,14 @@ export const createFundraiserItem = async (
   return item;
 };
 
+export const getFundraiserItem = async (itemId: string) => {
+  const item = await prisma.item.findUnique({
+    where: { id: itemId },
+  });
+
+  return item;
+};
+
 export const updateFundraiserItem = async (
   itemBody: z.infer<typeof UpdateFundraiserItemBody> & { itemId: string }
 ) => {
