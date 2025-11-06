@@ -51,7 +51,11 @@ export const getOrganizationFundraisersHandler = async (
     return;
   }
 
-  const fundraisers = await getOrganizationFundraisers(req.params.id);
+  // only show unpublished fundraisers to admins
+  const isAdmin = res.locals.user?.id
+    ? organization.admins.some((admin) => admin.id === res.locals.user?.id)
+    : false;
+  const fundraisers = await getOrganizationFundraisers(req.params.id, isAdmin);
 
   const parsedFundraisers =
     BasicFundraiserSchema.array().safeParse(fundraisers);
