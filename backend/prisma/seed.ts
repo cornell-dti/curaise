@@ -177,6 +177,21 @@ async function main() {
     },
   });
 
+  // create unpublished dti fundraiser
+  await prisma.fundraiser.create({
+    data: {
+      name: "Unpublished Fundraiser",
+      description: "This fundraiser is not published.",
+      goalAmount: 500.0,
+      pickupLocation: "Unknown",
+      buyingStartsAt: new Date(),
+      buyingEndsAt: new Date(),
+      pickupStartsAt: new Date(),
+      pickupEndsAt: new Date(),
+      organizationId: cornellDTI.id,
+    },
+  });
+
   // Get the items we just created for DTI
   const dtiItems = await prisma.item.findMany({
     where: {
