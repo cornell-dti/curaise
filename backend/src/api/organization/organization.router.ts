@@ -8,7 +8,10 @@ import {
   createOrganizationHandler,
   updateOrganizationHandler,
 } from "./organization.handlers";
-import { authenticate } from "../../middleware/authenticate";
+import {
+  authenticate,
+  authenticateOptional,
+} from "../../middleware/authenticate";
 
 const organizationRouter = Router();
 
@@ -21,6 +24,7 @@ organizationRouter.get(
 organizationRouter.get(
   "/:id/fundraisers",
   validate({ params: OrganizationRouteParams }),
+  authenticateOptional,
   getOrganizationFundraisersHandler
 );
 
