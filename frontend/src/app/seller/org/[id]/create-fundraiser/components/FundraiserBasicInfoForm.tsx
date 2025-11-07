@@ -68,9 +68,11 @@ const DateTimeFieldAdapter = ({
 export function FundraiserBasicInfoForm({
   defaultValues,
   onSubmit,
+  onSave,
 }: {
   defaultValues: z.infer<typeof BasicInformationSchema>;
   onSubmit: (data: z.infer<typeof BasicInformationSchema>) => void;
+  onSave: (data: z.infer<typeof BasicInformationSchema>) => void;
 }) {
   const form = useForm<z.infer<typeof BasicInformationSchema>>({
     resolver: zodResolver(BasicInformationSchema),
@@ -310,7 +312,13 @@ export function FundraiserBasicInfoForm({
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex justify-end">
+          <CardFooter className="flex justify-end gap-2">
+            <Button
+              onClick={form.handleSubmit(onSave)}
+              className="text-[#333F37] border border-current bg-transparent hover:bg-[#e6f0ea]"
+            >
+              Save Draft
+            </Button>
             <Button type="submit">Next</Button>
           </CardFooter>
         </form>

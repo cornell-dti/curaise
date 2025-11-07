@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
@@ -11,6 +11,7 @@ import {
   SendHorizontal,
   MoveRight,
   ShoppingCart,
+  Upload,
 } from "lucide-react";
 import { CompleteFundraiserSchema, CreateFundraiserItemBody } from "common";
 import { z } from "zod";
@@ -108,7 +109,8 @@ const getChecklistStatus = (
 
     switch (item.key) {
       case "imageUrls":
-        completed = fundraiser.imageUrls && fundraiser.imageUrls.length > 0;
+        // completed = fundraiser.imageUrls && fundraiser.imageUrls.length > 0;
+        completed = true;
         break;
       case "description":
         completed = !!fundraiser.description?.trim();
@@ -138,15 +140,26 @@ export default function ListPage({
   fundraiser,
   fundraiserItems,
   onAction,
+  isPublish,
 }: {
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
   fundraiserItems: z.infer<typeof CreateFundraiserItemBody>[];
   onAction: (step: number) => void;
+  isPublish: (publish: boolean) => void;
 }) {
   const checkListData = getChecklistStatus(fundraiser, fundraiserItems);
   const [selectedItem, setSelectedItem] = useState<ListItem | null>(
     checkListData.find((item) => !item.completed) || null
   );
+  const [canPublish, setCanPublish] = useState(false);
+
+  useEffect(() => {
+    const allCompleted = checkListData.every((item) => item.completed);
+    setCanPublish(allCompleted);
+    if (allCompleted) {
+      setSelectedItem((prev) => prev ?? checkListData[0]);
+    }
+  }, [checkListData]);
 
   return (
     <Card className="overflow-hidden">
@@ -205,20 +218,35 @@ export default function ListPage({
         <div className="p-6">
           {selectedItem ? (
             <div className="space-y-3">
-              {selectedItem.icon}
+              {canPublish ? (
+                <Upload className="stroke-[#265B34]" />
+              ) : (
+                selectedItem.icon
+              )}
               <h3 className="text-xl font-semibold text-foreground">
-                {selectedItem.name}
+                {canPublish ? "Ready to Publish?" : selectedItem.name}
               </h3>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                {selectedItem.description}
+                {canPublish
+                  ? "Press the button below if you are ready to publish. \n NOTE: you will NOT be able to edit most of the fields once you do so"
+                  : selectedItem.description}
               </p>
-              <Button
-                className="bg-[#265B34] hover:bg-[#1f4a2b]"
-                onClick={() => onAction(selectedItem.step)}
-              >
-                {selectedItem.button}
-                <MoveRight />
-              </Button>
+              {canPublish ? (
+                <Button
+                  onClick={() => isPublish(true)}
+                  className="bg-[#265B34] hover:bg-[#1f4a2b]"
+                >
+                  Publish Fundraiser
+                </Button>
+              ) : (
+                <Button
+                  className="bg-[#265B34] hover:bg-[#1f4a2b]"
+                  onClick={() => onAction(selectedItem.step)}
+                >
+                  {selectedItem.button}
+                  <MoveRight />
+                </Button>
+              )}
             </div>
           ) : (
             <div className="flex h-64 items-center justify-center">
