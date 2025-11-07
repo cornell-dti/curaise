@@ -42,11 +42,8 @@ export const getUserOrders = async (userId: string) => {
           published: true,
           goalAmount: true,
           imageUrls: true,
-          pickupLocation: true,
           buyingStartsAt: true,
           buyingEndsAt: true,
-          pickupStartsAt: true,
-          pickupEndsAt: true,
           organization: {
             select: {
               id: true,
@@ -54,6 +51,11 @@ export const getUserOrders = async (userId: string) => {
               description: true,
               authorized: true,
               logoUrl: true,
+            },
+          },
+          pickupEvents: {
+            orderBy: {
+              startsAt: "asc",
             },
           },
         },

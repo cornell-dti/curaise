@@ -25,6 +25,11 @@ export const getOrganizationFundraisers = async (
     },
     include: {
       organization: true,
+      pickupEvents: {
+        orderBy: {
+          startsAt: "asc",
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",

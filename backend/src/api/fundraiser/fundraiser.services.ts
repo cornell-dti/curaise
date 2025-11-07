@@ -4,6 +4,8 @@ import {
   UpdateFundraiserBody,
   CreateFundraiserItemBody,
   UpdateFundraiserItemBody,
+  CreatePickupEventBody,
+  UpdatePickupEventBody,
   CreateAnnouncementBody,
 } from "common";
 import { z } from "zod";
@@ -26,6 +28,11 @@ export const getFundraiser = async (fundraiserId: string) => {
               id: true,
             },
           },
+        },
+      },
+      pickupEvents: {
+        orderBy: {
+          startsAt: "asc",
         },
       },
       announcements: {
@@ -67,11 +74,8 @@ export const getFundraiserOrders = async (fundraiserId: string) => {
           published: true,
           goalAmount: true,
           imageUrls: true,
-          pickupLocation: true,
           buyingStartsAt: true,
           buyingEndsAt: true,
-          pickupStartsAt: true,
-          pickupEndsAt: true,
           organization: {
             select: {
               id: true,
@@ -79,6 +83,11 @@ export const getFundraiserOrders = async (fundraiserId: string) => {
               description: true,
               authorized: true,
               logoUrl: true,
+            },
+          },
+          pickupEvents: {
+            orderBy: {
+              startsAt: "asc",
             },
           },
         },
@@ -99,6 +108,11 @@ export const getAllFundraisers = async () => {
   const fundraisers = await prisma.fundraiser.findMany({
     include: {
       organization: true,
+      pickupEvents: {
+        orderBy: {
+          startsAt: "asc",
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
@@ -121,20 +135,21 @@ export const createFundraiser = async (
       venmoUsername: fundraiserBody.venmoUsername,
       venmoEmail: fundraiserBody.venmoEmail,
       goalAmount: fundraiserBody.goalAmount,
-      pickupLocation: fundraiserBody.pickupLocation,
       imageUrls: fundraiserBody.imageUrls,
       buyingStartsAt: fundraiserBody.buyingStartsAt,
       buyingEndsAt: fundraiserBody.buyingEndsAt,
-      pickupStartsAt: fundraiserBody.pickupStartsAt,
-      pickupEndsAt: fundraiserBody.pickupEndsAt,
       organization: {
         connect: {
           id: fundraiserBody.organizationId,
         },
       },
+      pickupEvents: {
+        create: fundraiserBody.pickupEvents,
+      },
     },
     include: {
       organization: true,
+      pickupEvents: true,
     },
   });
 
@@ -151,6 +166,11 @@ export const publishFundraiser = async (fundraiserId: string) => {
     },
     include: {
       organization: true,
+      pickupEvents: {
+        orderBy: {
+          startsAt: "asc",
+        },
+      },
     },
   });
 
@@ -172,19 +192,71 @@ export const updateFundraiser = async (
       venmoUsername: fundraiserBody.venmoUsername ?? null,
       venmoEmail: fundraiserBody.venmoEmail ?? null,
       goalAmount: fundraiserBody.goalAmount ?? null,
-      pickupLocation: fundraiserBody.pickupLocation,
       imageUrls: fundraiserBody.imageUrls,
       buyingStartsAt: fundraiserBody.buyingStartsAt,
       buyingEndsAt: fundraiserBody.buyingEndsAt,
-      pickupStartsAt: fundraiserBody.pickupStartsAt,
-      pickupEndsAt: fundraiserBody.pickupEndsAt,
     },
     include: {
       organization: true,
+      pickupEvents: {
+        orderBy: {
+          startsAt: "asc",
+        },
+      },
     },
   });
 
   return fundraiser;
+};
+
+export const createPickupEvent = async (
+  pickupEventBody: z.infer<typeof CreatePickupEventBody> & {
+    fundraiserId: string;
+  }
+) => {
+  const pickupEvent = await prisma.pickupEvent.create({
+    data: {
+      location: pickupEventBody.location,
+      startsAt: pickupEventBody.startsAt,
+      endsAt: pickupEventBody.endsAt,
+      fundraiser: {
+        connect: {
+          id: pickupEventBody.fundraiserId,
+        },
+      },
+    },
+  });
+
+  return pickupEvent;
+};
+
+export const updatePickupEvent = async (
+  pickupEventBody: z.infer<typeof UpdatePickupEventBody> & {
+    pickupEventId: string;
+  }
+) => {
+  const pickupEvent = await prisma.pickupEvent.update({
+    where: {
+      id: pickupEventBody.pickupEventId,
+    },
+    data: {
+      location: pickupEventBody.location,
+      startsAt: pickupEventBody.startsAt,
+      endsAt: pickupEventBody.endsAt,
+    },
+  });
+
+  return pickupEvent;
+};
+
+export const deletePickupEvent = async (pickupEventId: string) => {
+  const pickupEvent = await prisma.pickupEvent.delete({
+    where: {
+      id: pickupEventId,
+    },
+  });
+
+  return pickupEvent;
 };
 
 export const createFundraiserItem = async (

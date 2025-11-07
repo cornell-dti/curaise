@@ -4,6 +4,7 @@ import {
   FundraiserItemRouteParams,
   DeleteAnnouncementRouteParams,
   DeleteFundraiserItemRouteParams,
+  PickupEventRouteParams,
 } from "./fundraiser.types";
 import {
   CreateFundraiserBody,
@@ -11,6 +12,8 @@ import {
   CreateFundraiserItemBody,
   UpdateFundraiserItemBody,
   CreateAnnouncementBody,
+  UpdatePickupEventBody,
+  CreatePickupEventBody,
 } from "common";
 import validate from "../../middleware/validate";
 import {
@@ -27,6 +30,9 @@ import {
   createAnnouncementHandler,
   deleteAnnouncementHandler,
   getFundraiserAnalyticsHandler,
+  createPickupEventHandler,
+  updatePickupEventHandler,
+  deletePickupEventHandler,
 } from "./fundraiser.handlers";
 import { authenticate } from "../../middleware/authenticate";
 
@@ -72,6 +78,27 @@ fundraiserRouter.post(
   validate({ params: FundraiserRouteParams }),
   authenticate,
   publishFundraiserHandler
+);
+
+fundraiserRouter.post(
+  "/:id/pickup-events/create",
+  validate({ params: FundraiserRouteParams, body: CreatePickupEventBody }),
+  authenticate,
+  createPickupEventHandler
+);
+
+fundraiserRouter.post(
+  "/:fundraiserId/pickup-events/:pickupEventId/update",
+  validate({ params: PickupEventRouteParams, body: UpdatePickupEventBody }),
+  authenticate,
+  updatePickupEventHandler
+);
+
+fundraiserRouter.delete(
+  "/:fundraiserId/pickup-events/:pickupEventId/delete",
+  validate({ params: PickupEventRouteParams }),
+  authenticate,
+  deletePickupEventHandler
 );
 
 fundraiserRouter.post(
