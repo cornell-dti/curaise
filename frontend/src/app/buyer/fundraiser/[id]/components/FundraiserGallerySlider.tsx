@@ -53,8 +53,16 @@ export function FundraiserGallerySlider({
     setCurrentIndex((prevIndex) => prevIndex + 1);
   };
 
+  if (images.length === 0) {
+    return (
+      <div className="relative w-full h-[379px] md:h-40 md:sm:h-50 md:h-58 lg:h-64 overflow-hidden md:rounded-t-lg bg-gray-200 flex items-center justify-center">
+        <span className="text-gray-400 text-sm md:text-base">No image available</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="relative w-full h-40 sm:h-50 md:h-58 lg:h-64 overflow-hidden rounded-t-lg">
+    <div className="relative w-full h-[379px] md:h-40 md:sm:h-50 md:h-58 lg:h-64 overflow-hidden md:rounded-t-lg">
       <div
         className="flex w-full h-full transition-transform duration-500 ease-in-out"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
@@ -64,7 +72,7 @@ export function FundraiserGallerySlider({
             <img
               src={image}
               alt={`Slide ${index + 1}`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-center"
             />
           </div>
         ))}

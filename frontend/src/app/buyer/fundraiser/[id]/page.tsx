@@ -1,10 +1,8 @@
 import { connection } from "next/server";
 import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
-import { format } from "date-fns";
-import { MapPin, Calendar, ShoppingBag } from "lucide-react";
 import { FundraiserItemsPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemsPanel";
 import { FundraiserGallerySlider } from "@/app/buyer/fundraiser/[id]/components/FundraiserGallerySlider";
-import { FundraiserAnnouncementPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserAnnouncementPanel";
+import { FundraiserMobileView } from "@/app/buyer/fundraiser/[id]/components/FundraiserMobileView";
 
 const getFundraiser = async (id: string) => {
   const response = await fetch(
@@ -48,50 +46,31 @@ export default async function FundraiserPage({
   const fundraiserItems = await getFundraiserItems(id);
 
   return (
-    <div className="flex flex-col p-10 space-y-4">
-      {fundraiser.imageUrls.length > 0 && (
-        <FundraiserGallerySlider images={fundraiser.imageUrls} />
-      )}
-
-      <div className="flex flex-col items-start w-full space-y-2">
-        <h1 className="text-3xl font-bold my-2">{fundraiser.name}</h1>
-        <p className="text-gray-600 mb-4">{fundraiser.description}</p>
-
-        <div className="flex sm:items-center gap-2">
-          <ShoppingBag className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
-          <span className="text-md">
-            Buying Window:{" "}
-            <b>
-              {format(fundraiser.buyingStartsAt, "MMM d, yyyy 'at' h:mm a")} -{" "}
-              {format(fundraiser.buyingEndsAt, "MMM d, yyyy 'at' h:mm a")}
-            </b>
-          </span>
-        </div>
-
-        <div className="flex sm:items-center gap-2">
-          <MapPin className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
-          <span className="text-md">
-            Pickup Location: <b>{fundraiser.pickupLocation}</b>
-          </span>
-        </div>
-
-        <div className="flex sm:items-center gap-2">
-          <Calendar className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
-          <span className="text-md">
-            Pickup Window:{" "}
-            <b>
-              {format(fundraiser.pickupStartsAt, "MMM d, yyyy 'at' h:mm a")} -{" "}
-              {format(fundraiser.pickupEndsAt, "MMM d, yyyy 'at' h:mm a")}
-            </b>
-          </span>
-        </div>
+    <div className="bg-white min-h-screen pb-20 md:pb-0">
+      {/* Mobile View */}
+      <div className="md:hidden">
+        <FundraiserMobileView
+          fundraiser={fundraiser}
+          fundraiserItems={fundraiserItems}
+        />
       </div>
 
-      <FundraiserAnnouncementPanel announcements={fundraiser.announcements} />
-      <FundraiserItemsPanel
-        fundraiserId={fundraiser.id}
-        items={fundraiserItems}
-      />
+      {/* Desktop View - Keep existing layout */}
+      <div className="hidden md:flex flex-col p-10 space-y-4">
+        {fundraiser.imageUrls.length > 0 && (
+          <FundraiserGallerySlider images={fundraiser.imageUrls} />
+        )}
+
+        <div className="flex flex-col items-start w-full space-y-2">
+          <h1 className="text-3xl font-bold my-2">{fundraiser.name}</h1>
+          <p className="text-gray-600 mb-4">{fundraiser.description}</p>
+        </div>
+
+        <FundraiserItemsPanel
+          fundraiserId={fundraiser.id}
+          items={fundraiserItems}
+        />
+      </div>
     </div>
   );
 }

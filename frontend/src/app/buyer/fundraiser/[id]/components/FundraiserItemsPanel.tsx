@@ -39,14 +39,15 @@ export function FundraiserItemsPanel({
 
   return (
     <div className="bg-white rounded-md">
-      <h2 className="text-2xl font-bold mb-4">Items</h2>
+      {/* Desktop heading */}
+      <h2 className="hidden md:block text-2xl font-bold mb-4">Items</h2>
 
       {items.length === 0 ? (
         <p className="text-gray-500 col-span-2 text-center py-8">
           No items available for this fundraiser.
         </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-1 md:sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8">
           {items.map((item) => (
             <FundraiserItemModal
               key={item.id}

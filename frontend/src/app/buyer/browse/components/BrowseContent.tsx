@@ -79,7 +79,7 @@ export function BrowseContent({ fundraisers }: BrowseContentProps) {
                     </p>
                 </div>
             ) : (
-                <div className="flex flex-col gap-[15px] w-full md:max-w-none md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-8">
+                <div className="flex flex-col gap-[25px] w-full md:max-w-none md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-8">
                     {sortedFundraisers.map((fundraiser) => (
                         <FundraiserCard key={fundraiser.id} fundraiser={fundraiser} />
                     ))}
