@@ -20,11 +20,13 @@ export function ReviewOrderForm({
   cartItems,
   onSubmit,
   onBack,
+  isSubmitting,
 }: {
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
   cartItems: CartItem[];
   onSubmit: () => void;
   onBack: () => void;
+  isSubmitting: boolean;
 }) {
   const orderTotal = cartItems
     .reduce(
@@ -117,11 +119,11 @@ export function ReviewOrderForm({
         </Card>
 
         <div className="flex justify-between">
-          <Button variant="outline" onClick={onBack}>
+          <Button variant="outline" onClick={onBack} disabled={isSubmitting}>
             Back
           </Button>
-          <Button type="submit" onClick={onSubmit}>
-            Place Order
+          <Button type="submit" onClick={onSubmit} disabled={isSubmitting}>
+            {isSubmitting ? "Placing Order..." : "Place Order"}
           </Button>
         </div>
       </div>
