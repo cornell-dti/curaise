@@ -199,13 +199,6 @@ export function CreateFundraiserForm({
           onSave={() => setSaveRequested(true)}
         />
 
-        <FundraiserAddItemsForm
-          items={fundraiserItems}
-          setItems={setFundraiserItems}
-          onSubmit={() => setCurrentStep(2)}
-          onBack={() => setCurrentStep(0)}
-        />
-
         <FundraiserVenmoInfoForm
           defaultValues={formData}
           onSubmit={(data) => {

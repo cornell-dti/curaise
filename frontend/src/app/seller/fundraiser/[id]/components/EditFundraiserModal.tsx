@@ -177,6 +177,7 @@ export function EditFundraiserModal({
               setItems={setFundraiserItems}
               onSubmit={() => setCurrentStep(2)}
               onBack={() => setCurrentStep(0)}
+              onSave={() => setSaveRequested(true)}
             />
 
             <FundraiserVenmoInfoForm
