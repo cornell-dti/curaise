@@ -1,17 +1,8 @@
 import { CalendarIcon, MapPinIcon, ShoppingBag } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { z } from "zod";
 import { BasicFundraiserSchema } from "common";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Button } from "../ui/button";
 
 export function FundraiserCard({
   fundraiser,
@@ -34,9 +25,9 @@ export function FundraiserCard({
       }
       className="block"
     >
-      <Card className="overflow-hidden border shadow-sm h-full flex flex-col hover:shadow-md hover:translate-y-[-2px] transition-all duration-200">
-        {/* Image Section */}
-        <div className="relative h-48 bg-gray-100">
+      <div className="flex flex-col">
+        {/* Image Section - Fully Rounded */}
+        <div className="relative h-48 bg-gray-100 rounded-[6px] overflow-hidden">
           {fundraiser.imageUrls && fundraiser.imageUrls.length > 0 ? (
             <img
               src={fundraiser.imageUrls[0]}
@@ -44,7 +35,7 @@ export function FundraiserCard({
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-200">
+            <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-[6px]">
               <span className="text-gray-400">No image</span>
             </div>
           )}
@@ -64,36 +55,32 @@ export function FundraiserCard({
         </div>
 
         {/* Mobile View - Simplified */}
-        <div className="md:hidden flex flex-col gap-1 px-0 py-4">
-          <h3 className="text-base font-semibold leading-6 px-0">
+        <div className="md:hidden flex flex-col gap-1 mt-[15px]">
+          <h3 className="text-base font-semibold leading-6">
             {fundraiser.name}
           </h3>
           {fundraiser.organization && (
-            <p className="text-xs leading-[18px] text-[#545454] px-0">
+            <p className="text-xs leading-[18px] text-[#545454]">
               Hosted by: {fundraiser.organization.name}
             </p>
           )}
         </div>
 
         {/* Desktop View - Full Details */}
-        <CardHeader className="pb-2 hidden md:block">
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="text-base">{fundraiser.name}</CardTitle>
-              <CardDescription className="flex items-center gap-1 mt-1">
-                {fundraiser.description}
-              </CardDescription>
-              {fundraiser.organization && (
-                <div className="text-xs text-gray-500 mt-1">
-                  {fundraiser.organization.name}
-                </div>
-              )}
-            </div>
+        <div className="hidden md:block">
+          <div className="flex flex-col gap-2 mt-4">
+            <h3 className="text-base font-semibold">{fundraiser.name}</h3>
+            <p className="text-sm text-muted-foreground">
+              {fundraiser.description}
+            </p>
+            {fundraiser.organization && (
+              <div className="text-xs text-gray-500">
+                {fundraiser.organization.name}
+              </div>
+            )}
           </div>
-        </CardHeader>
 
-        <CardContent className="pb-2 text-sm flex-1 hidden md:block">
-          <div className="grid gap-2">
+          <div className="mt-4 text-sm space-y-2">
             <div className="flex items-center gap-2">
               <ShoppingBag className="h-4 w-4 text-muted-foreground" />
               <span>
@@ -123,22 +110,14 @@ export function FundraiserCard({
               </span>
             </div>
           </div>
-        </CardContent>
 
-        <CardFooter className="pt-2 flex mt-auto hidden md:flex">
-          <Button variant="outline" size="sm" className="h-8" asChild>
-            <Link
-              href={
-                seller
-                  ? `/seller/fundraiser/${fundraiser.id}`
-                  : `/buyer/fundraiser/${fundraiser.id}`
-              }
-            >
+          <div className="mt-4">
+            <div className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-8">
               View Details
-            </Link>
-          </Button>
-        </CardFooter>
-      </Card>
+            </div>
+          </div>
+        </div>
+      </div>
     </Link>
   );
 }
