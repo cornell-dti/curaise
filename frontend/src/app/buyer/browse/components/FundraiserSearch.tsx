@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { z } from "zod";
 import { BasicFundraiserSchema } from "common";
@@ -37,15 +36,17 @@ export function FundraiserSearch({ fundraisers, onFilteredChange }: FundraiserSe
     }, [filteredFundraisers, onFilteredChange]);
 
     return (
-        <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4" />
-            <Input
-                type="text"
-                placeholder="Search for fundraisers"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 w-full text-black"
-            />
+        <div className="bg-white border border-[#dddddd] rounded-[6px] w-full">
+            <div className="flex gap-2 items-center px-5 py-[13px]">
+                <Search className="size-5 shrink-0" />
+                <input
+                    type="text"
+                    placeholder="Search for fundraisers"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex-1 text-[15px] leading-[18px] text-black placeholder:text-black outline-none bg-transparent"
+                />
+            </div>
         </div>
     );
 }
