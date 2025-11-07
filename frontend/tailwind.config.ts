@@ -70,6 +70,15 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      keyframes: {
+        "move-across": {
+          "0%": { transform: "translateX(70px)" },
+          "100%": { transform: "translateX(320px)" },
+        },
+      },
+      animation: {
+        "move-across": "move-across 10s linear infinite",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],
