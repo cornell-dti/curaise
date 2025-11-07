@@ -64,7 +64,6 @@ export function EditFundraiserModal({
   );
 
   async function onSubmit() {
-    // Edit the fundraiser
     // Map empty-string venmo fields to null so backend will clear them
     const payload = {
       ...formData,
@@ -130,6 +129,7 @@ export function EditFundraiserModal({
         })
       );
       setCurrentStep(0);
+      setOpen(false);
       // Check for any failed items
       const failedItems = itemResults.filter(
         (result) =>
@@ -162,16 +162,22 @@ export function EditFundraiserModal({
     }
   }
   const [currentStep, setCurrentStep] = useState(step);
+  const [saveRequested, setSaveRequested] = useState(false);
 
   useEffect(() => {
-    if (open) {
-      setCurrentStep(step);
-    }
+    if (open) setCurrentStep(step);
   }, [open, step]);
+
+  useEffect(() => {
+    if (saveRequested) {
+      onSubmit();
+      setSaveRequested(false);
+    }
+  }, [saveRequested, onSubmit]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="flex flex-col max-h-[70vh] max-w-3xl p-0">
+      <DialogContent className="flex flex-col max-h-[85vh] max-w-3xl p-0">
         <DialogHeader className="w-full px-6 py-4 border-b bg-gray-50/50">
           <DialogTitle className="text-lg font-semibold text-gray-900">
             Edit Fundraiser Information
@@ -194,6 +200,10 @@ export function EditFundraiserModal({
                 setFormData((prev) => ({ ...prev, ...data }));
                 setCurrentStep(1);
               }}
+              onSave={(data) => {
+                setFormData((prev) => ({ ...prev, ...data }));
+                setSaveRequested(true);
+              }}
             />
 
             <FundraiserAddItemsForm
@@ -201,6 +211,7 @@ export function EditFundraiserModal({
               setItems={setFundraiserItems}
               onSubmit={() => setCurrentStep(2)}
               onBack={() => setCurrentStep(0)}
+              onSave={() => setSaveRequested(true)}
             />
 
             <FundraiserVenmoInfoForm
@@ -210,6 +221,10 @@ export function EditFundraiserModal({
                 setCurrentStep(3);
               }}
               onBack={() => setCurrentStep(1)}
+              onSave={(data) => {
+                setFormData((prev) => ({ ...prev, ...data }));
+                setSaveRequested(true);
+              }}
             />
 
             <ReviewFundraiserForm

@@ -27,7 +27,6 @@ import {
   createAnnouncementHandler,
   deleteAnnouncementHandler,
   getFundraiserAnalyticsHandler,
-  deleteFundraiserItemHandler,
 } from "./fundraiser.handlers";
 import { authenticate } from "../../middleware/authenticate";
 
