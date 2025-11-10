@@ -56,10 +56,6 @@ export const ShoppingCart = ({ fundraiserId }: { fundraiserId?: string }) => {
       </div>
       <Separator className="my-4" />
       <div className="flex justify-between">
-        <span className="font-medium">Items</span>
-        <span className="font-bold">{totalItems}</span>
-      </div>
-      <div className="flex justify-between">
         <span className="font-medium">Total</span>
         <span className="font-bold">${orderTotal}</span>
       </div>

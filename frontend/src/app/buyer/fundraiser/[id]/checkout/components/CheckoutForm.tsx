@@ -44,7 +44,6 @@ export function CheckoutForm({
   if ((!cartItems || cartItems.length === 0) && !orderPlaced) {
     // If cart is empty and no order was just placed, redirect to the fundraiser page
     redirect(`/buyer/fundraiser/${fundraiser.id}`);
-    return null;
   }
 
   async function onSubmit() {
