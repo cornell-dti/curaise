@@ -72,6 +72,9 @@ export default async function CheckoutPage({
 
   const id = (await params).id;
   const fundraiser = await getFundraiser(id);
+  if (!fundraiser.published) {
+    throw new Error("Fundraiser is not published");
+  }
 
   return (
     <div>

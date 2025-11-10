@@ -37,6 +37,8 @@ export function CheckoutForm({
     payment_method: "OTHER", // default to other for now
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [currentStep, setCurrentStep] = useState(0);
   const [orderPlaced, setOrderPlaced] = useState(false);
 
@@ -47,6 +49,12 @@ export function CheckoutForm({
   }
 
   async function onSubmit() {
+    // Prevent multiple submissions
+    if (isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
     const dataToSubmit = {
       ...formData,
     };
@@ -66,6 +74,7 @@ export function CheckoutForm({
     const result = await response.json();
     if (!response.ok) {
       toast.error(result.message);
+      setIsSubmitting(false);
       return;
     } else {
       toast.success(result.message);
@@ -92,6 +101,7 @@ export function CheckoutForm({
           cartItems={cart}
           onSubmit={onSubmit}
           onBack={() => setCurrentStep(0)}
+          isSubmitting={isSubmitting}
         />
       </MultiStepForm>
     </div>
