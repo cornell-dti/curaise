@@ -51,6 +51,7 @@ export function FundraiserItemsPanel({
           {items.map((item) => (
             <FundraiserItemModal
               key={item.id}
+              fundraiserId={fundraiserId}
               item={item}
               amount={
                 cart?.find((cartItem) => cartItem.item.id === item.id)

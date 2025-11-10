@@ -78,6 +78,16 @@ export function FundraiserItemCard({
     }, 300);
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    decrement();
+  };
+
+  const handleIncrementClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    increment();
+  };
+
   return (
     <div className="flex flex-col gap-2">
       {/* Mobile View - Simplified Design */}
@@ -94,24 +104,33 @@ export function FundraiserItemCard({
               <span className="text-gray-400 text-sm">No image</span>
             </div>
           )}
-          {/* Plus button overlay - bottom right */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (amount === 0) {
-                increment();
-              } else {
-                handleOpen(e);
-              }
-            }}
-            className="absolute bottom-[5px] right-[5px] w-[23px] h-[23px] flex items-center justify-center bg-white/80 rounded-full hover:bg-white transition-colors"
-          >
-            {amount > 0 ? (
-              <span className="text-xs font-medium text-black">{amount}</span>
-            ) : (
-              <Plus className="w-4 h-4 text-black" />
-            )}
-          </button>
+          {/* Button overlay - bottom right */}
+          {amount > 0 ? (
+            <div className="absolute bottom-[10px] right-[10px] h-[28px] bg-white/80 rounded-[25px] px-[8px] flex items-center justify-center gap-[16px] z-10">
+              <button
+                onClick={handleDelete}
+                className="flex items-center justify-center w-5 h-5"
+              >
+                <Trash className="w-5 h-5 text-black" />
+              </button>
+              <p className="text-[18px] font-normal leading-[27px] text-black">
+                {amount}
+              </p>
+              <button
+                onClick={handleIncrementClick}
+                className="flex items-center justify-center w-5 h-5"
+              >
+                <Plus className="w-5 h-5 text-black" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleIncrementClick}
+              className="absolute bottom-[10px] right-[10px] w-[28px] h-[28px] flex items-center justify-center bg-white/80 rounded-full hover:bg-white transition-colors z-10"
+            >
+              <Plus className="w-5 h-5 text-black" />
+            </button>
+          )}
         </div>
         <div className="flex flex-col gap-1">
           <h3 className="text-[16px] font-semibold leading-[24px] text-[#1e1c1c]">

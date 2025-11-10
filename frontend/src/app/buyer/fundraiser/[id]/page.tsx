@@ -46,7 +46,7 @@ export default async function FundraiserPage({
   const fundraiserItems = await getFundraiserItems(id);
 
   return (
-    <div className="bg-white min-h-screen pb-20 md:pb-0">
+    <div className="bg-white min-h-screen pb-4 md:pb-0">
       {/* Mobile View */}
       <div className="md:hidden">
         <FundraiserMobileView

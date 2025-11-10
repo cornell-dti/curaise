@@ -22,6 +22,7 @@ export function FundraiserMobileView({
   // fixes nextjs hydration issue: https://github.com/pmndrs/zustand/issues/938#issuecomment-1481801942
   const cart = useStore(useCartStore, (state) => state.carts[fundraiser.id]);
   const hasItems = cart && cart.length > 0;
+  const totalQuantity = cart?.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
   return (
     <>
@@ -66,7 +67,7 @@ export function FundraiserMobileView({
         </p>
       </div>
 
-      <div className="px-[17px] pt-[11px] pb-4 flex flex-col gap-[22px]">
+      <div className="px-[17px] pt-[11px] flex flex-col gap-[22px]">
         {/* Description */}
         <div className="text-[16px] leading-[24px] text-black whitespace-pre-wrap">
           {fundraiser.description}
@@ -121,7 +122,7 @@ export function FundraiserMobileView({
             className="bg-black rounded-[8px] h-[50px] flex items-center justify-center gap-[19px] px-12 py-3"
           >
             <span className="text-[18px] leading-[27px] text-[#fefdfd]">
-              View Cart
+              View Cart ({totalQuantity})
             </span>
             <ShoppingCart className="w-5 h-5 text-[#fefdfd]" />
           </Link>
