@@ -37,6 +37,9 @@ export function CheckoutForm({
     payment_method: "VENMO", // default to venmo
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+
   async function onSubmit() {
     // Prevent multiple submissions
     if (isSubmitting) {
