@@ -24,7 +24,7 @@ import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
 import { format } from "date-fns";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { CopyOrderIdButton } from "@/components/custom/CopyOrderIdButton";
+import { CopyButton } from "@/components/custom/CopyButton";
 import { ConfettiWrapper } from "@/components/custom/ConfettiWrapper";
 
 // data fetching function
@@ -180,8 +180,8 @@ export default async function OrderPage({
               {bannerStyle.message}
             </CardDescription>
           </CardHeader>
-           {/* Show CardContent for PENDING VENMO orders */}
-           {order.paymentStatus === "PENDING" && order.paymentMethod === "VENMO" && (
+           {/* Show CardContent for PENDING VENMO orders with venmoUsername */}
+           {order.paymentStatus === "PENDING" && order.paymentMethod === "VENMO" && fundraiser.venmoUsername && (
             <CardContent>
               <div className="space-y-4">
                 <div className="flex justify-center">
@@ -191,10 +191,7 @@ export default async function OrderPage({
                     className="flex items-center gap-2 bg-[#3D95CE] hover:bg-[#2E7BB8] text-white font-semibold px-8 py-3 text-md"
                   >
                     <a
-                      href={fundraiser.venmoUsername
-                        ? `https://venmo.com/${fundraiser.venmoUsername}?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`
-                        : `https://venmo.com?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`
-                      }
+                      href={`https://venmo.com/${fundraiser.venmoUsername}?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -212,17 +209,13 @@ export default async function OrderPage({
                     <p className="mb-1 text-sm">
                       Manual entry details (enter exactly as shown, or the order may not be processed correctly):
                     </p>
-                    {fundraiser.venmoUsername && (
-                      <>
-                        <p className="mb-1 text-sm">Send to Venmo username:</p>
-                        <div className="flex items-center gap-2">
-                          <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
-                            @{fundraiser.venmoUsername}
-                          </code>
-                          <CopyOrderIdButton orderId={`${fundraiser.venmoUsername}`} />
-                        </div>
-                      </>
-                    )}
+                    <p className="mb-1 text-sm">Send to Venmo username:</p>
+                    <div className="flex items-center gap-2">
+                      <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
+                        @{fundraiser.venmoUsername}
+                      </code>
+                      <CopyButton text={`${fundraiser.venmoUsername}`} />
+                    </div>
 
                     <div>
                       <p className="mb-1 text-sm">Amount to send:</p>
@@ -230,7 +223,7 @@ export default async function OrderPage({
                         <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
                           ${orderTotal}
                         </code>
-                        <CopyOrderIdButton orderId={orderTotal} />
+                        <CopyButton text={orderTotal} />
                       </div>
                     </div>
 
@@ -240,7 +233,7 @@ export default async function OrderPage({
                         <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
                           {orderIdForPayment}
                         </code>
-                        <CopyOrderIdButton orderId={orderIdForPayment} />
+                        <CopyButton text={orderIdForPayment} />
                       </div>
                     </div>
                   </div>
