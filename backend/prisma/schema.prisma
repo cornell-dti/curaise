@@ -41,6 +41,7 @@ model Fundraiser {
   id             String   @id @default(uuid()) @db.Uuid
   name           String
   description    String
+  published      Boolean  @default(false)
   goalAmount     Decimal? @map("goal_amount") @db.Money
   pickupLocation String   @map("pickup_location")
   imageUrls      String[] @map("image_urls")

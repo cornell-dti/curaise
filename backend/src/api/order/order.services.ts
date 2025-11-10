@@ -1,6 +1,8 @@
 import { prisma } from "../../utils/prisma";
 import { CreateOrderBody } from "common";
 import { z } from "zod";
+import { updateCacheForNewOrder, updateCacheForOrderPickup } from "../fundraiser/fundraiser.services";
+import { Decimal } from "decimal.js";
 
 export const getOrder = async (orderId: string) => {
   const order = await prisma.order.findUnique({
@@ -12,6 +14,7 @@ export const getOrder = async (orderId: string) => {
           id: true,
           name: true,
           description: true,
+          published: true,
           goalAmount: true,
           imageUrls: true,
           pickupLocation: true,
@@ -66,6 +69,7 @@ export const createOrder = async (
           id: true,
           name: true,
           description: true,
+          published: true,
           goalAmount: true,
           imageUrls: true,
           pickupLocation: true,
@@ -86,6 +90,9 @@ export const createOrder = async (
       },
     },
   });
+
+  // Update analytics cache for the fundraiser when a new order is created
+  await updateCacheForNewOrder(orderBody.fundraiserId, order.createdAt);
 
   return order;
 };
@@ -103,6 +110,51 @@ export const completeOrderPickup = async (orderId: string) => {
           id: true,
           name: true,
           description: true,
+          published: true,
+          goalAmount: true,
+          imageUrls: true,
+          pickupLocation: true,
+          buyingStartsAt: true,
+          buyingEndsAt: true,
+          pickupStartsAt: true,
+          pickupEndsAt: true,
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              authorized: true,
+              logoUrl: true,
+            },
+          },
+        },
+      },
+      items: {
+        select: { quantity: true, item: true },
+      },
+    },
+  });
+
+  // Update analytics cache for the fundraiser when an order is picked up, so pending order and picked up order counts are not stale
+  await updateCacheForOrderPickup(order.fundraiser.id, order);
+
+  return order;
+};
+
+export const confirmOrderPayment = async (orderId: string) => {
+  const order = await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      paymentStatus: "CONFIRMED",
+    },
+    include: {
+      buyer: true,
+      fundraiser: {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          published: true,
           goalAmount: true,
           imageUrls: true,
           pickupLocation: true,
@@ -127,33 +179,20 @@ export const completeOrderPickup = async (orderId: string) => {
   return order;
 };
 
-export const confirmOrderPayment = async (orderId: string) => {
-  const order = await prisma.order.update({
+/**
+ * Calculate the total amount for an order based on its items and quantities
+ */
+export const calculateOrderTotal = async (
+  orderId: string
+): Promise<Decimal> => {
+  const order = await prisma.order.findUnique({
     where: { id: orderId },
-    data: {
-      paymentStatus: "CONFIRMED",
-    },
     include: {
-      buyer: true,
-      fundraiser: {
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          goalAmount: true,
-          imageUrls: true,
-          pickupLocation: true,
-          buyingStartsAt: true,
-          buyingEndsAt: true,
-          pickupStartsAt: true,
-          pickupEndsAt: true,
-          organization: {
+      items: {
+        include: {
+          item: {
             select: {
-              id: true,
-              name: true,
-              description: true,
-              authorized: true,
-              logoUrl: true,
+              price: true,
             },
           },
         },
@@ -161,5 +200,17 @@ export const confirmOrderPayment = async (orderId: string) => {
     },
   });
 
-  return order;
+  if (!order) {
+    throw new Error("Order not found");
+  }
+
+  const total = order.items.reduce(
+    (sum, orderItem) =>
+      sum.plus(
+        new Decimal(orderItem.item.price.toString()).times(orderItem.quantity)
+      ),
+    new Decimal(0)
+  );
+
+  return total;
 };

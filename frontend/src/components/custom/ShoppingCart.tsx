@@ -20,7 +20,9 @@ export const ShoppingCart = ({ fundraiserId }: { fundraiserId?: string }) => {
     )
     .toFixed(2);
 
-  return cart.length > 0 ? (
+  const totalItems = cart.reduce((total, cartItem) => total + cartItem.quantity, 0);
+
+  return totalItems > 0 ? (
     <div>
       <div className="space-y-4">
         {cart.map((cartItem) => (

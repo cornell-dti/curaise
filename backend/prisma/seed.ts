@@ -83,6 +83,7 @@ async function main() {
       name: "DTI Bake Sale",
       description:
         "Buy some baked goods from DTI! All proceeds go toward supporting our projects and initiatives.",
+      published: true,
       goalAmount: 100.0,
       pickupLocation: "Phillips Hall",
       buyingStartsAt: new Date(new Date().setDate(new Date().getDate() - 1)),
@@ -128,6 +129,7 @@ async function main() {
       name: "CDS Merch Sale",
       description:
         "Get your Cornell Data Science merch! Show your data science passion with our limited edition items.",
+      published: true,
       goalAmount: 750.0,
       pickupLocation: "Phillips Hall Lobby",
       imageUrls: [
@@ -174,6 +176,21 @@ async function main() {
           },
         ],
       },
+    },
+  });
+
+  // create unpublished dti fundraiser
+  await prisma.fundraiser.create({
+    data: {
+      name: "Unpublished Fundraiser",
+      description: "This fundraiser is not published.",
+      goalAmount: 500.0,
+      pickupLocation: "Unknown",
+      buyingStartsAt: new Date(),
+      buyingEndsAt: new Date(),
+      pickupStartsAt: new Date(),
+      pickupEndsAt: new Date(),
+      organizationId: cornellDTI.id,
     },
   });
 

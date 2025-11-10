@@ -30,3 +30,22 @@ export const authenticate = async <ParamsT, BodyT, QueryT>(
 
   next();
 };
+
+// similar to authenticate middleware, but does not return 401 if no user is found
+export const authenticateOptional = async <ParamsT, BodyT, QueryT>(
+  req: Request<ParamsT, any, BodyT, QueryT>,
+  res: Response,
+  next: NextFunction
+) => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser(
+    req.headers.authorization?.split("Bearer ")[1]
+  );
+
+  if (user) {
+    res.locals.user = user;
+  }
+
+  next();
+};
