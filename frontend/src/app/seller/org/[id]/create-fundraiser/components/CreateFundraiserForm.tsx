@@ -5,7 +5,7 @@ import { CreateFundraiserBody, CreateFundraiserItemBody } from "common";
 import { toast } from "sonner";
 import { z } from "zod";
 import MultiStepForm from "../../../../../../components/custom/MultiStepForm";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FundraiserBasicInfoForm } from "./FundraiserBasicInfoForm";
 import { FundraiserAddItemsForm } from "./FundraiserAddItemsForm";
 import { ReviewFundraiserForm } from "./ReviewFundraiserForm";
@@ -45,6 +45,8 @@ export function CreateFundraiserForm({
   organizationId: string;
 }) {
   const defaultDates = getDefaultDates();
+  const [saveRequested, setSaveRequested] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
 
   const [formData, setFormData] = useState<
     z.infer<typeof CreateFundraiserBody>
@@ -59,6 +61,8 @@ export function CreateFundraiserForm({
     pickupStartsAt: defaultDates.pickupStartsAt,
     pickupEndsAt: defaultDates.pickupEndsAt,
     organizationId: organizationId,
+    venmoEmail: "",
+    venmoUsername: "",
   });
 
   // State for fundraiser items list
@@ -152,15 +156,21 @@ export function CreateFundraiserForm({
       redirect("/seller/fundraiser/" + fundraiserId);
     }
   }
-  const [currentStep, setCurrentStep] = useState(0);
+
+  useEffect(() => {
+    if (saveRequested) {
+      onSubmit();
+      setSaveRequested(false);
+    }
+  }, [saveRequested, formData]);
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">
       <MultiStepForm
         labels={[
           "Basic Information",
-          "Venmo Information",
           "Add Items",
+          "Venmo Information",
           "Review Fundraiser",
         ]}
         currentStep={currentStep}
@@ -171,22 +181,31 @@ export function CreateFundraiserForm({
             setFormData((prev) => ({ ...prev, ...data }));
             setCurrentStep(1);
           }}
+          onSave={(data) => {
+            setFormData((prev) => ({ ...prev, ...data }));
+            setSaveRequested(true);
+          }}
+        />
+
+        <FundraiserAddItemsForm
+          items={fundraiserItems}
+          setItems={setFundraiserItems}
+          onSubmit={() => setCurrentStep(2)}
+          onBack={() => setCurrentStep(0)}
+          onSave={() => setSaveRequested(true)}
         />
 
         <FundraiserVenmoInfoForm
           defaultValues={formData}
           onSubmit={(data) => {
             setFormData((prev) => ({ ...prev, ...data }));
-            setCurrentStep(2);
+            setCurrentStep(3);
           }}
-          onBack={() => setCurrentStep(0)}
-        />
-
-        <FundraiserAddItemsForm
-          items={fundraiserItems}
-          setItems={setFundraiserItems}
-          onSubmit={() => setCurrentStep(3)}
           onBack={() => setCurrentStep(1)}
+          onSave={(data) => {
+            setFormData((prev) => ({ ...prev, ...data }));
+            setSaveRequested(true);
+          }}
         />
 
         <ReviewFundraiserForm
