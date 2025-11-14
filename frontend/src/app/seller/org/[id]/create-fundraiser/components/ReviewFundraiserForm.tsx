@@ -72,9 +72,7 @@ export function ReviewFundraiserForm({
         </div>
 
         <div className="space-y-2">
-          <h3 className="text-lg font-medium">
-            Pickup Events ({formData.pickupEvents.length})
-          </h3>
+          <h3 className="text-lg font-medium">Pickup Events</h3>
           <div className="space-y-2">
             {formData.pickupEvents.map((event, index) => (
               <div key={index} className="p-4 border rounded-lg">
