@@ -221,7 +221,7 @@ export function FundraiserBasicInfoForm({
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="font-medium">Pickup Events ({fields.length})</p>
+                <p className="font-medium">Pickup Events</p>
                 <Button
                   type="button"
                   variant="outline"
@@ -247,9 +247,6 @@ export function FundraiserBasicInfoForm({
                     className="space-y-4 p-4 border rounded-lg relative"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Event {index + 1}
-                      </p>
                       {fields.length > 1 && (
                         <Button
                           type="button"
