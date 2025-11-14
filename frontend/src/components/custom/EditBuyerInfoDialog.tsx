@@ -49,7 +49,6 @@ export function EditBuyerInfoDialog({
     resolver: zodResolver(UpdateUserBody),
     values: {
       name: data.name,
-      venmoUsername: data.venmoUsername ?? "",
     },
     resetOptions: {
       keepDirtyValues: true,
@@ -108,19 +107,6 @@ export function EditBuyerInfoDialog({
                     <FormLabel>Name</FormLabel>
                     <FormControl>
                       <Input placeholder="Name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="venmoUsername"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Venmo Username</FormLabel>
-                    <FormControl>
-                      <Input placeholder="No Username" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
