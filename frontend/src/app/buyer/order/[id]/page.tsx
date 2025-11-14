@@ -142,34 +142,30 @@ export default async function OrderPage({
         {/* Pickup Info Card */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle>Pickup Info</CardTitle>
+            <CardTitle>Pickup Events</CardTitle>
             <PickupStatusBadge order={order} />
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <div className="flex items-start gap-2">
-                <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
-                <span className="text-sm">
-                  Pickup Location: <b>{order.fundraiser.pickupLocation}</b>
-                </span>
-              </div>
-              <div className="flex items-start gap-2">
-                <CalendarIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
-                <span className="text-sm">
-                  Pickup Window:{" "}
-                  <b>
-                    {format(
-                      order.fundraiser.pickupStartsAt,
-                      "MMM d, yyyy 'at' h:mm a"
-                    )}{" "}
-                    -{" "}
-                    {format(
-                      order.fundraiser.pickupEndsAt,
-                      "MMM d, yyyy 'at' h:mm a"
-                    )}
-                  </b>
-                </span>
-              </div>
+            <div className="space-y-4">
+              {order.fundraiser.pickupEvents.map((event) => (
+                <div key={event.id} className="space-y-2">
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
+                    <span className="text-sm">
+                      <b>{event.location}</b>
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CalendarIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
+                    <span className="text-sm">
+                      <b>
+                        {format(event.startsAt, "MMM d, yyyy 'at' h:mm a")} -{" "}
+                        {format(event.endsAt, "MMM d, yyyy 'at' h:mm a")}
+                      </b>
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -185,7 +181,7 @@ export default async function OrderPage({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {order.items.map((orderItem,) => (
+              {order.items.map((orderItem) => (
                 <div
                   key={orderItem.item.id}
                   className="flex flex-col sm:flex-row gap-4 pb-4 border-b last:border-0 last:pb-0"
