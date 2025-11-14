@@ -153,14 +153,37 @@ export const sendAnnouncementEmail = async (options: {
 
   const subject = `New Announcement: ${fundraiser.name}`;
 
+  // Format pickup events information
+  const pickupEventsText =
+    fundraiser.pickupEvents.length > 0
+      ? fundraiser.pickupEvents
+          .map(
+            (event, index) =>
+              `Event ${index + 1}: ${
+                event.location
+              } (${event.startsAt.toLocaleDateString()} to ${event.endsAt.toLocaleDateString()})`
+          )
+          .join("\n    ")
+      : "No pickup events scheduled";
+
+  const pickupEventsHtml =
+    fundraiser.pickupEvents.length > 0
+      ? fundraiser.pickupEvents
+          .map(
+            (event, index) =>
+              `<p><strong>Event ${index + 1}:</strong> ${event.location}<br/>
+        <strong>Time:</strong> ${event.startsAt.toLocaleDateString()} to ${event.endsAt.toLocaleDateString()}</p>`
+          )
+          .join("")
+      : "<p>No pickup events scheduled</p>";
+
   const text = `
     New Announcement for ${fundraiser.name}
     
     ${announcement.message}
     
     Pickup Information:
-    Location: ${fundraiser.pickupLocation}
-    Pickup Window: ${fundraiser.pickupStartsAt.toLocaleDateString()} to ${fundraiser.pickupEndsAt.toLocaleDateString()}
+    ${pickupEventsText}
     
     This is an automated message. Please do not reply.
   `;
@@ -173,8 +196,7 @@ export const sendAnnouncementEmail = async (options: {
     </div>
     
     <h2>Pickup Information</h2>
-    <p><strong>Location:</strong> ${fundraiser.pickupLocation}</p>
-    <p><strong>Pickup Window:</strong> ${fundraiser.pickupStartsAt.toLocaleDateString()} to ${fundraiser.pickupEndsAt.toLocaleDateString()}</p>
+    ${pickupEventsHtml}
     
     <p style="color: #777; font-size: 0.9em;">This is an automated message. Please do not reply.</p>
   `;
@@ -301,19 +323,48 @@ export const sendOrderConfirmation = async (order: Order): Promise<any> => {
   const paymentMethodText =
     order.paymentMethod === "VENMO" ? "Venmo" : "Other payment method";
 
-  // Format pickup dates using date-fns
-  const pickupStartsFormatted = format(
-    fundraiser.pickupStartsAt,
-    "EEEE, MMMM d, yyyy, h:mm a"
-  );
-
-  const pickupEndsFormatted = format(
-    fundraiser.pickupEndsAt,
-    "EEEE, MMMM d, yyyy, h:mm a"
-  );
-
   // Format order creation date
   const orderDateFormatted = format(order.createdAt, "MMMM d, yyyy");
+
+  // Format pickup events information
+  const pickupEventsText =
+    fundraiser.pickupEvents.length > 0
+      ? fundraiser.pickupEvents
+          .map((event, index) => {
+            const startsFormatted = format(
+              event.startsAt,
+              "EEEE, MMMM d, yyyy, h:mm a"
+            );
+            const endsFormatted = format(
+              event.endsAt,
+              "EEEE, MMMM d, yyyy, h:mm a"
+            );
+            return `Event ${index + 1}: ${
+              event.location
+            } (${startsFormatted} to ${endsFormatted})`;
+          })
+          .join("\n    ")
+      : "No pickup events scheduled";
+
+  const pickupEventsHtml =
+    fundraiser.pickupEvents.length > 0
+      ? fundraiser.pickupEvents
+          .map((event, index) => {
+            const startsFormatted = format(
+              event.startsAt,
+              "EEEE, MMMM d, yyyy, h:mm a"
+            );
+            const endsFormatted = format(
+              event.endsAt,
+              "EEEE, MMMM d, yyyy, h:mm a"
+            );
+            return `<p><strong>Event ${index + 1}:</strong> ${
+              event.location
+            }<br/>
+        <strong>Pickup Window:</strong> ${startsFormatted} to ${endsFormatted}</p>`;
+          })
+          .join("")
+      : "<p>No pickup events scheduled</p>";
 
   const text = `
     Thank you for your order #${order.id}!
@@ -324,8 +375,7 @@ export const sendOrderConfirmation = async (order: Order): Promise<any> => {
     Status: ${paymentStatusMessage}
     
     Pickup Information:
-    Location: ${fundraiser.pickupLocation}
-    Pickup Window: ${pickupStartsFormatted} to ${pickupEndsFormatted}
+    ${pickupEventsText}
     
     If you have any questions, please contact ${fundraiser.organization.name}.
   `;
@@ -340,8 +390,7 @@ export const sendOrderConfirmation = async (order: Order): Promise<any> => {
     <p><strong>Status:</strong> ${paymentStatusMessage}</p>
     
     <h2>Pickup Information</h2>
-    <p><strong>Location:</strong> ${fundraiser.pickupLocation}</p>
-    <p><strong>Pickup Window:</strong> ${pickupStartsFormatted} to ${pickupEndsFormatted}</p>
+    ${pickupEventsHtml}
     
     <p>If you have any questions, please contact ${fundraiser.organization.name}.</p>
   `;

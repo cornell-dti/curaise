@@ -9,6 +9,7 @@ async function main() {
   await prisma.order.deleteMany({});
   await prisma.item.deleteMany({});
   await prisma.announcement.deleteMany({});
+  await prisma.pickupEvent.deleteMany({});
   await prisma.fundraiser.deleteMany({});
   await prisma.organization.deleteMany({});
   await prisma.user.deleteMany({
@@ -85,12 +86,23 @@ async function main() {
         "Buy some baked goods from DTI! All proceeds go toward supporting our projects and initiatives.",
       published: true,
       goalAmount: 100.0,
-      pickupLocation: "Phillips Hall",
       buyingStartsAt: new Date(new Date().setDate(new Date().getDate() - 1)),
       buyingEndsAt: new Date(new Date().setDate(new Date().getDate() + 6)),
-      pickupStartsAt: new Date(new Date().setDate(new Date().getDate() + 7)),
-      pickupEndsAt: new Date(new Date().setDate(new Date().getDate() + 8)),
       organizationId: cornellDTI.id,
+      pickupEvents: {
+        create: [
+          {
+            location: "Phillips Hall",
+            startsAt: new Date(new Date().setDate(new Date().getDate() + 7)),
+            endsAt: new Date(new Date().setDate(new Date().getDate() + 8)),
+          },
+          {
+            location: "RPCC",
+            startsAt: new Date(new Date().setDate(new Date().getDate() + 9)),
+            endsAt: new Date(new Date().setDate(new Date().getDate() + 10)),
+          },
+        ],
+      },
       announcements: {
         create: [
           {
@@ -131,16 +143,22 @@ async function main() {
         "Get your Cornell Data Science merch! Show your data science passion with our limited edition items.",
       published: true,
       goalAmount: 750.0,
-      pickupLocation: "Phillips Hall Lobby",
       imageUrls: [
         "https://example.com/cds-merch-1.jpg",
         "https://example.com/cds-merch-2.jpg",
       ],
       buyingStartsAt: new Date("2025-04-01T10:00:00Z"),
       buyingEndsAt: new Date("2025-04-10T10:00:00Z"),
-      pickupStartsAt: new Date("2025-04-15T10:00:00Z"),
-      pickupEndsAt: new Date("2025-04-16T10:00:00Z"),
       organizationId: cds.id,
+      pickupEvents: {
+        create: [
+          {
+            location: "Phillips Hall Lobby",
+            startsAt: new Date("2025-04-15T10:00:00Z"),
+            endsAt: new Date("2025-04-16T10:00:00Z"),
+          },
+        ],
+      },
       announcements: {
         create: [
           {
@@ -185,12 +203,18 @@ async function main() {
       name: "Unpublished Fundraiser",
       description: "This fundraiser is not published.",
       goalAmount: 500.0,
-      pickupLocation: "Unknown",
       buyingStartsAt: new Date(),
       buyingEndsAt: new Date(),
-      pickupStartsAt: new Date(),
-      pickupEndsAt: new Date(),
       organizationId: cornellDTI.id,
+      pickupEvents: {
+        create: [
+          {
+            location: "Unknown",
+            startsAt: new Date(),
+            endsAt: new Date(),
+          },
+        ],
+      },
     },
   });
 

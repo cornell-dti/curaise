@@ -84,22 +84,34 @@ export function FundraiserCard({
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <MapPinIcon className="h-4 w-4 text-muted-foreground" />
-            <span>
-              Pickup Location: <b>{fundraiser.pickupLocation}</b>
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-            <span>
-              Pickup Window:{" "}
-              <b>
-                {format(fundraiser.pickupStartsAt, "MMM d 'at' h:mm a")} -{" "}
-                {format(fundraiser.pickupEndsAt, "MMM d 'at' h:mm a")}
-              </b>
-            </span>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium">
+                {fundraiser.pickupEvents.length === 1
+                  ? "Pickup Event"
+                  : `${fundraiser.pickupEvents.length} Pickup Events`}
+              </span>
+            </div>
+            {fundraiser.pickupEvents.map((event) => (
+              <div key={event.id} className="ml-6 text-xs space-y-1">
+                <div className="flex items-center gap-2">
+                  <MapPinIcon className="h-3 w-3 text-muted-foreground" />
+                  <span>
+                    <b>{event.location}</b>
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CalendarIcon className="h-3 w-3 text-muted-foreground" />
+                  <span>
+                    <b>
+                      {format(event.startsAt, "MMM d 'at' h:mm a")} -{" "}
+                      {format(event.endsAt, "MMM d 'at' h:mm a")}
+                    </b>
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </CardContent>
