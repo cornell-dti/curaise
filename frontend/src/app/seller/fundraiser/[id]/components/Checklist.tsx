@@ -13,7 +13,11 @@ import {
   ShoppingCart,
   Upload,
 } from "lucide-react";
-import { CompleteFundraiserSchema, CreateFundraiserItemBody } from "common";
+import {
+  CompleteFundraiserSchema,
+  CompleteItemSchema,
+  CreateFundraiserItemBody,
+} from "common";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 
@@ -102,7 +106,7 @@ interface ListItem {
 }
 const getChecklistStatus = (
   fundraiser: z.infer<typeof CompleteFundraiserSchema>,
-  fundraiserItems: z.infer<typeof CreateFundraiserItemBody>[]
+  fundraiserItems: z.infer<typeof CompleteItemSchema>[]
 ) => {
   return checkListData.map((item) => {
     let completed = false;
@@ -143,7 +147,7 @@ export default function ListPage({
   isPublish,
 }: {
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
-  fundraiserItems: z.infer<typeof CreateFundraiserItemBody>[];
+  fundraiserItems: z.infer<typeof CompleteItemSchema>[];
   onAction: (step: number) => void;
   isPublish: (publish: boolean) => void;
 }) {

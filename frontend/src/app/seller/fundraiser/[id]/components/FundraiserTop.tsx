@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { CompleteFundraiserSchema, CreateFundraiserItemBody } from "common";
+import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
 import { Calendar, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
@@ -17,7 +17,7 @@ export function FundraiserTop({
 }: {
   token: string;
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
-  fundraiserItems: z.infer<typeof CreateFundraiserItemBody>[];
+  fundraiserItems: z.infer<typeof CompleteItemSchema>[];
 }) {
   const [openEdit, setOpenEdit] = useState(false);
   const [step, setStep] = useState(0);
