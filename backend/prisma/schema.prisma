@@ -9,11 +9,10 @@ datasource db {
 }
 
 model User {
-  id            String   @id @db.Uuid
-  email         String   @unique
-  name          String
-  venmoUsername String?  @unique @map("venmo_username")
-  createdAt     DateTime @default(now()) @map("created_at")
+  id        String   @id @db.Uuid
+  email     String   @unique
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
 
   organizations Organization[]
   orders        Order[]
