@@ -9,7 +9,6 @@ import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
 import MultiStepForm from "@/components/custom/MultiStepForm";
 import { FundraiserBasicInfoForm } from "@/app/seller/org/[id]/create-fundraiser/components/FundraiserBasicInfoForm";
 import { FundraiserVenmoInfoForm } from "@/app/seller/org/[id]/create-fundraiser/components/FundraiserVenmoInfoForm";
-import { FundraiserAddItemsForm } from "@/app/seller/org/[id]/create-fundraiser/components/FundraiserAddItemsForm";
 import { ReviewFundraiserForm } from "@/app/seller/org/[id]/create-fundraiser/components/ReviewFundraiserForm";
 import {
   Dialog,
@@ -17,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { FundraiserEditItemsForm } from "./EditItems";
 
 export function EditFundraiserModal({
   token,
@@ -29,7 +29,7 @@ export function EditFundraiserModal({
 }: {
   token: string;
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
-  currentFundraiserItems: z.infer<typeof CreateFundraiserItemBody>[];
+  currentFundraiserItems: z.infer<typeof CompleteItemSchema>[];
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   step: number;
@@ -52,14 +52,14 @@ export function EditFundraiserModal({
     venmoUsername: fundraiser.venmoUsername ?? undefined,
   });
   const [fundraiserItems, setFundraiserItems] = useState<
+    z.infer<typeof CompleteItemSchema>[]
+  >(currentFundraiserItems);
+  const [formFundraiserItems, setFormFundraiserItems] = useState<
     z.infer<typeof CreateFundraiserItemBody>[]
-  >(() =>
-    (currentFundraiserItems ?? []).map((item) => ({
-      name: item.name,
-      description: item.description,
-      offsale: item.offsale,
-      price: item.price,
-      imageUrl: item.imageUrl ?? undefined,
+  >(
+    currentFundraiserItems.map(({ id, imageUrl, ...rest }) => ({
+      ...rest,
+      imageUrl: imageUrl ?? undefined,
     }))
   );
 
@@ -97,69 +97,8 @@ export function EditFundraiserModal({
 
     const fundraiserId = result.data.id;
 
-    // Then add items if there are any
-    if (currentFundraiserItems.length < fundraiserItems.length) {
-      const newItems = fundraiserItems.slice(currentFundraiserItems.length);
-      const itemResults = await Promise.allSettled(
-        newItems.map(async (item, index) => {
-          const itemResponse = await fetch(
-            process.env.NEXT_PUBLIC_API_URL +
-              `/fundraiser/${fundraiserId}/items/create`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer " + token,
-              },
-              body: JSON.stringify(item),
-            }
-          );
-
-          const itemResult = await itemResponse.json();
-
-          if (!itemResponse.ok) {
-            return {
-              success: false,
-              item: item.name || `Item ${index + 1}`,
-              error: itemResult.message || "Unknown error",
-            };
-          }
-
-          return { success: true, data: itemResult.data };
-        })
-      );
-      setCurrentStep(0);
-      setOpen(false);
-      // Check for any failed items
-      const failedItems = itemResults.filter(
-        (result) =>
-          result.status === "rejected" ||
-          (result.status === "fulfilled" && result.value.success === false)
-      );
-
-      if (failedItems.length > 0) {
-        failedItems.forEach((result) => {
-          if (result.status === "rejected") {
-            toast.error(`Failed to create an item: ${result.reason}`);
-          } else if (result.status === "fulfilled" && !result.value.success) {
-            toast.error(
-              `Failed to create ${result.value.item}: ${result.value.error}`
-            );
-          }
-        });
-
-        toast.warning(
-          `Created fundraiser but ${failedItems.length} item(s) failed to be added`
-        );
-        redirect("/seller/fundraiser/" + fundraiserId);
-      } else {
-        toast.success("Fundraiser and all items created successfully");
-        redirect("/seller/fundraiser/" + fundraiserId);
-      }
-    } else {
-      toast.success("Fundraiser created successfully");
-      redirect("/seller/fundraiser/" + fundraiserId);
-    }
+    toast.success("Fundraiser created successfully");
+    redirect("/seller/fundraiser/" + fundraiserId);
   }
   const [currentStep, setCurrentStep] = useState(step);
   const [saveRequested, setSaveRequested] = useState(false);
@@ -174,6 +113,19 @@ export function EditFundraiserModal({
       setSaveRequested(false);
     }
   }, [saveRequested, onSubmit]);
+
+  useEffect(() => {
+    if (open) setCurrentStep(step);
+  }, [open, step]);
+
+  useEffect(() => {
+    setFormFundraiserItems(
+      fundraiserItems.map(({ id, imageUrl, ...rest }) => ({
+        ...rest,
+        imageUrl: imageUrl ?? undefined,
+      }))
+    );
+  }, [fundraiserItems]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -203,15 +155,21 @@ export function EditFundraiserModal({
               onSave={(data) => {
                 setFormData((prev) => ({ ...prev, ...data }));
                 setSaveRequested(true);
+                setOpen(false);
               }}
             />
 
-            <FundraiserAddItemsForm
+            <FundraiserEditItemsForm
+              token={token}
+              fundraiserId={fundraiser.id}
               items={fundraiserItems}
               setItems={setFundraiserItems}
               onSubmit={() => setCurrentStep(2)}
               onBack={() => setCurrentStep(0)}
-              onSave={() => setSaveRequested(true)}
+              onSave={() => {
+                setSaveRequested(true);
+                setOpen(false);
+              }}
             />
 
             <FundraiserVenmoInfoForm
@@ -224,12 +182,13 @@ export function EditFundraiserModal({
               onSave={(data) => {
                 setFormData((prev) => ({ ...prev, ...data }));
                 setSaveRequested(true);
+                setOpen(false);
               }}
             />
 
             <ReviewFundraiserForm
               formData={formData}
-              items={fundraiserItems}
+              items={formFundraiserItems}
               onSubmit={() => {
                 onSubmit();
                 setOpen(false);
