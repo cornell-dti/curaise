@@ -91,7 +91,6 @@ export const updateUser = async (
     where: { id: user.userId },
     data: {
       name: user.name,
-      venmoUsername: user.venmoUsername ?? null,
     },
   });
 
