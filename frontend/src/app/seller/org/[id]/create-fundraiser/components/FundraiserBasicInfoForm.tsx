@@ -19,11 +19,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CreateFundraiserBody } from "common";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { DateTimePicker } from "@/components/custom/DateTimePicker";
 import { ControllerRenderProps } from "react-hook-form";
 import UploadImageComponent from "@/components/custom/UploadImageComponent";
+import { Plus, Trash2 } from "lucide-react";
 
 const BasicInformationSchema = CreateFundraiserBody.omit({
   organizationId: true,
@@ -43,15 +44,14 @@ const BasicInformationSchema = CreateFundraiserBody.omit({
   )
   .refine(
     (data) => {
-      // Check if pickup end date is after pickup start date
-      if (data.pickupStartsAt && data.pickupEndsAt) {
-        return new Date(data.pickupEndsAt) > new Date(data.pickupStartsAt);
-      }
-      return true;
+      // Check if all pickup events have valid date ranges
+      return data.pickupEvents.every(
+        (event) => new Date(event.endsAt) > new Date(event.startsAt)
+      );
     },
     {
-      message: "Pickup end date must be after pickup start date",
-      path: ["pickupEndsAt"],
+      message: "Pickup end date must be after pickup start date for all events",
+      path: ["pickupEvents"],
     }
   );
 
@@ -78,6 +78,24 @@ export function FundraiserBasicInfoForm({
     resolver: zodResolver(BasicInformationSchema),
     defaultValues: defaultValues,
   });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "pickupEvents",
+  });
+
+  const getDefaultPickupEventDates = () => {
+    const now = new Date();
+    const startsAt = new Date(now);
+    startsAt.setDate(now.getDate() + 1);
+    startsAt.setHours(9, 0, 0, 0);
+
+    const endsAt = new Date(now);
+    endsAt.setDate(now.getDate() + 1);
+    endsAt.setHours(22, 0, 0, 0);
+
+    return { startsAt, endsAt };
+  };
 
   return (
     <Card>
@@ -170,85 +188,130 @@ export function FundraiserBasicInfoForm({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="pickupLocation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Pickup Location</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Where items are picked up" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div>
+              <p className="mb-2 font-medium">Buying Period</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="buyingStartsAt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Start Date</FormLabel>
+                      <FormControl>
+                        <DateTimeFieldAdapter field={field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="mb-2 font-medium">Buying Period</p>
-                <div className="space-y-2">
-                  <FormField
-                    control={form.control}
-                    name="buyingStartsAt"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Start Date</FormLabel>
-                        <FormControl>
-                          <DateTimeFieldAdapter field={field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <FormField
+                  control={form.control}
+                  name="buyingEndsAt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>End Date</FormLabel>
+                      <FormControl>
+                        <DateTimeFieldAdapter field={field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
 
-                  <FormField
-                    control={form.control}
-                    name="buyingEndsAt"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>End Date</FormLabel>
-                        <FormControl>
-                          <DateTimeFieldAdapter field={field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="font-medium">Pickup Events ({fields.length})</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const dates = getDefaultPickupEventDates();
+                    append({
+                      location: "",
+                      startsAt: dates.startsAt,
+                      endsAt: dates.endsAt,
+                    });
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Event
+                </Button>
               </div>
 
-              <div>
-                <p className="mb-2 font-medium">Pickup Period</p>
-                <div className="space-y-2">
-                  <FormField
-                    control={form.control}
-                    name="pickupStartsAt"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Start Date</FormLabel>
-                        <FormControl>
-                          <DateTimeFieldAdapter field={field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <div className="space-y-4">
+                {fields.map((field, index) => (
+                  <div
+                    key={field.id}
+                    className="space-y-4 p-4 border rounded-lg relative"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Event {index + 1}
+                      </p>
+                      {fields.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => remove(index)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
 
-                  <FormField
-                    control={form.control}
-                    name="pickupEndsAt"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>End Date</FormLabel>
-                        <FormControl>
-                          <DateTimeFieldAdapter field={field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                    <FormField
+                      control={form.control}
+                      name={`pickupEvents.${index}.location`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pickup Location</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Where items are picked up"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name={`pickupEvents.${index}.startsAt`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Start Date</FormLabel>
+                            <FormControl>
+                              <DateTimeFieldAdapter field={field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name={`pickupEvents.${index}.endsAt`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>End Date</FormLabel>
+                            <FormControl>
+                              <DateTimeFieldAdapter field={field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </CardContent>

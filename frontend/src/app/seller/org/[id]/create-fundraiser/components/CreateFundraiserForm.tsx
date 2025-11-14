@@ -55,11 +55,15 @@ export function CreateFundraiserForm({
     description: "",
     imageUrls: [], // Not implemented yet
     goalAmount: undefined,
-    pickupLocation: "",
     buyingStartsAt: defaultDates.buyingStartsAt,
     buyingEndsAt: defaultDates.buyingEndsAt,
-    pickupStartsAt: defaultDates.pickupStartsAt,
-    pickupEndsAt: defaultDates.pickupEndsAt,
+    pickupEvents: [
+      {
+        startsAt: defaultDates.pickupStartsAt,
+        endsAt: defaultDates.pickupEndsAt,
+        location: "",
+      },
+    ],
     organizationId: organizationId,
     venmoEmail: "",
     venmoUsername: "",
