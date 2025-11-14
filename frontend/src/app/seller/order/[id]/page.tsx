@@ -4,7 +4,13 @@ import { connection } from "next/server";
 import { CompleteOrderSchema } from "common";
 import Decimal from "decimal.js";
 import { format } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
 import { CreditCard, ShoppingBag, User, CalendarIcon } from "lucide-react";
@@ -103,7 +109,7 @@ export default async function OrderPage({
                   </div>
                 </div>
               </div>
-              
+
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <CalendarIcon className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
@@ -111,9 +117,6 @@ export default async function OrderPage({
                     <h3 className="font-semibold">Pickup Status</h3>
                     <div className="flex items-center gap-2 mt-1">
                       <PickupStatusBadge order={order} />
-                      <span className="text-sm text-muted-foreground">
-                        {format(order.fundraiser.pickupStartsAt, "MMM d")}
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -122,7 +125,12 @@ export default async function OrderPage({
                   <div>
                     <h3 className="font-semibold">Order Total</h3>
                     <p className="text-sm mt-1">
-                      ${orderTotal} • {order.items.reduce((total, item) => total + item.quantity, 0)} items
+                      ${orderTotal} •{" "}
+                      {order.items.reduce(
+                        (total, item) => total + item.quantity,
+                        0
+                      )}{" "}
+                      items
                     </p>
                   </div>
                 </div>
@@ -142,7 +150,7 @@ export default async function OrderPage({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {order.items.map((orderItem,) => (
+              {order.items.map((orderItem) => (
                 <div
                   key={orderItem.item.id}
                   className="flex flex-col sm:flex-row gap-4 pb-4 border-b last:border-0 last:pb-0"
@@ -209,9 +217,7 @@ export default async function OrderPage({
             </CardHeader>
             <CardContent>
               <div>
-                <p className="font-medium mt-2 sm:mt-0">
-                  Order ID: {order.id}
-                </p>
+                <p className="font-medium mt-2 sm:mt-0">Order ID: {order.id}</p>
                 <p className="text-sm text-muted-foreground">
                   Placed on: {format(order.createdAt, "MMM d, yyyy")}
                 </p>
