@@ -1,45 +1,70 @@
-import { connection } from "next/server";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { BasicFundraiserSchema } from "common";
-import { FundraiserCard } from "@/components/custom/FundraiserCard";
+import { FundraisersList } from "./components/FundraisersList";
+import { z } from "zod";
 
-const getAllFundraisers = async () => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fundraiser`);
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-  const data = BasicFundraiserSchema.array().safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse fundraiser data");
-  }
-  return data.data;
-};
+export default function BrowseFundraisersPage() {
+	const searchParams = useSearchParams();
+	const searchQuery = searchParams.get("search") || "";
 
-export default async function BrowseFundraisersPage() {
-  await connection();
+	const [fundraisers, setFundraisers] = useState<
+		z.infer<typeof BasicFundraiserSchema>[]
+	>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 
-  const fundraisers = await getAllFundraisers();
+	useEffect(() => {
+		const fetchFundraisers = async () => {
+			try {
+				setLoading(true);
+				const response = await fetch(
+					`${process.env.NEXT_PUBLIC_API_URL}/fundraiser`
+				);
+				const result = await response.json();
+				if (!response.ok) {
+					throw new Error(result.message);
+				}
+				const data = BasicFundraiserSchema.array().safeParse(result.data);
+				if (!data.success) {
+					throw new Error("Could not parse fundraiser data");
+				}
+				setFundraisers(data.data);
+			} catch (err) {
+				setError(err instanceof Error ? err.message : "An error occurred");
+			} finally {
+				setLoading(false);
+			}
+		};
 
-  return (
-    <div className="flex flex-col p-6 md:p-10 space-y-6">
-      <h1 className="text-3xl font-bold">Browse Fundraisers</h1>
+		fetchFundraisers();
+	}, []);
 
-      {fundraisers.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <h3 className="text-lg font-medium text-gray-600 mb-2">
-            No fundraisers available
-          </h3>
-          <p className="text-gray-500">
-            Check back soon for upcoming fundraisers
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {fundraisers.map((fundraiser) => (
-            <FundraiserCard key={fundraiser.id} fundraiser={fundraiser} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
+	if (loading) {
+		return (
+			<div className="flex flex-col p-6 md:p-10 space-y-6">
+				<div className="text-center py-12">
+					<p className="text-gray-500">Loading fundraisers...</p>
+				</div>
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="flex flex-col p-6 md:p-10 space-y-6">
+				<div className="text-center py-12">
+					<p className="text-red-500">Error: {error}</p>
+				</div>
+			</div>
+		);
+	}
+
+	return (
+		<div className="flex flex-col p-6 md:p-10 space-y-6">
+			<FundraisersList fundraisers={fundraisers} searchQuery={searchQuery} />
+		</div>
+	);
 }

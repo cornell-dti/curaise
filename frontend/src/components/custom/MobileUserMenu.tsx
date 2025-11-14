@@ -36,7 +36,7 @@ export default function MobileUserMenu({ userRole }: { userRole: UserRole }) {
 		if (userRole === "buyer") {
 			redirect("/seller");
 		} else if (userRole === "seller") {
-			redirect("/buyer");
+			redirect("/buyer/browse");
 		}
 	};
 
@@ -45,7 +45,8 @@ export default function MobileUserMenu({ userRole }: { userRole: UserRole }) {
 	};
 
 	// Check if we're on a settings/account page
-	const isAccountPage = pathname.includes("/settings") || pathname.includes("/account");
+	const isAccountPage =
+		pathname.includes("/settings") || pathname.includes("/account");
 
 	return (
 		<DropdownMenu>

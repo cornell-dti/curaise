@@ -1,71 +1,108 @@
-import { redirect } from "next/navigation";
+"use client";
 
-import { createClient } from "@/utils/supabase/server";
-import { connection } from "next/server";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BasicOrganizationSchema } from "common";
-import {
-  OrganizationCard,
-  CreateOrganizationCard,
-} from "@/components/custom/OrganizationCard";
+import { OrganizationsList } from "./components/OrganizationsList";
+import { createClient } from "@/utils/supabase/client";
+import { z } from "zod";
 
-const getOrganizations = async (userId: string, token: string) => {
-  const response = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + "/user/" + userId + "/organizations",
-    {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    }
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
+export default function SellerHome() {
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const searchQuery = searchParams.get("search") || "";
 
-  // parse org data
-  const data = BasicOrganizationSchema.array().safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse order data");
-  }
+	const [organizations, setOrganizations] = useState<
+		z.infer<typeof BasicOrganizationSchema>[]
+	>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 
-  return data.data;
-};
+	useEffect(() => {
+		const fetchOrganizations = async () => {
+			try {
+				setLoading(true);
+				const supabase = createClient();
 
-export default async function SellerHome() {
-  await connection(); // ensures server component is dynamically rendered at runtime, not statically rendered at build time
+				// Check authentication
+				const {
+					data: { user },
+					error: userError,
+				} = await supabase.auth.getUser();
+				if (userError || !user) {
+					router.push("/");
+					return;
+				}
 
-  const supabase = await createClient();
+				// Get session token
+				const {
+					data: { session },
+					error: sessionError,
+				} = await supabase.auth.getSession();
+				if (sessionError || !session?.access_token) {
+					throw new Error("Session invalid");
+				}
 
-  // protect page (must use supabase.auth.getUser() according to docs)
-  const {
-    data: { user },
-    error: error1,
-  } = await supabase.auth.getUser();
-  if (error1 || !user) {
-    redirect("/");
-  }
+				// Fetch organizations
+				const response = await fetch(
+					`${process.env.NEXT_PUBLIC_API_URL}/user/${user.id}/organizations`,
+					{
+						headers: {
+							Authorization: `Bearer ${session.access_token}`,
+						},
+					}
+				);
+				const result = await response.json();
+				if (!response.ok) {
+					throw new Error(result.message);
+				}
 
-  // get auth jwt token
-  const {
-    data: { session },
-    error: error2,
-  } = await supabase.auth.getSession();
-  if (error2 || !session?.access_token) {
-    throw new Error("Session invalid");
-  }
+				// Parse org data
+				const data = BasicOrganizationSchema.array().safeParse(result.data);
+				if (!data.success) {
+					throw new Error("Could not parse organization data");
+				}
 
-  const organizations = await getOrganizations(user.id, session.access_token);
+				setOrganizations(data.data);
+			} catch (err) {
+				setError(err instanceof Error ? err.message : "An error occurred");
+			} finally {
+				setLoading(false);
+			}
+		};
 
-  return (
-    <div className="container mx-auto px-4 py-6 space-y-4">
-      <h1 className="text-2xl font-bold">Organizations</h1>
+		fetchOrganizations();
+	}, [router]);
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {organizations.map((org) => (
-          <OrganizationCard key={org.id} organization={org} />
-        ))}
-        <CreateOrganizationCard />
-      </div>
-    </div>
-  );
+	if (loading) {
+		return (
+			<div className="container mx-auto px-4 py-6 space-y-4">
+				<h1 className="text-2xl font-bold">Organizations</h1>
+				<div className="text-center py-12">
+					<p className="text-gray-500">Loading organizations...</p>
+				</div>
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="container mx-auto px-4 py-6 space-y-4">
+				<h1 className="text-2xl font-bold">Organizations</h1>
+				<div className="text-center py-12">
+					<p className="text-red-500">Error: {error}</p>
+				</div>
+			</div>
+		);
+	}
+
+	return (
+		<div className="container mx-auto px-4 py-6 space-y-4">
+			<h1 className="text-2xl font-bold">Organizations</h1>
+			<OrganizationsList
+				organizations={organizations}
+				searchQuery={searchQuery}
+			/>
+		</div>
+	);
 }

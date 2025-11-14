@@ -10,7 +10,7 @@ import {
 	navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ShoppingCart } from "./ShoppingCart";
 import { Store, Package } from "lucide-react";
 import DesktopUserMenu from "./DesktopUserMenu";
@@ -22,6 +22,8 @@ import { SearchBar } from "./SearchBar";
 
 export default function UnifiedNavbar() {
 	const pathname = usePathname();
+	const router = useRouter();
+	const searchParams = useSearchParams();
 
 	// Determine user role based on pathname
 	const isBuyer = pathname.startsWith("/buyer");
@@ -62,8 +64,13 @@ export default function UnifiedNavbar() {
 
 	// Search handlers
 	const handleSearchChange = (query: string) => {
-		// TODO: Implement search functionality
-		console.log("Search query:", query);
+		const params = new URLSearchParams(searchParams.toString());
+		if (query) {
+			params.set("search", query);
+		} else {
+			params.delete("search");
+		}
+		router.push(`${pathname}?${params.toString()}`);
 	};
 
 	return (
