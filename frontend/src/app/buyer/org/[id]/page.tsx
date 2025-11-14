@@ -51,11 +51,11 @@ export default async function OrganizationPage({
   const org = await getOrganization(id);
   const fundraisers = await getFundraisers(id);
 
-  const currentAndFutureFundraisers = fundraisers.filter(
-    (fundraiser) => !isPast(fundraiser.pickupEndsAt)
+  const currentAndFutureFundraisers = fundraisers.filter((fundraiser) =>
+    fundraiser.pickupEvents.some((event) => !isPast(event.endsAt))
   );
   const pastFundraisers = fundraisers.filter((fundraiser) =>
-    isPast(fundraiser.pickupEndsAt)
+    fundraiser.pickupEvents.every((event) => isPast(event.endsAt))
   );
 
   return (

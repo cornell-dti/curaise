@@ -79,8 +79,8 @@ export default async function BuyerHome() {
   const userProfile = await getUserProfile(user.id, session.access_token);
   const orders = await getOrders(user.id, session.access_token);
 
-  const inProgressOrders = orders.filter(
-    (order) => !isPast(order.fundraiser.pickupEndsAt)
+  const inProgressOrders = orders.filter((order) =>
+    order.fundraiser.pickupEvents.some((event) => !isPast(event.endsAt))
   );
 
   return (
