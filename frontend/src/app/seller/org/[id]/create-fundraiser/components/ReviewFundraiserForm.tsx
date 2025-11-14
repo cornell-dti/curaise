@@ -53,7 +53,39 @@ export function ReviewFundraiserForm({
             </div>
             <div className="md:col-span-2">
               <p className="text-sm font-medium text-gray-500">Description</p>
-              <p className="whitespace-pre-wrap">{formData.description}</p>
+              <p
+                className={`whitespace-pre-wrap ${
+                  !formData.description ? "text-muted-foreground" : ""
+                }`}
+              >
+                {formData.description || "Not provided"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-lg font-medium">Payment Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
+            <div>
+              <p className="text-sm font-medium text-gray-500">
+                Venmo Username
+              </p>
+              <p
+                className={
+                  !formData.venmoUsername ? "text-muted-foreground" : ""
+                }
+              >
+                {formData.venmoUsername || "Not provided"}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Venmo Email</p>
+              <p
+                className={!formData.venmoEmail ? "text-muted-foreground" : ""}
+              >
+                {formData.venmoEmail || "Not provided"}
+              </p>
             </div>
           </div>
         </div>
