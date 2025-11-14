@@ -42,30 +42,29 @@ export function ReviewOrderForm({
         {/* Pickup Info Card */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-start space-y-0 pb-2">
-            <CardTitle>Pickup Info</CardTitle>
+            <CardTitle>Pickup Events</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <div className="flex items-start gap-2">
-                <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
-                <span className="text-sm">
-                  Pickup Location: <b>{fundraiser.pickupLocation}</b>
-                </span>
-              </div>
-              <div className="flex items-start gap-2">
-                <CalendarIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
-                <span className="text-sm">
-                  Pickup Window:{" "}
-                  <b>
-                    {format(
-                      fundraiser.pickupStartsAt,
-                      "MMM d, yyyy 'at' h:mm a"
-                    )}{" "}
-                    -{" "}
-                    {format(fundraiser.pickupEndsAt, "MMM d, yyyy 'at' h:mm a")}
-                  </b>
-                </span>
-              </div>
+            <div className="space-y-4">
+              {fundraiser.pickupEvents.map((event) => (
+                <div key={event.id} className="space-y-2">
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
+                    <span className="text-sm">
+                      <b>{event.location}</b>
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CalendarIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
+                    <span className="text-sm">
+                      <b>
+                        {format(event.startsAt, "MMM d, yyyy 'at' h:mm a")} -{" "}
+                        {format(event.endsAt, "MMM d, yyyy 'at' h:mm a")}
+                      </b>
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
