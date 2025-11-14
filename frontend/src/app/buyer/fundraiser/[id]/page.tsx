@@ -5,6 +5,7 @@ import { MapPin, Calendar, ShoppingBag } from "lucide-react";
 import { FundraiserItemsPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemsPanel";
 import { FundraiserGallerySlider } from "@/app/buyer/fundraiser/[id]/components/FundraiserGallerySlider";
 import { FundraiserAnnouncementPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserAnnouncementPanel";
+import { Card, CardContent } from "@/components/ui/card";
 
 // TODO: @Chelsea - add UI element to let buyer know that this fundraiser is not published
 const getFundraiser = async (id: string) => {
@@ -58,33 +59,54 @@ export default async function FundraiserPage({
         <h1 className="text-3xl font-bold my-2">{fundraiser.name}</h1>
         <p className="text-gray-600 mb-4">{fundraiser.description}</p>
 
-        <div className="flex sm:items-center gap-2">
-          <ShoppingBag className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
-          <span className="text-md">
-            Buying Window:{" "}
-            <b>
-              {format(fundraiser.buyingStartsAt, "MMM d, yyyy 'at' h:mm a")} -{" "}
-              {format(fundraiser.buyingEndsAt, "MMM d, yyyy 'at' h:mm a")}
-            </b>
-          </span>
-        </div>
+        <Card className="w-full">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-2">
+              <ShoppingBag className="h-5 w-5 flex-shrink-0 text-muted-foreground mt-0.5" />
+              <div className="flex flex-col gap-1">
+                <span className="text-sm font-medium">Buying Window</span>
+                <span className="text-md">
+                  <b>
+                    {format(
+                      fundraiser.buyingStartsAt,
+                      "MMM d, yyyy 'at' h:mm a"
+                    )}{" "}
+                    -{" "}
+                    {format(fundraiser.buyingEndsAt, "MMM d, yyyy 'at' h:mm a")}
+                  </b>
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="flex sm:items-center gap-2">
-          <MapPin className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
-          <span className="text-md">
-            Pickup Location: <b>{fundraiser.pickupLocation}</b>
-          </span>
-        </div>
-
-        <div className="flex sm:items-center gap-2">
-          <Calendar className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
-          <span className="text-md">
-            Pickup Window:{" "}
-            <b>
-              {format(fundraiser.pickupStartsAt, "MMM d, yyyy 'at' h:mm a")} -{" "}
-              {format(fundraiser.pickupEndsAt, "MMM d, yyyy 'at' h:mm a")}
-            </b>
-          </span>
+        <div className="flex flex-col gap-3 mt-4 w-full">
+          <h3 className="text-lg font-semibold">Pickup Events</h3>
+          <div className="flex flex-col gap-3">
+            {fundraiser.pickupEvents.map((event) => (
+              <Card key={event.id}>
+                <CardContent className="pt-6">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="h-5 w-5 flex-shrink-0 text-muted-foreground mt-0.5" />
+                      <span className="text-md">
+                        <b>{event.location}</b>
+                      </span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Calendar className="h-5 w-5 flex-shrink-0 text-muted-foreground mt-0.5" />
+                      <span className="text-md">
+                        <b>
+                          {format(event.startsAt, "MMM d, yyyy 'at' h:mm a")} -{" "}
+                          {format(event.endsAt, "MMM d, yyyy 'at' h:mm a")}
+                        </b>
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
 
