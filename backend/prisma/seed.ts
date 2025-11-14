@@ -96,6 +96,11 @@ async function main() {
             startsAt: new Date(new Date().setDate(new Date().getDate() + 7)),
             endsAt: new Date(new Date().setDate(new Date().getDate() + 8)),
           },
+          {
+            location: "RPCC",
+            startsAt: new Date(new Date().setDate(new Date().getDate() + 9)),
+            endsAt: new Date(new Date().setDate(new Date().getDate() + 10)),
+          },
         ],
       },
       announcements: {
