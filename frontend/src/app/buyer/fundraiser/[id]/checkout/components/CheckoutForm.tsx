@@ -34,19 +34,11 @@ export function CheckoutForm({
   const [formData, setFormData] = useState<z.infer<typeof CreateOrderBody>>({
     fundraiserId: fundraiser.id,
     items: cartItems,
-    payment_method: "OTHER", // default to other for now
+    payment_method: "VENMO", // default to venmo
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [currentStep, setCurrentStep] = useState(0);
-  const [orderPlaced, setOrderPlaced] = useState(false);
-
-  // Check if cart is empty after hooks are called
-  if ((!cartItems || cartItems.length === 0) && !orderPlaced) {
-    // If cart is empty and no order was just placed, redirect to the fundraiser page
-    redirect(`/buyer/fundraiser/${fundraiser.id}`);
-  }
 
   async function onSubmit() {
     // Prevent multiple submissions
@@ -78,10 +70,7 @@ export function CheckoutForm({
       return;
     } else {
       toast.success(result.message);
-      // Mark order as placed and clear the cart
-      setOrderPlaced(true);
-      clearCart(fundraiser.id);
-      redirect("/buyer/order/" + result.data.id);
+      redirect("/buyer/order/" + result.data.id + "?fromCheckout=true");
     }
   }
 
