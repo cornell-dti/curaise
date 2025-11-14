@@ -21,6 +21,17 @@ model User {
   @@map("users")
 }
 
+model InvitedUser {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String       @map("organization_id") @db.Uuid
+
+  @@map("invited_users")
+}
+
 model Organization {
   id                String   @id @default(uuid()) @db.Uuid
   name              String   @unique
@@ -33,6 +44,7 @@ model Organization {
 
   admins      User[]
   fundraisers Fundraiser[]
+  pendingAdmins InvitedUser[]
 
   @@map("organizations")
 }

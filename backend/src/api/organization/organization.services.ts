@@ -7,6 +7,7 @@ export const getOrganization = async (organizationId: string) => {
     where: { id: organizationId },
     include: {
       admins: true,
+      pendingAdmins: true,
     },
   });
 
