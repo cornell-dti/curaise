@@ -1,4 +1,4 @@
-import SellerNavbar from "@/components/custom/SellerNavbar";
+import UnifiedNavbar from "@/components/custom/UnifiedNavbar";
 export default function SellerLayout({
   children,
 }: Readonly<{
@@ -7,9 +7,9 @@ export default function SellerLayout({
   return (
     <div className="flex flex-col min-h-screen">
       <div className="fixed top-0 left-0 right-0 z-50">
-        <SellerNavbar />
+        <UnifiedNavbar />
       </div>
-      <main className="flex-grow pt-16">{children}</main>
+      <main className="flex-grow pt-16 pb-20 md:pb-0">{children}</main>
     </div>
   );
 }
