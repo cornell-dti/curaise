@@ -34,7 +34,7 @@ const VenmoFormSchema = CreateFundraiserBody.pick({
   {
     message:
       "Both Venmo username and email must be provided together, or both must be empty",
-    path: ["venmoUsername"],
+    path: ["venmoUsername", "venmoEmail"],
   }
 );
 
@@ -42,10 +42,12 @@ export function FundraiserVenmoInfoForm({
   defaultValues,
   onSubmit,
   onBack,
+  onSave,
 }: {
   defaultValues: z.infer<typeof VenmoFormSchema>;
   onSubmit: (data: z.infer<typeof VenmoFormSchema>) => void;
   onBack: () => void;
+  onSave: (data: z.infer<typeof VenmoFormSchema>) => void;
 }) {
   const form = useForm<z.infer<typeof VenmoFormSchema>>({
     resolver: zodResolver(VenmoFormSchema),
@@ -63,6 +65,7 @@ export function FundraiserVenmoInfoForm({
 
       <Form {...form}>
         <form
+          autoComplete="off"
           onSubmit={form.handleSubmit((data) => {
             onSubmit(data);
           })}
@@ -78,11 +81,9 @@ export function FundraiserVenmoInfoForm({
                     <Input
                       placeholder="Venmo Username"
                       {...field}
-                      value={field.value?.toString() || ""}
+                      value={field.value ?? ""}
                       onChange={(e) => {
-                        const value = e.target.value
-                          ? e.target.value
-                          : undefined;
+                        const value = e.target.value || "";
                         field.onChange(value);
                       }}
                     />
@@ -101,11 +102,9 @@ export function FundraiserVenmoInfoForm({
                     <Input
                       placeholder="Venmo Email"
                       {...field}
-                      value={field.value?.toString() || ""}
+                      value={field.value ?? ""}
                       onChange={(e) => {
-                        const value = e.target.value
-                          ? e.target.value
-                          : undefined;
+                        const value = e.target.value || "";
                         field.onChange(value);
                       }}
                     />
@@ -119,7 +118,15 @@ export function FundraiserVenmoInfoForm({
             <Button type="button" variant="outline" onClick={onBack}>
               Back
             </Button>
-            <Button type="submit">Next</Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={form.handleSubmit(onSave)}
+                className="text-[#333F37] border border-current bg-transparent hover:bg-[#e6f0ea]"
+              >
+                Save Draft
+              </Button>
+              <Button type="submit">Next</Button>
+            </div>
           </CardFooter>
         </form>
       </Form>

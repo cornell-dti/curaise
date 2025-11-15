@@ -12,7 +12,11 @@ const getAllFundraisers = async () => {
   if (!data.success) {
     throw new Error("Could not parse fundraiser data");
   }
-  return data.data;
+  const publishedFundraisers = data.data.filter(
+    (fundraiser) => fundraiser.published === true
+  );
+
+  return publishedFundraisers;
 };
 
 export default async function BrowseFundraisersPage() {

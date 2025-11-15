@@ -10,7 +10,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-nunito)"],
+        sans: ["var(--font-dm-sans)"],
         mono: ["var(--font-roboto-mono)"],
       },
       colors: {
@@ -69,6 +69,15 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      keyframes: {
+        "move-across": {
+          "0%": { transform: "translateX(70px)" },
+          "100%": { transform: "translateX(320px)" },
+        },
+      },
+      animation: {
+        "move-across": "move-across 10s linear infinite",
       },
     },
   },

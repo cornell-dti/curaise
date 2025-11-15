@@ -19,6 +19,14 @@ export type FundraiserItemRouteParams = z.infer<
   typeof FundraiserItemRouteParams
 >;
 
+export const DeleteFundraiserItemRouteParams = z.object({
+  fundraiserId: z.string().uuid(),
+  itemId: z.string().uuid(),
+});
+export type DeleteFundraiserItemRouteParams = z.infer<
+  typeof DeleteFundraiserItemRouteParams
+>;
+
 export const DeleteAnnouncementRouteParams = z.object({
   fundraiserId: z.string().uuid(),
   announcementId: z.string().uuid(),
