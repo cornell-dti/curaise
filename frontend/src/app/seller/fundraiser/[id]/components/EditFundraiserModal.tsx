@@ -42,14 +42,12 @@ export function EditFundraiserModal({
     description: fundraiser.description,
     imageUrls: [], // Not implemented yet
     goalAmount: fundraiser.goalAmount ?? undefined,
-    pickupLocation: fundraiser.pickupLocation,
     buyingStartsAt: fundraiser.buyingStartsAt,
     buyingEndsAt: fundraiser.buyingEndsAt,
-    pickupStartsAt: fundraiser.pickupStartsAt,
-    pickupEndsAt: fundraiser.pickupEndsAt,
     organizationId: fundraiser.organization.id,
     venmoEmail: fundraiser.venmoEmail ?? undefined,
     venmoUsername: fundraiser.venmoUsername ?? undefined,
+    pickupEvents: fundraiser.pickupEvents ?? [],
   });
   const [fundraiserItems, setFundraiserItems] = useState<
     z.infer<typeof CompleteItemSchema>[]

@@ -124,7 +124,7 @@ const getChecklistStatus = (
           !!fundraiser.venmoUsername?.trim() || !!fundraiser.venmoEmail?.trim();
         break;
       case "pickupLocation":
-        completed = !!fundraiser.pickupLocation?.trim();
+        completed = fundraiser.pickupEvents.length > 0;
         break;
       case "goalAmount":
         completed = !!fundraiser.goalAmount;
