@@ -23,10 +23,8 @@ export function OrganizationsList({
 		}
 
 		const query = searchQuery.toLowerCase();
-		return organizations.filter(
-			(org) =>
-				org.name.toLowerCase().includes(query) ||
-				org.description.toLowerCase().includes(query)
+		return organizations.filter((org) =>
+			org.name.toLowerCase().includes(query)
 		);
 	}, [organizations, searchQuery]);
 
