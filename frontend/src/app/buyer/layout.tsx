@@ -2,6 +2,7 @@
 
 import Navbar from "@/components/custom/Navbar";
 import { usePathname } from "next/navigation";
+import { Suspense } from "react";
 
 export default function BuyerLayout({
 	children,
@@ -17,7 +18,9 @@ export default function BuyerLayout({
 	return (
 		<div className="flex flex-col min-h-screen">
 			<div className="fixed top-0 left-0 right-0 z-50">
-				<Navbar />
+				<Suspense fallback={<div className="h-16 bg-background border-b" />}>
+					<Navbar />
+				</Suspense>
 			</div>
 			<main className={`flex-grow ${topPadding} pb-20 md:pb-0`}>
 				{children}
