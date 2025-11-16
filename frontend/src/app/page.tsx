@@ -9,9 +9,9 @@ export default async function LoginPage() {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
   
-  // If logged in, redirect to buyer page
+  // If logged in, redirect to seller page
   if (session) {
-    redirect('/buyer/');
+    redirect('/seller');
   }
 
   return (

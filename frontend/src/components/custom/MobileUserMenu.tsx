@@ -32,12 +32,8 @@ export default function MobileUserMenu({ userRole }: { userRole: UserRole }) {
 		checkLoginStatus();
 	}, []);
 
-	const toggleRole = () => {
-		if (userRole === "buyer") {
-			redirect("/seller");
-		} else if (userRole === "seller") {
-			redirect("/buyer/browse");
-		}
+	const navigateToOrganizations = () => {
+		redirect("/seller");
 	};
 
 	const handleLogout = () => {
@@ -62,8 +58,10 @@ export default function MobileUserMenu({ userRole }: { userRole: UserRole }) {
 			<DropdownMenuContent align="center" side="top" className="mb-2">
 				{loggedIn ? (
 					<>
-						<DropdownMenuItem onClick={toggleRole} className="text-base">
-							{userRole === "buyer" ? "Organizations" : "Fundraisers"}
+						<DropdownMenuItem
+							onClick={navigateToOrganizations}
+							className="text-base">
+							Organizations
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem onClick={handleLogout} className="text-base">

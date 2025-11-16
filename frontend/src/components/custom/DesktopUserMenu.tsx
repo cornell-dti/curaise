@@ -10,7 +10,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, ChevronDown } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Button } from "../ui/button";
 
@@ -32,12 +32,8 @@ export default function DesktopUserMenu({ userRole }: { userRole: UserRole }) {
 		checkLoginStatus();
 	}, []);
 
-	const toggleRole = () => {
-		if (userRole === "buyer") {
-			redirect("/seller");
-		} else if (userRole === "seller") {
-			redirect("/buyer/browse");
-		}
+	const navigateToOrganizations = () => {
+		redirect("/seller");
 	};
 
 	const handleLogout = () => {
@@ -47,15 +43,18 @@ export default function DesktopUserMenu({ userRole }: { userRole: UserRole }) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" className="ml-2">
+				<Button variant="ghost" className="ml-2 flex items-center gap-1">
 					Account
+					<ChevronDown className="h-4 w-4" />
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-35">
 				{loggedIn ? (
 					<>
-						<DropdownMenuItem onClick={toggleRole} className="text-base">
-							{userRole === "buyer" ? "Organizations" : "Fundraisers"}
+						<DropdownMenuItem
+							onClick={navigateToOrganizations}
+							className="text-base">
+							Organizations
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem onClick={handleLogout} className="text-base">

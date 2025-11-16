@@ -20,7 +20,7 @@ import { useCartStore } from "@/lib/store/useCartStore";
 import { Badge } from "../ui/badge";
 import { SearchBar } from "./SearchBar";
 
-export default function UnifiedNavbar() {
+export default function Navbar() {
 	const pathname = usePathname();
 	const router = useRouter();
 	const searchParams = useSearchParams();
@@ -107,7 +107,7 @@ export default function UnifiedNavbar() {
 
 					{/* Desktop Search Bar - Centered with responsive width */}
 					{showSearchBar && (
-						<div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-56 lg:w-72 xl:w-80 pointer-events-auto">
+						<div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-64 lg:w-96 xl:w-[500px] 2xl:w-[600px] pointer-events-auto">
 							<SearchBar
 								searchType={searchType}
 								onSearchChange={handleSearchChange}
