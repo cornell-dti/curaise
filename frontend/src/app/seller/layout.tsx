@@ -13,9 +13,7 @@ export default function SellerLayout({
 					<Navbar />
 				</Suspense>
 			</div>
-			<main className="flex-grow pt-16 pb-20 md:pb-0">
-				{children}
-			</main>
+			<main className="flex-grow pt-16 pb-20 md:pb-0">{children}</main>
 		</div>
 	);
 }
