@@ -25,21 +25,33 @@ const PickupStatusBadge = ({
   let icon = null;
   let tooltipText = "";
 
+  // Get the earliest start and latest end from pickup events
+  const pickupEvents = order.fundraiser.pickupEvents;
+  const earliestStart = pickupEvents.reduce(
+    (earliest, event) =>
+      event.startsAt < earliest ? event.startsAt : earliest,
+    pickupEvents[0].startsAt
+  );
+  const latestEnd = pickupEvents.reduce(
+    (latest, event) => (event.endsAt > latest ? event.endsAt : latest),
+    pickupEvents[0].endsAt
+  );
+
   if (order.pickedUp) {
     text = "Picked Up";
     color = "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
     icon = <CheckCircle2 className="mr-1 h-3 w-3" />;
     tooltipText = "Order has been picked up";
-  } else if (isFuture(order.fundraiser.pickupStartsAt)) {
+  } else if (isFuture(earliestStart)) {
     text = `Pickup Starts in ${differenceInCalendarDays(
-      order.fundraiser.pickupStartsAt,
+      earliestStart,
       new Date()
     )} days`;
     color =
       "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
     icon = <Clock className="mr-1 h-3 w-3" />;
     tooltipText = "Order pickup has not started yet";
-  } else if (isPast(order.fundraiser.pickupEndsAt)) {
+  } else if (isPast(latestEnd)) {
     text = "Pickup Has Ended";
     color = "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
     icon = <Clock className="mr-1 h-3 w-3" />;

@@ -4,70 +4,78 @@ import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import { signInWithGoogle, signOut } from "@/lib/auth-actions";
 import { LogOut, User } from "lucide-react";
-import { redirect } from "next/navigation";
-import { Button } from "../ui/button";
+import { redirect, usePathname } from "next/navigation";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type UserRole = "buyer" | "seller";
 
 export default function MobileUserMenu({ userRole }: { userRole: UserRole }) {
-  const [loggedIn, setLoggedIn] = useState(true);
+	const [loggedIn, setLoggedIn] = useState(true);
+	const pathname = usePathname();
 
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      const supabase = await createClient();
-      const { data, error } = await supabase.auth.getUser();
-      if (error || !data.user) {
-        setLoggedIn(false);
-      } else {
-        setLoggedIn(true);
-      }
-    };
-    checkLoginStatus();
-  }, []);
+	useEffect(() => {
+		const checkLoginStatus = async () => {
+			const supabase = await createClient();
+			const { data, error } = await supabase.auth.getUser();
+			if (error || !data.user) {
+				setLoggedIn(false);
+			} else {
+				setLoggedIn(true);
+			}
+		};
+		checkLoginStatus();
+	}, []);
 
-  const toggleRole = () => {
-    if (userRole === "buyer") {
-      redirect("/seller");
-    } else if (userRole === "seller") {
-      redirect("/buyer");
-    }
-  };
+	const navigateToOrganizations = () => {
+		redirect("/seller");
+	};
 
-  const handleLogout = () => {
-    signOut();
-  };
+	const handleLogout = () => {
+		signOut();
+	};
 
-  return (
-    <>
-      {loggedIn ? (
-        <div className="border-t pt-4">
-          <Button
-            variant="outline"
-            className="w-full justify-start text-lg"
-            onClick={toggleRole}
-          >
-            Switch to {userRole === "buyer" ? "Seller" : "Buyer"}
-          </Button>
+	// Check if we're on a settings/account page
+	const isAccountPage =
+		pathname.includes("/settings") || pathname.includes("/account");
 
-          <Button
-            variant="outline"
-            className="mt-2 w-full justify-start text-lg"
-            onClick={handleLogout}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Log out
-          </Button>
-        </div>
-      ) : (
-        <Button
-          variant="outline"
-          className="w-full justify-start text-lg"
-          onClick={signInWithGoogle}
-        >
-          <User className="mr-2 h-4 w-4" />
-          Log in
-        </Button>
-      )}
-    </>
-  );
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<button
+					className={`flex flex-col items-center justify-center gap-1 ${
+						isAccountPage ? "text-primary" : "text-muted-foreground"
+					}`}>
+					<User className="h-5 w-5" />
+					<span className="text-xs">Account</span>
+				</button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="center" side="top" className="mb-2">
+				{loggedIn ? (
+					<>
+						<DropdownMenuItem
+							onClick={navigateToOrganizations}
+							className="text-base">
+							Organizations
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
+						<DropdownMenuItem onClick={handleLogout} className="text-base">
+							<LogOut className="mr-2 h-4 w-4" />
+							<span>Log Out</span>
+						</DropdownMenuItem>
+					</>
+				) : (
+					<DropdownMenuItem onClick={signInWithGoogle} className="text-base">
+						<User className="mr-2 h-4 w-4" />
+						<span>Log In</span>
+					</DropdownMenuItem>
+				)}
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
 }

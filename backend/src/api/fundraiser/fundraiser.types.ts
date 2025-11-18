@@ -5,6 +5,12 @@ export const FundraiserRouteParams = z.object({
 });
 export type FundraiserRouteParams = z.infer<typeof FundraiserRouteParams>;
 
+export const PickupEventRouteParams = z.object({
+  fundraiserId: z.string().uuid(),
+  pickupEventId: z.string().uuid(),
+});
+export type PickupEventRouteParams = z.infer<typeof PickupEventRouteParams>;
+
 export const FundraiserItemRouteParams = z.object({
   fundraiserId: z.string().uuid(),
   itemId: z.string().uuid(),

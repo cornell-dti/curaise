@@ -2,6 +2,7 @@ import { prisma } from "../../utils/prisma";
 import { CreateOrderBody } from "common";
 import { z } from "zod";
 import { updateCacheForNewOrder, updateCacheForOrderPickup } from "../fundraiser/fundraiser.services";
+import { Decimal } from "decimal.js";
 
 export const getOrder = async (orderId: string) => {
   const order = await prisma.order.findUnique({
@@ -13,13 +14,11 @@ export const getOrder = async (orderId: string) => {
           id: true,
           name: true,
           description: true,
+          published: true,
           goalAmount: true,
           imageUrls: true,
-          pickupLocation: true,
           buyingStartsAt: true,
           buyingEndsAt: true,
-          pickupStartsAt: true,
-          pickupEndsAt: true,
           organization: {
             select: {
               id: true,
@@ -30,6 +29,11 @@ export const getOrder = async (orderId: string) => {
               admins: {
                 select: { id: true },
               },
+            },
+          },
+          pickupEvents: {
+            orderBy: {
+              startsAt: "asc",
             },
           },
         },
@@ -67,13 +71,11 @@ export const createOrder = async (
           id: true,
           name: true,
           description: true,
+          published: true,
           goalAmount: true,
           imageUrls: true,
-          pickupLocation: true,
           buyingStartsAt: true,
           buyingEndsAt: true,
-          pickupStartsAt: true,
-          pickupEndsAt: true,
           organization: {
             select: {
               id: true,
@@ -81,6 +83,11 @@ export const createOrder = async (
               description: true,
               authorized: true,
               logoUrl: true,
+            },
+          },
+          pickupEvents: {
+            orderBy: {
+              startsAt: "asc",
             },
           },
         },
@@ -107,13 +114,11 @@ export const completeOrderPickup = async (orderId: string) => {
           id: true,
           name: true,
           description: true,
+          published: true,
           goalAmount: true,
           imageUrls: true,
-          pickupLocation: true,
           buyingStartsAt: true,
           buyingEndsAt: true,
-          pickupStartsAt: true,
-          pickupEndsAt: true,
           organization: {
             select: {
               id: true,
@@ -121,6 +126,11 @@ export const completeOrderPickup = async (orderId: string) => {
               description: true,
               authorized: true,
               logoUrl: true,
+            },
+          },
+          pickupEvents: {
+            orderBy: {
+              startsAt: "asc",
             },
           },
         },
@@ -150,13 +160,11 @@ export const confirmOrderPayment = async (orderId: string) => {
           id: true,
           name: true,
           description: true,
+          published: true,
           goalAmount: true,
           imageUrls: true,
-          pickupLocation: true,
           buyingStartsAt: true,
           buyingEndsAt: true,
-          pickupStartsAt: true,
-          pickupEndsAt: true,
           organization: {
             select: {
               id: true,
@@ -166,10 +174,51 @@ export const confirmOrderPayment = async (orderId: string) => {
               logoUrl: true,
             },
           },
+          pickupEvents: {
+            orderBy: {
+              startsAt: "asc",
+            },
+          },
         },
       },
     },
   });
 
   return order;
+};
+
+/**
+ * Calculate the total amount for an order based on its items and quantities
+ */
+export const calculateOrderTotal = async (
+  orderId: string
+): Promise<Decimal> => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      items: {
+        include: {
+          item: {
+            select: {
+              price: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    throw new Error("Order not found");
+  }
+
+  const total = order.items.reduce(
+    (sum, orderItem) =>
+      sum.plus(
+        new Decimal(orderItem.item.price.toString()).times(orderItem.quantity)
+      ),
+    new Decimal(0)
+  );
+
+  return total;
 };

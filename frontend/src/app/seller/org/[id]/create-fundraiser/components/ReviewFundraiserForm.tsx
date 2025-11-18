@@ -53,20 +53,46 @@ export function ReviewFundraiserForm({
             </div>
             <div className="md:col-span-2">
               <p className="text-sm font-medium text-gray-500">Description</p>
-              <p className="whitespace-pre-wrap">{formData.description}</p>
+              <p
+                className={`whitespace-pre-wrap ${
+                  !formData.description ? "text-muted-foreground" : ""
+                }`}
+              >
+                {formData.description || "Not provided"}
+              </p>
             </div>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-lg font-medium">Payment Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
             <div>
               <p className="text-sm font-medium text-gray-500">
-                Pickup Location
+                Venmo Username
               </p>
-              <p>{formData.pickupLocation}</p>
+              <p
+                className={
+                  !formData.venmoUsername ? "text-muted-foreground" : ""
+                }
+              >
+                {formData.venmoUsername || "Not provided"}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Venmo Email</p>
+              <p
+                className={!formData.venmoEmail ? "text-muted-foreground" : ""}
+              >
+                {formData.venmoEmail || "Not provided"}
+              </p>
             </div>
           </div>
         </div>
 
         <div className="space-y-2">
           <h3 className="text-lg font-medium">Timeline</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border rounded-lg">
+          <div className="grid grid-cols-1 gap-4 p-4 border rounded-lg">
             <div>
               <p className="text-sm font-medium text-gray-500">Buying Period</p>
               <p>
@@ -74,13 +100,33 @@ export function ReviewFundraiserForm({
                 {format(formData.buyingEndsAt, "MMM d, yyyy h:mm a")}
               </p>
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-500">Pickup Period</p>
-              <p>
-                {format(formData.pickupStartsAt, "MMM d, yyyy h:mm a")} -{" "}
-                {format(formData.pickupEndsAt, "MMM d, yyyy h:mm a")}
-              </p>
-            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-lg font-medium">Pickup Events</h3>
+          <div className="space-y-2">
+            {formData.pickupEvents.map((event, index) => (
+              <div key={index} className="p-4 border rounded-lg">
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">
+                      Location
+                    </p>
+                    <p>{event.location}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">
+                      Time Window
+                    </p>
+                    <p>
+                      {format(event.startsAt, "MMM d, yyyy h:mm a")} -{" "}
+                      {format(event.endsAt, "MMM d, yyyy h:mm a")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

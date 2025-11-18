@@ -9,6 +9,7 @@ import { useState } from "react";
 import { FundraiserBasicInfoForm } from "./FundraiserBasicInfoForm";
 import { FundraiserAddItemsForm } from "./FundraiserAddItemsForm";
 import { ReviewFundraiserForm } from "./ReviewFundraiserForm";
+import { FundraiserVenmoInfoForm } from "./FundraiserVenmoInfoForm";
 
 const getDefaultDates = () => {
   const now = new Date();
@@ -52,11 +53,15 @@ export function CreateFundraiserForm({
     description: "",
     imageUrls: [], // Not implemented yet
     goalAmount: undefined,
-    pickupLocation: "",
     buyingStartsAt: defaultDates.buyingStartsAt,
     buyingEndsAt: defaultDates.buyingEndsAt,
-    pickupStartsAt: defaultDates.pickupStartsAt,
-    pickupEndsAt: defaultDates.pickupEndsAt,
+    pickupEvents: [
+      {
+        startsAt: defaultDates.pickupStartsAt,
+        endsAt: defaultDates.pickupEndsAt,
+        location: "",
+      },
+    ],
     organizationId: organizationId,
   });
 
@@ -156,7 +161,12 @@ export function CreateFundraiserForm({
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">
       <MultiStepForm
-        labels={["Basic Information", "Add Items", "Review Fundraiser"]}
+        labels={[
+          "Basic Information",
+          "Venmo Information",
+          "Add Items",
+          "Review Fundraiser",
+        ]}
         currentStep={currentStep}
       >
         <FundraiserBasicInfoForm
@@ -167,18 +177,27 @@ export function CreateFundraiserForm({
           }}
         />
 
+        <FundraiserVenmoInfoForm
+          defaultValues={formData}
+          onSubmit={(data) => {
+            setFormData((prev) => ({ ...prev, ...data }));
+            setCurrentStep(2);
+          }}
+          onBack={() => setCurrentStep(0)}
+        />
+
         <FundraiserAddItemsForm
           items={fundraiserItems}
           setItems={setFundraiserItems}
-          onSubmit={() => setCurrentStep(2)}
-          onBack={() => setCurrentStep(0)}
+          onSubmit={() => setCurrentStep(3)}
+          onBack={() => setCurrentStep(1)}
         />
 
         <ReviewFundraiserForm
           formData={formData}
           items={fundraiserItems}
           onSubmit={onSubmit}
-          onBack={() => setCurrentStep(1)}
+          onBack={() => setCurrentStep(2)}
         />
       </MultiStepForm>
     </div>

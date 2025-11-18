@@ -4,6 +4,8 @@ import {
   UpdateFundraiserBody,
   CreateFundraiserItemBody,
   UpdateFundraiserItemBody,
+  CreatePickupEventBody,
+  UpdatePickupEventBody,
   CreateAnnouncementBody,
 } from "common";
 import { z } from "zod";
@@ -26,6 +28,11 @@ export const getFundraiser = async (fundraiserId: string) => {
               id: true,
             },
           },
+        },
+      },
+      pickupEvents: {
+        orderBy: {
+          startsAt: "asc",
         },
       },
       announcements: {
@@ -64,13 +71,11 @@ export const getFundraiserOrders = async (fundraiserId: string) => {
           id: true,
           name: true,
           description: true,
+          published: true,
           goalAmount: true,
           imageUrls: true,
-          pickupLocation: true,
           buyingStartsAt: true,
           buyingEndsAt: true,
-          pickupStartsAt: true,
-          pickupEndsAt: true,
           organization: {
             select: {
               id: true,
@@ -78,6 +83,11 @@ export const getFundraiserOrders = async (fundraiserId: string) => {
               description: true,
               authorized: true,
               logoUrl: true,
+            },
+          },
+          pickupEvents: {
+            orderBy: {
+              startsAt: "asc",
             },
           },
         },
@@ -98,9 +108,17 @@ export const getAllFundraisers = async () => {
   const fundraisers = await prisma.fundraiser.findMany({
     include: {
       organization: true,
+      pickupEvents: {
+        orderBy: {
+          startsAt: "asc",
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
+    },
+    where: {
+      published: true,
     },
   });
 
@@ -115,21 +133,44 @@ export const createFundraiser = async (
       name: fundraiserBody.name,
       description: fundraiserBody.description,
       venmoUsername: fundraiserBody.venmoUsername,
+      venmoEmail: fundraiserBody.venmoEmail,
       goalAmount: fundraiserBody.goalAmount,
-      pickupLocation: fundraiserBody.pickupLocation,
       imageUrls: fundraiserBody.imageUrls,
       buyingStartsAt: fundraiserBody.buyingStartsAt,
       buyingEndsAt: fundraiserBody.buyingEndsAt,
-      pickupStartsAt: fundraiserBody.pickupStartsAt,
-      pickupEndsAt: fundraiserBody.pickupEndsAt,
       organization: {
         connect: {
           id: fundraiserBody.organizationId,
         },
       },
+      pickupEvents: {
+        create: fundraiserBody.pickupEvents,
+      },
     },
     include: {
       organization: true,
+      pickupEvents: true,
+    },
+  });
+
+  return fundraiser;
+};
+
+export const publishFundraiser = async (fundraiserId: string) => {
+  const fundraiser = await prisma.fundraiser.update({
+    where: {
+      id: fundraiserId,
+    },
+    data: {
+      published: true,
+    },
+    include: {
+      organization: true,
+      pickupEvents: {
+        orderBy: {
+          startsAt: "asc",
+        },
+      },
     },
   });
 
@@ -149,20 +190,73 @@ export const updateFundraiser = async (
       name: fundraiserBody.name,
       description: fundraiserBody.description,
       venmoUsername: fundraiserBody.venmoUsername ?? null,
+      venmoEmail: fundraiserBody.venmoEmail,
       goalAmount: fundraiserBody.goalAmount ?? null,
-      pickupLocation: fundraiserBody.pickupLocation,
       imageUrls: fundraiserBody.imageUrls,
       buyingStartsAt: fundraiserBody.buyingStartsAt,
       buyingEndsAt: fundraiserBody.buyingEndsAt,
-      pickupStartsAt: fundraiserBody.pickupStartsAt,
-      pickupEndsAt: fundraiserBody.pickupEndsAt,
     },
     include: {
       organization: true,
+      pickupEvents: {
+        orderBy: {
+          startsAt: "asc",
+        },
+      },
     },
   });
 
   return fundraiser;
+};
+
+export const createPickupEvent = async (
+  pickupEventBody: z.infer<typeof CreatePickupEventBody> & {
+    fundraiserId: string;
+  }
+) => {
+  const pickupEvent = await prisma.pickupEvent.create({
+    data: {
+      location: pickupEventBody.location,
+      startsAt: pickupEventBody.startsAt,
+      endsAt: pickupEventBody.endsAt,
+      fundraiser: {
+        connect: {
+          id: pickupEventBody.fundraiserId,
+        },
+      },
+    },
+  });
+
+  return pickupEvent;
+};
+
+export const updatePickupEvent = async (
+  pickupEventBody: z.infer<typeof UpdatePickupEventBody> & {
+    pickupEventId: string;
+  }
+) => {
+  const pickupEvent = await prisma.pickupEvent.update({
+    where: {
+      id: pickupEventBody.pickupEventId,
+    },
+    data: {
+      location: pickupEventBody.location,
+      startsAt: pickupEventBody.startsAt,
+      endsAt: pickupEventBody.endsAt,
+    },
+  });
+
+  return pickupEvent;
+};
+
+export const deletePickupEvent = async (pickupEventId: string) => {
+  const pickupEvent = await prisma.pickupEvent.delete({
+    where: {
+      id: pickupEventId,
+    },
+  });
+
+  return pickupEvent;
 };
 
 export const createFundraiserItem = async (
@@ -185,6 +279,14 @@ export const createFundraiserItem = async (
   return item;
 };
 
+export const getFundraiserItem = async (itemId: string) => {
+  const item = await prisma.item.findUnique({
+    where: { id: itemId },
+  });
+
+  return item;
+};
+
 export const updateFundraiserItem = async (
   itemBody: z.infer<typeof UpdateFundraiserItemBody> & { itemId: string }
 ) => {
@@ -198,6 +300,16 @@ export const updateFundraiserItem = async (
       price: itemBody.price,
       imageUrl: itemBody.imageUrl ?? null,
       offsale: itemBody.offsale,
+    },
+  });
+
+  return item;
+};
+
+export const deleteFundraiserItem = async (itemId: string) => {
+  const item = await prisma.item.delete({
+    where: {
+      id: itemId,
     },
   });
 
@@ -257,7 +369,7 @@ export const calculateAndCacheFundraiserAnalytics = async (
 ) => {
   const [orders, fundraiser] = await Promise.all([
     getFundraiserOrders(fundraiserId),
-    getFundraiser(fundraiserId)
+    getFundraiser(fundraiserId),
   ]);
 
   const analytics: FundraiserAnalytics = {
@@ -272,12 +384,13 @@ export const calculateAndCacheFundraiserAnalytics = async (
     revenue_data: {},
     // Create invalid Date object if these attributes don't persist
     start_date: fundraiser?.buyingStartsAt ?? new Date(NaN),
-    end_date: fundraiser?.buyingEndsAt ?? new Date(NaN)
+    end_date: fundraiser?.buyingEndsAt ?? new Date(NaN),
   };
 
   orders.forEach((order) => {
     let orderTotal = 0;
-    const isPaidOrPickedUp = order.pickedUp || order.paymentStatus === 'CONFIRMED';
+    const isPaidOrPickedUp =
+      order.pickedUp || order.paymentStatus === "CONFIRMED";
 
     if (order.pickedUp) {
       analytics.orders_picked_up++;
@@ -307,7 +420,8 @@ export const calculateAndCacheFundraiserAnalytics = async (
     analytics.sale_data[orderDate] = (analytics.sale_data[orderDate] || 0) + 1;
   });
 
-  analytics.profit = Math.round(analytics.total_revenue * PROFIT_MARGIN * 100) / 100;
+  analytics.profit =
+    Math.round(analytics.total_revenue * PROFIT_MARGIN * 100) / 100;
 
   const cacheKey = `fundraiser_analytics_${fundraiserId}`;
   try {
@@ -330,7 +444,7 @@ export const getFundraiserAnalytics = async (fundraiserId: string) => {
   try {
     const cached = await memclient.get(cacheKey);
     if (cached.value) {
-      console.log("Found in cache")
+      console.log("Found in cache");
       return JSON.parse(cached.value.toString());
     }
   } catch (error) {
@@ -363,7 +477,7 @@ export const invalidateFundraiserAnalyticsCache = async (
  * @returns Promise<FundraiserAnalytics | null> - Analytics data if cache exists, null otherwise
  */
 const peekCachedAnalytics = async (
-  cacheKey: string,
+  cacheKey: string
 ): Promise<FundraiserAnalytics | null> => {
   try {
     const cached = await memclient.get(cacheKey);
@@ -413,7 +527,7 @@ export const updateCacheForNewOrder = async (
 
     // Save updated analytics back to cache
     await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 7200 });
-    console.log("Cached value updated for new added order")
+    console.log("Cached value updated for new added order");
   } catch (error) {
     console.error("Failed to update cache for new order:", error);
   }
@@ -462,7 +576,8 @@ export const updateCacheForOrderPickup = async (
     analytics.orders_picked_up++;
     analytics.pending_orders--;
     analytics.total_revenue += orderTotal;
-    analytics.profit = Math.round(analytics.total_revenue * PROFIT_MARGIN * 100) / 100;
+    analytics.profit =
+      Math.round(analytics.total_revenue * PROFIT_MARGIN * 100) / 100;
 
     // Update revenue data by date
     const dateKey = order.createdAt.toISOString().split("T")[0];
@@ -471,7 +586,7 @@ export const updateCacheForOrderPickup = async (
 
     // Save updated analytics back to cache
     await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 7200 });
-    console.log("Cached value updated for pickedup order")
+    console.log("Cached value updated for pickedup order");
   } catch (error) {
     console.error("Failed to update cache for order pickup:", error);
   }

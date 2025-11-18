@@ -3,6 +3,7 @@ import {
   FundraiserRouteParams,
   FundraiserItemRouteParams,
   DeleteAnnouncementRouteParams,
+  PickupEventRouteParams,
 } from "./fundraiser.types";
 import {
   CreateFundraiserBody,
@@ -10,6 +11,8 @@ import {
   CreateFundraiserItemBody,
   UpdateFundraiserItemBody,
   CreateAnnouncementBody,
+  UpdatePickupEventBody,
+  CreatePickupEventBody,
 } from "common";
 import validate from "../../middleware/validate";
 import {
@@ -17,13 +20,18 @@ import {
   getAllFundraisersHandler,
   getFundraiserHandler,
   updateFundraiserHandler,
+  publishFundraiserHandler,
   getFundraiserItemsHandler,
   getFundraiserOrdersHandler,
   createFundraiserItemHandler,
   updateFundraiserItemHandler,
+  deleteFundraiserItemHandler,
   createAnnouncementHandler,
   deleteAnnouncementHandler,
   getFundraiserAnalyticsHandler,
+  createPickupEventHandler,
+  updatePickupEventHandler,
+  deletePickupEventHandler,
 } from "./fundraiser.handlers";
 import { authenticate } from "../../middleware/authenticate";
 
@@ -65,6 +73,34 @@ fundraiserRouter.post(
 );
 
 fundraiserRouter.post(
+  "/:id/publish",
+  validate({ params: FundraiserRouteParams }),
+  authenticate,
+  publishFundraiserHandler
+);
+
+fundraiserRouter.post(
+  "/:id/pickup-events/create",
+  validate({ params: FundraiserRouteParams, body: CreatePickupEventBody }),
+  authenticate,
+  createPickupEventHandler
+);
+
+fundraiserRouter.post(
+  "/:fundraiserId/pickup-events/:pickupEventId/update",
+  validate({ params: PickupEventRouteParams, body: UpdatePickupEventBody }),
+  authenticate,
+  updatePickupEventHandler
+);
+
+fundraiserRouter.delete(
+  "/:fundraiserId/pickup-events/:pickupEventId/delete",
+  validate({ params: PickupEventRouteParams }),
+  authenticate,
+  deletePickupEventHandler
+);
+
+fundraiserRouter.post(
   "/:id/items/create",
   validate({ params: FundraiserRouteParams, body: CreateFundraiserItemBody }),
   authenticate,
@@ -79,6 +115,15 @@ fundraiserRouter.post(
   }),
   authenticate,
   updateFundraiserItemHandler
+);
+
+fundraiserRouter.delete(
+  "/:fundraiserId/items/:itemId/delete",
+  validate({
+    params: FundraiserItemRouteParams,
+  }),
+  authenticate,
+  deleteFundraiserItemHandler
 );
 
 fundraiserRouter.post(

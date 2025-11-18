@@ -13,11 +13,22 @@ export const getOrganization = async (organizationId: string) => {
   return organization;
 };
 
-export const getOrganizationFundraisers = async (organizationId: string) => {
+export const getOrganizationFundraisers = async (
+  organizationId: string,
+  includeUnpublished: boolean
+) => {
   const fundraisers = await prisma.fundraiser.findMany({
-    where: { organizationId },
+    where: {
+      organizationId,
+      published: includeUnpublished ? undefined : true,
+    },
     include: {
       organization: true,
+      pickupEvents: {
+        orderBy: {
+          startsAt: "asc",
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",

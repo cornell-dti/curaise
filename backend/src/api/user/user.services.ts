@@ -39,13 +39,11 @@ export const getUserOrders = async (userId: string) => {
           id: true,
           name: true,
           description: true,
+          published: true,
           goalAmount: true,
           imageUrls: true,
-          pickupLocation: true,
           buyingStartsAt: true,
           buyingEndsAt: true,
-          pickupStartsAt: true,
-          pickupEndsAt: true,
           organization: {
             select: {
               id: true,
@@ -53,6 +51,11 @@ export const getUserOrders = async (userId: string) => {
               description: true,
               authorized: true,
               logoUrl: true,
+            },
+          },
+          pickupEvents: {
+            orderBy: {
+              startsAt: "asc",
             },
           },
         },
@@ -90,7 +93,6 @@ export const updateUser = async (
     where: { id: user.userId },
     data: {
       name: user.name,
-      venmoUsername: user.venmoUsername ?? null,
     },
   });
 
