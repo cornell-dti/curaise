@@ -4,7 +4,6 @@ import {
   FundraiserItemRouteParams,
   DeleteAnnouncementRouteParams,
   PickupEventRouteParams,
-  DeleteFundraiserItemRouteParams,
 } from "./fundraiser.types";
 import {
   createFundraiser,
