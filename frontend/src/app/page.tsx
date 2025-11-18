@@ -8,13 +8,11 @@ import { redirect } from "next/navigation";
 export default async function LoginPage() {
   // Check if the user is logged in
   const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  // If logged in, redirect to buyer page
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  // If logged in, redirect to seller page
   if (session) {
-    redirect("/buyer/");
+    redirect('/seller');
   }
 
   return (
