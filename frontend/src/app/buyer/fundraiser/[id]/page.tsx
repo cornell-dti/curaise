@@ -5,9 +5,9 @@ import { MapPin, Calendar, ShoppingBag } from "lucide-react";
 import { FundraiserItemsPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemsPanel";
 import { FundraiserGallerySlider } from "@/app/buyer/fundraiser/[id]/components/FundraiserGallerySlider";
 import { FundraiserAnnouncementPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserAnnouncementPanel";
+import { UnpublishedFundraiser } from "@/app/buyer/fundraiser/[id]/components/UnpublishedFundraiser";
 import { Card, CardContent } from "@/components/ui/card";
 
-// TODO: @Chelsea - add UI element to let buyer know that this fundraiser is not published
 const getFundraiser = async (id: string) => {
   const response = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${id}`
@@ -40,14 +40,21 @@ const getFundraiserItems = async (id: string) => {
 
 export default async function FundraiserPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }) {
   await connection();
 
   const id = (await params).id;
+  const { preview } = await searchParams;
   const fundraiser = await getFundraiser(id);
   const fundraiserItems = await getFundraiserItems(id);
+
+  if (!fundraiser.published && preview !== "true") {
+    return <UnpublishedFundraiser fundraiser={fundraiser} />;
+  }
 
   return (
     <div className="flex flex-col p-10 space-y-4">

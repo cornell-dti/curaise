@@ -8,7 +8,7 @@ const SignInWithGoogleButton = () => {
     <Button
       type="button"
       variant="secondary"
-      className="bg-[#3C5243] font-[nunito] font-[300] text-base sm:text-lg w-auto flex items-center justify-center gap-2 text-white hover:bg-[#50535d] focus:ring-2 focus:ring-[#33363F] focus:ring-offset-2 focus:ring-offset-white rounded-lg shadow-sm transition duration-200 ease-in-out h-12"
+      className="font-[dm_sans] font-[300] text-base sm:text-lg w-auto flex items-center justify-center gap-2 bg-[#33363F] text-white hover:bg-[#50535d] focus:ring-2 focus:ring-[#33363F] focus:ring-offset-2 focus:ring-offset-white rounded-lg shadow-sm transition duration-200 ease-in-out h-12"
       onClick={() => {
         signInWithGoogle();
       }}

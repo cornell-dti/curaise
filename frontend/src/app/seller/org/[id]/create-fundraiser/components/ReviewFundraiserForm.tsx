@@ -14,12 +14,12 @@ import { z } from "zod";
 export function ReviewFundraiserForm({
   formData,
   items,
-  onSubmit,
+  onSave,
   onBack,
 }: {
   formData: z.infer<typeof CreateFundraiserBody>;
   items: z.infer<typeof CreateFundraiserItemBody>[];
-  onSubmit: () => void;
+  onSave: () => void;
   onBack: () => void;
 }) {
   return (
@@ -166,8 +166,8 @@ export function ReviewFundraiserForm({
         <Button variant="outline" onClick={onBack}>
           Back
         </Button>
-        <Button type="submit" onClick={onSubmit}>
-          Create Fundraiser
+        <Button type="submit" onClick={onSave}>
+          Save Fundraiser
         </Button>
       </CardFooter>
     </Card>
