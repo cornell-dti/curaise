@@ -95,6 +95,11 @@ export const getFundraiserOrders = async (fundraiserId: string) => {
       items: {
         select: { quantity: true, item: true },
       },
+      referral: {
+        include: {
+          referrer: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",

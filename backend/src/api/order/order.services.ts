@@ -154,6 +154,11 @@ export const completeOrderPickup = async (orderId: string) => {
       items: {
         select: { quantity: true, item: true },
       },
+      referral: {
+        include: {
+          referrer: true,
+        },
+      },
     },
   });
 
@@ -195,6 +200,11 @@ export const confirmOrderPayment = async (orderId: string) => {
               startsAt: "asc",
             },
           },
+        },
+      },
+      referral: {
+        include: {
+          referrer: true,
         },
       },
     },
