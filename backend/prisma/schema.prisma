@@ -21,6 +21,17 @@ model User {
   @@map("users")
 }
 
+// user who has been invited, but did not create account yet
+model PendingUser {
+  id        String   @id @db.Uuid
+  email     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  organizations Organization[]
+
+  @@map("pending_users")
+}
+
 model Organization {
   id                String   @id @default(uuid()) @db.Uuid
   name              String   @unique
@@ -31,8 +42,9 @@ model Organization {
   instagramUsername String?  @map("instagram_username")
   createdAt         DateTime @default(now()) @map("created_at")
 
-  admins      User[]
-  fundraisers Fundraiser[]
+  admins        User[]
+  pendingAdmins PendingUser[]
+  fundraisers   Fundraiser[]
 
   @@map("organizations")
 }
