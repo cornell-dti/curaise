@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { BasicOrganizationSchema } from "./organization";
 import { MoneySchema } from "./decimal";
+import { UserSchema } from "./user";
 
 export const AnnouncementSchema = z.object({
   id: z.string().uuid(),
@@ -18,8 +19,7 @@ export const PickupEventSchema = z.object({
 export const ReferralSchema = z.object({
   id: z.string().uuid(),
   approved: z.boolean(),
-  fundraiserId: z.string().uuid(),
-  referrerId: z.string().uuid(),
+  referrer: UserSchema,
 });
 
 export const BasicFundraiserSchema = z.object({

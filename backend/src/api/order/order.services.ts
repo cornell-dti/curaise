@@ -1,7 +1,10 @@
 import { prisma } from "../../utils/prisma";
 import { CreateOrderBody } from "common";
 import { z } from "zod";
-import { updateCacheForNewOrder, updateCacheForOrderPickup } from "../fundraiser/fundraiser.services";
+import {
+  updateCacheForNewOrder,
+  updateCacheForOrderPickup,
+} from "../fundraiser/fundraiser.services";
 import { Decimal } from "decimal.js";
 
 export const getOrder = async (orderId: string) => {
@@ -41,6 +44,11 @@ export const getOrder = async (orderId: string) => {
       items: {
         select: { quantity: true, item: true },
       },
+      referral: {
+        include: {
+          referrer: true,
+        },
+      },
     },
   });
 
@@ -63,6 +71,9 @@ export const createOrder = async (
           item: { connect: { id: item.itemId } },
         })),
       },
+      ...(orderBody.referralId && {
+        referral: { connect: { id: orderBody.referralId } },
+      }),
     },
     include: {
       buyer: true,
@@ -90,6 +101,11 @@ export const createOrder = async (
               startsAt: "asc",
             },
           },
+        },
+      },
+      referral: {
+        include: {
+          referrer: true,
         },
       },
     },
@@ -138,6 +154,11 @@ export const completeOrderPickup = async (orderId: string) => {
       items: {
         select: { quantity: true, item: true },
       },
+      referral: {
+        include: {
+          referrer: true,
+        },
+      },
     },
   });
 
@@ -179,6 +200,11 @@ export const confirmOrderPayment = async (orderId: string) => {
               startsAt: "asc",
             },
           },
+        },
+      },
+      referral: {
+        include: {
+          referrer: true,
         },
       },
     },

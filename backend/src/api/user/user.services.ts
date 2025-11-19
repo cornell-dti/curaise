@@ -60,6 +60,11 @@ export const getUserOrders = async (userId: string) => {
           },
         },
       },
+      referral: {
+        include: {
+          referrer: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
