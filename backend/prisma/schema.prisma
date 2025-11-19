@@ -16,6 +16,7 @@ model User {
 
   organizations Organization[]
   orders        Order[]
+  referrals     Referral[]
 
   @@map("users")
 }
@@ -57,6 +58,7 @@ model Fundraiser {
   items          Item[]
   orders         Order[]
   announcements  Announcement[]
+  referrals      Referral[]
 
   @@map("fundraisers")
 }
@@ -83,6 +85,20 @@ model Announcement {
   fundraiserId String     @map("fundraiser_id") @db.Uuid
 
   @@map("announcements")
+}
+
+model Referral {
+  id        String   @id @default(uuid()) @db.Uuid
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  fundraiser   Fundraiser @relation(fields: [fundraiserId], references: [id], onDelete: Cascade)
+  fundraiserId String     @map("fundraiser_id") @db.Uuid
+  referrer     User       @relation(fields: [referrerId], references: [id])
+  referrerId   String     @map("referrer_id") @db.Uuid
+  orders       Order[]
+
+  @@map("referrals")
 }
 
 model Item {
@@ -116,6 +132,8 @@ model Order {
   fundraiser   Fundraiser   @relation(fields: [fundraiserId], references: [id])
   fundraiserId String       @map("fundraiser_id") @db.Uuid
   items        OrderItems[]
+  referral     Referral?    @relation(fields: [referralId], references: [id])
+  referralId   String?      @map("referral_id") @db.Uuid
 
   @@map("orders")
 }

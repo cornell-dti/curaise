@@ -10,6 +10,7 @@ async function main() {
   await prisma.item.deleteMany({});
   await prisma.announcement.deleteMany({});
   await prisma.pickupEvent.deleteMany({});
+  await prisma.referral.deleteMany({});
   await prisma.fundraiser.deleteMany({});
   await prisma.organization.deleteMany({});
   await prisma.user.deleteMany({
@@ -218,6 +219,32 @@ async function main() {
     },
   });
 
+  // Create referrals for DTI fundraiser
+  const dtiReferral1 = await prisma.referral.create({
+    data: {
+      fundraiserId: dtiFundraiser.id,
+      referrerId: testUser1.id,
+      approved: true,
+    },
+  });
+
+  const dtiReferral2 = await prisma.referral.create({
+    data: {
+      fundraiserId: dtiFundraiser.id,
+      referrerId: testUser2.id,
+      approved: false,
+    },
+  });
+
+  // Create referrals for CDS fundraiser
+  const cdsReferral1 = await prisma.referral.create({
+    data: {
+      fundraiserId: cdsFundraiser.id,
+      referrerId: testUser3.id,
+      approved: true,
+    },
+  });
+
   // Get the items we just created for DTI
   const dtiItems = await prisma.item.findMany({
     where: {
@@ -262,6 +289,7 @@ async function main() {
       paymentMethod: PaymentMethod.VENMO,
       paymentStatus: PaymentStatus.PENDING,
       pickedUp: false,
+      referralId: dtiReferral1.id, // Linked to approved referral from testUser1
       items: {
         create: [
           {
@@ -305,6 +333,7 @@ async function main() {
         paymentMethod: PaymentMethod.VENMO,
         paymentStatus: PaymentStatus.PENDING,
         pickedUp: false,
+        referralId: cdsReferral1.id, // Linked to approved referral from testUser3
         items: {
           create: [
             {
