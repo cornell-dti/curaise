@@ -95,7 +95,7 @@ export function FundraiserTop({
         <div className="w-full flex justify-between">
           <h1 className="text-[32px] font-semibold">{fundraiser.name}</h1>
           <div className="flex gap-4">
-            <Link href={`/buyer/fundraiser/${fundraiser.id}`}>
+            <Link href={`/buyer/fundraiser/${fundraiser.id}?preview=true`}>
               <Button className="bg-[#265B34] text-white hover:bg-[#1f4a2b]">
                 Preview
               </Button>

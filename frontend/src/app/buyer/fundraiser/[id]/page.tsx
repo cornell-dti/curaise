@@ -1,19 +1,12 @@
 import { connection } from "next/server";
-import {
-  CompleteFundraiserSchema,
-  CompleteItemSchema,
-  CompleteOrganizationSchema,
-} from "common";
+import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
 import { format } from "date-fns";
 import { MapPin, Calendar, ShoppingBag } from "lucide-react";
 import { FundraiserItemsPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemsPanel";
 import { FundraiserGallerySlider } from "@/app/buyer/fundraiser/[id]/components/FundraiserGallerySlider";
 import { FundraiserAnnouncementPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserAnnouncementPanel";
+import { UnpublishedFundraiser } from "@/app/buyer/fundraiser/[id]/components/UnpublishedFundraiser";
 import { Card, CardContent } from "@/components/ui/card";
-import { UnpublishedFundraiser } from "./components/UnpublishedFundraiser";
-import { z } from "zod";
-import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
 
 const getFundraiser = async (id: string) => {
   const response = await fetch(
@@ -45,47 +38,21 @@ const getFundraiserItems = async (id: string) => {
   return data.data;
 };
 
-const getOrganization = async (
-  fundraiser: z.infer<typeof CompleteFundraiserSchema>
-) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/organization/${fundraiser.organization.id}`
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-  const org = CompleteOrganizationSchema.safeParse(result.data);
-  if (!org.success) {
-    throw new Error("Could not parse complete organization data");
-  }
-  return org.data;
-};
-
 export default async function FundraiserPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ preview?: string }>;
 }) {
   await connection();
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-    error: error1,
-  } = await supabase.auth.getUser();
-  if (error1 || !user) {
-    redirect("/");
-  }
 
   const id = (await params).id;
+  const { preview } = await searchParams;
   const fundraiser = await getFundraiser(id);
   const fundraiserItems = await getFundraiserItems(id);
-  const organization = await getOrganization(fundraiser);
-  const isAdmin = organization.admins.some((admin) => admin.id === user.id);
-  console.log(isAdmin);
 
-  if (!fundraiser.published && !isAdmin) {
+  if (!fundraiser.published && preview !== "true") {
     return <UnpublishedFundraiser fundraiser={fundraiser} />;
   }
 
