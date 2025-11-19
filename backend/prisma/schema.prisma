@@ -98,6 +98,7 @@ model Referral {
   referrerId   String     @map("referrer_id") @db.Uuid
   orders       Order[]
 
+  @@unique([fundraiserId, referrerId])
   @@map("referrals")
 }
 
@@ -132,7 +133,7 @@ model Order {
   fundraiser   Fundraiser   @relation(fields: [fundraiserId], references: [id])
   fundraiserId String       @map("fundraiser_id") @db.Uuid
   items        OrderItems[]
-  referral     Referral?    @relation(fields: [referralId], references: [id])
+  referral     Referral?    @relation(fields: [referralId], references: [id], onDelete: SetNull)
   referralId   String?      @map("referral_id") @db.Uuid
 
   @@map("orders")
