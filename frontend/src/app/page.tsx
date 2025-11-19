@@ -1,6 +1,7 @@
 import { SignInWithGoogleButton } from "../components/auth/SignInWithGoogleButton";
 import Image from "next/image";
-import loginLaptopView from "../../public/images/login-laptop-view.png";
+import loginPhone from "../../public/images/login-phone.png";
+import loginLineChart from "../../public/images/login-line-chart.png";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -18,11 +19,6 @@ export default async function LoginPage() {
 
   return (
     <div className="relative flex items-center justify-center min-h-svh w-full bg-white overflow-hidden">
-      {/* Light green half-circle - responsive positioning */}
-      <div className="absolute top-0 right-0 w-1/2 h-full">
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 h-[120%] sm:h-[140%] md:h-[120%] aspect-[1/1] rounded-l-full bg-[#92AA83] opacity-80 sm:opacity-90 md:opacity-100"></div>
-      </div>
-
       <div className="container mx-auto px-4 sm:px-6 md:px-10 flex flex-col-reverse md:flex-row items-center justify-center relative z-10 gap-8 md:gap-12 py-8 md:py-12 h-full">
         {/* Left side content - vertically centered */}
         <div className="w-full md:w-2/5 lg:w-2/5 font-[dm_sans] flex items-center justify-center">
@@ -41,14 +37,21 @@ export default async function LoginPage() {
         </div>
 
         {/* Right side image - enlarged further to take up more space */}
-        <div className="w-full md:w-3/5 lg:w-3/5 flex justify-center items-center my-6 md:my-0">
-          <div className="relative w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl">
+        <div className="w-3/5 flex justify-center items-center my-6 md:my-0">
+          <div className="grid grid-cols-2 max-w-[600px] sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl">
             <Image
-              src={loginLaptopView}
-              alt="CURaise Dashboard Preview"
+              src={loginPhone}
+              alt="CURaise Phone UI"
               priority
-              className="drop-shadow-xl w-full h-auto"
-              sizes="(max-width: 640px) 100vw, (max-width: 768px) 100vw, (max-width: 1200px) 55vw, 45vw"
+              className="w-full max-w-[300px] h-autor"
+            />
+            <div className="w-full max-w-[300px] aspect-square bg-[#265B34] rounded-bl-[50%]" />
+            <div className="w-full max-w-[300px] aspect-square bg-[#C6DDC8] rounded-br-[50%] rounded-tr-[50%]" />
+            <Image
+              src={loginLineChart}
+              alt="CURaise Line Chart UI"
+              priority
+              className="w-full max-w-[300px] h-auto"
             />
           </div>
         </div>

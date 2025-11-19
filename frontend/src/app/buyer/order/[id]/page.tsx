@@ -1,7 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { CompleteOrderSchema } from "common";
+import { CompleteOrderSchema, BasicFundraiserSchema } from "common";
 import Decimal from "decimal.js";
 import {
   Card,
@@ -16,12 +16,16 @@ import {
   MapPin,
   ShoppingBag,
   User,
+  ExternalLink,
 } from "lucide-react";
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { Separator } from "@/components/ui/separator";
 import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
 import { format } from "date-fns";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { CopyButton } from "@/components/custom/CopyButton";
+import { ConfettiWrapper } from "@/components/custom/ConfettiWrapper";
 
 // data fetching function
 const getOrder = async (id: string, token: string) => {
@@ -42,6 +46,29 @@ const getOrder = async (id: string, token: string) => {
   const data = CompleteOrderSchema.safeParse(result.data);
   if (!data.success) {
     throw new Error("Could not parse order data");
+  }
+  return data.data;
+};
+
+// fundraiser data fetching function
+const getFundraiser = async (id: string, token: string) => {
+  const response = await fetch(
+    process.env.NEXT_PUBLIC_API_URL + "/fundraiser/" + id,
+    {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    }
+  );
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message);
+  }
+
+  // parse fundraiser data
+  const data = BasicFundraiserSchema.safeParse(result.data);
+  if (!data.success) {
+    throw new Error("Could not parse fundraiser data");
   }
   return data.data;
 };
@@ -75,6 +102,7 @@ export default async function OrderPage({
   }
 
   const order = await getOrder(id, session.access_token);
+  const fundraiser = await getFundraiser(order.fundraiser.id, session.access_token);
 
   const orderTotal = order.items
     .reduce(
@@ -84,8 +112,55 @@ export default async function OrderPage({
     )
     .toFixed(2);
 
+  // Use full order ID for Venmo payment
+  const orderIdForPayment = order.id;
+
+  // Get banner styling based on payment status and method
+  const getBannerStyling = () => {
+    // If payment is confirmed, show confirmed UI regardless of payment method
+    if (order.paymentStatus === "CONFIRMED") {
+      return {
+        borderColor: "border-green-500",
+        textColor: "text-green-800 dark:text-green-200",
+        title: "Payment Confirmed",
+        message: "Your payment has been verified. No further action is required.",
+      };
+    }
+    
+    // If unverifiable AND venmo, show unverifiable message
+    if (order.paymentStatus === "UNVERIFIABLE" && order.paymentMethod === "VENMO") {
+      return {
+        borderColor: "border-blue-500",
+        textColor: "text-blue-800 dark:text-blue-200",
+        title: "Order Processed",
+        message: "Your order has been received. Payment will have to be manually verified by the fundraiser managers.",
+      };
+    }
+    
+    // For OTHER payment method (PENDING or UNVERIFIABLE), show unverifiable messaging
+    if (order.paymentMethod === "OTHER") {
+      return {
+        borderColor: "border-blue-500",
+        textColor: "text-blue-800 dark:text-blue-200",
+        title: "Order Processed",
+        message: "Your order has been received. Payment will have to be manually verified by the fundraiser managers.",
+      };
+    }
+    
+    // Default case: VENMO + PENDING (show payment required message)
+    return {
+      borderColor: "border-blue-500",
+      textColor: "text-blue-800 dark:text-blue-200",
+      title: "Payment Required",
+      message: "Complete your payment to confirm your order.",
+    };
+  };
+
+  const bannerStyle = getBannerStyling();
+
   return (
     <div className="container max-w-4xl py-6 px-4 md:py-8 md:px-6 mx-auto">
+      <ConfettiWrapper />
       <div className="flex flex-col gap-2 mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Order Details</h1>
         <p className="text-muted-foreground">
@@ -94,6 +169,80 @@ export default async function OrderPage({
       </div>
 
       <div className="grid gap-6">
+
+        {/* Payment Banner */}
+        <Card className={`${bannerStyle.borderColor}`}>
+          <CardHeader className="py-6">
+            <CardTitle className={bannerStyle.textColor}>
+              {bannerStyle.title}
+            </CardTitle>
+            <CardDescription className={bannerStyle.textColor}>
+              {bannerStyle.message}
+            </CardDescription>
+          </CardHeader>
+           {/* Show CardContent for PENDING VENMO orders with venmoUsername */}
+           {order.paymentStatus === "PENDING" && order.paymentMethod === "VENMO" && fundraiser.venmoUsername && (
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-center">
+                  <Button
+                    size="lg"
+                    asChild
+                    className="flex items-center gap-2 bg-[#3D95CE] hover:bg-[#2E7BB8] text-white font-semibold px-8 py-3 text-md"
+                  >
+                    <a
+                      href={`https://venmo.com/${fundraiser.venmoUsername}?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="h-5 w-5" />
+                      Pay with Venmo</a>
+                  </Button>
+                </div>
+
+                {/* Show payment details */}
+                <details className="text-sm text-muted-foreground">
+                  <summary className="cursor-pointer hover:text-foreground">
+                    Link not working?
+                  </summary>
+                  <div className="mt-2 pl-4 border-l-2 border-muted space-y-3">
+                    <p className="mb-1 text-sm">
+                      Manual entry details (enter exactly as shown, or the order may not be processed correctly):
+                    </p>
+                    <p className="mb-1 text-sm">Send to Venmo username:</p>
+                    <div className="flex items-center gap-2">
+                      <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
+                        @{fundraiser.venmoUsername}
+                      </code>
+                      <CopyButton text={`${fundraiser.venmoUsername}`} />
+                    </div>
+
+                    <div>
+                      <p className="mb-1 text-sm">Amount to send:</p>
+                      <div className="flex items-center gap-2">
+                        <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
+                          ${orderTotal}
+                        </code>
+                        <CopyButton text={orderTotal} />
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="mb-1 text-sm">Send this exact order ID as your Venmo message:</p>
+                      <div className="flex items-center gap-2">
+                        <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
+                          {orderIdForPayment}
+                        </code>
+                        <CopyButton text={orderIdForPayment} />
+                      </div>
+                    </div>
+                  </div>
+                </details>
+              </div>
+            </CardContent>
+          )}
+        </Card>
+
         {/* Order Summary Card */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
