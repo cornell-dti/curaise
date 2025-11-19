@@ -27,6 +27,7 @@ import {
   createReferral,
   getReferral,
   approveReferral,
+  deleteReferral,
 } from "./fundraiser.services";
 import {
   AnnouncementSchema,
@@ -815,4 +816,43 @@ export const approveReferralHandler = async (
   res
     .status(200)
     .json({ message: "Referral approved", data: parsedReferral.data });
+};
+
+export const deleteReferralHandler = async (
+  req: Request<z.infer<typeof ApproveReferralRouteParams>, any, {}, {}>,
+  res: Response
+) => {
+  // Get referral
+  const referral = await getReferral(req.params.referralId);
+  if (!referral) {
+    res.status(404).json({ message: "Referral not found" });
+    return;
+  }
+
+  // Validate that referral's fundraiserId matches URL param
+  if (referral.fundraiserId !== req.params.fundraiserId) {
+    res
+      .status(400)
+      .json({ message: "Referral does not belong to this fundraiser" });
+    return;
+  }
+
+  // Check if user is admin of fundraiser's organization
+  if (
+    !referral.fundraiser.organization.admins.some(
+      (admin) => admin.id === res.locals.user!.id
+    )
+  ) {
+    res.status(403).json({ message: "Unauthorized to delete referral" });
+    return;
+  }
+
+  // Delete referral
+  const deletedReferral = await deleteReferral(req.params.referralId);
+  if (!deletedReferral) {
+    res.status(500).json({ message: "Failed to delete referral" });
+    return;
+  }
+
+  res.status(200).json({ message: "Referral deleted successfully" });
 };

@@ -35,6 +35,7 @@ import {
   deletePickupEventHandler,
   createReferralHandler,
   approveReferralHandler,
+  deleteReferralHandler,
 } from "./fundraiser.handlers";
 import { authenticate } from "../../middleware/authenticate";
 
@@ -160,10 +161,18 @@ fundraiserRouter.post(
 
 // Approve a referral request (admin only)
 fundraiserRouter.post(
-  "/:fundraiserId/items/:referralId/approve",
+  "/:fundraiserId/referrals/:referralId/approve",
   validate({ params: ApproveReferralRouteParams }),
   authenticate,
   approveReferralHandler
+);
+
+// Delete a referral (admin only)
+fundraiserRouter.delete(
+  "/:fundraiserId/referrals/:referralId/delete",
+  validate({ params: ApproveReferralRouteParams }),
+  authenticate,
+  deleteReferralHandler
 );
 
 export default fundraiserRouter;

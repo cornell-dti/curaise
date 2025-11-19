@@ -416,6 +416,14 @@ export const approveReferral = async (referralId: string) => {
   return referral;
 };
 
+export const deleteReferral = async (referralId: string) => {
+  const referral = await prisma.referral.delete({
+    where: { id: referralId },
+  });
+
+  return referral;
+};
+
 export interface FundraiserAnalytics {
   total_revenue: number;
   total_orders: number;
