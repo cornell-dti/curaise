@@ -4,6 +4,7 @@ import {
   FundraiserItemRouteParams,
   DeleteAnnouncementRouteParams,
   PickupEventRouteParams,
+  ApproveReferralRouteParams,
 } from "./fundraiser.types";
 import {
   CreateFundraiserBody,
@@ -32,9 +33,10 @@ import {
   createPickupEventHandler,
   updatePickupEventHandler,
   deletePickupEventHandler,
+  createReferralHandler,
+  approveReferralHandler,
 } from "./fundraiser.handlers";
 import { authenticate } from "../../middleware/authenticate";
-import referralRouter from "../referral/referral.router";
 
 const fundraiserRouter = Router();
 
@@ -148,7 +150,20 @@ fundraiserRouter.get(
   getFundraiserAnalyticsHandler
 );
 
-// Mount referral router
-fundraiserRouter.use("/:fundraiserId/referral", referralRouter);
+// Create a referral request
+fundraiserRouter.post(
+  "/:id/referrals",
+  validate({ params: FundraiserRouteParams }),
+  authenticate,
+  createReferralHandler
+);
+
+// Approve a referral request (admin only)
+fundraiserRouter.post(
+  "/:fundraiserId/items/:referralId/approve",
+  validate({ params: ApproveReferralRouteParams }),
+  authenticate,
+  approveReferralHandler
+);
 
 export default fundraiserRouter;
