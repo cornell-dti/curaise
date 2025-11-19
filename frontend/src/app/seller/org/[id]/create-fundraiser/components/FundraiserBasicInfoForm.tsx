@@ -67,11 +67,11 @@ const DateTimeFieldAdapter = ({
 
 export function FundraiserBasicInfoForm({
   defaultValues,
-  onSubmit,
+  onNext,
   onSave,
 }: {
   defaultValues: z.infer<typeof BasicInformationSchema>;
-  onSubmit: (data: z.infer<typeof BasicInformationSchema>) => void;
+  onNext: (data: z.infer<typeof BasicInformationSchema>) => void;
   onSave: (data: z.infer<typeof BasicInformationSchema>) => void;
 }) {
   const form = useForm<z.infer<typeof BasicInformationSchema>>({
@@ -102,7 +102,7 @@ export function FundraiserBasicInfoForm({
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit((data) => {
-            onSubmit(data);
+            onNext(data);
           })}
         >
           <CardHeader>

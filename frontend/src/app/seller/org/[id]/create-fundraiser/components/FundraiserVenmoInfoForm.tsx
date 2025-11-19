@@ -40,12 +40,12 @@ const VenmoFormSchema = CreateFundraiserBody.pick({
 
 export function FundraiserVenmoInfoForm({
   defaultValues,
-  onSubmit,
+  onNext,
   onBack,
   onSave,
 }: {
   defaultValues: z.infer<typeof VenmoFormSchema>;
-  onSubmit: (data: z.infer<typeof VenmoFormSchema>) => void;
+  onNext: (data: z.infer<typeof VenmoFormSchema>) => void;
   onBack: () => void;
   onSave: (data: z.infer<typeof VenmoFormSchema>) => void;
 }) {
@@ -67,7 +67,7 @@ export function FundraiserVenmoInfoForm({
         <form
           autoComplete="off"
           onSubmit={form.handleSubmit((data) => {
-            onSubmit(data);
+            onNext(data);
           })}
         >
           <CardContent className="space-y-2">

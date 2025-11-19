@@ -36,7 +36,7 @@ import UploadImageComponent from "@/components/custom/UploadImageComponent";
 export function FundraiserAddItemsForm({
   items,
   setItems,
-  onSubmit,
+  onNext,
   onBack,
   onSave,
 }: {
@@ -44,7 +44,7 @@ export function FundraiserAddItemsForm({
   setItems: Dispatch<
     SetStateAction<z.infer<typeof CreateFundraiserItemBody>[]>
   >;
-  onSubmit: () => void;
+  onNext: () => void;
   onBack: () => void;
   onSave: () => void;
 }) {
@@ -241,7 +241,7 @@ export function FundraiserAddItemsForm({
           >
             Save Draft
           </Button>
-          <Button type="button" onClick={onSubmit}>
+          <Button type="button" onClick={onNext}>
             Next
           </Button>
         </div>

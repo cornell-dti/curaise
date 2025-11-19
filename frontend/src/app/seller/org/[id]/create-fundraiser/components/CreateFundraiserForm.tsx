@@ -5,7 +5,7 @@ import { CreateFundraiserBody, CreateFundraiserItemBody } from "common";
 import { toast } from "sonner";
 import { z } from "zod";
 import MultiStepForm from "../../../../../../components/custom/MultiStepForm";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FundraiserBasicInfoForm } from "./FundraiserBasicInfoForm";
 import { FundraiserAddItemsForm } from "./FundraiserAddItemsForm";
 import { ReviewFundraiserForm } from "./ReviewFundraiserForm";
@@ -45,7 +45,6 @@ export function CreateFundraiserForm({
   organizationId: string;
 }) {
   const defaultDates = getDefaultDates();
-  const [saveRequested, setSaveRequested] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
   const [formData, setFormData] = useState<
@@ -74,7 +73,7 @@ export function CreateFundraiserForm({
     z.infer<typeof CreateFundraiserItemBody>[]
   >([]);
 
-  async function onSubmit() {
+  async function onSave() {
     // First create the fundraiser
     const response = await fetch(
       process.env.NEXT_PUBLIC_API_URL + "/fundraiser/create",
@@ -161,13 +160,6 @@ export function CreateFundraiserForm({
     }
   }
 
-  useEffect(() => {
-    if (saveRequested) {
-      onSubmit();
-      setSaveRequested(false);
-    }
-  }, [saveRequested, formData]);
-
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">
       <MultiStepForm
@@ -181,41 +173,41 @@ export function CreateFundraiserForm({
       >
         <FundraiserBasicInfoForm
           defaultValues={formData}
-          onSubmit={(data) => {
+          onNext={(data) => {
             setFormData((prev) => ({ ...prev, ...data }));
             setCurrentStep(1);
           }}
           onSave={(data) => {
             setFormData((prev) => ({ ...prev, ...data }));
-            setSaveRequested(true);
+            onSave();
           }}
         />
 
         <FundraiserAddItemsForm
           items={fundraiserItems}
           setItems={setFundraiserItems}
-          onSubmit={() => setCurrentStep(2)}
+          onNext={() => setCurrentStep(2)}
           onBack={() => setCurrentStep(0)}
-          onSave={() => setSaveRequested(true)}
+          onSave={onSave}
         />
 
         <FundraiserVenmoInfoForm
           defaultValues={formData}
-          onSubmit={(data) => {
+          onNext={(data) => {
             setFormData((prev) => ({ ...prev, ...data }));
             setCurrentStep(3);
           }}
           onBack={() => setCurrentStep(1)}
           onSave={(data) => {
             setFormData((prev) => ({ ...prev, ...data }));
-            setSaveRequested(true);
+            onSave();
           }}
         />
 
         <ReviewFundraiserForm
           formData={formData}
           items={fundraiserItems}
-          onSubmit={onSubmit}
+          onSave={onSave}
           onBack={() => setCurrentStep(2)}
         />
       </MultiStepForm>
