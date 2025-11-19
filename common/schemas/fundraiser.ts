@@ -20,7 +20,6 @@ export const ReferralSchema = z.object({
   approved: z.boolean(),
   fundraiserId: z.string().uuid(),
   referrerId: z.string().uuid(),
-  createdAt: z.coerce.date(),
 });
 
 export const BasicFundraiserSchema = z.object({
