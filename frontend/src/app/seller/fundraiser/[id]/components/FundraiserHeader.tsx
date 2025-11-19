@@ -14,7 +14,7 @@ import Checklist from "./Checklist";
 import { z } from "zod";
 import { toast } from "sonner";
 
-export function FundraiserTop({
+export function FundraiserHeader({
   token,
   fundraiser,
   fundraiserItems,

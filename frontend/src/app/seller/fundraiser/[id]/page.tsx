@@ -2,7 +2,7 @@ import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { connection } from "next/server";
-import { FundraiserTop } from "./components/FundraiserTop";
+import { FundraiserHeader } from "./components/FundraiserHeader";
 
 const getFundraiser = async (id: string) => {
   const response = await fetch(
@@ -41,6 +41,7 @@ export default async function FundraiserPage({
 }) {
   await connection();
   const supabase = await createClient();
+
   // protect page (must use supabase.auth.getUser() according to docs)
   const {
     data: { user },
@@ -49,6 +50,7 @@ export default async function FundraiserPage({
   if (error1 || !user) {
     redirect("/");
   }
+
   // get auth jwt token
   const {
     data: { session },
@@ -64,7 +66,8 @@ export default async function FundraiserPage({
 
   return (
     <div className="h-full py-[64px] bg-[#F6F6F6] flex flex-col items-center">
-      <FundraiserTop
+      {/* TODO: @Eric add the other stuff here */}
+      <FundraiserHeader
         token={session.access_token}
         fundraiser={fundraiser}
         fundraiserItems={currentFundraiserItems}
