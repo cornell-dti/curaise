@@ -40,6 +40,11 @@ export const getFundraiser = async (fundraiserId: string) => {
           createdAt: "desc",
         },
       },
+      referrals: {
+        include: {
+          referrer: true,
+        },
+      },
     },
   });
 
