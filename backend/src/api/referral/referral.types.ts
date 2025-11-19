@@ -7,3 +7,8 @@ export const ReferralRouteParams = z.object({
 export const FundraiserReferrersRouteParams = z.object({
   fundraiserId: z.string().uuid(),
 });
+
+export const ApproveReferralRouteParams = z.object({
+  fundraiserId: z.string().uuid(),
+  id: z.string().uuid(),
+});

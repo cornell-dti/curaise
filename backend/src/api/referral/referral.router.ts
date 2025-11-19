@@ -7,15 +7,15 @@ import {
   getReferrersHandler,
 } from "./referral.handlers";
 import {
-  ReferralRouteParams,
   FundraiserReferrersRouteParams,
+  ApproveReferralRouteParams,
 } from "./referral.types";
 
-const referralRouter = Router();
+const referralRouter = Router({ mergeParams: true });
 
 // Request to be a referrer for a fundraiser
 referralRouter.post(
-  "/fundraiser/:fundraiserId",
+  "/",
   validate({ params: FundraiserReferrersRouteParams }),
   authenticate,
   createReferralHandler
@@ -24,14 +24,14 @@ referralRouter.post(
 // Approve a referrer request (admin only)
 referralRouter.patch(
   "/:id/approve",
-  validate({ params: ReferralRouteParams }),
+  validate({ params: ApproveReferralRouteParams }),
   authenticate,
   approveReferralHandler
 );
 
 // Get all referrers for a fundraiser (both approved and pending)
 referralRouter.get(
-  "/fundraiser/:fundraiserId",
+  "/",
   validate({ params: FundraiserReferrersRouteParams }),
   getReferrersHandler
 );

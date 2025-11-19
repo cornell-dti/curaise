@@ -1,7 +1,7 @@
 import { Request, Response } from "express-serve-static-core";
 import {
-  ReferralRouteParams,
   FundraiserReferrersRouteParams,
+  ApproveReferralRouteParams,
 } from "./referral.types";
 import {
   getReferral,
@@ -56,13 +56,19 @@ export const createReferralHandler = async (
 };
 
 export const approveReferralHandler = async (
-  req: Request<z.infer<typeof ReferralRouteParams>, any, {}, {}>,
+  req: Request<z.infer<typeof ApproveReferralRouteParams>, any, {}, {}>,
   res: Response
 ) => {
   // Get referral with fundraiser organization info
   const referral = await getReferral(req.params.id);
   if (!referral) {
     res.status(404).json({ message: "Referral not found" });
+    return;
+  }
+
+  // Validate that referral's fundraiserId matches URL param
+  if (referral.fundraiserId !== req.params.fundraiserId) {
+    res.status(400).json({ message: "Referral does not belong to this fundraiser" });
     return;
   }
 

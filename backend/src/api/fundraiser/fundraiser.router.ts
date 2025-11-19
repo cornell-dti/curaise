@@ -34,6 +34,7 @@ import {
   deletePickupEventHandler,
 } from "./fundraiser.handlers";
 import { authenticate } from "../../middleware/authenticate";
+import referralRouter from "../referral/referral.router";
 
 const fundraiserRouter = Router();
 
@@ -146,5 +147,8 @@ fundraiserRouter.get(
   authenticate,
   getFundraiserAnalyticsHandler
 );
+
+// Mount referral router
+fundraiserRouter.use("/:fundraiserId/referral", referralRouter);
 
 export default fundraiserRouter;
