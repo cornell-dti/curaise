@@ -145,7 +145,7 @@ export function ItemDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
+      <DialogContent className="max-w-fit h-5/6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmitItem)}>
             <DialogHeader>

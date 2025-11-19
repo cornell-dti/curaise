@@ -15,7 +15,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { ItemDialog } from "./ItemDialog";
-// removed external type import; use a local type for delete params instead
 
 export const DEFAULT_ITEM_VALUES = {
   name: "",

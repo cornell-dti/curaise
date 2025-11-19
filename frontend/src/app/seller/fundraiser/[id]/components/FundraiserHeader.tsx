@@ -1,4 +1,5 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import {
   CompleteFundraiserSchema,
@@ -8,7 +9,7 @@ import {
 import { Calendar, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { EditFundraiserModal } from "./EditFundraiserModal";
 import Checklist from "./Checklist";
 import { z } from "zod";
@@ -25,31 +26,26 @@ export function FundraiserHeader({
 }) {
   const [openEdit, setOpenEdit] = useState(false);
   const [step, setStep] = useState(0);
-  const [publish, setPublish] = useState(fundraiser.published);
   const openModalAt = (step: number) => {
     setStep(step);
     setOpenEdit(true);
   };
-  const grouped_days = fundraiser.pickupEvents
-    .slice()
-    .sort(
-      (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
-    )
-    .reduce(
-      (
-        acc: Record<string, z.infer<typeof PickupEventSchema>[]>,
-        event: z.infer<typeof PickupEventSchema>[][number]
-      ) => {
-        const dayKey = format(event.startsAt, "EEEE, M/d/yyyy");
-        acc[dayKey] = acc[dayKey] || [];
-        acc[dayKey].push(event);
-        return acc;
-      },
-      {}
-    );
-  const published = (publish: boolean) => {
-    setPublish(publish);
-  };
+  // Sort pickup events by start time and group by day
+  const sortedEvents = [...fundraiser.pickupEvents].sort(
+    (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
+  );
+
+  // Group events by their date (using formatted date string as key for grouping)
+  const eventsByDay = sortedEvents.reduce<
+    Record<string, z.infer<typeof PickupEventSchema>[]>
+  >((groupedEvents, event) => {
+    const dateKey = format(event.startsAt, "yyyy-MM-dd");
+    if (!groupedEvents[dateKey]) {
+      groupedEvents[dateKey] = [];
+    }
+    groupedEvents[dateKey].push(event);
+    return groupedEvents;
+  }, {});
 
   async function onPublish() {
     const response = await fetch(
@@ -73,12 +69,6 @@ export function FundraiserHeader({
       toast.success("Fundraiser published successfully");
     }
   }
-
-  useEffect(() => {
-    if (publish) {
-      onPublish();
-    }
-  }, [publish]);
 
   return (
     <div className="flex flex-col items-center">
@@ -112,27 +102,33 @@ export function FundraiserHeader({
           </div>
         </div>
         <div className="flex flex-col gap-4 min-w-[80vw]">
-          {Object.entries(grouped_days).map(([day, events]) => (
-            <div
-              key={day}
-              className="text-[18px] flex items-center gap-12 min-w-[80vw]"
-            >
-              <span className="flex gap-2 items-center">
-                <Calendar className="h-5" /> {format(day, "EEEE, M/d/yyyy")}
-              </span>
-              <div>
-                {events.map((e) => (
-                  <div key={e.id} className="flex items-center gap-2">
-                    <MapPin className="h-5" />
-                    {e.location}, {format(e.startsAt, "h:mm aa")} to{" "}
-                    {format(e.endsAt, "h:mm aa")}
-                  </div>
-                ))}
+          {Object.entries(eventsByDay).map(([dateKey, events]) => {
+            // Get the first event's date to format the day header
+            const displayDate = format(events[0].startsAt, "EEEE, M/d/yyyy");
+
+            return (
+              <div
+                key={dateKey}
+                className="text-[18px] flex items-center gap-12 min-w-[80vw]"
+              >
+                <span className="flex gap-2 items-center">
+                  <Calendar className="h-5" /> {displayDate}
+                </span>
+                <div>
+                  {events.map((event) => (
+                    <div key={event.id} className="flex items-center gap-2">
+                      <MapPin className="h-5" />
+                      {event.location}, {format(event.startsAt, "h:mm aa")} to{" "}
+                      {format(event.endsAt, "h:mm aa")}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
-        {!publish && (
+
+        {!fundraiser.published && (
           <div className="mt-6 flex flex-col gap-3">
             <h3 className="font-semibold text-[20px]">
               Finish Setting Up Your Fundraiser
@@ -147,7 +143,7 @@ export function FundraiserHeader({
               fundraiser={fundraiser}
               fundraiserItems={fundraiserItems}
               onAction={openModalAt}
-              isPublish={published}
+              publish={onPublish}
             />
           </div>
         )}

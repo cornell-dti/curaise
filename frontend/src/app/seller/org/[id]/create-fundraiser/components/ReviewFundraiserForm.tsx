@@ -167,7 +167,7 @@ export function ReviewFundraiserForm({
           Back
         </Button>
         <Button type="submit" onClick={onSave}>
-          Create Fundraiser Draft
+          Save Fundraiser
         </Button>
       </CardFooter>
     </Card>

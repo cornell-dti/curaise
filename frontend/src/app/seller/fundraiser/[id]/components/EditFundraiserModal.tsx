@@ -146,7 +146,7 @@ export function EditFundraiserModal({
           >
             <FundraiserBasicInfoForm
               defaultValues={formData}
-              onSubmit={(data) => {
+              onNext={(data) => {
                 setFormData((prev) => ({ ...prev, ...data }));
                 setCurrentStep(1);
               }}
@@ -172,7 +172,7 @@ export function EditFundraiserModal({
 
             <FundraiserVenmoInfoForm
               defaultValues={formData}
-              onSubmit={(data) => {
+              onNext={(data) => {
                 setFormData((prev) => ({ ...prev, ...data }));
                 setCurrentStep(3);
               }}
@@ -187,7 +187,7 @@ export function EditFundraiserModal({
             <ReviewFundraiserForm
               formData={formData}
               items={formFundraiserItems}
-              onSubmit={() => {
+              onSave={() => {
                 onSubmit();
                 setOpen(false);
               }}
