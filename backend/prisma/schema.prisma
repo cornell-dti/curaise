@@ -16,8 +16,20 @@ model User {
 
   organizations Organization[]
   orders        Order[]
+  referrals     Referral[]
 
   @@map("users")
+}
+
+// user who has been invited, but did not create account yet
+model PendingUser {
+  id        String   @id @db.Uuid
+  email     String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  organizations Organization[]
+
+  @@map("pending_users")
 }
 
 model Organization {
@@ -30,8 +42,9 @@ model Organization {
   instagramUsername String?  @map("instagram_username")
   createdAt         DateTime @default(now()) @map("created_at")
 
-  admins      User[]
-  fundraisers Fundraiser[]
+  admins        User[]
+  pendingAdmins PendingUser[]
+  fundraisers   Fundraiser[]
 
   @@map("organizations")
 }
@@ -57,6 +70,7 @@ model Fundraiser {
   items          Item[]
   orders         Order[]
   announcements  Announcement[]
+  referrals      Referral[]
 
   @@map("fundraisers")
 }
@@ -83,6 +97,21 @@ model Announcement {
   fundraiserId String     @map("fundraiser_id") @db.Uuid
 
   @@map("announcements")
+}
+
+model Referral {
+  id        String   @id @default(uuid()) @db.Uuid
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  fundraiser   Fundraiser @relation(fields: [fundraiserId], references: [id], onDelete: Cascade)
+  fundraiserId String     @map("fundraiser_id") @db.Uuid
+  referrer     User       @relation(fields: [referrerId], references: [id])
+  referrerId   String     @map("referrer_id") @db.Uuid
+  orders       Order[]
+
+  @@unique([fundraiserId, referrerId])
+  @@map("referrals")
 }
 
 model Item {
@@ -116,6 +145,8 @@ model Order {
   fundraiser   Fundraiser   @relation(fields: [fundraiserId], references: [id])
   fundraiserId String       @map("fundraiser_id") @db.Uuid
   items        OrderItems[]
+  referral     Referral?    @relation(fields: [referralId], references: [id], onDelete: SetNull)
+  referralId   String?      @map("referral_id") @db.Uuid
 
   @@map("orders")
 }

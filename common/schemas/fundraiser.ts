@@ -15,6 +15,13 @@ export const PickupEventSchema = z.object({
   location: z.string(),
 });
 
+export const ReferralSchema = z.object({
+  id: z.string().uuid(),
+  approved: z.boolean(),
+  fundraiserId: z.string().uuid(),
+  referrerId: z.string().uuid(),
+});
+
 export const BasicFundraiserSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(255),
@@ -32,6 +39,7 @@ export const BasicFundraiserSchema = z.object({
 
 export const CompleteFundraiserSchema = BasicFundraiserSchema.extend({
   announcements: z.array(AnnouncementSchema),
+  referrals: z.array(ReferralSchema),
 });
 
 // CRUD BODIES:

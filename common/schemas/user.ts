@@ -6,6 +6,11 @@ export const UserSchema = z.object({
   name: z.string(),
 });
 
+export const PendingUserSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+});
+
 // CRUD BODIES:
 
 export const UpdateUserBody = z.object({
