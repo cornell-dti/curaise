@@ -4,6 +4,7 @@ import fundraiserRouter from "./api/fundraiser";
 import orderRouter from "./api/order";
 import organizationRouter from "./api/organization";
 import userRouter from "./api/user";
+import referralRouter from "./api/referral";
 
 const router = Router();
 
@@ -15,6 +16,7 @@ router.use("/api/email", emailRouter);
 router.use("/api/fundraiser", fundraiserRouter);
 router.use("/api/order", orderRouter);
 router.use("/api/organization", organizationRouter);
+router.use("/api/referral", referralRouter);
 router.use("/api/user", userRouter);
 
 export default router;
