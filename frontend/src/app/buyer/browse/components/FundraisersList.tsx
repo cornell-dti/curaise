@@ -65,6 +65,7 @@ export function FundraisersList({
 		return filtered;
 	}, [fundraisers, filter, searchQuery]);
 
+	// TODO This isn't actually used yet, but should be in the future; just adding to match Figma design right now
 	const categories = [
 		{ id: "desserts" as CategoryType, label: "Desserts", icon: Lollipop },
 		{ id: "food" as CategoryType, label: "Food", icon: Utensils },
@@ -75,14 +76,14 @@ export function FundraisersList({
 	return (
 		<div className="flex flex-col gap-6 w-full max-w-[900px]">
 			{/* Heading and Filters Section */}
-			<div className="flex flex-col gap-4">
-				<h1 className="text-[32px] font-semibold leading-[48px] text-black">
+			<div className="flex flex-col gap-2 md:gap-4">
+				<h1 className="hidden md:block text-[32px] font-semibold leading-[48px] text-black">
 					Browse CURaise
 				</h1>
 
-				<div className="flex flex-col gap-5 w-full max-w-[479px]">
-					{/* Category Filters */}
-					<div className="flex gap-3 items-center">
+				<div className="flex flex-col gap-2 md:gap-5 w-full max-w-[479px]">
+					{/* Category Filters - Horizontal scroll on mobile */}
+					<div className="flex gap-3 items-center overflow-x-auto md:overflow-x-visible -mt-4 md:mt-0 pb-1 md:pb-0 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
 						{categories.map((cat) => {
 							const Icon = cat.icon;
 							const isActive = category === cat.id;
@@ -90,7 +91,7 @@ export function FundraisersList({
 								<button
 									key={cat.id}
 									onClick={() => setCategory(cat.id)}
-									className={`h-[38px] rounded-full px-4 py-2 flex items-center justify-center gap-2 border transition-colors ${
+									className={`h-[38px] rounded-full px-4 py-2 flex items-center justify-center gap-2 border transition-colors flex-shrink-0 ${
 										isActive
 											? "bg-black border-black text-[#FEFDFD]"
 											: "bg-white border-[#dddddd] text-black"
