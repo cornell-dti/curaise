@@ -92,7 +92,7 @@ export default function ItemPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-white -mt-16 md:mt-0">
+    <div className="flex flex-col max-h-[calc(100vh-4rem-5rem)] md:min-h-screen bg-white -mt-16 md:mt-0 overflow-y-auto md:overflow-visible">
       {/* Back button - Mobile only */}
       <Link
         href={`/buyer/fundraiser/${fundraiserId}`}
@@ -104,7 +104,7 @@ export default function ItemPage() {
 
       {/* Image */}
       {item.imageUrl && (
-        <div className="relative w-full h-[353px] overflow-hidden">
+        <div className="relative w-full h-[353px] overflow-hidden flex-shrink-0">
           <img
             src={item.imageUrl}
             alt={item.name}
@@ -114,7 +114,7 @@ export default function ItemPage() {
       )}
 
       {/* Content */}
-      <div className="flex flex-col px-5 pt-[22px] gap-[22px] pb-20">
+      <div className="flex flex-col px-5 pt-[22px] gap-[22px] pb-0 md:pb-20 flex-shrink-0">
         {/* Title and Price */}
         <div className="flex flex-col gap-[4px]">
           <h1 className="text-[22px] font-semibold leading-[33px] text-black">
@@ -147,7 +147,7 @@ export default function ItemPage() {
           <p className="text-sm font-semibold leading-[21px] text-black">
             Quantity
           </p>
-          <div className="border border-[#dddddd] rounded-md">
+          <div className="border border-[#dddddd] rounded-md w-fit">
             <div className="flex items-center gap-[10px] p-2">
               <button
                 onClick={handleDecrement}
