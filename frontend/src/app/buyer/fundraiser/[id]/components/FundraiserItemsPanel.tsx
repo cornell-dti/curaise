@@ -46,7 +46,7 @@ export function FundraiserItemsPanel({
           No items available for this fundraiser.
         </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-6">
           {items.map((item) => {
             const amount =
               cart?.find((cartItem) => cartItem.item.id === item.id)?.quantity ||

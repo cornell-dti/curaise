@@ -5,6 +5,7 @@ import { useCartStore } from "@/lib/store/useCartStore";
 import useStore from "@/lib/store/useStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function FundraiserCartSidebar({
   fundraiserId,
@@ -12,11 +13,16 @@ export function FundraiserCartSidebar({
   fundraiserId: string;
 }) {
   const router = useRouter();
+  const isMobile = useIsMobile();
   // fixes nextjs hydration issue: https://github.com/pmndrs/zustand/issues/938#issuecomment-1481801942
   const cart = useStore(useCartStore, (state) => state.carts[fundraiserId]);
 
   const cartItems = cart || [];
   const isEmpty = cartItems.length === 0;
+
+  const totalItems = cartItems.reduce((sum, cartItem) => {
+    return sum + cartItem.quantity;
+  }, 0);
 
   const totalPrice = cartItems.reduce((sum, cartItem) => {
     return sum + Number(cartItem.item.price) * cartItem.quantity;
@@ -24,7 +30,12 @@ export function FundraiserCartSidebar({
 
   const handleCheckout = () => {
     if (!isEmpty) {
-      router.push(`/buyer/fundraiser/${fundraiserId}/checkout`);
+      // On mobile, go to cart page first; on desktop, go directly to checkout
+      if (isMobile) {
+        router.push(`/buyer/fundraiser/${fundraiserId}/cart`);
+      } else {
+        router.push(`/buyer/fundraiser/${fundraiserId}/checkout`);
+      }
     }
   };
 
@@ -42,7 +53,7 @@ export function FundraiserCartSidebar({
                 disabled
                 className="w-full bg-[#bababa] text-[#fefdfd] hover:bg-[#bababa] h-[50px] rounded-lg"
               >
-                Proceed to Checkout
+                {isMobile ? `View Cart (${totalItems})` : "Proceed to Checkout"}
               </Button>
             </div>
           ) : (
@@ -77,7 +88,7 @@ export function FundraiserCartSidebar({
                   onClick={handleCheckout}
                   className="w-full h-[50px] rounded-lg"
                 >
-                  Proceed to Checkout
+                  {isMobile ? `View Cart (${totalItems})` : "Proceed to Checkout"}
                 </Button>
               </div>
             </div>
