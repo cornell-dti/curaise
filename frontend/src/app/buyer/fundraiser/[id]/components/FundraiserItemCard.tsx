@@ -96,9 +96,9 @@ export function FundraiserItemCard({
       </div>
 
       <div className="flex-1 p-4">
-        <h3 className="font-medium text-lg">{item.name}</h3>
-        <div className="flex items-center justify-between mt-2">
-          <p className="font-medium text-gray-800">{`$${Number(
+        <h3 className="font-semibold text-[20px]">{item.name}</h3>
+        <div className="flex items-center justify-between mt-1">
+          <p className="font-[400] text-muted-foreground">{`$${Number(
             item.price
           ).toFixed(2)}`}</p>
 
@@ -107,7 +107,7 @@ export function FundraiserItemCard({
             <div
               ref={selectorRef}
               className={cn(
-                "quantity-selector flex items-center justify-center bg-gray-100 rounded-full h-8 shadow-sm",
+                "quantity-selector flex items-center justify-center bg-gray-400 rounded-full h-8 shadow-sm",
                 showAmount ? "w-24" : "w-8",
                 "origin-right overflow-hidden whitespace-nowrap transition-all duration-300 ease-out"
               )}
@@ -117,31 +117,31 @@ export function FundraiserItemCard({
                   {amount > 1 ? (
                     <button
                       onClick={handleMinusClick}
-                      className="p-2 mx-1 hover:bg-gray-200 rounded-full transition-colors flex-shrink-0"
+                      className="p-2 mx-1 hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
                     >
-                      <Minus className="w-4 h-4 text-gray-700" />
+                      <Minus className="w-4 h-4 text-white" />
                     </button>
                   ) : (
                     <button
                       onClick={handleRemove}
-                      className="p-2 mx-1 hover:bg-gray-200 rounded-full transition-colors flex-shrink-0"
+                      className="p-2 mx-1 hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
                     >
-                      <Trash className="w-4 h-4 text-gray-500" />
+                      <Trash className="w-4 h-4 text-white" />
                     </button>
                   )}
-                  <span className="px-2 font-medium text-gray-800 text-center flex-shrink-0">
+                  <span className="px-2 font-medium text-white text-center flex-shrink-0">
                     {amount}
                   </span>
                   <button
                     onClick={handlePlusClick}
-                    className="p-2 mx-auto hover:bg-gray-200 rounded-full transition-colors flex-shrink-0"
+                    className="p-2 mx-1 hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
                   >
-                    <Plus className="w-4 h-4 text-gray-700" />
+                    <Plus className="w-4 h-4 text-white" />
                   </button>
                 </>
               ) : amount > 0 ? (
                 <span
-                  className="px-2 font-medium text-gray-800 text-center flex-shrink-0"
+                  className="px-2 font-medium text-white text-center flex-shrink-0"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleOpen(e);
@@ -152,9 +152,9 @@ export function FundraiserItemCard({
               ) : (
                 <button
                   onClick={handleOpen}
-                  className="p-2 mx-auto hover:bg-gray-200 rounded-full transition-colors flex-shrink-0"
+                  className="p-2 mx-auto hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
                 >
-                  <Plus className="w-4 h-4 text-gray-700" />
+                  <Plus className="w-4 h-4 text-white" />
                 </button>
               )}
             </div>

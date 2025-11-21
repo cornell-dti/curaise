@@ -70,7 +70,7 @@ export default async function FundraiserPage({
       </Link>
 
       {fundraiser.imageUrls.length > 0 && (
-        <div className="relative mb-[11px]">
+        <div className="relative mb-10">
           <FundraiserGallerySlider images={fundraiser.imageUrls} />
         </div>
       )}

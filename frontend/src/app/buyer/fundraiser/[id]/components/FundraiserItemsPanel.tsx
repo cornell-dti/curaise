@@ -3,8 +3,10 @@
 import { CompleteItemSchema } from "common";
 import { z } from "zod";
 import { FundraiserItemModal } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemModal";
+import { FundraiserItemCard } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemCard";
 import { useCartStore } from "@/lib/store/useCartStore";
 import useStore from "@/lib/store/useStore";
+import Link from "next/link";
 
 export function FundraiserItemsPanel({
   fundraiserId,
@@ -45,18 +47,39 @@ export function FundraiserItemsPanel({
         </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {items.map((item) => (
-            <FundraiserItemModal
-              key={item.id}
-              item={item}
-              amount={
-                cart?.find((cartItem) => cartItem.item.id === item.id)
-                  ?.quantity || 0
-              }
-              increment={() => handleIncrement(item)}
-              decrement={() => handleDecrement(item)}
-            />
-          ))}
+          {items.map((item) => {
+            const amount =
+              cart?.find((cartItem) => cartItem.item.id === item.id)?.quantity ||
+              0;
+
+            return (
+              <div key={item.id}>
+                {/* Desktop: Modal */}
+                <div className="hidden md:block">
+                  <FundraiserItemModal
+                    item={item}
+                    amount={amount}
+                    increment={() => handleIncrement(item)}
+                    decrement={() => handleDecrement(item)}
+                    fundraiserId={fundraiserId}
+                  />
+                </div>
+
+                {/* Mobile: Link to item page */}
+                <Link
+                  href={`/buyer/fundraiser/${fundraiserId}/item/${item.id}`}
+                  className="md:hidden block"
+                >
+                  <FundraiserItemCard
+                    item={item}
+                    amount={amount}
+                    increment={() => handleIncrement(item)}
+                    decrement={() => handleDecrement(item)}
+                  />
+                </Link>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
