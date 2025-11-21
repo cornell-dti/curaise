@@ -66,7 +66,7 @@ export default async function FundraiserPage({
       <div className="flex flex-col items-start w-full space-y-4">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-medium">{fundraiser.name}</h1>
-          <p className="text-base text-black">
+          <p className="text-base text-muted-foreground">
             Hosted by: <span>{fundraiser.organization.name}</span>
           </p>
         </div>
