@@ -73,7 +73,7 @@ export function FundraisersList({
 	];
 
 	return (
-		<div className="flex flex-col gap-6 w-full max-w-[737px]">
+		<div className="flex flex-col gap-6 w-full max-w-[900px]">
 			{/* Heading and Filters Section */}
 			<div className="flex flex-col gap-4">
 				<h1 className="text-[32px] font-semibold leading-[48px] text-black">
@@ -160,9 +160,9 @@ export function FundraisersList({
 						<Link
 							key={fundraiser.id}
 							href={`/buyer/fundraiser/${fundraiser.id}`}
-							className="flex flex-col gap-[15px] w-full max-w-[353px]">
+							className="flex flex-col gap-[15px] w-full max-w-[420px]">
 							{/* Image */}
-							<div className="bg-white h-[180px] rounded-md shadow-[2px_2px_5.1px_0px_rgba(140,140,140,0.25)] overflow-hidden relative">
+							<div className="bg-white h-[240px] rounded-md shadow-[2px_2px_5.1px_0px_rgba(140,140,140,0.25)] overflow-hidden relative">
 								{fundraiser.imageUrls && fundraiser.imageUrls.length > 0 ? (
 									<img
 										src={fundraiser.imageUrls[0]}
