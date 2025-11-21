@@ -73,11 +73,15 @@ export default function Navbar() {
 		router.push(`${pathname}?${params.toString()}`);
 	};
 
+	// Hide top navbar on mobile for fundraiser pages
+	const isFundraiserPage = pathname.includes("/buyer/fundraiser/") && !pathname.includes("/checkout");
+	const hideTopNavbarOnMobile = isFundraiserPage;
+
 	return (
 		<>
 			<header className={`sticky top-0 z-50 w-full border-b bg-background ${
 				pathname.includes("/buyer/browse") && showSearchBar ? "md:h-20" : "h-16 md:h-20"
-			}`}>
+			} ${hideTopNavbarOnMobile ? "hidden md:block" : ""}`}>
 				<div className={`relative flex items-center px-4 md:px-8 lg:px-12 ${
 					pathname.includes("/buyer/browse") && showSearchBar ? "h-0 md:h-20" : "h-16 md:h-20"
 				}`}>
@@ -90,8 +94,8 @@ export default function Navbar() {
 						</Link>
 					</div>
 
-					{/* Logo - Mobile (centered) - Hidden on browse page */}
-					{!pathname.includes("/buyer/browse") && (
+					{/* Logo - Mobile (centered) - Hidden on browse page and fundraiser pages */}
+					{!pathname.includes("/buyer/browse") && !isFundraiserPage && (
 						<div className="md:hidden flex items-center justify-center w-full">
 							<Link
 								href={isBuyer ? "/buyer" : "/seller"}
@@ -142,7 +146,7 @@ export default function Navbar() {
 											</NavigationMenuLink>
 										</Link>
 									</NavigationMenuItem>
-									{showCart && fundraiserId && (
+									{/* {showCart && fundraiserId && (
 										<NavigationMenuItem>
 											<NavigationMenuTrigger className="gap-2">
 												Cart{" "}
@@ -160,7 +164,7 @@ export default function Navbar() {
 												</div>
 											</NavigationMenuContent>
 										</NavigationMenuItem>
-									)}
+									)} */}
 								</>
 							</NavigationMenuList>
 						</NavigationMenu>
