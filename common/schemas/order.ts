@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { UserSchema } from "./user";
-import { BasicFundraiserSchema } from "./fundraiser";
+import { BasicFundraiserSchema, ReferralSchema } from "./fundraiser";
 import { BasicItemSchema } from "./item";
 
 export const BasicOrderSchema = z.object({
@@ -13,6 +13,7 @@ export const BasicOrderSchema = z.object({
 
   buyer: UserSchema,
   fundraiser: BasicFundraiserSchema,
+  referral: ReferralSchema.nullish(),
 });
 
 export const CompleteOrderSchema = BasicOrderSchema.extend({
@@ -37,4 +38,5 @@ export const CreateOrderBody = z.object({
     )
     .min(1),
   payment_method: z.enum(["VENMO", "OTHER"]),
+  referralId: z.string().uuid().optional(),
 });

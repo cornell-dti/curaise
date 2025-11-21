@@ -26,3 +26,11 @@ export const DeleteAnnouncementRouteParams = z.object({
 export type DeleteAnnouncementRouteParams = z.infer<
   typeof DeleteAnnouncementRouteParams
 >;
+
+export const ApproveReferralRouteParams = z.object({
+  fundraiserId: z.string().uuid(),
+  referralId: z.string().uuid(),
+});
+export type ApproveReferralRouteParams = z.infer<
+  typeof ApproveReferralRouteParams
+>;
