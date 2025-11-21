@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CreateOrganizationBody, UserSchema } from "common";
+import { CreateOrganizationBody } from "common";
 import { X } from "lucide-react";
 import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -25,60 +25,50 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 const AddAdminsSchema = CreateOrganizationBody.pick({
-  addedAdminsIds: true,
+  addedAdminsEmails: true,
 });
 
 export function OrganizationAddAdminsForm({
-  admins,
-  setAdmins,
+  adminEmails,
+  setAdminEmails,
   onSubmit,
   onBack,
 }: {
-  admins: z.infer<typeof UserSchema>[];
-  setAdmins: React.Dispatch<React.SetStateAction<z.infer<typeof UserSchema>[]>>;
+  adminEmails: string[];
+  setAdminEmails: React.Dispatch<React.SetStateAction<string[]>>;
   onSubmit: (data: z.infer<typeof AddAdminsSchema>) => void;
   onBack: () => void;
 }) {
   const [adminEmail, setAdminEmail] = useState("");
 
-  const handleAddAdmin = async () => {
-    if (!adminEmail.trim()) {
+  const handleAddAdmin = () => {
+    const trimmedEmail = adminEmail.trim();
+
+    if (!trimmedEmail) {
       toast.error("Please enter an admin email");
       return;
     }
 
-    try {
-      const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_URL
-        }/user/search?email=${encodeURIComponent(adminEmail)}`
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        toast.error(result.message || "Failed to find user");
-        return;
-      }
-
-      const user = UserSchema.parse(result.data);
-
-      // Check if admin is already in the list
-      if (admins.some((admin) => admin.id === user.id)) {
-        toast.error("This user is already added as an admin");
-        return;
-      }
-
-      setAdmins((prev) => [...prev, user]);
-      setAdminEmail("");
-      toast.success(`${user.name} added to list`);
-    } catch (error) {
-      toast.error("Error adding admin");
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      toast.error("Please enter a valid email address");
+      return;
     }
+
+    // Check if email is already in the list
+    if (adminEmails.some((email) => email.toLowerCase() === trimmedEmail.toLowerCase())) {
+      toast.error("This email is already added");
+      return;
+    }
+
+    setAdminEmails((prev) => [...prev, trimmedEmail]);
+    setAdminEmail("");
+    toast.success(`${trimmedEmail} added to list`);
   };
 
-  const removeAdmin = (adminId: string) => {
-    setAdmins((prev) => prev.filter((admin) => admin.id !== adminId));
+  const removeAdmin = (emailToRemove: string) => {
+    setAdminEmails((prev) => prev.filter((email) => email !== emailToRemove));
   };
 
   return (
@@ -99,23 +89,21 @@ export function OrganizationAddAdminsForm({
           <Button onClick={handleAddAdmin}>Add Admin</Button>
         </div>
 
-        {admins.length > 0 && (
+        {adminEmails.length > 0 && (
           <div className="mt-4 space-y-2">
             <p>Additional Admins:</p>
             <ul className="space-y-2">
-              {admins.map((admin) => (
+              {adminEmails.map((email) => (
                 <li
-                  key={admin.id}
+                  key={email}
                   className="flex items-center justify-between bg-muted p-2 rounded-md"
                 >
-                  <span className="text-sm">
-                    {admin.name} ({admin.email})
-                  </span>
+                  <span className="text-sm">{email}</span>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => removeAdmin(admin.id)}
+                    onClick={() => removeAdmin(email)}
                     className="h-7 w-7 p-0"
                   >
                     <X className="h-4 w-4" />
@@ -134,7 +122,7 @@ export function OrganizationAddAdminsForm({
           type="submit"
           onClick={() =>
             onSubmit({
-              addedAdminsIds: admins.map((admin) => admin.id),
+              addedAdminsEmails: adminEmails,
             })
           }
         >

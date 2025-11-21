@@ -142,6 +142,82 @@ export const sendOrganizationInviteEmail = async (options: {
 };
 
 /**
+ * Send organization invitation emails to pending administrators (users who don't have accounts yet)
+ */
+export const sendPendingAdminInviteEmail = async (options: {
+  organization: z.infer<typeof CompleteOrganizationSchema>;
+  creator: z.infer<typeof UserSchema>;
+  pendingAdminEmails: string[];
+}): Promise<void> => {
+  const { organization, creator, pendingAdminEmails } = options;
+
+  const subject = `You've Been Invited to Manage ${organization.name} on Curaise`;
+
+  for (const email of pendingAdminEmails) {
+    const text = `
+    Hello,
+
+    ${creator.name} has invited you to be an administrator for ${organization.name} on Curaise.
+
+    Organization Details:
+    Name: ${organization.name}
+    Description: ${organization.description}
+    ${organization.websiteUrl ? `Website: ${organization.websiteUrl}` : ""}
+
+    To accept this invitation and manage this organization, please sign up for a Curaise account at https://curaise.app/login
+
+    Once you register with this email address (${email}), you'll automatically be granted administrator access to ${organization.name}.
+
+    Thank you,
+    The Curaise Team
+  `;
+
+    const html = `
+    <h1>You've Been Invited to Manage ${organization.name}</h1>
+
+    <p>Hello,</p>
+
+    <p>${creator.name} has invited you to be an administrator for <strong>${organization.name}</strong> on Curaise.</p>
+
+    <h2>Organization Details</h2>
+    <ul>
+      <li><strong>Name:</strong> ${organization.name}</li>
+      <li><strong>Description:</strong> ${organization.description}</li>
+      ${
+        organization.websiteUrl
+          ? `<li><strong>Website:</strong> <a href="${organization.websiteUrl}">${organization.websiteUrl}</a></li>`
+          : ""
+      }
+    </ul>
+
+    <p>To accept this invitation and manage this organization, please <a href="https://curaise.app/login">sign up for a Curaise account</a>.</p>
+
+    <p>Once you register with this email address (<strong>${email}</strong>), you'll automatically be granted administrator access to ${organization.name}.</p>
+
+    <p>Thank you,<br>
+    The Curaise Team</p>
+  `;
+
+    try {
+      await sendEmail({
+        to: email,
+        subject,
+        text,
+        html,
+      });
+
+      console.log(`Pending admin invitation email sent to ${email}`);
+    } catch (error) {
+      console.error(
+        `Failed to send pending admin invitation email to ${email}:`,
+        error
+      );
+      // Continue sending to other emails even if one fails
+    }
+  }
+};
+
+/**
  * Send announcement emails to multiple recipients
  */
 export const sendAnnouncementEmail = async (options: {

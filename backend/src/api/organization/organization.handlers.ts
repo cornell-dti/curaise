@@ -14,8 +14,8 @@ import {
   UpdateOrganizationBody,
 } from "common";
 import { z } from "zod";
-import { getUsersByIds, getUser } from "../user/user.services";
-import { sendOrganizationInviteEmail } from "../../utils/email";
+import { getUsersByIds, getUser, findUserByEmail } from "../user/user.services";
+import { sendOrganizationInviteEmail, sendPendingAdminInviteEmail } from "../../utils/email";
 
 export const getOrganizationHandler = async (
   req: Request<OrganizationRouteParams, any, {}, {}>,
@@ -91,19 +91,48 @@ export const createOrganizationHandler = async (
     return;
   }
 
-  const addedAdminsIds = req.body.addedAdminsIds || [];
-  if (addedAdminsIds.length > 0) {
+  const addedAdminsEmails = req.body.addedAdminsEmails || [];
+  if (addedAdminsEmails.length > 0) {
     try {
-      const invitedAdmins = await getUsersByIds(addedAdminsIds);
+      // Separate existing users from pending users
+      const existingUserEmails = [];
+      const pendingUserEmails = [];
 
-      if (invitedAdmins && invitedAdmins.length > 0) {
-        await sendOrganizationInviteEmail({
+      for (const email of addedAdminsEmails) {
+        const existingUser = await findUserByEmail(email);
+        if (existingUser) {
+          existingUserEmails.push(email);
+        } else {
+          pendingUserEmails.push(email);
+        }
+      }
+
+      // Send emails to existing users
+      if (existingUserEmails.length > 0) {
+        const invitedAdmins = [];
+        for (const email of existingUserEmails) {
+          const user = await findUserByEmail(email);
+          if (user) invitedAdmins.push(user);
+        }
+
+        if (invitedAdmins.length > 0) {
+          await sendOrganizationInviteEmail({
+            organization: organization,
+            creator,
+            invitedAdmins,
+          });
+          console.log(`Invitation emails sent to ${invitedAdmins.length} existing users`);
+        }
+      }
+
+      // Send emails to pending users
+      if (pendingUserEmails.length > 0) {
+        await sendPendingAdminInviteEmail({
           organization: organization,
           creator,
-          invitedAdmins,
+          pendingAdminEmails: pendingUserEmails,
         });
-
-        console.log(`Invitation emails sent to ${invitedAdmins.length} admins`);
+        console.log(`Pending invitation emails sent to ${pendingUserEmails.length} users`);
       }
     } catch (error) {
       console.error("Failed to send admin invitation emails:", error);
@@ -161,19 +190,48 @@ export const updateOrganizationHandler = async (
     return;
   }
 
-  const addedAdminsIds = req.body.addedAdminsIds || [];
-  if (addedAdminsIds.length > 0) {
+  const addedAdminsEmails = req.body.addedAdminsEmails || [];
+  if (addedAdminsEmails.length > 0) {
     try {
-      const invitedAdmins = await getUsersByIds(addedAdminsIds);
+      // Separate existing users from pending users
+      const existingUserEmails = [];
+      const pendingUserEmails = [];
 
-      if (invitedAdmins && invitedAdmins.length > 0) {
-        await sendOrganizationInviteEmail({
+      for (const email of addedAdminsEmails) {
+        const existingUser = await findUserByEmail(email);
+        if (existingUser) {
+          existingUserEmails.push(email);
+        } else {
+          pendingUserEmails.push(email);
+        }
+      }
+
+      // Send emails to existing users
+      if (existingUserEmails.length > 0) {
+        const invitedAdmins = [];
+        for (const email of existingUserEmails) {
+          const user = await findUserByEmail(email);
+          if (user) invitedAdmins.push(user);
+        }
+
+        if (invitedAdmins.length > 0) {
+          await sendOrganizationInviteEmail({
+            organization: organization,
+            creator,
+            invitedAdmins,
+          });
+          console.log(`Invitation emails sent to ${invitedAdmins.length} existing users`);
+        }
+      }
+
+      // Send emails to pending users
+      if (pendingUserEmails.length > 0) {
+        await sendPendingAdminInviteEmail({
           organization: organization,
           creator,
-          invitedAdmins,
+          pendingAdminEmails: pendingUserEmails,
         });
-
-        console.log(`Invitation emails sent to ${invitedAdmins.length} admins`);
+        console.log(`Pending invitation emails sent to ${pendingUserEmails.length} users`);
       }
     } catch (error) {
       console.error("Failed to send admin invitation emails:", error);
