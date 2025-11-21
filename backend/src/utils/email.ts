@@ -116,7 +116,7 @@ export const sendOrganizationInviteEmail = async (options: {
       }
     </ul>
     
-    <p>To manage this organization, please <a href="https://curaise.app/login">log in to your Curaise account</a>.</p>
+    <p>To manage this organization, please <a href="https://curaise.app">log in to your Curaise account</a>.</p>
     
     <p>Thank you,<br>
     The Curaise Team</p>
@@ -157,16 +157,20 @@ export const sendPendingAdminInviteEmail = async (options: {
     const text = `
     Hello,
 
-    ${creator.name} has invited you to be an administrator for ${organization.name} on Curaise.
+    ${creator.name} has invited you to be an administrator for ${
+      organization.name
+    } on Curaise.
 
     Organization Details:
     Name: ${organization.name}
     Description: ${organization.description}
     ${organization.websiteUrl ? `Website: ${organization.websiteUrl}` : ""}
 
-    To accept this invitation and manage this organization, please sign up for a Curaise account at https://curaise.app/login
+    To accept this invitation and manage this organization, please sign up for a Curaise account at https://curaise.app
 
-    Once you register with this email address (${email}), you'll automatically be granted administrator access to ${organization.name}.
+    Once you register with this email address (${email}), you'll automatically be granted administrator access to ${
+      organization.name
+    }.
 
     Thank you,
     The Curaise Team
@@ -177,7 +181,9 @@ export const sendPendingAdminInviteEmail = async (options: {
 
     <p>Hello,</p>
 
-    <p>${creator.name} has invited you to be an administrator for <strong>${organization.name}</strong> on Curaise.</p>
+    <p>${creator.name} has invited you to be an administrator for <strong>${
+      organization.name
+    }</strong> on Curaise.</p>
 
     <h2>Organization Details</h2>
     <ul>
@@ -190,9 +196,11 @@ export const sendPendingAdminInviteEmail = async (options: {
       }
     </ul>
 
-    <p>To accept this invitation and manage this organization, please <a href="https://curaise.app/login">sign up for a Curaise account</a>.</p>
+    <p>To accept this invitation and manage this organization, please <a href="https://curaise.app">sign up for a Curaise account</a>.</p>
 
-    <p>Once you register with this email address (<strong>${email}</strong>), you'll automatically be granted administrator access to ${organization.name}.</p>
+    <p>Once you register with this email address (<strong>${email}</strong>), you'll automatically be granted administrator access to ${
+      organization.name
+    }.</p>
 
     <p>Thank you,<br>
     The Curaise Team</p>
