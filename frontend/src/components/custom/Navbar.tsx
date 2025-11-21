@@ -78,7 +78,7 @@ export default function Navbar() {
 			<header className={`sticky top-0 z-50 w-full border-b bg-background ${
 				pathname.includes("/buyer/browse") && showSearchBar ? "md:h-20" : "h-16 md:h-20"
 			}`}>
-				<div className={`relative flex items-center px-4 md:px-[157px] ${
+				<div className={`relative flex items-center px-4 md:px-8 lg:px-12 ${
 					pathname.includes("/buyer/browse") && showSearchBar ? "h-0 md:h-20" : "h-16 md:h-20"
 				}`}>
 					{/* Logo - Desktop */}
