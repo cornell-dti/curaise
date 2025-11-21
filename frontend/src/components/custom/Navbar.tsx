@@ -76,10 +76,10 @@ export default function Navbar() {
 	return (
 		<>
 			<header className={`sticky top-0 z-50 w-full border-b bg-background ${
-				pathname.includes("/buyer/browse") && showSearchBar ? "md:h-16" : "h-16"
+				pathname.includes("/buyer/browse") && showSearchBar ? "md:h-20" : "h-16 md:h-20"
 			}`}>
-				<div className={`relative flex items-center px-4 md:px-8 lg:px-12 ${
-					pathname.includes("/buyer/browse") && showSearchBar ? "h-0 md:h-16" : "h-16"
+				<div className={`relative flex items-center px-4 md:px-[157px] ${
+					pathname.includes("/buyer/browse") && showSearchBar ? "h-0 md:h-20" : "h-16 md:h-20"
 				}`}>
 					{/* Logo - Desktop */}
 					<div className="hidden md:flex items-center flex-shrink-0">
@@ -103,7 +103,7 @@ export default function Navbar() {
 
 					{/* Mobile Search Bar - Top - Full width */}
 					{showSearchBar && (
-						<div className="md:hidden absolute top-0 left-0 right-0 px-4 py-4 bg-background border-b w-full">
+						<div className="md:hidden absolute top-0 left-0 right-0 px-4 py-4 bg-background w-full">
 							<SearchBar
 								searchType={searchType}
 								onSearchChange={handleSearchChange}

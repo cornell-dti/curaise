@@ -43,7 +43,7 @@ export default function DesktopUserMenu({ userRole }: { userRole: UserRole }) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" className="ml-2 flex items-center gap-1">
+				<Button variant="ghost" className="ml-2 flex items-center gap-1 text-base font-normal">
 					Account
 					<ChevronDown className="h-4 w-4" />
 				</Button>

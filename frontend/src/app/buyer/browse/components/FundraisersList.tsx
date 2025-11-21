@@ -83,7 +83,7 @@ export function FundraisersList({
 
 				<div className="flex flex-col gap-2 md:gap-5 w-full max-w-[479px]">
 					{/* Category Filters - Horizontal scroll on mobile */}
-					<div className="flex gap-3 items-center overflow-x-auto md:overflow-x-visible -mt-4 md:mt-0 pb-1 md:pb-0 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+					<div className="flex gap-3 items-center overflow-x-auto md:overflow-x-visible -mt-8 md:mt-0 pb-4i pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
 						{categories.map((cat) => {
 							const Icon = cat.icon;
 							const isActive = category === cat.id;
@@ -143,7 +143,7 @@ export function FundraisersList({
 
 			{/* Fundraisers Grid */}
 			{filteredFundraisers.length === 0 ? (
-				<div className="text-center py-12 bg-gray-50 rounded-lg">
+				<div className="w-full text-center py-12 bg-gray-100 rounded-lg">
 					<h3 className="text-lg font-medium text-gray-600 mb-2">
 						{filter === "pickup-today"
 							? "No fundraisers with pick-up today"
