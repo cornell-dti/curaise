@@ -54,7 +54,7 @@ export function FundraiserGallerySlider({
   };
 
   return (
-    <div className="relative w-full h-40 sm:h-50 md:h-58 lg:h-64 overflow-hidden rounded-t-lg">
+    <div className="relative w-full h-[600px] overflow-hidden rounded-lg">
       <div
         className="flex w-full h-full transition-transform duration-500 ease-in-out"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
