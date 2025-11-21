@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { CompleteFundraiserSchema } from "common";
 import { Star, AlarmClock, Share2, Link } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -23,7 +23,19 @@ export function FundraiserReferralCard({
   token: string;
 }) {
   const [referralOpen, setReferralOpen] = useState(false);
+  const [isReferrer, setIsReferrer] = useState(false);
 
+  const [link, setLink] = useState(
+    "https://www.curaise.com/DTI/Cheese-cake-bake-sale/83hw2ss85729cbskwh3"
+  );
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success("Link copied to clipboard");
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
   const addReferrer = async () => {
     try {
       const response = await fetch(
@@ -53,6 +65,14 @@ export function FundraiserReferralCard({
     }
   };
 
+  useEffect(() => {
+    fundraiser.referrals.forEach((referral) => {
+      if (referral.id == id) {
+        setIsReferrer(true);
+      }
+    });
+  }, [referralOpen]);
+
   return (
     <div>
       <Card className="w-full">
@@ -64,15 +84,31 @@ export function FundraiserReferralCard({
                 [{fundraiser.organization.name} Members Only] Become a Referrer
               </span>
             </span>
-            <Button
-              className="font-light"
-              onClick={async () => {
-                await addReferrer();
-                setReferralOpen(true);
-              }}
-            >
-              Sign Up
-            </Button>
+            {isReferrer ? (
+              <Button
+                className="font-light"
+                onClick={async () => {
+                  await addReferrer();
+                  setReferralOpen(true);
+                }}
+              >
+                Sign Up
+              </Button>
+            ) : (
+              <div className="flex flex-col gap-1 items-end text-sm">
+                <Button
+                  className="cursor-pointer font-light text-sm md:text-md"
+                  onClick={async () => {
+                    await copyToClipboard();
+                  }}
+                >
+                  Copy Referral Link
+                </Button>
+                <span className="text-muted-foreground">
+                  You have already signed up.
+                </span>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -125,9 +161,9 @@ function ReferralModal({
             to be automatically referred.{" "}
           </span>
         </div>
-        <div className="flex items-center justify-between gap-2 -ml-3 md:ml-0">
+        <div className="pb-3 flex items-center justify-between gap-2 -ml-3 md:ml-0">
           <span className="p-1 pl-2 flex-1 flex flex-row gap-2 items-center border border-muted-foreground rounded-sm text-xs md:text-sm">
-            <Link className="min-w-5" />
+            <Link className="max-w-5 min-w-5" />
             {link}
           </span>
           <Button
