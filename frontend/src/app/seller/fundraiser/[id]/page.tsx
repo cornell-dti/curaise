@@ -5,13 +5,13 @@ import {
 	CompleteOrderSchema,
 	CompleteItemSchema,
 } from "common";
-import { ArrowLeft, Calendar, MapPin } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { ProfitGoalChart } from "@/app/seller/fundraiser/[id]/analytics/components/ProfitGoalChart";
 import { RevenueBreakdownChart } from "@/app/seller/fundraiser/[id]/analytics/components/RevenueBreakdownChart";
 import { ItemsSoldCard } from "@/app/seller/fundraiser/[id]/analytics/components/ItemsSoldCard";
 import { OrdersTableWrapper } from "@/app/seller/fundraiser/[id]/orders/components/OrdersTableWrapper";
+import { FundraiserHeader } from "./components/FundraiserHeader";
 
 interface FundraiserAnalytics {
 	total_revenue: number;
@@ -115,23 +115,6 @@ const getFundraiserItems = async (fundraiserId: string, token: string) => {
 	return data.data;
 };
 
-const formatDate = (date: Date) => {
-	return new Date(date).toLocaleDateString("en-US", {
-		weekday: "long",
-		month: "numeric",
-		day: "numeric",
-		year: "numeric",
-	});
-};
-
-const formatTime = (date: Date) => {
-	return new Date(date).toLocaleTimeString("en-US", {
-		hour: "numeric",
-		minute: "2-digit",
-		hour12: true,
-	});
-};
-
 export default async function FundraiserAnalyticsPage({
 	params,
 }: {
@@ -190,33 +173,11 @@ export default async function FundraiserAnalyticsPage({
 						CURaise
 					</Link>
 
-					<div className="flex items-start justify-between">
-						<div>
-							<h1 className="text-3xl font-semibold mb-3">{fundraiser.name}</h1>
-							<div className="flex items-center gap-6 text-sm">
-								<div className="flex items-center gap-2">
-									<Calendar className="w-4 h-4" />
-									<span>{formatDate(fundraiser.buyingStartsAt)}</span>
-								</div>
-								<div className="flex items-center gap-2">
-									<MapPin className="w-4 h-4" />
-									<span>
-										{fundraiser.pickupLocation},{" "}
-										{formatTime(fundraiser.pickupStartsAt)} to{" "}
-										{formatTime(fundraiser.pickupEndsAt)}
-									</span>
-								</div>
-							</div>
-						</div>
-						<div className="flex gap-2">
-							<Button
-								variant="default"
-								className="bg-green-700 hover:bg-green-800">
-								Preview
-							</Button>
-							<Button variant="outline">Edit</Button>
-						</div>
-					</div>
+					<FundraiserHeader
+						token={session.access_token}
+						fundraiser={fundraiser}
+						fundraiserItems={items}
+					/>
 				</div>
 
 				{/* Key Insights */}

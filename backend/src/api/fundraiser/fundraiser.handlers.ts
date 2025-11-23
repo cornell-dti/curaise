@@ -4,6 +4,7 @@ import {
   FundraiserItemRouteParams,
   DeleteAnnouncementRouteParams,
   PickupEventRouteParams,
+  ApproveReferralRouteParams,
 } from "./fundraiser.types";
 import {
   createFundraiser,
@@ -23,6 +24,10 @@ import {
   createPickupEvent,
   updatePickupEvent,
   deletePickupEvent,
+  createReferral,
+  getReferral,
+  approveReferral,
+  deleteReferral,
 } from "./fundraiser.services";
 import {
   AnnouncementSchema,
@@ -37,6 +42,7 @@ import {
   CreateAnnouncementBody,
   CreatePickupEventBody,
   UpdatePickupEventBody,
+  ReferralSchema,
 } from "common";
 import { getOrganization } from "../organization/organization.services";
 import { z } from "zod";
@@ -716,4 +722,137 @@ export const getFundraiserAnalyticsHandler = async (
     console.error("Analytics handler error:", error);
     res.status(500).json({ message: "Failed to retrieve analytics" });
   }
+};
+
+export const createReferralHandler = async (
+  req: Request<z.infer<typeof FundraiserRouteParams>, any, {}, {}>,
+  res: Response
+) => {
+  // Check if fundraiser exists
+  const fundraiser = await getFundraiser(req.params.id);
+  if (!fundraiser) {
+    res.status(404).json({ message: "Fundraiser not found" });
+    return;
+  }
+
+  // Check if fundraiser is published
+  if (!fundraiser.published) {
+    res.status(400).json({ message: "Fundraiser is not published" });
+    return;
+  }
+
+  // Create referral
+  const referral = await createReferral({
+    fundraiserId: req.params.id,
+    referrerId: res.locals.user!.id,
+  });
+
+  if (!referral) {
+    res.status(400).json({ message: "Referral request already exists" });
+    return;
+  }
+
+  // Parse and return
+  const parsedReferral = ReferralSchema.safeParse(referral);
+  if (!parsedReferral.success) {
+    res.status(500).json({ message: "Couldn't parse referral" });
+    return;
+  }
+
+  res
+    .status(201)
+    .json({ message: "Referral request created", data: parsedReferral.data });
+};
+
+export const approveReferralHandler = async (
+  req: Request<z.infer<typeof ApproveReferralRouteParams>, any, {}, {}>,
+  res: Response
+) => {
+  // Get referral
+  const referral = await getReferral(req.params.referralId);
+  if (!referral) {
+    res.status(404).json({ message: "Referral not found" });
+    return;
+  }
+
+  // Validate that referral's fundraiserId matches URL param
+  if (referral.fundraiserId !== req.params.fundraiserId) {
+    res
+      .status(400)
+      .json({ message: "Referral does not belong to this fundraiser" });
+    return;
+  }
+
+  // Check if user is admin of fundraiser's organization
+  if (
+    !referral.fundraiser.organization.admins.some(
+      (admin) => admin.id === res.locals.user!.id
+    )
+  ) {
+    res.status(403).json({ message: "Unauthorized to approve referral" });
+    return;
+  }
+
+  // Check if already approved
+  if (referral.approved) {
+    res.status(400).json({ message: "Referral is already approved" });
+    return;
+  }
+
+  // Approve referral
+  const approvedReferral = await approveReferral(req.params.referralId);
+  if (!approvedReferral) {
+    res.status(500).json({ message: "Failed to approve referral" });
+    return;
+  }
+
+  // Parse and return
+  const parsedReferral = ReferralSchema.safeParse(approvedReferral);
+  if (!parsedReferral.success) {
+    res.status(500).json({ message: "Couldn't parse referral" });
+    return;
+  }
+
+  res
+    .status(200)
+    .json({ message: "Referral approved", data: parsedReferral.data });
+};
+
+export const deleteReferralHandler = async (
+  req: Request<z.infer<typeof ApproveReferralRouteParams>, any, {}, {}>,
+  res: Response
+) => {
+  // Get referral
+  const referral = await getReferral(req.params.referralId);
+  if (!referral) {
+    res.status(404).json({ message: "Referral not found" });
+    return;
+  }
+
+  // Validate that referral's fundraiserId matches URL param
+  if (referral.fundraiserId !== req.params.fundraiserId) {
+    res
+      .status(400)
+      .json({ message: "Referral does not belong to this fundraiser" });
+    return;
+  }
+
+  // Check if user is admin of fundraiser's organization
+  if (
+    !referral.fundraiser.organization.admins.some(
+      (admin) => admin.id === res.locals.user!.id
+    )
+  ) {
+    res.status(403).json({ message: "Unauthorized to delete referral" });
+    return;
+  }
+
+  // Delete referral
+  const deletedReferral = await deleteReferral(req.params.referralId);
+  if (!deletedReferral) {
+    res.status(500).json({ message: "Failed to delete referral" });
+    return;
+  }
+
+  res.status(200).json({ message: "Referral deleted successfully" });
 };

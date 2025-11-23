@@ -3,6 +3,7 @@ import Link from "next/link";
 import { BasicFundraiserSchema, CompleteOrganizationSchema } from "common";
 import { connection } from "next/server";
 import { FundraiserCard } from "@/components/custom/FundraiserCard";
+import { FundraiserDraftCard } from "@/components/custom/FundraiserDraftCard";
 import { ShieldCheck } from "lucide-react";
 import { isPast } from "date-fns";
 import { createClient } from "@/utils/supabase/server";
@@ -84,12 +85,19 @@ export default async function OrganizationPage({
     throw new Error("You are not authorized to view this organization.");
   }
 
-  // Separate fundraisers into two categories: active and past
-  const activeFundraisers = fundraisers.filter((fundraiser) =>
-    fundraiser.pickupEvents.some((event) => !isPast(event.endsAt))
+  // Separate fundraisers into three categories: active, drafts, and past
+  const draftFundraisers = fundraisers.filter(
+    (fundraiser) => !fundraiser.published
   );
-  const pastFundraisers = fundraisers.filter((fundraiser) =>
-    fundraiser.pickupEvents.every((event) => isPast(event.endsAt))
+  const activeFundraisers = fundraisers.filter(
+    (fundraiser) =>
+      fundraiser.published &&
+      fundraiser.pickupEvents.some((event) => !isPast(event.endsAt))
+  );
+  const pastFundraisers = fundraisers.filter(
+    (fundraiser) =>
+      fundraiser.published &&
+      fundraiser.pickupEvents.every((event) => isPast(event.endsAt))
   );
 
   return (
@@ -136,8 +144,22 @@ export default async function OrganizationPage({
         </div>
       </div>
 
+      {draftFundraisers.length > 0 && (
+        <div className="flex flex-col">
+          <h1 className="text-2xl font-bold">Drafts</h1>
+
+          <div className="space-y-4 mt-4">
+            {draftFundraisers.map((fundraiser) => (
+              <FundraiserDraftCard key={fundraiser.id} fundraiser={fundraiser} />
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col">
-        <h1 className="text-2xl font-bold">Past Fundraisers</h1>
+        <h1 className="text-2xl font-bold">
+          Past Fundraisers ({pastFundraisers.length})
+        </h1>
 
         <div className="space-y-4 mt-4">
           {pastFundraisers.length > 0 ? (

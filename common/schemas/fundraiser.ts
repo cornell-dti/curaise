@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { BasicOrganizationSchema } from "./organization";
 import { MoneySchema } from "./decimal";
+import { UserSchema } from "./user";
 
 export const AnnouncementSchema = z.object({
   id: z.string().uuid(),
@@ -13,6 +14,12 @@ export const PickupEventSchema = z.object({
   startsAt: z.coerce.date(),
   endsAt: z.coerce.date(),
   location: z.string(),
+});
+
+export const ReferralSchema = z.object({
+  id: z.string().uuid(),
+  approved: z.boolean(),
+  referrer: UserSchema,
 });
 
 export const BasicFundraiserSchema = z.object({
@@ -32,6 +39,7 @@ export const BasicFundraiserSchema = z.object({
 
 export const CompleteFundraiserSchema = BasicFundraiserSchema.extend({
   announcements: z.array(AnnouncementSchema),
+  referrals: z.array(ReferralSchema),
 });
 
 // CRUD BODIES:

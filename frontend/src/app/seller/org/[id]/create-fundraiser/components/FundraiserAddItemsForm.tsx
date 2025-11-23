@@ -36,15 +36,17 @@ import UploadImageComponent from "@/components/custom/UploadImageComponent";
 export function FundraiserAddItemsForm({
   items,
   setItems,
-  onSubmit,
+  onNext,
   onBack,
+  onSave,
 }: {
   items: z.infer<typeof CreateFundraiserItemBody>[];
   setItems: Dispatch<
     SetStateAction<z.infer<typeof CreateFundraiserItemBody>[]>
   >;
-  onSubmit: () => void;
+  onNext: () => void;
   onBack: () => void;
+  onSave: () => void;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -232,9 +234,17 @@ export function FundraiserAddItemsForm({
         <Button variant="outline" onClick={onBack}>
           Back
         </Button>
-        <Button type="button" onClick={onSubmit}>
-          Next
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={onSave}
+            className="text-[#333F37] border border-current bg-transparent hover:bg-[#e6f0ea]"
+          >
+            Save Draft
+          </Button>
+          <Button type="button" onClick={onNext}>
+            Next
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

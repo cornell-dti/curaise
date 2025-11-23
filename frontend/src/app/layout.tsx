@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
-import { Inter, Manrope, Nunito, Outfit, Work_Sans } from "next/font/google";
+import {
+  Inter,
+  Manrope,
+  Nunito,
+  Outfit,
+  Work_Sans,
+  DM_Sans,
+} from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -11,6 +18,11 @@ const inter = Inter({
 const nunito = Nunito({
   subsets: ["latin"],
   variable: "--font-nunito",
+});
+
+const dm_sans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-dm-sans",
 });
 
 export const metadata: Metadata = {
@@ -25,7 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${nunito.variable} font-sans`}>
+      <body className={`${dm_sans.variable} font-sans`}>
         {children}
         <Toaster />
       </body>

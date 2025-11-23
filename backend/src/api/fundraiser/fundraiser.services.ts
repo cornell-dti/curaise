@@ -40,6 +40,11 @@ export const getFundraiser = async (fundraiserId: string) => {
           createdAt: "desc",
         },
       },
+      referrals: {
+        include: {
+          referrer: true,
+        },
+      },
     },
   });
 
@@ -94,6 +99,11 @@ export const getFundraiserOrders = async (fundraiserId: string) => {
       },
       items: {
         select: { quantity: true, item: true },
+      },
+      referral: {
+        include: {
+          referrer: true,
+        },
       },
     },
     orderBy: {
@@ -190,7 +200,7 @@ export const updateFundraiser = async (
       name: fundraiserBody.name,
       description: fundraiserBody.description,
       venmoUsername: fundraiserBody.venmoUsername ?? null,
-      venmoEmail: fundraiserBody.venmoEmail,
+      venmoEmail: fundraiserBody.venmoEmail ?? null,
       goalAmount: fundraiserBody.goalAmount ?? null,
       imageUrls: fundraiserBody.imageUrls,
       buyingStartsAt: fundraiserBody.buyingStartsAt,
@@ -343,6 +353,75 @@ export const deleteAnnouncement = async (announcementId: string) => {
   });
 
   return announcement;
+};
+
+export const createReferral = async (referralBody: {
+  fundraiserId: string;
+  referrerId: string;
+}) => {
+  try {
+    const referral = await prisma.referral.create({
+      data: {
+        fundraiser: { connect: { id: referralBody.fundraiserId } },
+        referrer: { connect: { id: referralBody.referrerId } },
+      },
+      include: {
+        referrer: true,
+      },
+    });
+
+    return referral;
+  } catch (error) {
+    // Handle unique constraint violation
+    if ((error as any).code === "P2002") {
+      return null; // Duplicate referral request
+    }
+    throw error;
+  }
+};
+
+export const getReferral = async (referralId: string) => {
+  const referral = await prisma.referral.findUnique({
+    where: { id: referralId },
+    include: {
+      referrer: true,
+      fundraiser: {
+        select: {
+          organization: {
+            select: {
+              admins: {
+                select: { id: true },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return referral;
+};
+
+export const approveReferral = async (referralId: string) => {
+  const referral = await prisma.referral.update({
+    where: { id: referralId },
+    data: {
+      approved: true,
+    },
+    include: {
+      referrer: true,
+    },
+  });
+
+  return referral;
+};
+
+export const deleteReferral = async (referralId: string) => {
+  const referral = await prisma.referral.delete({
+    where: { id: referralId },
+  });
+
+  return referral;
 };
 
 export interface FundraiserAnalytics {
