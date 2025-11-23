@@ -12,34 +12,36 @@ import { Star, AlarmClock, Share2, Link } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { usePathname } from "next/navigation";
+
+const copyToClipboard = async (link: string) => {
+  try {
+    await navigator.clipboard.writeText(link);
+    toast.success("Link copied to clipboard");
+  } catch {
+    toast.error("Failed to copy link");
+  }
+};
 
 export function FundraiserReferralCard({
   fundraiser,
-  id,
+  userId,
   token,
 }: {
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
-  id: string;
+  userId: string;
   token: string;
 }) {
   const [referralOpen, setReferralOpen] = useState(false);
   const [isReferrer, setIsReferrer] = useState(false);
 
-  const [link, setLink] = useState(
-    "https://www.curaise.com/DTI/Cheese-cake-bake-sale/83hw2ss85729cbskwh3"
-  );
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(link);
-      toast.success("Link copied to clipboard");
-    } catch {
-      toast.error("Failed to copy link");
-    }
-  };
+  const pathname = usePathname();
+  const [link, setLink] = useState("");
+
   const addReferrer = async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${id}/referrals`,
+        `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiser.id}/referrals`,
         {
           method: "POST",
           headers: {
@@ -59,6 +61,7 @@ export function FundraiserReferralCard({
 
       toast.success("Referrer added!");
       setReferralOpen(true);
+      setIsReferrer(true);
     } catch (err) {
       console.error(err);
       toast.error("Something went wrong adding the referrer");
@@ -66,12 +69,17 @@ export function FundraiserReferralCard({
   };
 
   useEffect(() => {
+    if (!userId) return;
+    setLink(`${window.location.origin}${pathname}?code=${userId}`);
+  }, [pathname, userId]);
+
+  useEffect(() => {
     fundraiser.referrals.forEach((referral) => {
-      if (referral.id == id) {
+      if (referral.referrer.id == userId) {
         setIsReferrer(true);
       }
     });
-  }, [referralOpen]);
+  }, [isReferrer]);
 
   return (
     <div>
@@ -84,7 +92,7 @@ export function FundraiserReferralCard({
                 [{fundraiser.organization.name} Members Only] Become a Referrer
               </span>
             </span>
-            {isReferrer ? (
+            {!isReferrer ? (
               <Button
                 className="font-light"
                 onClick={async () => {
@@ -99,7 +107,7 @@ export function FundraiserReferralCard({
                 <Button
                   className="cursor-pointer font-light text-sm md:text-md"
                   onClick={async () => {
-                    await copyToClipboard();
+                    await copyToClipboard(link);
                   }}
                 >
                   Copy Referral Link
@@ -112,29 +120,32 @@ export function FundraiserReferralCard({
           </div>
         </CardContent>
       </Card>
-      <ReferralModal open={referralOpen} setOpen={setReferralOpen} />
+      <ReferralModal
+        userId={userId}
+        open={referralOpen}
+        setOpen={setReferralOpen}
+      />
     </div>
   );
 }
 
 function ReferralModal({
+  userId,
   open,
   setOpen,
 }: {
+  userId: string;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const [link, setLink] = useState(
-    "https://www.curaise.com/DTI/Cheese-cake-bake-sale/83hw2ss85729cbskwh3"
-  );
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(link);
-      toast.success("Link copied to clipboard");
-    } catch {
-      toast.error("Failed to copy link");
-    }
-  };
+  const pathname = usePathname();
+  const [link, setLink] = useState("");
+
+  useEffect(() => {
+    if (!userId) return;
+    setLink(`${window.location.origin}${pathname}?code=${userId}`);
+  }, [pathname, userId]);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="md:max-w-[800px] sm:max-w-[600px]">
@@ -169,7 +180,7 @@ function ReferralModal({
           <Button
             className="cursor-pointer font-light text-xs md:text-md"
             onClick={async () => {
-              await copyToClipboard();
+              await copyToClipboard(link);
             }}
           >
             Copy Link

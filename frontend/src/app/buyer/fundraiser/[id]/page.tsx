@@ -89,7 +89,7 @@ export default async function FundraiserPage({
           <FundraiserReferralCard
             token={session.access_token}
             fundraiser={fundraiser}
-            id={id}
+            userId={user.id}
           />
         </div>
         <Card className="w-full">
