@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useFundraiserItems } from "@/hooks/useFundraiserItems";
 import useSWR from "swr";
 import { noAuthFetcher } from "@/lib/fetcher";
+import Decimal from "decimal.js";
 
 const getFundraiser = async (id: string) => {
   const response = await fetch(
@@ -70,9 +71,13 @@ export default function CartPage() {
     };
   });
 
-  const totalPrice = cartWithImages.reduce((sum, cartItem) => {
-    return sum + Number(cartItem.item.price) * cartItem.quantity;
-  }, 0);
+  const totalPrice = cartWithImages
+    .reduce(
+      (total, item) =>
+        total.plus(Decimal(item.item.price).times(item.quantity)),
+      new Decimal(0)
+    )
+    .toFixed(2);
 
   const handleIncrement = (item: typeof CompleteItemSchema._type) => {
     const cartItem = cartWithImages.find((ci) => ci.item.id === item.id);
@@ -172,7 +177,7 @@ export default function CartPage() {
                       {cartItem.item.imageUrl ? (
                         <img
                           src={cartItem.item.imageUrl}
-                          alt={`${cartItem.item.name} - $${Number(cartItem.item.price).toFixed(2)} from ${fundraiser.name}`}
+                          alt={`${cartItem.item.name} - $${Decimal(cartItem.item.price).toFixed(2)} from ${fundraiser.name}`}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -187,7 +192,7 @@ export default function CartPage() {
                           {cartItem.item.name}
                         </p>
                         <p className="text-[14px] font-[400] leading-[21px] text-black">
-                          ${Number(cartItem.item.price).toFixed(2)}
+                          ${Decimal(cartItem.item.price).toFixed(2)}
                         </p>
                       </div>
 
@@ -236,7 +241,7 @@ export default function CartPage() {
                 Total
               </p>
               <p className="text-[18px] font-medium leading-[27px] text-black">
-                ${totalPrice.toFixed(2)}
+                ${totalPrice}
               </p>
             </div>
           </div>
