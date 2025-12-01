@@ -29,25 +29,28 @@ export function FundraiserCartSidebar({
   }, 0);
 
   const handleCheckout = () => {
-    if (!isEmpty) {
-      // On mobile, go to cart page first; on desktop, go directly to checkout
-      if (isMobile) {
-        router.push(`/buyer/fundraiser/${fundraiserId}/cart`);
-      } else {
-        router.push(`/buyer/fundraiser/${fundraiserId}/checkout`);
-      }
+    if (isEmpty) return;
+
+    const nextCheckoutPath = `/buyer/fundraiser/${fundraiserId}/checkout`;
+
+    // On mobile, go to cart page first; on desktop, go directly to login which
+    // will auto-start Google sign-in and return to the checkout page
+    if (isMobile) {
+      router.push(`/buyer/fundraiser/${fundraiserId}/cart`);
+    } else {
+      router.push(`/login?next=${encodeURIComponent(nextCheckoutPath)}`);
     }
   };
 
   return (
     <Card className="w-full h-fit border-[#f6f6f6]">
       <CardContent className="pt-6 px-5 pb-8">
-        <div className="flex flex-col gap-[42px]">
-          <h2 className="text-xl font-semibold">Items</h2>
+        <div className="flex flex-col">
+          <h2 className="text-xl font-semibold mb-2">Items</h2>
 
           {isEmpty ? (
-            <div className="flex flex-col gap-5">
-              <p className="text-[#767676] text-lg">Your cart is empty.</p>
+            <div className="flex flex-col">
+              <p className="text-[#767676] text-lg mb-2">Your cart is empty.</p>
               <Button
                 onClick={handleCheckout}
                 disabled
@@ -57,7 +60,7 @@ export function FundraiserCartSidebar({
               </Button>
             </div>
           ) : (
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-4">
                 {cartItems.map((cartItem) => (
                   <div
@@ -98,4 +101,3 @@ export function FundraiserCartSidebar({
     </Card>
   );
 }
-
