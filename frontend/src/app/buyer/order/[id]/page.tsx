@@ -24,7 +24,6 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/custom/CopyButton";
-import { ConfettiWrapper } from "@/components/custom/ConfettiWrapper";
 
 // data fetching function
 const getOrder = async (id: string, token: string) => {
@@ -159,7 +158,6 @@ export default async function OrderPage({
 
   return (
     <div className="container max-w-4xl py-6 px-4 md:py-8 md:px-6 mx-auto">
-      <ConfettiWrapper />
       <div className="flex flex-col gap-2 mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Order Details</h1>
         <p className="text-muted-foreground">

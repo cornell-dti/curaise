@@ -17,9 +17,12 @@ import {
   Copy,
   ChevronDown,
   ChevronLeft,
+  ChevronRight,
   Plus,
   Trash2,
   ExternalLink,
+  Search,
+  ShieldAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +40,12 @@ import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { User } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 export function CheckoutForm({
   token,
@@ -58,6 +67,9 @@ export function CheckoutForm({
   const [selectedReferralId, setSelectedReferralId] = useState<string>("none");
   const [paymentMethod, setPaymentMethod] = useState<"VENMO" | "OTHER">("VENMO");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReferralSheetOpen, setIsReferralSheetOpen] = useState(false);
+  const [referralSearch, setReferralSearch] = useState("");
+  const [pendingReferralId, setPendingReferralId] = useState<string | null>(null);
 
   // Fetch items to get latest imageUrl
   useEffect(() => {
@@ -90,6 +102,13 @@ export function CheckoutForm({
   });
 
   const approvedReferrals = fundraiser.referrals.filter((r) => r.approved);
+  const unapprovedReferrals = fundraiser.referrals.filter((r) => !r.approved);
+
+  const selectedReferralName =
+    selectedReferralId && selectedReferralId !== "none"
+      ? fundraiser.referrals.find((r) => r.id === selectedReferralId)?.referrer
+          .name || "No Referral"
+      : "No Referral";
 
   const orderTotal = cartWithImages
     .reduce(
@@ -146,7 +165,9 @@ export function CheckoutForm({
       return;
     } else {
       toast.success(result.message);
-      redirect("/buyer/order/" + result.data.id + "?fromCheckout=true");
+      redirect(
+        "/buyer/order/" + result.data.id + "/submitted?fromCheckout=true"
+      );
     }
   }
 
@@ -223,35 +244,25 @@ export function CheckoutForm({
                 ))}
               <Separator className="my-2 bg-[#dddddd]" />
               {/* Referral */}
-              <div className="flex items-center justify-between py-1">
-                <div className="flex gap-3 items-center">
+              <button
+                type="button"
+                className="flex items-center justify-between py-1 w-full"
+                onClick={() => {
+                  setPendingReferralId(null);
+                  setReferralSearch("");
+                  setIsReferralSheetOpen(true);
+                }}
+              >
+                <div className="flex gap-3 items-center text-left">
                   <User className="h-5 w-5 text-black" />
                   <p className="text-base leading-6">
-                    {selectedReferralId && selectedReferralId !== "none"
-                      ? approvedReferrals.find(
-                          (r) => r.id === selectedReferralId
-                        )?.referrer.name || "No Referral"
-                      : "No Referral"}
+                    {selectedReferralName}
                   </p>
                 </div>
                 {approvedReferrals.length > 0 && (
-                  <Select
-                    value={selectedReferralId}
-                    onValueChange={setSelectedReferralId}
-                  >
-                    <SelectTrigger className="border-0 p-0 h-auto w-auto">
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      {approvedReferrals.map((referral) => (
-                        <SelectItem key={referral.id} value={referral.id}>
-                          {referral.referrer.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <ChevronRight className="h-5 w-5 text-black" />
                 )}
-              </div>
+              </button>
             </div>
           </div>
 
@@ -417,6 +428,135 @@ export function CheckoutForm({
           >
             {isSubmitting ? "Processing..." : "Place Order"}
           </Button>
+
+          {/* Referral Selection Sheet (Mobile) */}
+          <Sheet open={isReferralSheetOpen} onOpenChange={setIsReferralSheetOpen}>
+            <SheetContent
+              side="bottom"
+              className="rounded-t-[40px] pb-6 pt-6 px-5 h-[80vh] flex flex-col"
+            >
+              <SheetHeader className="mb-4">
+                <div className="flex items-center justify-center w-full relative">
+                  <SheetTitle className="text-[18px] font-semibold leading-[27px] text-center w-full">
+                    Who referred you?
+                  </SheetTitle>
+                </div>
+              </SheetHeader>
+
+              <div className="flex flex-col gap-4 flex-1 overflow-y-auto">
+                {/* Search */}
+                <div className="border border-[#dddddd] rounded-[6px] h-10 px-3 flex items-center gap-2">
+                  <Search className="h-4 w-4 text-[#969696]" />
+                  <input
+                    type="text"
+                    value={referralSearch}
+                    onChange={(e) => setReferralSearch(e.target.value)}
+                    placeholder="Search for a name"
+                    className="flex-1 bg-transparent text-sm placeholder:text-[#969696] outline-none"
+                  />
+                </div>
+
+                {/*
+                  Filtered lists so section titles only show when there are matches,
+                  and they respond to the current search query.
+                */}
+                {(() => {
+                  const filteredApproved = approvedReferrals.filter((referral) =>
+                    referral.referrer.name
+                      .toLowerCase()
+                      .includes(referralSearch.toLowerCase())
+                  );
+                  const filteredUnapproved = unapprovedReferrals.filter(
+                    (referral) =>
+                      referral.referrer.name
+                        .toLowerCase()
+                        .includes(referralSearch.toLowerCase())
+                  );
+
+                  return (
+                    <>
+                      {/* Verified Referrers */}
+                      {filteredApproved.length > 0 && (
+                        <div className="flex flex-col gap-3">
+                          <p className="text-[14px] font-semibold leading-[21px]">
+                            Verified Referrers
+                          </p>
+                          <div className="flex flex-col gap-3">
+                            {filteredApproved.map((referral) => (
+                              <button
+                                key={referral.id}
+                                type="button"
+                                className={`flex items-center gap-3 w-full text-left px-2 py-1 rounded-md ${
+                                  pendingReferralId === referral.id
+                                    ? "bg-[#f6f6f6]"
+                                    : ""
+                                }`}
+                                onClick={() => {
+                                  setPendingReferralId(referral.id);
+                                }}
+                              >
+                                <ShieldCheck className="h-5 w-5 text-black" />
+                                <span className="text-[14px] leading-[21px]">
+                                  {referral.referrer.name}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Unverified Referrers */}
+                      {filteredUnapproved.length > 0 && (
+                        <div className="flex flex-col gap-3">
+                          <p className="text-[14px] font-semibold leading-[21px]">
+                            Unverified Referrers
+                          </p>
+                          <div className="flex flex-col gap-3">
+                            {filteredUnapproved.map((referral) => (
+                              <button
+                                key={referral.id}
+                                type="button"
+                                className={`flex items-center gap-3 w-full text-left px-2 py-1 rounded-md ${
+                                  pendingReferralId === referral.id
+                                    ? "bg-[#f6f6f6]"
+                                    : ""
+                                }`}
+                                onClick={() => {
+                                  setPendingReferralId(referral.id);
+                                }}
+                              >
+                                <ShieldAlert className="h-5 w-5 text-black" />
+                                <span className="text-[14px] leading-[21px]">
+                                  {referral.referrer.name}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+
+              </div>
+
+              <div className="mt-4">
+                <Button
+                  type="button"
+                  className="w-full h-[50px] rounded-[8px] bg-black hover:bg-black/90 text-[#fefdfd] text-[18px] leading-[27px] font-normal"
+                  disabled={!pendingReferralId}
+                  onClick={() => {
+                    if (pendingReferralId) {
+                      setSelectedReferralId(pendingReferralId);
+                    }
+                    setIsReferralSheetOpen(false);
+                  }}
+                >
+                  Update
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       ) : (
         /* Desktop Layout */
