@@ -16,7 +16,6 @@ import {
   MapPin,
   ShoppingBag,
   User,
-  ExternalLink,
 } from "lucide-react";
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { Separator } from "@/components/ui/separator";
@@ -188,15 +187,37 @@ export default async function OrderPage({
                   <Button
                     size="lg"
                     asChild
-                    className="flex items-center gap-2 bg-[#3D95CE] hover:bg-[#2E7BB8] text-white font-semibold px-8 py-3 text-md"
+                    className="flex items-center gap-2 bg-[#008CFF] hover:bg-[#2E7BB8] text-white font-semibold px-4 py-3 text-md"
                   >
                     <a
                       href={`https://venmo.com/${fundraiser.venmoUsername}?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <ExternalLink className="h-5 w-5" />
-                      Pay with Venmo</a>
+                      <span className="flex items-center gap-2">
+                        <svg
+                          width="48"
+                          height="48"
+                          style={{ width: "2rem", height: "2rem" }}
+                          xmlns="http://www.w3.org/2000/svg"
+                          aria-label="Venmo"
+                          role="img"
+                          viewBox="0 0 512 512"
+                        >
+                          <rect
+                            width="512"
+                            height="512"
+                            rx="15%"
+                            fill="transparent"
+                          />
+                          <path
+                            d="m381.4 105.3c11 18.1 15.9 36.7 15.9 60.3 0 75.1-64.1 172.7-116.2 241.2h-118.8l-47.6-285 104.1-9.9 25.3 202.8c23.5-38.4 52.6-98.7 52.6-139.7 0-22.5-3.9-37.8-9.9-50.4z"
+                            fill="#ffffff"
+                          />
+                        </svg>
+                        <span>Pay with Venmo</span>
+                      </span>
+                    </a>
                   </Button>
                 </div>
 
@@ -251,7 +272,7 @@ export default async function OrderPage({
           </CardHeader>
           <CardContent>
             <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-4">
+              <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <CalendarIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                   <span className="text-sm break-words">
