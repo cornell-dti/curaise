@@ -8,6 +8,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useCartStore } from "@/lib/store/useCartStore";
 import useStore from "@/lib/store/useStore";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { createClient } from "@/utils/supabase/client";
 
 const getFundraiser = async (id: string) => {
   const response = await fetch(
@@ -119,8 +120,20 @@ export default function CartPage() {
     removeItem(fundraiserId, item);
   };
 
-  const handleCheckout = () => {
-    router.push(`/buyer/fundraiser/${fundraiserId}/checkout`);
+  const handleCheckout = async () => {
+    const nextCheckoutPath = `/buyer/fundraiser/${fundraiserId}/checkout`;
+    
+    // Check if user is already authenticated
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user) {
+      // User is authenticated, go directly to checkout
+      router.push(nextCheckoutPath);
+    } else {
+      // User is not authenticated, redirect to login with next parameter
+      router.push(`/login?next=${encodeURIComponent(nextCheckoutPath)}`);
+    }
   };
 
   if (loading || !fundraiser || !items || !mounted) {
@@ -158,7 +171,7 @@ export default function CartPage() {
         </Link>
 
         {/* Fundraiser Info */}
-        <div className="flex flex-col gap-[22px] items-start w-full">
+        <div className="flex flex-col gap-[10px] items-start w-full">
           <div className="flex flex-col gap-[4px] items-start w-full">
             <h1 className="text-2xl font-semibold leading-[28px] text-black">
               {fundraiser.name}
@@ -172,7 +185,7 @@ export default function CartPage() {
           <div className="h-px w-full bg-[#f6f6f6]" />
 
           {/* Items Section */}
-          <div className="flex flex-col gap-[12px] items-start w-full">
+          <div className="flex flex-col gap-[15px] items-start w-full">
             <div className="flex flex-col gap-[10px] items-start w-full">
               <p className="text-[16px] font-[400] leading-[24px] text-black">
                 Items
