@@ -34,6 +34,7 @@ export function FundraiserReferralCard({
 }) {
   const [referralOpen, setReferralOpen] = useState(false);
   const [isReferrer, setIsReferrer] = useState(false);
+  const [hasClickedSignup, setHasClickedSignup] = useState(false);
 
   const pathname = usePathname();
   const [link, setLink] = useState("");
@@ -85,17 +86,25 @@ export function FundraiserReferralCard({
     <div>
       <Card className="w-full">
         <CardContent className="py-3">
-          <div className="flex items-center justify-between gap-2">
-            <span className="flex gap-2 justify-center">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <span className="flex gap-2 items-start">
               <Star />
               <span className="text-md font-semibold">
-                [{fundraiser.organization.name} Members Only] Become a Referrer
+                <span className="hidden md:inline">
+                  [{fundraiser.organization.name} Members Only] Become a Referrer
+                </span>
+                <span className="inline md:hidden">
+                  [{fundraiser.organization.name} Members Only]
+                  <br />
+                  Become a Referrer
+                </span>
               </span>
             </span>
             {!isReferrer ? (
               <Button
-                className="font-light"
+                className="font-light mt-1 md:mt-0 w-full md:w-auto"
                 onClick={async () => {
+                  setHasClickedSignup(true);
                   await addReferrer();
                   setReferralOpen(true);
                 }}
@@ -103,18 +112,20 @@ export function FundraiserReferralCard({
                 Sign Up
               </Button>
             ) : (
-              <div className="flex flex-col gap-1 items-end text-sm">
+              <div className="flex flex-col gap-1 mt-1 text-sm md:mt-0 md:items-end md:text-right w-full md:w-auto">
                 <Button
-                  className="cursor-pointer font-light text-sm md:text-md"
+                  className="cursor-pointer font-light text-sm md:text-md w-full md:w-auto"
                   onClick={async () => {
                     await copyToClipboard(link);
                   }}
                 >
                   Copy Referral Link
                 </Button>
-                <span className="text-muted-foreground">
-                  You have already signed up.
-                </span>
+                {isReferrer && hasClickedSignup && (
+                  <span className="text-muted-foreground text-center md:text-right">
+                    You have already signed up.
+                  </span>
+                )}
               </div>
             )}
           </div>
