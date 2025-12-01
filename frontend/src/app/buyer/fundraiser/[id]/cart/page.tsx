@@ -60,6 +60,24 @@ export default function CartPage() {
 
   const cart =
     useStore(useCartStore, (state) => state.carts[fundraiserId] || []) || [];
+  
+  // TODO: Cart page produces the following error when refreshed; Need to fix this:
+
+  // The result of getServerSnapshot should be cached to avoid an infinite loop
+
+  // Source
+  // frontend/src/lib/store/useStore.ts (8:18) @ useStore
+
+  //    6 |   callback: (state: T) => F
+  //    7 | ) => {
+  // >  8 |   const result = store(callback) as F;
+  //      |                  ^
+  //    9 |   const [data, setData] = useState<F>();
+  //   10 |
+  //   11 |   useEffect(() => {
+  // CartPage
+  // frontend/src/app/buyer/fundraiser/[id]/cart/page.tsx
+
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
 
