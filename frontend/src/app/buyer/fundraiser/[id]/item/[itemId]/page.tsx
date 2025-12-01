@@ -2,7 +2,7 @@
 
 import { CompleteItemSchema } from "common";
 import { useState, useEffect } from "react";
-import { ChevronLeft, Plus, Minus, ShoppingCart, AlertTriangle } from "lucide-react";
+import { ChevronLeft, Plus, Minus, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useCartStore } from "@/lib/store/useCartStore";
 import useStore from "@/lib/store/useStore";
@@ -133,18 +133,11 @@ export default function ItemPage() {
         {/* Divider */}
         <div className="h-px w-full bg-[#f6f6f6]" />
 
-        {/* Description and Allergens */}
+        {/* Description */}
         <div className="flex flex-col gap-2">
           <p className="text-base font-normal leading-[24px] text-black">
             {item.description}
           </p>
-          {/* Allergen info - placeholder since not in schema */}
-          <div className="flex items-end gap-2">
-            <AlertTriangle className="h-5 w-5 text-black flex-shrink-0" />
-            <p className="text-xs font-semibold leading-[18px] text-black">
-              Contains: Dairy
-            </p>
-          </div>
         </div>
 
         {/* Quantity Selector */}

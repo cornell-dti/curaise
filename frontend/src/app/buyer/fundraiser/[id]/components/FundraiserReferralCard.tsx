@@ -80,7 +80,7 @@ export function FundraiserReferralCard({
         setIsReferrer(true);
       }
     });
-  }, [isReferrer]);
+  }, [fundraiser.referrals, userId]);
 
   return (
     <div>

@@ -10,7 +10,7 @@ import type { CompleteItemSchema } from "common";
 import type { z } from "zod";
 import { FundraiserItemCard } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemCard";
 import { useState } from "react";
-import { Plus, Minus, ShoppingCart, AlertTriangle } from "lucide-react";
+import { Plus, Minus, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 
 export function FundraiserItemModal({
@@ -90,18 +90,11 @@ export function FundraiserItemModal({
           {/* Divider */}
           <div className="h-px w-full bg-[#f6f6f6]" />
 
-          {/* Description and Allergens */}
+          {/* Description */}
           <div className="flex flex-col gap-2">
             <p className="text-lg font-normal leading-[27px] text-black">
               {item.description}
             </p>
-            {/* Allergen info - placeholder since not in schema */}
-            <div className="flex items-end gap-2">
-              <AlertTriangle className="h-5 w-5 text-black flex-shrink-0" />
-              <p className="text-base font-semibold leading-[24px] text-black">
-                Contains: Dairy
-              </p>
-            </div>
           </div>
 
           {/* Quantity Selector */}

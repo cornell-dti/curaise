@@ -40,7 +40,7 @@ export function FundraiserGallerySlider({
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [images.length, currentIndex]);
+  }, [images.length, direction]);
 
   const goToSlide = (index: number) => {
     setCurrentIndex(index);
