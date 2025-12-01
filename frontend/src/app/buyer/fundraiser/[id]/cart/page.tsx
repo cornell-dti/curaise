@@ -9,6 +9,7 @@ import { useCartStore } from "@/lib/store/useCartStore";
 import useStore from "@/lib/store/useStore";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { createClient } from "@/utils/supabase/client";
+import { toast } from "sonner";
 
 const getFundraiser = async (id: string) => {
   const response = await fetch(
@@ -71,7 +72,7 @@ export default function CartPage() {
           setLoading(false);
         })
         .catch((error) => {
-          console.error(error);
+          toast.error(error instanceof Error ? error.message : "Failed to load fundraiser data");
           setLoading(false);
         });
     }
