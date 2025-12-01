@@ -10,6 +10,9 @@ import useStore from "@/lib/store/useStore";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
+import { useFundraiserItems } from "@/hooks/useFundraiserItems";
+import useSWR from "swr";
+import { noAuthFetcher } from "@/lib/fetcher";
 
 const getFundraiser = async (id: string) => {
   const response = await fetch(
@@ -26,21 +29,6 @@ const getFundraiser = async (id: string) => {
   return data.data;
 };
 
-const getFundraiserItems = async (id: string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${id}/items`
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-  const data = CompleteItemSchema.array().safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse fundraiser items data");
-  }
-  return data.data;
-};
-
 export default function CartPage() {
   const router = useRouter();
   const params = useParams();
@@ -48,35 +36,17 @@ export default function CartPage() {
   const isMobile = useIsMobile();
   const [mounted, setMounted] = useState(false);
 
-  const [fundraiser, setFundraiser] = useState<
-    typeof CompleteFundraiserSchema._type | null
-  >(null);
-  const [items, setItems] = useState<
-    typeof CompleteItemSchema._type[] | null
-  >(null);
-  const [loading, setLoading] = useState(true);
+  const { data: fundraiser, isLoading: fundraiserLoading } = useSWR(
+    fundraiserId ? `/fundraiser/${fundraiserId}` : null,
+    noAuthFetcher(CompleteFundraiserSchema)
+  );
+  const { items, isLoading: itemsLoading } = useFundraiserItems(fundraiserId);
+
+  const loading = fundraiserLoading || itemsLoading;
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (fundraiserId) {
-      Promise.all([
-        getFundraiser(fundraiserId),
-        getFundraiserItems(fundraiserId),
-      ])
-        .then(([fundraiserData, itemsData]) => {
-          setFundraiser(fundraiserData);
-          setItems(itemsData);
-          setLoading(false);
-        })
-        .catch((error) => {
-          toast.error(error instanceof Error ? error.message : "Failed to load fundraiser data");
-          setLoading(false);
-        });
-    }
-  }, [fundraiserId]);
 
   // Redirect to fundraiser page if not mobile (only after mount to avoid hydration issues)
   // I had issues with hydration issues, and Claude suggested this approach.

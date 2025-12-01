@@ -2,13 +2,14 @@
 
 import { z } from "zod";
 import { CompleteFundraiserSchema, CreateOrderBody, UserSchema, CompleteItemSchema } from "common";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useStore } from "zustand";
 import { useCartStore, CartItem } from "@/lib/store/useCartStore";
 import { toast } from "sonner";
 import { redirect } from "next/navigation";
 import { format } from "date-fns";
 import Decimal from "decimal.js";
+import { useFundraiserItems } from "@/hooks/useFundraiserItems";
 import {
   Calendar,
   MapPin,
@@ -64,34 +65,13 @@ export function CheckoutForm({
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
 
-  const [items, setItems] = useState<z.infer<typeof CompleteItemSchema>[] | null>(null);
+  const { items } = useFundraiserItems(fundraiser.id);
   const [selectedReferralId, setSelectedReferralId] = useState<string>("none");
   const [paymentMethod, setPaymentMethod] = useState<"VENMO" | "OTHER">("VENMO");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isReferralSheetOpen, setIsReferralSheetOpen] = useState(false);
   const [referralSearch, setReferralSearch] = useState("");
   const [pendingReferralId, setPendingReferralId] = useState<string | null>(null);
-
-  // Fetch items to get latest imageUrl
-  useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiser.id}/items`
-        );
-        const result = await response.json();
-        if (response.ok) {
-          const data = CompleteItemSchema.array().safeParse(result.data);
-          if (data.success) {
-            setItems(data.data);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch items:", error);
-      }
-    };
-    fetchItems();
-  }, [fundraiser.id]);
 
   // Merge cart items with fetched items to get latest imageUrl
   const cartWithImages = cart.map((cartItem) => {
