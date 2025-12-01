@@ -52,9 +52,6 @@ export function CheckoutForm({
   const removeItem = useCartStore((state) => state.removeItem);
 
   const [items, setItems] = useState<z.infer<typeof CompleteItemSchema>[] | null>(null);
-  const [selectedPickupEventId, setSelectedPickupEventId] = useState<string>(
-    fundraiser.pickupEvents[0]?.id || ""
-  );
   const [selectedReferralId, setSelectedReferralId] = useState<string>("none");
   const [paymentMethod, setPaymentMethod] = useState<"VENMO" | "OTHER">("VENMO");
   const [showVenmoDetails, setShowVenmoDetails] = useState(false);
@@ -91,9 +88,6 @@ export function CheckoutForm({
   });
 
   const approvedReferrals = fundraiser.referrals.filter((r) => r.approved);
-  const selectedPickupEvent = fundraiser.pickupEvents.find(
-    (e) => e.id === selectedPickupEventId
-  );
 
   const orderTotal = cartWithImages
     .reduce(
@@ -114,11 +108,6 @@ export function CheckoutForm({
 
   async function handleSubmit() {
     if (isSubmitting) {
-      return;
-    }
-
-    if (!selectedPickupEventId) {
-      toast.error("Please select a pickup location");
       return;
     }
 
@@ -203,69 +192,40 @@ export function CheckoutForm({
                   </h2>
 
                   <div className="flex flex-col gap-[22px]">
-                    {/* Date */}
-                    <div className="flex flex-col gap-2">
-                      <p className="text-[20px] font-bold leading-[24px]">
-                        Date
-                      </p>
-                      <div className="flex items-center gap-3 h-[31px]">
-                        <Calendar className="h-[23px] w-[23px] text-black" />
-                        <p className="text-[18px] leading-[27px]">
-                          {selectedPickupEvent
-                            ? format(selectedPickupEvent.startsAt, "EEEE, M/d/yyyy")
-                            : "No date selected"}
-                        </p>
-                      </div>
-                    </div>
-
                     {/* Location */}
                     <div className="flex flex-col gap-2">
-                      <p className="text-[18px] font-bold leading-[27px]">
-                        Location
-                      </p>
-                      <div className="bg-white rounded-[6px]">
                         <div className="flex flex-col gap-3">
-                          {fundraiser.pickupEvents.map((event, index) => (
+                          {fundraiser.pickupEvents
+                            .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())
+                            .map((event, index) => (
                             <div key={event.id}>
                               {index > 0 && (
                                 <Separator className="my-3 bg-[#dddddd]" />
                               )}
-                              <div className="flex items-center justify-between">
-                                <div className="flex flex-col gap-2">
-                                  <div className="flex gap-3 items-start">
-                                    <MapPin className="h-5 w-5 text-black mt-0.5" />
-                                    <p className="text-base leading-6">
-                                      {event.location}
-                                    </p>
-                                  </div>
-                                  <div className="flex gap-3 items-start">
-                                    <Clock className="h-5 w-5 text-black mt-0.5" />
-                                    <p className="text-base leading-6">
-                                      {format(event.startsAt, "h:mm a")} -{" "}
-                                      {format(event.endsAt, "h:mm a")}
-                                    </p>
-                                  </div>
+                              <div className="flex flex-col gap-2">
+                                <div className="flex gap-3 items-start">
+                                  <Calendar className="h-5 w-5 text-black mt-0.5" />
+                                  <p className="text-base leading-6">
+                                    {format(event.startsAt, "EEEE, M/d/yyyy")}
+                                  </p>
                                 </div>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setSelectedPickupEventId(event.id)
-                                  }
-                                  className={`relative h-[22px] w-[22px] rounded-full border-2 flex items-center justify-center ${
-                                    selectedPickupEventId === event.id
-                                      ? "border-black"
-                                      : "border-[#989898]"
-                                  }`}
-                                >
-                                  {selectedPickupEventId === event.id && (
-                                    <div className="absolute h-[12.737px] w-[12.737px] rounded-full bg-black" />
-                                  )}
-                                </button>
+                                <div className="flex gap-3 items-start">
+                                  <MapPin className="h-5 w-5 text-black mt-0.5" />
+                                  <p className="text-base leading-6">
+                                    {event.location}
+                                  </p>
+                                </div>
+                                <div className="flex gap-3 items-start">
+                                  <Clock className="h-5 w-5 text-black mt-0.5" />
+                                  <p className="text-base leading-6">
+                                    {format(event.startsAt, "h:mm a")} -{" "}
+                                    {format(event.endsAt, "h:mm a")}
+                                  </p>
+                                </div>
                               </div>
                             </div>
                           ))}
                         </div>
-                      </div>
                     </div>
 
                     {/* Who referred you? */}
