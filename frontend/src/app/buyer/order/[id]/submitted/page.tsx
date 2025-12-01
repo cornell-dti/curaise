@@ -96,7 +96,7 @@ export default async function OrderSubmittedPage({
       <ConfettiWrapper />
 
       <div className="min-h-[calc(100vh-9rem)] md:min-h-[calc(100vh-7rem)] flex items-center justify-center py-8 md:py-10">
-        <Card className="w-full max-w-xl border-0 md:border md:border-[#dddddd] shadow-none bg-white">
+        <Card className="w-full max-w-[593px] border-0 md:border md:border-[#dddddd] shadow-none bg-white">
           <CardContent className="p-6 md:p-8 flex flex-col items-center gap-8">
             <div className="flex flex-col items-center gap-6 text-center">
               <div className="h-24 w-24 rounded-full bg-[#C6DDC8] flex items-center justify-center">
@@ -120,7 +120,7 @@ export default async function OrderSubmittedPage({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {order.items.map((orderItem) => (
                     (() => {
                       const fullItem = itemsById.get(orderItem.item.id);
@@ -131,7 +131,6 @@ export default async function OrderSubmittedPage({
                         >
                           <div className="h-[95px] w-[118px] rounded-[5px] overflow-hidden relative flex-shrink-0 bg-gray-200">
                             {fullItem?.imageUrl ? (
-                              // eslint-disable-next-line @next/next/no-img-element
                               <img
                                 src={fullItem.imageUrl || "/placeholder.svg"}
                                 alt={fullItem.name}
@@ -142,11 +141,11 @@ export default async function OrderSubmittedPage({
                             )}
                           </div>
                           <div className="flex flex-col gap-2 flex-1">
-                            <div className="flex flex-col gap-1">
+                            <div className="flex flex-col gap-0.25">
                               <p className="text-[18px] font-semibold leading-[27px]">
                                 {orderItem.item.name}
                               </p>
-                              <p className="text-[16px] leading-[24px]">
+                              <p className="text-[16px] leading-[24px] mb-2">
                                 ${Decimal(orderItem.item.price).toFixed(2)}
                               </p>
                             </div>
@@ -160,14 +159,6 @@ export default async function OrderSubmittedPage({
                   ))}
                 </div>
 
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-[18px] font-semibold leading-[27px]">
-                    Total
-                  </span>
-                  <span className="text-[18px] font-semibold leading-[27px]">
-                    ${orderTotal}
-                  </span>
-                </div>
               </CardContent>
             </Card>
 
