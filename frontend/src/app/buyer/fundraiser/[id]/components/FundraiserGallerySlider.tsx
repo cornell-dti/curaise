@@ -1,6 +1,7 @@
 "use client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 interface FundraiserGallerySliderProps {
   images: string[];
@@ -60,11 +61,13 @@ export function FundraiserGallerySlider({
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
         {images.map((image, index) => (
-          <div key={index} className="flex-shrink-0 w-full h-full">
-            <img
+          <div key={index} className="flex-shrink-0 w-full h-full relative">
+            <Image
               src={image}
               alt={`Slide ${index + 1}`}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              style={{ objectFit: 'cover' }}
             />
           </div>
         ))}

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useCartStore } from "@/lib/store/useCartStore";
 import useStore from "@/lib/store/useStore";
 import { useRouter, useParams } from "next/navigation";
+import Image from "next/image";
 
 const getItem = async (fundraiserId: string, itemId: string) => {
   const response = await fetch(
@@ -105,10 +106,12 @@ export default function ItemPage() {
       {/* Image */}
       <div className="relative w-full h-[353px] overflow-hidden flex-shrink-0">
         {item.imageUrl ? (
-          <img
+          <Image
             src={item.imageUrl}
             alt={item.name}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            style={{ objectFit: 'cover' }}
           />
         ) : (
           <div className="w-full h-full bg-gray-200" />

@@ -48,6 +48,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import Image from "next/image";
 
 export function CheckoutForm({
   token,
@@ -262,10 +263,12 @@ export function CheckoutForm({
                   {/* Item Image */}
                   <div className="h-[95px] w-[118px] rounded-[5px] overflow-hidden relative flex-shrink-0">
                     {cartItem.item.imageUrl ? (
-                      <img
+                      <Image
                         src={cartItem.item.imageUrl || "/placeholder.svg"}
                         alt={`${cartItem.item.name} - $${Decimal(cartItem.item.price).toFixed(2)} each, quantity ${cartItem.quantity} from ${fundraiser.name}`}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
+                        style={{ objectFit: 'cover' }}
                       />
                     ) : (
                       <div className="w-full h-full bg-gray-200" aria-label={`No image available for ${cartItem.item.name}`} />
@@ -751,10 +754,12 @@ export function CheckoutForm({
                           {/* Item Image */}
                           <div className="h-[95px] w-[118px] rounded-[5px] overflow-hidden relative flex-shrink-0">
                             {cartItem.item.imageUrl ? (
-                              <img
+                              <Image
                                 src={cartItem.item.imageUrl || "/placeholder.svg"}
                                 alt={`${cartItem.item.name} - $${Decimal(cartItem.item.price).toFixed(2)} each, quantity ${cartItem.quantity} from ${fundraiser.name}`}
-                                className="w-full h-full object-cover"
+                                fill
+                                className="object-cover"
+                                style={{ objectFit: 'cover' }}
                               />
                             ) : (
                               <div className="w-full h-full bg-gray-200" aria-label={`No image available for ${cartItem.item.name}`} />

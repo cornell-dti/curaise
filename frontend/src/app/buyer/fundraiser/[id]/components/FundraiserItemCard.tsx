@@ -7,6 +7,7 @@ import type Decimal from "decimal.js";
 import { Plus, Minus, Trash } from "lucide-react";
 import type { z } from "zod";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 export function FundraiserItemCard({
   item,
@@ -86,10 +87,12 @@ export function FundraiserItemCard({
         {/* Image */}
         <div className="bg-white h-[240px] rounded-md shadow-[2px_2px_5px_0px_rgba(140,140,140,0.25)] overflow-hidden relative">
           {item.imageUrl ? (
-            <img
+            <Image
               src={item.imageUrl || "/placeholder.svg"}
               alt={item.name}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              style={{ objectFit: 'cover' }}
             />
           ) : (
             <div className="w-full h-full bg-gray-200" />
@@ -111,10 +114,12 @@ export function FundraiserItemCard({
       <div className="hidden md:flex border rounded-md flex-col overflow-hidden h-full hover:scale-105 transition-transform duration-150">
         <div className="relative w-full h-48 bg-gray-200">
           {item.imageUrl ? (
-            <img
+            <Image
               src={item.imageUrl || "/placeholder.svg"}
               alt={item.name}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              style={{ objectFit: 'cover' }}
             />
           ) : (
             <div className="w-full h-full bg-gray-200" />

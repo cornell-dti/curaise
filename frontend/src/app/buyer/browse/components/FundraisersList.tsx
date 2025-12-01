@@ -17,6 +17,7 @@ import {
 	PopoverTrigger,
 } from "@/components/ui/popover";
 import Link from "next/link";
+import Image from "next/image";
 
 type FilterType = "all" | "pickup-today";
 type CategoryType = "desserts" | "food" | "crafts" | "drinks" | "all";
@@ -165,10 +166,12 @@ export function FundraisersList({
 							{/* Image */}
 							<div className="bg-white h-[240px] rounded-md shadow-[2px_2px_5px_0px_rgba(140,140,140,0.25)] overflow-hidden relative">
 								{fundraiser.imageUrls && fundraiser.imageUrls.length > 0 ? (
-									<img
+									<Image
 										src={fundraiser.imageUrls[0]}
 										alt={fundraiser.name}
-										className="w-full h-full object-cover"
+										fill
+										className="object-cover"
+										style={{ objectFit: 'cover' }}
 									/>
 								) : (
 									<div className="w-full h-full flex items-center justify-center bg-gray-200">

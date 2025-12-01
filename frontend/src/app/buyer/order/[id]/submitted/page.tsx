@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import Link from "next/link";
 import { ConfettiWrapper } from "@/components/custom/ConfettiWrapper";
+import Image from "next/image";
 
 const getOrder = async (id: string, token: string) => {
   const response = await fetch(
@@ -131,10 +132,12 @@ export default async function OrderSubmittedPage({
                         >
                           <div className="h-[95px] w-[118px] rounded-[5px] overflow-hidden relative flex-shrink-0 bg-gray-200">
                             {fullItem?.imageUrl ? (
-                              <img
+                              <Image
                                 src={fullItem.imageUrl || "/placeholder.svg"}
                                 alt={fullItem.name}
-                                className="w-full h-full object-cover"
+                                fill
+                                className="object-cover"
+                                style={{ objectFit: 'cover' }}
                               />
                             ) : (
                               <div className="w-full h-full bg-gray-200" />

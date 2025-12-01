@@ -11,6 +11,7 @@ import type { z } from "zod";
 import { FundraiserItemCard } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemCard";
 import { useState } from "react";
 import { Plus, Minus, ShoppingCart, AlertTriangle } from "lucide-react";
+import Image from "next/image";
 
 export function FundraiserItemModal({
   item,
@@ -63,10 +64,12 @@ export function FundraiserItemModal({
         {item.imageUrl && (
           <div className="relative w-full overflow-hidden rounded-t-lg p-5 pt-12 pb-0">
             <div className="relative w-full h-[303px]">
-              <img
+              <Image
                 src={item.imageUrl}
                 alt={item.name}
-                className="w-full h-full object-cover rounded-md"
+                fill
+                className="object-cover rounded-md"
+                style={{ objectFit: 'cover' }}
               />
             </div>
           </div>

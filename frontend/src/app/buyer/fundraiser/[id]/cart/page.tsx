@@ -14,6 +14,7 @@ import { useFundraiserItems } from "@/hooks/useFundraiserItems";
 import useSWR from "swr";
 import { noAuthFetcher } from "@/lib/fetcher";
 import Decimal from "decimal.js";
+import Image from "next/image";
 
 const getFundraiser = async (id: string) => {
   const response = await fetch(
@@ -175,10 +176,12 @@ export default function CartPage() {
                     {/* Item Image */}
                     <div className="h-[100px] w-[150px] rounded-md overflow-hidden relative flex-shrink-0">
                       {cartItem.item.imageUrl ? (
-                        <img
+                        <Image
                           src={cartItem.item.imageUrl}
                           alt={`${cartItem.item.name} - $${Decimal(cartItem.item.price).toFixed(2)} from ${fundraiser.name}`}
-                          className="w-full h-full object-cover"
+                          fill
+                          className="object-cover"
+                          style={{ objectFit: 'cover' }}
                         />
                       ) : (
                         <div className="w-full h-full bg-gray-200" aria-label={`No image available for ${cartItem.item.name}`} />
