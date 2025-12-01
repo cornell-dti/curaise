@@ -363,7 +363,7 @@ export function CheckoutForm({
                         />
                       </svg>
                     ) : (
-                      <div className="h-7 w-7 bg-green-600 rounded flex items-center justify-center text-white font-bold text-xs">
+                      <div className="h-7 w-7 bg-green-600 rounded flex items-center justify-center text-white font-bold text-xs text-[15px]">
                         $
                       </div>
                     )}
@@ -399,7 +399,7 @@ export function CheckoutForm({
                 </SelectItem>
                 <SelectItem value="OTHER">
                   <div className="flex items-center gap-2">
-                    <div className="h-7 w-7 bg-green-600 rounded flex items-center justify-center text-white font-bold text-[10px]">
+                    <div className="h-7 w-7 bg-green-600 rounded flex items-center justify-center text-white font-bold text-[15px]">
                       $
                     </div>
                     <span>Cash In-Person</span>
@@ -562,7 +562,7 @@ export function CheckoutForm({
                       </SelectItem>
                       <SelectItem value="OTHER">
                         <div className="flex items-center gap-2">
-                          <div className="h-7 w-7 bg-green-600 rounded flex items-center justify-center text-white font-bold text-[10px]">
+                          <div className="h-7 w-7 bg-green-600 rounded flex items-center justify-center text-white font-bold text-[15px]">
                             $
                           </div>
                           <span>Cash In-Person</span>
