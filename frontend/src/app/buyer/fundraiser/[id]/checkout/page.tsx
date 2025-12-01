@@ -77,12 +77,10 @@ export default async function CheckoutPage({
   }
 
   return (
-    <div>
-      <CheckoutForm
-        fundraiser={fundraiser}
-        token={session.access_token}
-        userProfile={userProfile}
-      />
-    </div>
+    <CheckoutForm
+      fundraiser={fundraiser}
+      token={session.access_token}
+      userProfile={userProfile}
+    />
   );
 }
