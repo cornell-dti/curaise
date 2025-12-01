@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { User } from "lucide-react";
 import {
@@ -187,20 +188,19 @@ export function CheckoutForm({
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="bg-white">
       {/* Mobile Layout */}
       {isMobile ? (
         <div className="flex flex-col gap-[22px] items-center px-5 pt-[30px] pb-[54px]">
           {/* Header with back button */}
           <div className="flex items-center justify-center w-full relative">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="h-6 w-6 flex items-center justify-center absolute left-0"
-              style={{ left: 0 }}
+            <Link
+              href={`/buyer/fundraiser/${fundraiser.id}/cart`}
+              className="rounded-full transition-colors flex-shrink-0 flex items-center justify-center p-1 absolute left-0"
+              style={{ backgroundColor: "rgba(178, 178, 178, 0.21)" }}
             >
-              <ChevronLeft className="h-6 w-6" />
-            </button>
+              <ChevronLeft strokeWidth={2} className="h-8 w-8 text-stone-800" />
+            </Link>
             <h1 className="text-[14px] font-semibold leading-[21px] text-center w-full">
               Review your order
             </h1>
@@ -566,9 +566,10 @@ export function CheckoutForm({
             <button
               type="button"
               onClick={() => router.back()}
-              className="h-8 w-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
+              className="rounded-full transition-colors flex-shrink-0 flex items-center justify-center p-1"
+              style={{ backgroundColor: "rgba(178, 178, 178, 0.21)" }}
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft strokeWidth={2} className="h-8 w-8 text-stone-800" />
             </button>
             <h1 className="text-[32px] font-semibold leading-[48px]">
               Confirm and pay
@@ -808,7 +809,7 @@ export function CheckoutForm({
                       ))}
                     </div>
                   </div>
-
+                    
                   <Separator className="bg-[#dddddd]" />
 
                   {/* Total */}

@@ -163,7 +163,7 @@ export function FundraisersList({
 							href={`/buyer/fundraiser/${fundraiser.id}`}
 							className="flex flex-col gap-[15px] w-full max-w-[420px]">
 							{/* Image */}
-							<div className="bg-white h-[240px] rounded-md shadow-[2px_2px_5.1px_0px_rgba(140,140,140,0.25)] overflow-hidden relative">
+							<div className="bg-white h-[240px] rounded-md shadow-[2px_2px_5px_0px_rgba(140,140,140,0.25)] overflow-hidden relative">
 								{fundraiser.imageUrls && fundraiser.imageUrls.length > 0 ? (
 									<img
 										src={fundraiser.imageUrls[0]}

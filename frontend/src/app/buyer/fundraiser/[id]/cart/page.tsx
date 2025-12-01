@@ -77,7 +77,8 @@ export default function CartPage() {
     }
   }, [fundraiserId]);
 
-  // Redirect to desktop if not mobile (only after mount to avoid hydration issues)
+  // Redirect to fundraiser page if not mobile (only after mount to avoid hydration issues)
+  // I had issues with hydration issues, and Claude suggested this approach.
   useEffect(() => {
     if (mounted && isMobile === false) {
       router.push(`/buyer/fundraiser/${fundraiserId}`);
@@ -144,7 +145,7 @@ export default function CartPage() {
     );
   }
 
-  // Don't render on desktop (will redirect)
+  // Don't render on desktop (redirect back to fundraiser page)
   if (isMobile === false) {
     return null;
   }
@@ -156,18 +157,10 @@ export default function CartPage() {
         {/* Back button */}
         <Link
           href={`/buyer/fundraiser/${fundraiserId}`}
-          className="rounded-full transition-colors flex-shrink-0"
-          style={{ 
-            backgroundColor: "rgba(178, 178, 178, 0.21)",
-            width: "30px",
-            height: "30px",
-            padding: "8.108px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center"
-          }}
+          className="rounded-full transition-colors flex-shrink-0 flex items-center justify-center p-1"
+          style={{ backgroundColor: "rgba(178, 178, 178, 0.21)" }}
         >
-          <ChevronLeft strokeWidth={3} className="h-6 w-6 text-black" />
+          <ChevronLeft strokeWidth={2} className="h-8 w-8 text-stone-800" />
         </Link>
 
         {/* Fundraiser Info */}
@@ -202,7 +195,7 @@ export default function CartPage() {
                     className="flex gap-[12px] items-center w-full"
                   >
                     {/* Item Image */}
-                    <div className="h-[100px] w-[150px] rounded-[5.06px] overflow-hidden relative flex-shrink-0">
+                    <div className="h-[100px] w-[150px] rounded-md overflow-hidden relative flex-shrink-0">
                       {cartItem.item.imageUrl ? (
                         <img
                           src={cartItem.item.imageUrl}
@@ -226,8 +219,8 @@ export default function CartPage() {
                       </div>
 
                       {/* Quantity Selector */}
-                      <div className="border border-[#dddddd] rounded-[4.414px] h-[26px] w-[64px]">
-                        <div className="flex items-center gap-[8px] h-full px-[5.885px] py-[5.885px]">
+                      <div className="border border-[#dddddd] rounded h-[30px] w-fit">
+                        <div className="flex items-center gap-2 h-full px-1.5 py-1.5">
                           <button
                             onClick={() => {
                               if (cartItem.quantity === 1) {
@@ -236,22 +229,18 @@ export default function CartPage() {
                                 handleDecrement(cartItem.item);
                               }
                             }}
-                            className="p-[0.777px] rounded-[3.108px] hover:bg-gray-100 transition-colors flex-shrink-0 w-[14px] h-[14px] flex items-center justify-center"
+                            className="p-0.5 rounded-sm hover:bg-gray-100 transition-colors flex-shrink-0 w-3.5 h-3.5 flex items-center justify-center"
                           >
-                            {cartItem.quantity === 1 ? (
-                              <Trash className="h-[12.676px] w-[12.676px] text-[#545454]" />
-                            ) : (
-                              <Trash className="h-[12.676px] w-[12.676px] text-[#545454]" />
-                            )}
+                             <Trash className="h-3 w-3 text-[#545454]" />
                           </button>
-                          <p className="text-[11.77px] font-normal leading-[17.655px] text-[#545454] min-w-[5.149px] text-center">
+                          <p className="text-xs font-normal leading-[18px] text-[#545454] min-w-[5px] text-center">
                             {cartItem.quantity}
                           </p>
                           <button
                             onClick={() => handleIncrement(cartItem.item)}
-                            className="p-[1.471px] rounded-[5.885px] hover:bg-gray-100 transition-colors flex-shrink-0 w-[16.184px] h-[16.184px] flex items-center justify-center"
+                            className="p-0.5 rounded-md hover:bg-gray-100 transition-colors flex-shrink-0 w-4 h-4 flex items-center justify-center"
                           >
-                            <Plus className="h-[13.241px] w-[13.241px] text-[#545454]" />
+                            <Plus className="h-3.5 w-3.5 text-[#545454]" />
                           </button>
                         </div>
                       </div>
@@ -279,7 +268,7 @@ export default function CartPage() {
         </div>
       </div>
 
-      {/* Go to Checkout Button - Fixed above navbar */}
+      {/* Go to Checkout Button */}
       <div className="fixed bottom-16 left-0 right-0 flex justify-center p-5 bg-white border-t border-[#f6f6f6] z-40">
         <button
           onClick={handleCheckout}

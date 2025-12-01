@@ -78,10 +78,12 @@ export default async function CheckoutPage({
   }
 
   return (
-    <CheckoutForm
-      fundraiser={fundraiser}
-      token={session.access_token}
-      userProfile={userProfile}
-    />
+    <div className=" md:overflow-y-clip">
+      <CheckoutForm
+        fundraiser={fundraiser}
+        token={session.access_token}
+        userProfile={userProfile}
+      />
+    </div>
   );
 }

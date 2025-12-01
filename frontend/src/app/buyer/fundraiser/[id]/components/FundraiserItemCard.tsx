@@ -84,7 +84,7 @@ export function FundraiserItemCard({
       {/* Mobile: Simple list style like fundraisers */}
       <div className="md:hidden flex flex-col gap-[15px] w-full">
         {/* Image */}
-        <div className="bg-white h-[240px] rounded-md shadow-[2px_2px_5.1px_0px_rgba(140,140,140,0.25)] overflow-hidden relative">
+        <div className="bg-white h-[240px] rounded-md shadow-[2px_2px_5px_0px_rgba(140,140,140,0.25)] overflow-hidden relative">
           {item.imageUrl ? (
             <img
               src={item.imageUrl || "/placeholder.svg"}

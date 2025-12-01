@@ -96,10 +96,10 @@ export default function ItemPage() {
       {/* Back button - Mobile only */}
       <Link
         href={`/buyer/fundraiser/${fundraiserId}`}
-        className="md:hidden fixed top-5 left-5 z-50 rounded-full p-2.5 transition-colors"
+        className="md:hidden fixed top-5 left-5 z-50 rounded-full transition-colors flex-shrink-0 flex items-center justify-center p-1"
         style={{ backgroundColor: "rgba(178, 178, 178, 0.21)" }}
       >
-        <ChevronLeft strokeWidth={3} className="h-6 w-6 text-black" />
+        <ChevronLeft strokeWidth={2} className="h-8 w-8 text-stone-800" />
       </Link>
 
       {/* Image */}
