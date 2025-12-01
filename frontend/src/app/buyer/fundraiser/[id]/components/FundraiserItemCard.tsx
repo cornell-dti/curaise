@@ -92,9 +92,7 @@ export function FundraiserItemCard({
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-200">
-              <span className="text-gray-400">No image</span>
-            </div>
+            <div className="w-full h-full bg-gray-200" />
           )}
         </div>
 

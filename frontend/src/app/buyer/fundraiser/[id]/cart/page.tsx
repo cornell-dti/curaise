@@ -1,8 +1,8 @@
 "use client";
 
-import { CompleteFundraiserSchema } from "common";
+import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
 import { useState, useEffect } from "react";
-import { ChevronLeft, Plus, Minus, Trash2 } from "lucide-react";
+import { ChevronLeft, Plus, Trash } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { useCartStore } from "@/lib/store/useCartStore";
@@ -24,6 +24,21 @@ const getFundraiser = async (id: string) => {
   return data.data;
 };
 
+const getFundraiserItems = async (id: string) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${id}/items`
+  );
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message);
+  }
+  const data = CompleteItemSchema.array().safeParse(result.data);
+  if (!data.success) {
+    throw new Error("Could not parse fundraiser items data");
+  }
+  return data.data;
+};
+
 export default function CartPage() {
   const router = useRouter();
   const params = useParams();
@@ -34,6 +49,9 @@ export default function CartPage() {
   const [fundraiser, setFundraiser] = useState<
     typeof CompleteFundraiserSchema._type | null
   >(null);
+  const [items, setItems] = useState<
+    typeof CompleteItemSchema._type[] | null
+  >(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,9 +60,13 @@ export default function CartPage() {
 
   useEffect(() => {
     if (fundraiserId) {
-      getFundraiser(fundraiserId)
-        .then((fundraiserData) => {
+      Promise.all([
+        getFundraiser(fundraiserId),
+        getFundraiserItems(fundraiserId),
+      ])
+        .then(([fundraiserData, itemsData]) => {
           setFundraiser(fundraiserData);
+          setItems(itemsData);
           setLoading(false);
         })
         .catch((error) => {
@@ -66,25 +88,34 @@ export default function CartPage() {
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
 
-  const totalPrice = cart.reduce((sum, cartItem) => {
+  // Merge cart items with fetched items to get latest imageUrl
+  const cartWithImages = cart.map((cartItem) => {
+    const fetchedItem = items?.find((item) => item.id === cartItem.item.id);
+    return {
+      ...cartItem,
+      item: fetchedItem || cartItem.item,
+    };
+  });
+
+  const totalPrice = cartWithImages.reduce((sum, cartItem) => {
     return sum + Number(cartItem.item.price) * cartItem.quantity;
   }, 0);
 
-  const handleIncrement = (item: typeof cart[0]["item"]) => {
-    const cartItem = cart.find((ci) => ci.item.id === item.id);
+  const handleIncrement = (item: typeof CompleteItemSchema._type) => {
+    const cartItem = cartWithImages.find((ci) => ci.item.id === item.id);
     if (cartItem) {
       updateQuantity(fundraiserId, item, cartItem.quantity + 1);
     }
   };
 
-  const handleDecrement = (item: typeof cart[0]["item"]) => {
-    const cartItem = cart.find((ci) => ci.item.id === item.id);
+  const handleDecrement = (item: typeof CompleteItemSchema._type) => {
+    const cartItem = cartWithImages.find((ci) => ci.item.id === item.id);
     if (cartItem && cartItem.quantity > 1) {
       updateQuantity(fundraiserId, item, cartItem.quantity - 1);
     }
   };
 
-  const handleRemove = (item: typeof cart[0]["item"]) => {
+  const handleRemove = (item: typeof CompleteItemSchema._type) => {
     removeItem(fundraiserId, item);
   };
 
@@ -92,7 +123,7 @@ export default function CartPage() {
     router.push(`/buyer/fundraiser/${fundraiserId}/checkout`);
   };
 
-  if (loading || !fundraiser || !mounted) {
+  if (loading || !fundraiser || !items || !mounted) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p>Loading...</p>
@@ -106,7 +137,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="bg-white relative size-full min-h-screen pb-[90px]">
+    <div className="bg-white relative w-full -mt-8">
       {/* Content */}
       <div className="flex flex-col gap-[20px] items-start px-5 w-full mx-auto">
         {/* Back button */}
@@ -132,7 +163,7 @@ export default function CartPage() {
             <h1 className="text-2xl font-semibold leading-[28px] text-black">
               {fundraiser.name}
             </h1>
-            <p className="text-[14px] font-normal leading-[21px] text-black">
+            <p className="text-[14px] font-[400] leading-[21px] text-black">
               Hosted by: {fundraiser.organization.name}
             </p>
           </div>
@@ -143,22 +174,22 @@ export default function CartPage() {
           {/* Items Section */}
           <div className="flex flex-col gap-[12px] items-start w-full">
             <div className="flex flex-col gap-[10px] items-start w-full">
-              <p className="text-[16px] font-normal leading-[24px] text-black">
+              <p className="text-[16px] font-[400] leading-[24px] text-black">
                 Items
               </p>
             </div>
 
             <div className="flex flex-col gap-[20px] items-start w-full">
-              {cart.length === 0 ? (
+              {cartWithImages.length === 0 ? (
                 <p className="text-[#767676] text-lg">Your cart is empty.</p>
               ) : (
-                cart.map((cartItem) => (
+                cartWithImages.map((cartItem) => (
                   <div
                     key={cartItem.item.id}
                     className="flex gap-[12px] items-center w-full"
                   >
                     {/* Item Image */}
-                    <div className="h-[95px] w-[118px] rounded-[5.06px] overflow-hidden relative flex-shrink-0">
+                    <div className="h-[100px] w-[150px] rounded-[5.06px] overflow-hidden relative flex-shrink-0">
                       {cartItem.item.imageUrl ? (
                         <img
                           src={cartItem.item.imageUrl}
@@ -176,7 +207,7 @@ export default function CartPage() {
                         <p className="text-[14px] font-semibold leading-[21px] text-black">
                           {cartItem.item.name}
                         </p>
-                        <p className="text-[14px] font-normal leading-[21px] text-black">
+                        <p className="text-[14px] font-[400] leading-[21px] text-black">
                           ${Number(cartItem.item.price).toFixed(2)}
                         </p>
                       </div>
@@ -195,9 +226,9 @@ export default function CartPage() {
                             className="p-[0.777px] rounded-[3.108px] hover:bg-gray-100 transition-colors flex-shrink-0 w-[14px] h-[14px] flex items-center justify-center"
                           >
                             {cartItem.quantity === 1 ? (
-                              <Trash2 className="h-[12.676px] w-[12.676px] text-[#545454]" />
+                              <Trash className="h-[12.676px] w-[12.676px] text-[#545454]" />
                             ) : (
-                              <Minus className="h-[12.676px] w-[12.676px] text-[#545454]" />
+                              <Trash className="h-[12.676px] w-[12.676px] text-[#545454]" />
                             )}
                           </button>
                           <p className="text-[11.77px] font-normal leading-[17.655px] text-[#545454] min-w-[5.149px] text-center">
@@ -235,11 +266,11 @@ export default function CartPage() {
         </div>
       </div>
 
-      {/* Go to Checkout Button - Fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 flex justify-center p-5 bg-white border-t border-[#f6f6f6] z-50">
+      {/* Go to Checkout Button - Fixed above navbar */}
+      <div className="fixed bottom-16 left-0 right-0 flex justify-center p-5 bg-white border-t border-[#f6f6f6] z-40">
         <button
           onClick={handleCheckout}
-          disabled={cart.length === 0}
+          disabled={cartWithImages.length === 0}
           className="bg-black text-white rounded-lg h-[50px] w-full max-w-[361px] flex items-center justify-center px-[48px] py-[12px] disabled:bg-[#bababa] disabled:text-[#fefdfd]"
         >
           <span className="text-[18px] font-normal leading-[27px]">

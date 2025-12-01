@@ -103,15 +103,17 @@ export default function ItemPage() {
       </Link>
 
       {/* Image */}
-      {item.imageUrl && (
-        <div className="relative w-full h-[353px] overflow-hidden flex-shrink-0">
+      <div className="relative w-full h-[353px] overflow-hidden flex-shrink-0">
+        {item.imageUrl ? (
           <img
             src={item.imageUrl}
             alt={item.name}
             className="w-full h-full object-cover"
           />
-        </div>
-      )}
+        ) : (
+          <div className="w-full h-full bg-gray-200" />
+        )}
+      </div>
 
       {/* Content */}
       <div className="flex flex-col px-5 pt-[22px] gap-[22px] pb-0 md:pb-20 flex-shrink-0">
