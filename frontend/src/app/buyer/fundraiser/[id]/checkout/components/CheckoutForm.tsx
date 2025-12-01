@@ -671,8 +671,8 @@ export function CheckoutForm({
                     value={paymentMethod}
                     onValueChange={(value) => setPaymentMethod(value as "VENMO" | "OTHER")}
                   >
-                    <SelectTrigger className="border-[#dddddd] rounded-[6px] w-[233px] h-auto py-2.5">
-                      <div className="flex items-center gap-3">
+                    <SelectTrigger className="border-[#dddddd] rounded-[6px] w-fit h-auto py-2.5">
+                      <div className="flex items-center gap-3 pr-2">
                         <SelectValue />
                       </div>
                     </SelectTrigger>
