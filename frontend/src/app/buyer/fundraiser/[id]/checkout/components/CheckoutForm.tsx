@@ -35,6 +35,8 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { User } from "lucide-react";
 
 export function CheckoutForm({
   token,
@@ -46,6 +48,7 @@ export function CheckoutForm({
   userProfile: z.infer<typeof UserSchema>;
 }) {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const cart =
     useStore(useCartStore, (state) => state.carts[fundraiser.id]) || [];
   const updateQuantity = useCartStore((state) => state.updateQuantity);
@@ -164,22 +167,275 @@ export function CheckoutForm({
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header with back button */}
-        <div className="flex items-center gap-6 mb-8">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="h-8 w-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <h1 className="text-[32px] font-semibold leading-[48px]">
-            Confirm and pay
-          </h1>
-        </div>
+      {/* Mobile Layout */}
+      {isMobile ? (
+        <div className="flex flex-col gap-[22px] items-center px-5 pt-[30px] pb-[54px]">
+          {/* Header with back button */}
+          <div className="flex items-center justify-center w-full relative">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="h-6 w-6 flex items-center justify-center absolute left-0"
+              style={{ left: 0 }}
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            <h1 className="text-[14px] font-semibold leading-[21px] text-center w-full">
+              Review your order
+            </h1>
+          </div>
 
-        <div className="flex flex-col lg:flex-row gap-[50px] items-start">
+          {/* Pickup Details */}
+          <div className="flex flex-col gap-1 w-full">
+            <p className="text-[16px] font-semibold leading-[24px]">
+              Pickup Details
+            </p>
+            <div className="flex flex-col gap-2 py-1">
+              {fundraiser.pickupEvents
+                .sort((a, b) => a.startsAt.getTime() - b.startsAt.getTime())
+                .map((event, index) => (
+                  <div key={event.id}>
+                    {index > 0 && (
+                      <Separator className="my-2 bg-[#dddddd]" />
+                    )}
+                    <div className="flex flex-col gap-2 py-1">
+                      <div className="flex gap-3 items-start">
+                        <Calendar className="h-5 w-5 text-black mt-0.5 flex-shrink-0" />
+                        <p className="text-base leading-6">
+                          {format(event.startsAt, "EEEE, M/d/yyyy")}
+                        </p>
+                      </div>
+                      <div className="flex gap-3 items-start">
+                        <MapPin className="h-5 w-5 text-black mt-0.5 flex-shrink-0" />
+                        <p className="text-base leading-6">
+                          {event.location}
+                        </p>
+                      </div>
+                      <div className="flex gap-3 items-start">
+                        <Clock className="h-5 w-5 text-black mt-0.5 flex-shrink-0" />
+                        <p className="text-base leading-6">
+                          {format(event.startsAt, "h:mm a")} -{" "}
+                          {format(event.endsAt, "h:mm a")}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              <Separator className="my-2 bg-[#dddddd]" />
+              {/* Referral */}
+              <div className="flex items-center justify-between py-1">
+                <div className="flex gap-3 items-center">
+                  <User className="h-5 w-5 text-black" />
+                  <p className="text-base leading-6">
+                    {selectedReferralId && selectedReferralId !== "none"
+                      ? approvedReferrals.find(
+                          (r) => r.id === selectedReferralId
+                        )?.referrer.name || "No Referral"
+                      : "No Referral"}
+                  </p>
+                </div>
+                {approvedReferrals.length > 0 && (
+                  <Select
+                    value={selectedReferralId}
+                    onValueChange={setSelectedReferralId}
+                  >
+                    <SelectTrigger className="border-0 p-0 h-auto w-auto">
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      {approvedReferrals.map((referral) => (
+                        <SelectItem key={referral.id} value={referral.id}>
+                          {referral.referrer.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Order Summary */}
+          <div className="flex flex-col gap-3 w-full">
+            <p className="text-[16px] font-semibold leading-[24px]">
+              Order Summary
+            </p>
+            <div className="flex flex-col gap-5">
+              {cartWithImages.map((cartItem) => (
+                <div
+                  key={cartItem.item.id}
+                  className="flex gap-3 items-start"
+                >
+                  {/* Item Image */}
+                  <div className="h-[95px] w-[118px] rounded-[5px] overflow-hidden relative flex-shrink-0">
+                    {cartItem.item.imageUrl ? (
+                      <img
+                        src={cartItem.item.imageUrl || "/placeholder.svg"}
+                        alt={cartItem.item.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200" />
+                    )}
+                  </div>
+
+                  {/* Item Details */}
+                  <div className="flex flex-col gap-3 flex-1">
+                    <div className="flex flex-col gap-1">
+                      <p className="text-[14px] font-semibold leading-[21px]">
+                        {cartItem.item.name}
+                      </p>
+                      <p className="text-[14px] leading-[21px]">
+                        ${Decimal(cartItem.item.price).toFixed(2)}
+                      </p>
+                    </div>
+
+                    {/* Quantity Controls */}
+                    <div className="border border-[#dddddd] rounded-[4px] flex items-center justify-between gap-2 px-1.5 py-0.5 w-fit">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleQuantityChange(cartItem.item, -1)
+                        }
+                        className="p-0.5 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                      >
+                        <Trash2 className="h-3 w-3 text-[#545454]" />
+                      </button>
+                      <span className="text-[12px] text-[#545454] min-w-[20px] text-center">
+                        {cartItem.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleQuantityChange(cartItem.item, 1)
+                        }
+                        className="p-0.5 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                      >
+                        <Plus className="h-3 w-3 text-[#545454]" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Separator className="bg-[#dddddd]" />
+            <div className="flex items-center justify-between py-3">
+              <span className="text-[18px] font-semibold leading-[27px]">
+                Total
+              </span>
+              <span className="text-[18px] font-semibold leading-[27px]">
+                ${orderTotal}
+              </span>
+            </div>
+          </div>
+
+          {/* Payment Method */}
+          <div className="flex flex-col gap-3 w-full">
+            <p className="text-[16px] font-semibold leading-[24px]">
+              Payment Method
+            </p>
+            <Select
+              value={paymentMethod}
+              onValueChange={(value) =>
+                setPaymentMethod(value as "VENMO" | "OTHER")
+              }
+            >
+              <SelectTrigger className="border-[#dddddd] rounded-[6px] w-full h-auto py-3.5 px-3.5">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-3">
+                    {paymentMethod === "VENMO" ? (
+                      <svg
+                        className="h-7 w-7"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-label="Venmo"
+                        role="img"
+                        viewBox="0 0 512 512"
+                      >
+                        <rect
+                          width="512"
+                          height="512"
+                          rx="15%"
+                          fill="#008CFF"
+                        />
+                        <path
+                          d="m381.4 105.3c11 18.1 15.9 36.7 15.9 60.3 0 75.1-64.1 172.7-116.2 241.2h-118.8l-47.6-285 104.1-9.9 25.3 202.8c23.5-38.4 52.6-98.7 52.6-139.7 0-22.5-3.9-37.8-9.9-50.4z"
+                          fill="#ffffff"
+                        />
+                      </svg>
+                    ) : (
+                      <div className="h-7 w-7 bg-green-600 rounded flex items-center justify-center text-white font-bold text-xs">
+                        $
+                      </div>
+                    )}
+                    <span className="text-base">
+                      {paymentMethod === "VENMO" ? "Venmo" : "Cash In-Person"}
+                    </span>
+                  </div>
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="VENMO">
+                  <div className="flex items-center gap-2">
+                    <svg
+                      className="h-7 w-7"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-label="Venmo"
+                      role="img"
+                      viewBox="0 0 512 512"
+                    >
+                      <rect
+                        width="512"
+                        height="512"
+                        rx="15%"
+                        fill="#008CFF"
+                      />
+                      <path
+                        d="m381.4 105.3c11 18.1 15.9 36.7 15.9 60.3 0 75.1-64.1 172.7-116.2 241.2h-118.8l-47.6-285 104.1-9.9 25.3 202.8c23.5-38.4 52.6-98.7 52.6-139.7 0-22.5-3.9-37.8-9.9-50.4z"
+                        fill="#ffffff"
+                      />
+                    </svg>
+                    <span>Venmo</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="OTHER">
+                  <div className="flex items-center gap-2">
+                    <div className="h-7 w-7 bg-green-600 rounded flex items-center justify-center text-white font-bold text-[10px]">
+                      $
+                    </div>
+                    <span>Cash In-Person</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Pay Button */}
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting || cart.length === 0}
+            className="w-full h-[50px] rounded-[8px] bg-black hover:bg-black/90 text-[#fefdfd] text-[18px] leading-[27px] font-normal"
+          >
+            {isSubmitting ? "Processing..." : "Place Order"}
+          </Button>
+        </div>
+      ) : (
+        /* Desktop Layout */
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          {/* Header with back button */}
+          <div className="flex items-center gap-6 mb-8">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="h-8 w-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <h1 className="text-[32px] font-semibold leading-[48px]">
+              Confirm and pay
+            </h1>
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-[50px] items-start">
           {/* Left Column */}
           <div className="flex-1 flex flex-col gap-[22px] w-full lg:w-auto">
             {/* Pickup Details Card */}
@@ -275,9 +531,14 @@ export function CheckoutForm({
                     value={paymentMethod}
                     onValueChange={(value) => setPaymentMethod(value as "VENMO" | "OTHER")}
                   >
-                    <SelectTrigger className="border-[#dddddd] rounded-[6px] w-[233px]">
+                    <SelectTrigger className="border-[#dddddd] rounded-[6px] w-[233px] h-auto py-2.5">
                       <div className="flex items-center gap-3">
-                        {paymentMethod === "VENMO" ? (
+                        <SelectValue />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="VENMO">
+                        <div className="flex items-center gap-2">
                           <svg
                             className="h-7 w-7"
                             xmlns="http://www.w3.org/2000/svg"
@@ -289,24 +550,24 @@ export function CheckoutForm({
                               width="512"
                               height="512"
                               rx="15%"
-                              fill="#3396cd"
+                              fill="#008CFF"
                             />
                             <path
                               d="m381.4 105.3c11 18.1 15.9 36.7 15.9 60.3 0 75.1-64.1 172.7-116.2 241.2h-118.8l-47.6-285 104.1-9.9 25.3 202.8c23.5-38.4 52.6-98.7 52.6-139.7 0-22.5-3.9-37.8-9.9-50.4z"
                               fill="#ffffff"
                             />
                           </svg>
-                        ) : (
-                          <div className="h-7 w-7 bg-green-600 rounded flex items-center justify-center text-white font-bold text-xs">
+                          <span>Venmo</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="OTHER">
+                        <div className="flex items-center gap-2">
+                          <div className="h-7 w-7 bg-green-600 rounded flex items-center justify-center text-white font-bold text-[10px]">
                             $
                           </div>
-                        )}
-                        <SelectValue />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="VENMO">Venmo</SelectItem>
-                      <SelectItem value="OTHER">Cash In-Person</SelectItem>
+                          <span>Cash In-Person</span>
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -424,7 +685,8 @@ export function CheckoutForm({
             </Card>
           </div>
         </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
