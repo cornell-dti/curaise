@@ -338,7 +338,7 @@ export function CheckoutForm({
                             />
                           </svg>
                         ) : (
-                          <div className="h-7 w-7 bg-gray-500 rounded flex items-center justify-center text-white font-bold text-xs">
+                          <div className="h-7 w-7 bg-green-600 rounded flex items-center justify-center text-white font-bold text-xs">
                             $
                           </div>
                         )}
