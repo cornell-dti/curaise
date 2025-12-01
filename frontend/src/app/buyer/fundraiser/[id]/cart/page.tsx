@@ -110,8 +110,9 @@ export default function CartPage() {
 
   if (loading || !fundraiser || !items || !mounted) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Loading...</p>
+      <div className="flex items-center justify-center min-h-screen" role="status" aria-live="polite">
+        <p className="sr-only">Loading cart items</p>
+        <p aria-hidden="true">Loading...</p>
       </div>
     );
   }
@@ -130,6 +131,7 @@ export default function CartPage() {
           href={`/buyer/fundraiser/${fundraiserId}`}
           className="rounded-full transition-colors flex-shrink-0 flex items-center justify-center p-1"
           style={{ backgroundColor: "rgba(178, 178, 178, 0.21)" }}
+          aria-label="Go back to fundraiser page"
         >
           <ChevronLeft strokeWidth={2} className="h-8 w-8 text-stone-800" />
         </Link>
@@ -170,11 +172,11 @@ export default function CartPage() {
                       {cartItem.item.imageUrl ? (
                         <img
                           src={cartItem.item.imageUrl}
-                          alt={cartItem.item.name}
+                          alt={`${cartItem.item.name} - $${Number(cartItem.item.price).toFixed(2)} from ${fundraiser.name}`}
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gray-200" />
+                        <div className="w-full h-full bg-gray-200" aria-label={`No image available for ${cartItem.item.name}`} />
                       )}
                     </div>
 
@@ -201,15 +203,17 @@ export default function CartPage() {
                               }
                             }}
                             className="p-0.5 rounded-sm hover:bg-gray-100 transition-colors flex-shrink-0 w-3.5 h-3.5 flex items-center justify-center"
+                            aria-label={cartItem.quantity === 1 ? `Remove ${cartItem.item.name} from cart` : `Decrease quantity of ${cartItem.item.name}`}
                           >
                              <Trash className="h-3 w-3 text-[#545454]" />
                           </button>
-                          <p className="text-xs font-normal leading-[18px] text-[#545454] min-w-[5px] text-center">
+                          <p className="text-xs font-normal leading-[18px] text-[#545454] min-w-[5px] text-center" aria-label={`Quantity: ${cartItem.quantity}`}>
                             {cartItem.quantity}
                           </p>
                           <button
                             onClick={() => handleIncrement(cartItem.item)}
                             className="p-0.5 rounded-md hover:bg-gray-100 transition-colors flex-shrink-0 w-4 h-4 flex items-center justify-center"
+                            aria-label={`Increase quantity of ${cartItem.item.name}`}
                           >
                             <Plus className="h-3.5 w-3.5 text-[#545454]" />
                           </button>

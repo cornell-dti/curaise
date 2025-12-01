@@ -178,6 +178,7 @@ export function CheckoutForm({
               href={`/buyer/fundraiser/${fundraiser.id}/cart`}
               className="rounded-full transition-colors flex-shrink-0 flex items-center justify-center p-1 absolute left-0"
               style={{ backgroundColor: "rgba(178, 178, 178, 0.21)" }}
+              aria-label="Go back to cart"
             >
               <ChevronLeft strokeWidth={2} className="h-8 w-8 text-stone-800" />
             </Link>
@@ -201,19 +202,19 @@ export function CheckoutForm({
                     )}
                     <div className="flex flex-col gap-2 py-1">
                       <div className="flex gap-3 items-start">
-                        <Calendar className="h-5 w-5 text-black mt-0.5 flex-shrink-0" />
+                        <Calendar className="h-5 w-5 text-black mt-0.5 flex-shrink-0" aria-hidden="true" />
                         <p className="text-base leading-6">
                           {format(event.startsAt, "EEEE, M/d/yyyy")}
                         </p>
                       </div>
                       <div className="flex gap-3 items-start">
-                        <MapPin className="h-5 w-5 text-black mt-0.5 flex-shrink-0" />
+                        <MapPin className="h-5 w-5 text-black mt-0.5 flex-shrink-0" aria-hidden="true" />
                         <p className="text-base leading-6">
                           {event.location}
                         </p>
                       </div>
                       <div className="flex gap-3 items-start">
-                        <Clock className="h-5 w-5 text-black mt-0.5 flex-shrink-0" />
+                        <Clock className="h-5 w-5 text-black mt-0.5 flex-shrink-0" aria-hidden="true" />
                         <p className="text-base leading-6">
                           {format(event.startsAt, "h:mm a")} -{" "}
                           {format(event.endsAt, "h:mm a")}
@@ -232,9 +233,10 @@ export function CheckoutForm({
                   setReferralSearch("");
                   setIsReferralSheetOpen(true);
                 }}
+                aria-label={`Select referral. Currently: ${selectedReferralName}`}
               >
                 <div className="flex gap-3 items-center text-left">
-                  <User className="h-5 w-5 text-black" />
+                  <User className="h-5 w-5 text-black" aria-hidden="true" />
                   <p className="text-base leading-6">
                     {selectedReferralName}
                   </p>
@@ -262,11 +264,11 @@ export function CheckoutForm({
                     {cartItem.item.imageUrl ? (
                       <img
                         src={cartItem.item.imageUrl || "/placeholder.svg"}
-                        alt={cartItem.item.name}
+                        alt={`${cartItem.item.name} - $${Decimal(cartItem.item.price).toFixed(2)} each, quantity ${cartItem.quantity} from ${fundraiser.name}`}
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gray-200" />
+                      <div className="w-full h-full bg-gray-200" aria-label={`No image available for ${cartItem.item.name}`} />
                     )}
                   </div>
 
@@ -289,10 +291,11 @@ export function CheckoutForm({
                           handleQuantityChange(cartItem.item, -1)
                         }
                         className="p-0.5 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                        aria-label={cartItem.quantity === 1 ? `Remove ${cartItem.item.name} from cart` : `Decrease quantity of ${cartItem.item.name}`}
                       >
                         <Trash2 className="h-3 w-3 text-[#545454]" />
                       </button>
-                      <span className="text-[12px] text-[#545454] min-w-[20px] text-center">
+                      <span className="text-[12px] text-[#545454] min-w-[20px] text-center" aria-label={`Quantity: ${cartItem.quantity}`}>
                         {cartItem.quantity}
                       </span>
                       <button
@@ -301,6 +304,7 @@ export function CheckoutForm({
                           handleQuantityChange(cartItem.item, 1)
                         }
                         className="p-0.5 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                        aria-label={`Increase quantity of ${cartItem.item.name}`}
                       >
                         <Plus className="h-3 w-3 text-[#545454]" />
                       </button>
@@ -405,6 +409,8 @@ export function CheckoutForm({
             onClick={handleSubmit}
             disabled={isSubmitting || cart.length === 0}
             className="w-full h-[50px] rounded-[8px] bg-black hover:bg-black/90 text-[#fefdfd] text-[18px] leading-[27px] font-normal"
+            aria-busy={isSubmitting}
+            aria-label={isSubmitting ? "Processing your order" : "Place order"}
           >
             {isSubmitting ? "Processing..." : "Place Order"}
           </Button>
@@ -426,13 +432,14 @@ export function CheckoutForm({
               <div className="flex flex-col gap-4 flex-1 overflow-y-auto">
                 {/* Search */}
                 <div className="border border-[#dddddd] rounded-[6px] h-10 px-3 flex items-center gap-2">
-                  <Search className="h-4 w-4 text-[#969696]" />
+                  <Search className="h-4 w-4 text-[#969696]" aria-hidden="true" />
                   <input
                     type="text"
                     value={referralSearch}
                     onChange={(e) => setReferralSearch(e.target.value)}
                     placeholder="Search for a name"
                     className="flex-1 bg-transparent text-sm placeholder:text-[#969696] outline-none"
+                    aria-label="Search for a referrer by name"
                   />
                 </div>
 
@@ -474,8 +481,9 @@ export function CheckoutForm({
                                 onClick={() => {
                                   setPendingReferralId(referral.id);
                                 }}
+                                aria-label={`Select verified referrer ${referral.referrer.name}${pendingReferralId === referral.id ? " (currently selected)" : ""}`}
                               >
-                                <ShieldCheck className="h-5 w-5 text-black" />
+                                <ShieldCheck className="h-5 w-5 text-black" aria-hidden="true" />
                                 <span className="text-[14px] leading-[21px]">
                                   {referral.referrer.name}
                                 </span>
@@ -504,8 +512,9 @@ export function CheckoutForm({
                                 onClick={() => {
                                   setPendingReferralId(referral.id);
                                 }}
+                                aria-label={`Select unverified referrer ${referral.referrer.name}${pendingReferralId === referral.id ? " (currently selected)" : ""}`}
                               >
-                                <ShieldAlert className="h-5 w-5 text-black" />
+                                <ShieldAlert className="h-5 w-5 text-black" aria-hidden="true" />
                                 <span className="text-[14px] leading-[21px]">
                                   {referral.referrer.name}
                                 </span>
@@ -548,6 +557,7 @@ export function CheckoutForm({
               onClick={() => router.back()}
               className="rounded-full transition-colors flex-shrink-0 flex items-center justify-center p-1"
               style={{ backgroundColor: "rgba(178, 178, 178, 0.21)" }}
+              aria-label="Go back"
             >
               <ChevronLeft strokeWidth={2} className="h-8 w-8 text-stone-800" />
             </button>
@@ -580,19 +590,19 @@ export function CheckoutForm({
                               )}
                               <div className="flex flex-col gap-2">
                                 <div className="flex gap-3 items-start">
-                                  <Calendar className="h-5 w-5 text-black mt-0.5" />
+                                  <Calendar className="h-5 w-5 text-black mt-0.5" aria-hidden="true" />
                                   <p className="text-base leading-6">
                                     {format(event.startsAt, "EEEE, M/d/yyyy")}
                                   </p>
                                 </div>
                                 <div className="flex gap-3 items-start">
-                                  <MapPin className="h-5 w-5 text-black mt-0.5" />
+                                  <MapPin className="h-5 w-5 text-black mt-0.5" aria-hidden="true" />
                                   <p className="text-base leading-6">
                                     {event.location}
                                   </p>
                                 </div>
                                 <div className="flex gap-3 items-start">
-                                  <Clock className="h-5 w-5 text-black mt-0.5" />
+                                  <Clock className="h-5 w-5 text-black mt-0.5" aria-hidden="true" />
                                   <p className="text-base leading-6">
                                     {format(event.startsAt, "h:mm a")} -{" "}
                                     {format(event.endsAt, "h:mm a")}
@@ -616,7 +626,7 @@ export function CheckoutForm({
                         >
                           <SelectTrigger className="border-[#dddddd] rounded-[6px] h-auto py-2">
                             <div className="flex items-center gap-3 w-full">
-                              <ShieldCheck className="h-5 w-5 text-black" />
+                              <ShieldCheck className="h-5 w-5 text-black" aria-hidden="true" />
                               <SelectValue placeholder="Select a referrer" />
                             </div>
                           </SelectTrigger>
@@ -699,6 +709,8 @@ export function CheckoutForm({
                       onClick={handleSubmit}
                       disabled={isSubmitting || cart.length === 0}
                       className="flex items-center gap-2 font-normal text-[18px] leading-[27px] px-8 py-3 text-md h-[50px] rounded-[8px] bg-black hover:bg-black/90 text-white"
+                      aria-busy={isSubmitting}
+                      aria-label={isSubmitting ? "Processing your order" : "Place order"}
                     >
                       {isSubmitting ? "Processing..." : "Place Order"}
                     </Button>
@@ -741,11 +753,11 @@ export function CheckoutForm({
                             {cartItem.item.imageUrl ? (
                               <img
                                 src={cartItem.item.imageUrl || "/placeholder.svg"}
-                                alt={cartItem.item.name}
+                                alt={`${cartItem.item.name} - $${Decimal(cartItem.item.price).toFixed(2)} each, quantity ${cartItem.quantity} from ${fundraiser.name}`}
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <div className="w-full h-full bg-gray-200" />
+                              <div className="w-full h-full bg-gray-200" aria-label={`No image available for ${cartItem.item.name}`} />
                             )}
                           </div>
 
@@ -768,10 +780,11 @@ export function CheckoutForm({
                                   handleQuantityChange(cartItem.item, -1)
                                 }
                                 className="p-0.5 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                                aria-label={cartItem.quantity === 1 ? `Remove ${cartItem.item.name} from cart` : `Decrease quantity of ${cartItem.item.name}`}
                               >
                                 <Trash2 className="h-3.5 w-3.5 text-[#545454]" />
                               </button>
-                              <span className="text-base text-[#545454] min-w-[20px] text-center">
+                              <span className="text-base text-[#545454] min-w-[20px] text-center" aria-label={`Quantity: ${cartItem.quantity}`}>
                                 {cartItem.quantity}
                               </span>
                               <button
@@ -780,6 +793,7 @@ export function CheckoutForm({
                                   handleQuantityChange(cartItem.item, 1)
                                 }
                                 className="p-0.5 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                                aria-label={`Increase quantity of ${cartItem.item.name}`}
                               >
                                 <Plus className="h-3.5 w-3.5 text-[#545454]" />
                               </button>
