@@ -226,11 +226,12 @@ export default async function OrderPage({
                   <summary className="cursor-pointer hover:text-foreground">
                     Link not working?
                   </summary>
-                  <div className="mt-2 pl-4 border-l-2 border-muted space-y-3">
+                  <div className="mt-2 pl-4 border-l-2 border-muted space-y-2">
                     <p className="mb-1 text-sm">
                       Manual entry details (enter exactly as shown, or the order may not be processed correctly):
                     </p>
-                    <p className="mb-1 text-sm">Send to Venmo username:</p>
+
+                    <p className="text-sm">Send to Venmo username:</p>
                     <div className="flex items-center gap-2">
                       <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
                         @{fundraiser.venmoUsername}
@@ -238,24 +239,20 @@ export default async function OrderPage({
                       <CopyButton text={`${fundraiser.venmoUsername}`} />
                     </div>
 
-                    <div>
-                      <p className="mb-1 text-sm">Amount to send:</p>
-                      <div className="flex items-center gap-2">
-                        <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
-                          ${orderTotal}
-                        </code>
-                        <CopyButton text={orderTotal} />
-                      </div>
+                    <p className="text-sm">Amount to send:</p>
+                    <div className="flex items-center gap-2">
+                      <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
+                        ${orderTotal}
+                      </code>
+                      <CopyButton text={orderTotal} />
                     </div>
 
-                    <div>
-                      <p className="mb-1 text-sm">Send this exact order ID as your Venmo message:</p>
-                      <div className="flex items-center gap-2">
-                        <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
-                          {orderIdForPayment}
-                        </code>
-                        <CopyButton text={orderIdForPayment} />
-                      </div>
+                    <p className="text-sm">Send this exact order ID as your Venmo message:</p>
+                    <div className="flex items-center gap-2">
+                      <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
+                        {orderIdForPayment}
+                      </code>
+                      <CopyButton text={orderIdForPayment} />
                     </div>
                   </div>
                 </details>
