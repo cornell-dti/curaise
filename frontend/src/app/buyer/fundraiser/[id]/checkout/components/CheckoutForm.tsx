@@ -54,7 +54,6 @@ export function CheckoutForm({
   const [items, setItems] = useState<z.infer<typeof CompleteItemSchema>[] | null>(null);
   const [selectedReferralId, setSelectedReferralId] = useState<string>("none");
   const [paymentMethod, setPaymentMethod] = useState<"VENMO" | "OTHER">("VENMO");
-  const [showVenmoDetails, setShowVenmoDetails] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch items to get latest imageUrl
@@ -311,92 +310,13 @@ export function CheckoutForm({
                     </SelectContent>
                   </Select>
 
-                  {/* Venmo link not working toggle - only show for Venmo payment */}
-                  {paymentMethod === "VENMO" && (
-                    <div className="flex flex-col gap-4">
-                      <button
-                        type="button"
-                        onClick={() => setShowVenmoDetails(!showVenmoDetails)}
-                        className="flex items-center gap-2 text-[#545454] text-base hover:text-black transition-colors"
-                      >
-                        <span>Venmo link not working?</span>
-                        <ChevronDown
-                          className={`h-4 w-4 transition-transform ${
-                            showVenmoDetails ? "rotate-180" : ""
-                          }`}
-                        />
-                      </button>
-
-                      {showVenmoDetails && (
-                        <div className="flex flex-col gap-4">
-                        <p className="text-base leading-6">
-                          Manual entry details (enter exactly as shown, or the order may not be processed correctly):
-                        </p>
-                        {fundraiser.venmoUsername && (
-                          <div>
-                            <p className="mb-1 text-base">Send to Venmo username:</p>
-                            <div className="flex items-center gap-2">
-                              <div className="bg-[#f6f6f6] flex items-center gap-2.5 h-[34px] px-2.5 py-2.5 rounded-[6px]">
-                                <span className="text-[#1e1c1c] text-base">
-                                  @{fundraiser.venmoUsername}
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    copyToClipboard(fundraiser.venmoUsername!, "Venmo username")
-                                  }
-                                  className="hover:opacity-70 transition-opacity"
-                                >
-                                  <Copy className="h-5 w-5 text-[#1e1c1c]" />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        <div>
-                          <p className="mb-1 text-base">Amount to send:</p>
-                          <div className="flex items-center gap-2">
-                            <div className="bg-[#f6f6f6] flex items-center gap-2.5 h-[34px] px-2.5 py-2.5 rounded-[6px]">
-                              <span className="text-[#1e1c1c] text-base">
-                                ${orderTotal}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  copyToClipboard(orderTotal, "Amount")
-                                }
-                                className="hover:opacity-70 transition-opacity"
-                              >
-                                <Copy className="h-5 w-5 text-[#1e1c1c]" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                        <div>
-                          <p className="mb-1 text-base">Send this exact order ID as your Venmo message:</p>
-                          <div className="flex items-center gap-2">
-                            <div className="bg-[#f6f6f6] flex items-center gap-2.5 h-[34px] px-2.5 py-2.5 rounded-[6px]">
-                              <span className="text-[#1e1c1c] text-sm">
-                                Order ID will be provided after order creation
-                              </span>
-                            </div>
-                          </div>
-                          <p className="mt-2 text-sm text-muted-foreground">
-                            Note: The order ID will be available on the order confirmation page after you create the order.
-                          </p>
-                        </div>
-                      </div>
-                      )}
-                    </div>
-                  )}
-
                   {/* Pay Button */}
                   <div className="flex justify-center">
                     <Button
                       size="lg"
                       onClick={handleSubmit}
                       disabled={isSubmitting || cart.length === 0}
-                      className="flex items-center gap-2 font-semibold px-8 py-3 text-md h-[50px] rounded-[8px] bg-black hover:bg-black/90 text-white"
+                      className="flex items-center gap-2 font-normal text-[18px] leading-[27px] px-8 py-3 text-md h-[50px] rounded-[8px] bg-black hover:bg-black/90 text-white"
                     >
                       {isSubmitting ? "Processing..." : "Place Order"}
                     </Button>
