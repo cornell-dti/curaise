@@ -6,7 +6,7 @@ import { ChevronLeft, Plus, Trash } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { useCartStore } from "@/lib/store/useCartStore";
-import useStore from "@/lib/store/useStore";
+import { useShallow } from "zustand/react/shallow";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
@@ -58,26 +58,9 @@ export default function CartPage() {
     }
   }, [mounted, isMobile, fundraiserId, router]);
 
-  const cart =
-    useStore(useCartStore, (state) => state.carts[fundraiserId] || []) || [];
-  
-  // TODO: Cart page produces the following error when refreshed; Need to fix this:
-
-  // The result of getServerSnapshot should be cached to avoid an infinite loop
-
-  // Source
-  // frontend/src/lib/store/useStore.ts (8:18) @ useStore
-
-  //    6 |   callback: (state: T) => F
-  //    7 | ) => {
-  // >  8 |   const result = store(callback) as F;
-  //      |                  ^
-  //    9 |   const [data, setData] = useState<F>();
-  //   10 |
-  //   11 |   useEffect(() => {
-  // CartPage
-  // frontend/src/app/buyer/fundraiser/[id]/cart/page.tsx
-
+  const cart = useCartStore(
+    useShallow((state) => state.carts[fundraiserId] || [])
+  );
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
 
