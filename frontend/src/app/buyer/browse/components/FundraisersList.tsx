@@ -84,7 +84,7 @@ export function FundraisersList({
 
 				<div className="flex flex-col gap-2 md:gap-5 w-full max-w-[479px]">
 					{/* Category Filters - Horizontal scroll on mobile */}
-					<div className="flex gap-3 items-center overflow-x-auto md:overflow-x-visible -mt-8 md:mt-0 pb-4i pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+					<div className="flex gap-3 items-center overflow-x-auto md:overflow-x-visible -mt-8 md:mt-0 pb-4 pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
 						{categories.map((cat) => {
 							const Icon = cat.icon;
 							const isActive = category === cat.id;
