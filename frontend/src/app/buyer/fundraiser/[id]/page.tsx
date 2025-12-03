@@ -7,10 +7,8 @@ import { FundraiserGallerySlider } from "@/app/buyer/fundraiser/[id]/components/
 import { FundraiserAnnouncementPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserAnnouncementPanel";
 import { UnpublishedFundraiser } from "@/app/buyer/fundraiser/[id]/components/UnpublishedFundraiser";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { FundraiserReferralCard } from "./components/FundraiserReferralCard";
 import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
 
 const getFundraiser = async (id: string) => {
   const response = await fetch(
@@ -50,22 +48,12 @@ export default async function FundraiserPage({
   searchParams: Promise<{ preview?: string }>;
 }) {
   await connection();
+
   const supabase = await createClient();
-  const {
-    data: { user },
-    error: error1,
-  } = await supabase.auth.getUser();
-  if (error1 || !user) {
-    redirect("/login");
-  }
 
   const {
     data: { session },
-    error: error2,
   } = await supabase.auth.getSession();
-  if (error2 || !session?.access_token) {
-    throw new Error("Session invalid");
-  }
 
   const id = (await params).id;
   const { preview } = await searchParams;
@@ -85,13 +73,15 @@ export default async function FundraiserPage({
       <div className="flex flex-col items-start w-full space-y-2">
         <h1 className="text-3xl font-bold my-2">{fundraiser.name}</h1>
         <p className="text-gray-600 mb-4">{fundraiser.description}</p>
-        <div className="w-full">
+
+        {session && (
           <FundraiserReferralCard
             token={session.access_token}
             fundraiser={fundraiser}
-            userId={user.id}
+            userId={session.user.id}
           />
-        </div>
+        )}
+
         <Card className="w-full">
           <CardContent className="pt-6">
             <div className="flex items-start gap-2">
@@ -144,6 +134,7 @@ export default async function FundraiserPage({
       </div>
 
       <FundraiserAnnouncementPanel announcements={fundraiser.announcements} />
+
       <FundraiserItemsPanel
         fundraiserId={fundraiser.id}
         items={fundraiserItems}
