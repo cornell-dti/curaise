@@ -14,8 +14,7 @@ import { EditFundraiserModal } from "./EditFundraiserModal";
 import Checklist from "./Checklist";
 import { z } from "zod";
 import { toast } from "sonner";
-import { ReferralApprovalModal } from "./ReferralApprovalModal";
-import { Badge } from "@/components/ui/badge";
+import { ReferralApprovalModal, ReferralButton } from "./ReferralApprovalModal";
 
 export function FundraiserHeader({
   token,
@@ -28,12 +27,6 @@ export function FundraiserHeader({
 }) {
   const [openEdit, setOpenEdit] = useState(false);
   const [openReferral, setOpenReferral] = useState(false);
-  const [pending, setPending] = useState(
-    fundraiser.referrals.filter((ref) => !ref.approved).length
-  );
-  const openPendingAt = (total: number) => {
-    setPending(total);
-  };
   const [step, setStep] = useState(0);
   const openStepAt = (step: number) => {
     setStep(step);
@@ -95,8 +88,8 @@ export function FundraiserHeader({
         token={token}
         open={openReferral}
         setOpen={setOpenReferral}
-        onAction={openPendingAt}
       />
+
       <div className="w-[90%] max-w-[1190px]">
         <div className="w-full flex justify-between">
           <h1 className="text-[32px] font-semibold">{fundraiser.name}</h1>
@@ -117,22 +110,10 @@ export function FundraiserHeader({
                 Edit
               </Button>
             </div>
-            <div className="relative inline-flex">
-              <Button
-                onClick={() => setOpenReferral(true)}
-                className="w-[170px] bg-[#265B34] text-white hover:bg-[#1f4a2b]"
-              >
-                Approve Referrers
-              </Button>
-              {pending > 0 && (
-                <Badge
-                  variant="destructive"
-                  className="bg-[#f74545] absolute -top-2 -right-2 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] leading-none"
-                >
-                  {pending}
-                </Badge>
-              )}
-            </div>
+            <ReferralButton
+              fundraiser={fundraiser}
+              onClick={() => setOpenReferral(true)}
+            />
           </div>
         </div>
         <div className="-mt-6 flex flex-col gap-2 min-w-[80vw]">
