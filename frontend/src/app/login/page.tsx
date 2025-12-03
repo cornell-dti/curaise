@@ -1,12 +1,13 @@
 import { AutoGoogleLogin } from "@/components/auth/AutoGoogleLogin";
 import { SignInWithGoogleButton } from "../../components/auth/SignInWithGoogleButton";
 
-export default function LoginPage({
+export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: { next?: string };
+  searchParams: Promise<{ next?: string }>;
 }) {
-  const next = searchParams.next ?? "/buyer";
+  const params = await searchParams;
+  const next = params.next ?? "/buyer";
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
