@@ -91,7 +91,7 @@ export function OrderActionButtons({ order }: OrderActionButtonsProps) {
 
   const isPaymentPending = order.paymentStatus !== "CONFIRMED";
   const isPickupPending = !order.pickedUp;
-  const shouldShowConfirmPayment = isPaymentPending && order.paymentMethod === "OTHER";
+  const shouldShowConfirmPayment = isPaymentPending;
   const hasButtons = shouldShowConfirmPayment || isPickupPending;
 
   return (
@@ -100,7 +100,7 @@ export function OrderActionButtons({ order }: OrderActionButtonsProps) {
         <Button
           onClick={handleConfirmPayment}
           disabled={isConfirmingPayment}
-          className="gap-2 flex-1"
+          className="gap-2 w-full sm:w-auto"
           variant="default"
         >
           <DollarSign className="h-4 w-4" />
@@ -111,7 +111,7 @@ export function OrderActionButtons({ order }: OrderActionButtonsProps) {
         <Button
           onClick={handleCompletePickup}
           disabled={isCompletingPickup || isPaymentPending}
-          className="gap-2 flex-1"
+          className="gap-2 w-full sm:w-auto"
           variant="default"
         >
           <CheckCircle2 className="h-4 w-4" />
@@ -119,7 +119,7 @@ export function OrderActionButtons({ order }: OrderActionButtonsProps) {
         </Button>
       )}
       {!isPaymentPending && !isPickupPending && (
-        <p className="text-foreground text-md text-center">
+        <p className="text-foreground font-medium text-md text-center">
           This order is complete. Payment has been confirmed and the order has
           been picked up.
         </p>

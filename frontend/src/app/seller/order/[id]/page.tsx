@@ -85,6 +85,11 @@ export default async function OrderPage({
       return "border-green-500";
     }
 
+    // If payment is pending or unverifiable but order is picked up, use yellow
+    if ((order.paymentStatus === "PENDING" || order.paymentStatus === "UNVERIFIABLE") && order.pickedUp) {
+      return "border-yellow-500";
+    }
+
     // Check pickup events
     const pickupEvents = order.fundraiser.pickupEvents;
     if (pickupEvents.length > 0) {
