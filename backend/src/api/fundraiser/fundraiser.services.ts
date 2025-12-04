@@ -631,7 +631,8 @@ export const updateCacheForOrderPickup = async (
         price: number | any;
       };
     }>;
-  }
+  },
+  paymentStatus: string
 ) => {
   const cacheKey = `fundraiser_analytics_${fundraiserId}`;
   try {
@@ -653,15 +654,20 @@ export const updateCacheForOrderPickup = async (
 
     // Update counters
     analytics.orders_picked_up++;
-    analytics.pending_orders--;
-    analytics.total_revenue += orderTotal;
-    analytics.profit =
-      Math.round(analytics.total_revenue * PROFIT_MARGIN * 100) / 100;
 
-    // Update revenue data by date
-    const dateKey = order.createdAt.toISOString().split("T")[0];
-    analytics.revenue_data[dateKey] =
-      (analytics.revenue_data[dateKey] || 0) + orderTotal;
+    // Only update revenue and pending count if order was not already CONFIRMED
+    // CONFIRMED orders already had their revenue counted when payment was confirmed
+    if (paymentStatus !== "CONFIRMED") {
+      analytics.pending_orders--;
+      analytics.total_revenue += orderTotal;
+      analytics.profit =
+        Math.round(analytics.total_revenue * PROFIT_MARGIN * 100) / 100;
+
+      // Update revenue data by date
+      const dateKey = order.createdAt.toISOString().split("T")[0];
+      analytics.revenue_data[dateKey] =
+        (analytics.revenue_data[dateKey] || 0) + orderTotal;
+    }
 
     // Save updated analytics back to cache
     await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 7200 });
