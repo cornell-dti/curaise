@@ -42,7 +42,19 @@ export const getOrder = async (orderId: string) => {
         },
       },
       items: {
-        select: { quantity: true, item: true },
+        select: {
+          quantity: true,
+          item: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              price: true,
+              imageUrl: true,
+              offsale: true,
+            },
+          },
+        },
       },
       referral: {
         include: {
@@ -152,7 +164,19 @@ export const completeOrderPickup = async (orderId: string) => {
         },
       },
       items: {
-        select: { quantity: true, item: true },
+        select: {
+          quantity: true,
+          item: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              price: true,
+              imageUrl: true,
+              offsale: true,
+            },
+          },
+        },
       },
       referral: {
         include: {
