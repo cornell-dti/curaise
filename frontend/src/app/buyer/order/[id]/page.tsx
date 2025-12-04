@@ -430,7 +430,7 @@ export default async function OrderPage({
       </div>
 
       {/* Floating QR Code Button - Mobile only */}
-      <div className="md:hidden fixed bottom-20 right-6 z-40">
+      <div className="md:hidden fixed bottom-20 right-4 z-40">
         <OrderQRCodeDialog orderId={order.id} variant="floating" />
       </div>
     </div>

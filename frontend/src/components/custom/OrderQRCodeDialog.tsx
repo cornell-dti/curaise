@@ -26,10 +26,10 @@ export function OrderQRCodeDialog({ orderId, variant = "default" }: OrderQRCodeD
       <DialogTrigger asChild>
         {variant === "floating" ? (
           <Button
-            className="rounded-xl shadow-md bg-white hover:bg-gray-100 p-0.5 flex items-center justify-center border-2 border-primary"
+            className="rounded-xl shadow-md bg-transparent hover:bg-gray-100 p-0 flex items-center justify-center border-2 border-primary"
             style={{ width: '64px', height: '64px' }}
           >
-            <QRCodeSVG value={sellerOrderUrl} size={60} level="H" />
+            <QrCode className="text-black" style={{ width: '48px', height: '48px' }} />
           </Button>
         ) : (
           <Button variant="outline" size="lg" className="gap-2 text-base px-6 py-3">
