@@ -14,6 +14,7 @@ import { EditFundraiserModal } from "./EditFundraiserModal";
 import Checklist from "./Checklist";
 import { z } from "zod";
 import { toast } from "sonner";
+import { ReferralApprovalModal, ReferralButton } from "./ReferralApprovalModal";
 
 export function FundraiserHeader({
 	token,
@@ -25,8 +26,9 @@ export function FundraiserHeader({
 	fundraiserItems: z.infer<typeof CompleteItemSchema>[];
 }) {
 	const [openEdit, setOpenEdit] = useState(false);
+	const [openReferral, setOpenReferral] = useState(false);
 	const [step, setStep] = useState(0);
-	const openModalAt = (step: number) => {
+	const openStepAt = (step: number) => {
 		setStep(step);
 		setOpenEdit(true);
 	};
@@ -81,71 +83,84 @@ export function FundraiserHeader({
 				step={step}
 				setStep={setStep}
 			/>
-			<div className="flex items-start justify-between">
-				<div>
-					<h1 className="text-3xl font-semibold mb-3">{fundraiser.name}</h1>
-					<div className="flex flex-col gap-1 text-sm">
-						{Object.entries(eventsByDay).map(([dateKey, events]) => {
-							const displayDate = format(events[0].startsAt, "EEEE, M/d/yyyy");
+			<ReferralApprovalModal
+				fundraiser={fundraiser}
+				token={token}
+				open={openReferral}
+				setOpen={setOpenReferral}
+			/>
 
-							return (
-								<div key={dateKey} className="flex items-center gap-6">
-									<div className="flex items-center gap-2">
-										<Calendar className="w-4 h-4" />
-										<span>{displayDate}</span>
-									</div>
+			<div>
+				<div className="w-full flex justify-between">
+					<h1 className="text-[32px] font-semibold">{fundraiser.name}</h1>
+					<div className="flex flex-col gap-3 items-end">
+						<div className="flex gap-4">
+							<Link href={`/buyer/fundraiser/${fundraiser.id}?preview=true`}>
+								<Button className="w-[100px] bg-[#265B34] text-white hover:bg-[#1f4a2b]">
+									Preview
+								</Button>
+							</Link>
+							<Button
+								onClick={() => {
+									setStep(0);
+									setOpenEdit(true);
+								}}
+								className="w-[100px] text-[#265B34] border border-current bg-transparent hover:bg-[#e6f0ea]">
+								Edit
+							</Button>
+						</div>
+						<ReferralButton
+							fundraiser={fundraiser}
+							onClick={() => setOpenReferral(true)}
+						/>
+					</div>
+				</div>
+				<div className="-mt-6 flex flex-col gap-2 min-w-[80vw]">
+					{Object.entries(eventsByDay).map(([dateKey, events]) => {
+						// Get the first event's date to format the day header
+						const displayDate = format(events[0].startsAt, "EEEE, M/d/yyyy");
+
+						return (
+							<div
+								key={dateKey}
+								className="text-[16px] flex items-center gap-12 min-w-[80vw]">
+								<span className="flex gap-2 items-center">
+									<Calendar className="h-4" /> {displayDate}
+								</span>
+								<div>
 									{events.map((event) => (
 										<div key={event.id} className="flex items-center gap-2">
-											<MapPin className="w-4 h-4" />
-											<span>
-												{event.location}, {format(event.startsAt, "h:mm a")} to{" "}
-												{format(event.endsAt, "h:mm a")}
-											</span>
+											<MapPin className="h-5" />
+											{event.location}, {format(event.startsAt, "h:mm aa")} to{" "}
+											{format(event.endsAt, "h:mm aa")}
 										</div>
 									))}
 								</div>
-							);
-						})}
-					</div>
+							</div>
+						);
+					})}
 				</div>
-				{fundraiser.published && (
-					<div className="flex gap-2">
-						<Link href={`/buyer/fundraiser/${fundraiser.id}?preview=true`}>
-							<Button className="bg-[#265B34] text-white hover:bg-[#1f4a2b]">
-								Preview
-							</Button>
-						</Link>
-						<Button
-							onClick={() => {
-								setStep(0);
-								setOpenEdit(true);
-							}}
-							className="text-[#265B34] border border-current bg-transparent hover:bg-[#e6f0ea]">
-							Edit
-						</Button>
+
+				{!fundraiser.published && (
+					<div className="mt-6 flex flex-col gap-3">
+						<h3 className="font-semibold text-[20px]">
+							Finish Setting Up Your Fundraiser
+						</h3>
+						<p className="text-muted-foreground">
+							Once you finished all the required fields in the form, can buyers
+							start purchasing from your fundraiser. However, once you publish,
+							you will NOT be able to change majority of the fields.{" "}
+						</p>
+
+						<Checklist
+							fundraiser={fundraiser}
+							fundraiserItems={fundraiserItems}
+							onAction={openStepAt}
+							publish={onPublish}
+						/>
 					</div>
 				)}
 			</div>
-
-			{!fundraiser.published && (
-				<div className="mt-6 flex flex-col gap-3">
-					<h3 className="font-semibold text-[20px]">
-						Finish Setting Up Your Fundraiser
-					</h3>
-					<p className="text-muted-foreground">
-						Once you finished all the required fields in the form, can buyers
-						start purchasing from your fundraiser. However, once you publish,
-						you will NOT be able to change majority of the fields.{" "}
-					</p>
-
-					<Checklist
-						fundraiser={fundraiser}
-						fundraiserItems={fundraiserItems}
-						onAction={openModalAt}
-						publish={onPublish}
-					/>
-				</div>
-			)}
 		</div>
 	);
 }
