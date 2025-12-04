@@ -12,6 +12,7 @@ export const config = {
     "/buyer",
     "/buyer/order/:path*",
     "/buyer/account",
+    "/account",
     "/seller/:path*",
   ],
 };
