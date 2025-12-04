@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { QrCode } from "lucide-react";
+import { CopyButton } from "@/components/custom/CopyButton";
 
 interface OrderQRCodeDialogProps {
   orderId: string;
@@ -43,7 +44,10 @@ export function OrderQRCodeDialog({ orderId, variant = "default" }: OrderQRCodeD
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Order Pickup QR Code</DialogTitle>
+          <div className="flex items-center gap-2">
+            <DialogTitle>Order Pickup QR Code</DialogTitle>
+            <CopyButton text={sellerOrderUrl} />
+          </div>
           <DialogDescription>
             Show this QR code to the seller at pickup
           </DialogDescription>
