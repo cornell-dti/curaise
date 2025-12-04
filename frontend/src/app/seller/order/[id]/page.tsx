@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { CompleteOrderSchema } from "common";
 import Decimal from "decimal.js";
-import { format, isFuture, isPast } from "date-fns";
+import { format, isPast } from "date-fns";
 import {
   Card,
   CardContent,

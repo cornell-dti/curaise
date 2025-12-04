@@ -41,13 +41,15 @@ export function OrderActionButtons({ order }: OrderActionButtonsProps) {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to confirm payment");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to confirm payment");
       }
 
       toast.success("Payment confirmed successfully");
       router.refresh();
     } catch (error) {
-      toast.error("Failed to confirm payment");
+      const errorMessage = error instanceof Error ? error.message : "Failed to confirm payment";
+      toast.error(errorMessage);
       console.error(error);
     } finally {
       setIsConfirmingPayment(false);
@@ -76,13 +78,15 @@ export function OrderActionButtons({ order }: OrderActionButtonsProps) {
       );
 
       if (!response.ok) {
-        throw new Error("Failed to mark order as picked up");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to mark order as picked up");
       }
 
       toast.success("Order marked as picked up");
       router.refresh();
     } catch (error) {
-      toast.error("Failed to mark order as picked up");
+      const errorMessage = error instanceof Error ? error.message : "Failed to mark order as picked up";
+      toast.error(errorMessage);
       console.error(error);
     } finally {
       setIsCompletingPickup(false);
