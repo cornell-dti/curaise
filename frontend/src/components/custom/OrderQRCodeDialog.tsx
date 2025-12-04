@@ -40,11 +40,11 @@ export function OrderQRCodeDialog({ orderId, variant = "default" }: OrderQRCodeD
         )}
       </DialogTrigger>
       <DialogContent 
-        className="sm:max-w-md rounded-lg"
+        className="sm:max-w-md rounded-lg items-center"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2 justify-center items-center w-full">
             <DialogTitle>Order Pickup QR Code</DialogTitle>
             <CopyButton text={sellerOrderUrl} />
           </div>
