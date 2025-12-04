@@ -183,7 +183,7 @@ export default async function OrderPage({
         </div>
       </div>
 
-      <div className="grid gap-6">
+      <div className="flex flex-col gap-6">
         {/* Payment Banner */}
         <Card className={`${bannerStyle.borderColor}`}>
           <CardHeader className="py-6">
@@ -286,7 +286,7 @@ export default async function OrderPage({
         </Card>
 
         {/* Two-column grid layout */}
-        <div className="grid gap-6 md:grid-cols-[2fr_1fr]">
+        <div className="order-2 md:order-1 grid gap-6 md:grid-cols-[2fr_1fr]">
           {/* Left Column: Order Summary */}
           <Card>
             <CardHeader>
@@ -412,17 +412,19 @@ export default async function OrderPage({
         </div>
 
         {/* Venmo QR Code Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Venmo QR Code</CardTitle>
-            <CardDescription>
-              Show this to DTI at pick up to get your order.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <OrderQRCodeDisplay orderId={order.id} />
-          </CardContent>
-        </Card>
+        <div className="order-1 md:order-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Venmo QR Code</CardTitle>
+              <CardDescription>
+                Show this to DTI at pick up to get your order.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <OrderQRCodeDisplay orderId={order.id} />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
