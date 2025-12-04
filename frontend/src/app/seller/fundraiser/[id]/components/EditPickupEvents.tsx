@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PickupEventSchema, CreatePickupEventBody } from "common";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useState, useEffect } from "react";
 import { z } from "zod";
 import { PlusCircle, X, MapPin, Pencil } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -71,11 +71,17 @@ const DEFAULT_EVENT_VALUES = {
 	...getDefaultPickupEventDates(),
 };
 
+// Types for tracking pending changes when editing published fundraisers
+export type PendingPickupEventChanges = {
+	created: { tempId: string; data: z.infer<typeof CreatePickupEventBody> }[];
+	updated: { id: string; data: z.infer<typeof CreatePickupEventBody> }[];
+	deleted: string[];
+};
+
 export function EditPickupEventsForm({
-	token,
-	fundraiserId,
 	events,
 	setEvents,
+	onPendingChanges,
 	onSubmit,
 	onBack,
 	onSave,
@@ -84,10 +90,18 @@ export function EditPickupEventsForm({
 	fundraiserId: string;
 	events: z.infer<typeof PickupEventSchema>[];
 	setEvents: Dispatch<SetStateAction<z.infer<typeof PickupEventSchema>[]>>;
+	onPendingChanges?: (changes: PendingPickupEventChanges) => void;
 	onSubmit: () => void;
 	onBack: () => void;
 	onSave: () => void;
 }) {
+	// Track pending changes for published fundraisers
+	const [pendingChanges, setPendingChanges] =
+		useState<PendingPickupEventChanges>({
+			created: [],
+			updated: [],
+			deleted: [],
+		});
 	const [open, setOpen] = useState(false);
 	const [mode, setMode] = useState<"add" | "edit">("add");
 	const [editingEvent, setEditingEvent] = useState<z.infer<
@@ -118,110 +132,71 @@ export function EditPickupEventsForm({
 		setOpen(true);
 	};
 
-	const createPickupEvent = async (
-		data: z.infer<typeof CreatePickupEventBody>
-	) => {
-		const response = await fetch(
-			`${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/pickup-events/create`,
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: "Bearer " + token,
-				},
-				body: JSON.stringify(data),
-			}
-		);
-
-		const result = await response.json();
-
-		if (!response.ok) {
-			return {
-				success: false as const,
-				error: result.message || "Failed to create pickup event",
-			};
+	// Notify when there are pending pickup event changes
+	useEffect(() => {
+		if (onPendingChanges) {
+			onPendingChanges(pendingChanges);
 		}
-
-		return { success: true as const, data: result.data };
-	};
-
-	const updatePickupEvent = async (
-		eventId: string,
-		data: z.infer<typeof CreatePickupEventBody>
-	) => {
-		const response = await fetch(
-			`${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/pickup-events/${eventId}/update`,
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: "Bearer " + token,
-				},
-				body: JSON.stringify(data),
-			}
-		);
-
-		const result = await response.json();
-
-		if (!response.ok) {
-			return {
-				success: false as const,
-				error: result.message || "Failed to update pickup event",
-			};
-		}
-
-		return { success: true as const, data: result.data };
-	};
-
-	const deletePickupEvent = async (eventId: string) => {
-		const response = await fetch(
-			`${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/pickup-events/${eventId}/delete`,
-			{
-				method: "DELETE",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: "Bearer " + token,
-				},
-			}
-		);
-
-		const result = await response.json();
-
-		if (!response.ok) {
-			return {
-				success: false as const,
-				error: result.message || "Failed to delete pickup event",
-			};
-		}
-
-		return { success: true as const, data: result.data };
-	};
+	}, [onPendingChanges, pendingChanges]);
 
 	const handleFormSubmit = async (
 		data: z.infer<typeof CreatePickupEventBody>
 	) => {
 		setIsSubmitting(true);
 
+		// Always store changes locally (not to database yet)
+
+		// If we are add a new pickup event
 		if (mode === "add") {
-			const result = await createPickupEvent(data);
-			if (!result.success) {
-				toast.error(result.error);
-				setIsSubmitting(false);
-				return;
-			}
-			setEvents((prev) => [...prev, result.data]);
-			toast.success("Pickup event created");
+			// Create a temporary event with a temp ID for display
+			const tempId = `temp-${Date.now()}`;
+			const tempEvent: z.infer<typeof PickupEventSchema> = {
+				id: tempId,
+				location: data.location,
+				startsAt: data.startsAt,
+				endsAt: data.endsAt,
+			};
+			setEvents((prev) => [...prev, tempEvent]);
+			setPendingChanges((prev) => ({
+				...prev,
+				created: [...prev.created, { tempId, data }],
+			}));
+			toast.success("Pickup event added (will be saved when you finalize)");
 		} else if (editingEvent) {
-			const result = await updatePickupEvent(editingEvent.id, data);
-			if (!result.success) {
-				toast.error(result.error);
-				setIsSubmitting(false);
-				return;
+			// Check if this is a temp event (newly created in this session)
+			if (editingEvent.id.startsWith("temp-")) {
+				// Update the temp event in created array by tempId
+				setPendingChanges((prev) => ({
+					...prev,
+					created: prev.created.map((pending) =>
+						pending.tempId === editingEvent.id
+							? { tempId: editingEvent.id, data }
+							: pending
+					),
+				}));
+			} else {
+				// Update an existing pickup event
+				setPendingChanges((prev) => ({
+					...prev,
+					updated: [
+						...prev.updated.filter((update) => update.id !== editingEvent.id),
+						{ id: editingEvent.id, data },
+					],
+				}));
 			}
 			setEvents((prev) =>
-				prev.map((e) => (e.id === editingEvent.id ? result.data : e))
+				prev.map((evt) =>
+					evt.id === editingEvent.id
+						? {
+								...evt,
+								location: data.location,
+								startsAt: data.startsAt,
+								endsAt: data.endsAt,
+						  }
+						: evt
+				)
 			);
-			toast.success("Pickup event updated");
+			toast.success("Pickup event updated (will be saved when you finalize)");
 		}
 
 		setIsSubmitting(false);
@@ -229,22 +204,30 @@ export function EditPickupEventsForm({
 		form.reset(DEFAULT_EVENT_VALUES);
 	};
 
-	const handleRemoveEvent = async (
-		event: z.infer<typeof PickupEventSchema>
-	) => {
+	const handleRemoveEvent = (event: z.infer<typeof PickupEventSchema>) => {
 		if (events.length <= 1) {
 			toast.error("You must have at least one pickup event");
 			return;
 		}
 
-		const result = await deletePickupEvent(event.id);
-		if (!result.success) {
-			toast.error(result.error);
-			return;
+		// Always store deletion locally
+		if (event.id.startsWith("temp-")) {
+			// Remove from created array by tempId
+			setPendingChanges((prev) => ({
+				...prev,
+				created: prev.created.filter((pending) => pending.tempId !== event.id),
+			}));
+		} else {
+			// Mark existing event for deletion
+			setPendingChanges((prev) => ({
+				...prev,
+				deleted: [...prev.deleted, event.id],
+				// Remove from updated if it was pending update
+				updated: prev.updated.filter((update) => update.id !== event.id),
+			}));
 		}
-
-		setEvents((prev) => prev.filter((e) => e.id !== event.id));
-		toast.success("Pickup event deleted");
+		setEvents((prev) => prev.filter((evt) => evt.id !== event.id));
+		toast.success("Pickup event removed (will be saved when you finalize)");
 	};
 
 	return (
@@ -284,11 +267,8 @@ export function EditPickupEventsForm({
 										<h4 className="font-medium">{event.location}</h4>
 									</div>
 									<p className="text-sm text-gray-500 mt-1">
-										{format(new Date(event.startsAt), "EEEE, MMMM d, yyyy")}
-									</p>
-									<p className="text-sm text-gray-500">
-										{format(new Date(event.startsAt), "h:mm a")} -{" "}
-										{format(new Date(event.endsAt), "h:mm a")}
+										{format(new Date(event.startsAt), "MMM d, yyyy h:mm a")} -{" "}
+										{format(new Date(event.endsAt), "MMM d, yyyy h:mm a")}
 									</p>
 								</div>
 								<div className="flex items-center gap-1">
@@ -379,8 +359,8 @@ export function EditPickupEventsForm({
 										{isSubmitting
 											? "Saving..."
 											: mode === "add"
-												? "Add Event"
-												: "Save Changes"}
+											? "Add Event"
+											: "Save Changes"}
 									</Button>
 								</DialogFooter>
 							</form>
@@ -396,7 +376,7 @@ export function EditPickupEventsForm({
 					<Button
 						onClick={onSave}
 						className="text-[#333F37] border border-current bg-transparent hover:bg-[#e6f0ea]">
-						Save Draft
+						Save
 					</Button>
 					<Button type="button" onClick={onSubmit}>
 						Next

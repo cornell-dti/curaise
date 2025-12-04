@@ -108,7 +108,7 @@ export function FundraiserHeader({
 						})}
 					</div>
 				</div>
-				{!fundraiser.published && (
+				{fundraiser.published && (
 					<div className="flex gap-2">
 						<Link href={`/buyer/fundraiser/${fundraiser.id}?preview=true`}>
 							<Button className="bg-[#265B34] text-white hover:bg-[#1f4a2b]">

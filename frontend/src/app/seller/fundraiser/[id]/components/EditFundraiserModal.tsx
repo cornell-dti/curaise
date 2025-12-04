@@ -17,7 +17,11 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { FundraiserEditItemsForm } from "./EditItems";
-import { EditPickupEventsForm } from "./EditPickupEvents";
+import {
+	EditPickupEventsForm,
+	PendingPickupEventChanges,
+} from "./EditPickupEvents";
+import { PendingItemChanges } from "./ItemDialog";
 import { PickupEventSchema } from "common";
 
 export function EditFundraiserModal({
@@ -66,6 +70,27 @@ export function EditFundraiserModal({
 		}))
 	);
 
+	// Track pending changes for published fundraisers
+	// Batch API calls on these pending changes when fundraiser is saved
+
+	// PickUp Events are allowed to be
+	// 1. Created
+	// 2. Updated (Date, Time, and Location)
+	// 3. Deleted
+	const [pendingPickupEventChanges, setPendingPickupEventChanges] =
+		useState<PendingPickupEventChanges>({
+			created: [],
+			updated: [],
+			deleted: [],
+		});
+
+	// Fundraiser Items can only be created
+	// Cannot be deleted after fundraiser is published
+	const [pendingItemChanges, setPendingItemChanges] =
+		useState<PendingItemChanges>({
+			created: [],
+		});
+
 	async function onSubmit() {
 		// Map empty-string venmo fields to null so backend will clear them
 		const payload = {
@@ -78,6 +103,7 @@ export function EditFundraiserModal({
 			venmoUsername: string | null;
 		};
 
+		// Update the fundraiser basic info
 		const response = await fetch(
 			process.env.NEXT_PUBLIC_API_URL + `/fundraiser/${fundraiser.id}/update`,
 			{
@@ -98,9 +124,144 @@ export function EditFundraiserModal({
 			return;
 		}
 
+		// Submit all pending changes (batched concurrently)
+		const errors: string[] = []; // Tracks all errors from failed API calls
+
+		// Submit pending pickup event changes concurrently
+		// 1. Delete events
+		const deleteResults = await Promise.allSettled(
+			pendingPickupEventChanges.deleted.map(async (eventId) => {
+				const deleteRes = await fetch(
+					`${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiser.id}/pickup-events/${eventId}/delete`,
+					{
+						method: "DELETE",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: "Bearer " + token,
+						},
+					}
+				);
+				if (!deleteRes.ok) {
+					const err = await deleteRes.json();
+					throw new Error(err.message);
+				}
+			})
+		);
+		// AllSettled will finish when ALL promises are settled
+		// Works even if one promise fails
+		deleteResults.forEach((result) => {
+			if (result.status === "rejected") {
+				errors.push(`Failed to delete pickup event: ${result.reason.message}`);
+			}
+		});
+
+		// 2. Update events
+		const updateResults = await Promise.allSettled(
+			pendingPickupEventChanges.updated.map(async (update) => {
+				const updateRes = await fetch(
+					`${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiser.id}/pickup-events/${update.id}/update`,
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: "Bearer " + token,
+						},
+						body: JSON.stringify(update.data),
+					}
+				);
+				if (!updateRes.ok) {
+					const err = await updateRes.json();
+					throw new Error(err.message);
+				}
+			})
+		);
+		updateResults.forEach((result) => {
+			if (result.status === "rejected") {
+				errors.push(`Failed to update pickup event: ${result.reason.message}`);
+			}
+		});
+
+		// 3. Create events
+		const createEventResults = await Promise.allSettled(
+			pendingPickupEventChanges.created.map(async (pending) => {
+				const createRes = await fetch(
+					`${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiser.id}/pickup-events/create`,
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: "Bearer " + token,
+						},
+						body: JSON.stringify(pending.data),
+					}
+				);
+				if (!createRes.ok) {
+					const err = await createRes.json();
+					throw new Error(err.message);
+				}
+			})
+		);
+		createEventResults.forEach((result) => {
+			if (result.status === "rejected") {
+				errors.push(`Failed to create pickup event: ${result.reason.message}`);
+			}
+		});
+
+		// Submit pending new items concurrently and collect created items with real IDs
+		const createItemResults = await Promise.allSettled(
+			pendingItemChanges.created.map(async (pending) => {
+				const createRes = await fetch(
+					`${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiser.id}/items/create`,
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: "Bearer " + token,
+						},
+						body: JSON.stringify(pending.data),
+					}
+				);
+				if (!createRes.ok) {
+					const err = await createRes.json();
+					throw new Error(err.message);
+				}
+				const itemResult = await createRes.json();
+				return itemResult.data;
+			})
+		);
+
+		const createdItems: z.infer<typeof CompleteItemSchema>[] = [];
+		createItemResults.forEach((result) => {
+			if (result.status === "fulfilled") {
+				createdItems.push(result.value);
+			} else {
+				errors.push(`Failed to create item: ${result.reason.message}`);
+			}
+		});
+
+		// Replace temp items with real items from database
+		// The pending items will have temporary IDs indicating that they're not written to database yet
+		// Once API call is done, replace these temp objects with real items stored in db
+		if (createdItems.length > 0) {
+			setFundraiserItems((prev) => {
+				// Filter out all temp items
+				const nonTempItems = prev.filter(
+					(item) => !item.id.startsWith("temp-")
+				);
+				// Add the newly created items with real IDs
+				return [...nonTempItems, ...createdItems];
+			});
+			// Clear pending changes since they've been saved
+			setPendingItemChanges({ created: [] });
+		}
+
+		if (errors.length > 0) {
+			toast.error(`Some changes failed: ${errors.join(", ")}`);
+		}
+
 		const fundraiserId = result.data.id;
 
-		toast.success("Draft updated successfully");
+		toast.success("Fundraiser saved successfully");
 		redirect("/seller/fundraiser/" + fundraiserId);
 	}
 	const [currentStep, setCurrentStep] = useState(step);
@@ -167,8 +328,9 @@ export function EditFundraiserModal({
 							fundraiserId={fundraiser.id}
 							events={pickupEvents}
 							setEvents={setPickupEvents}
-							onSubmit={() => setCurrentStep(3)}
-							onBack={() => setCurrentStep(1)}
+							onPendingChanges={setPendingPickupEventChanges}
+							onSubmit={() => setCurrentStep(2)}
+							onBack={() => setCurrentStep(0)}
 							onSave={() => {
 								setSaveRequested(true);
 								setOpen(false);
@@ -180,8 +342,32 @@ export function EditFundraiserModal({
 							fundraiserId={fundraiser.id}
 							items={fundraiserItems}
 							setItems={setFundraiserItems}
-							onSubmit={() => setCurrentStep(2)}
-							onBack={() => setCurrentStep(0)}
+							isPublished={fundraiser.published}
+							onAddPendingItem={(tempId, item) => {
+								setPendingItemChanges((prev) => ({
+									...prev,
+									created: [...prev.created, { tempId, data: item }],
+								}));
+							}}
+							onUpdatePendingItem={(tempId, item) => {
+								setPendingItemChanges((prev) => ({
+									...prev,
+									created: prev.created.map((pending) =>
+										pending.tempId === tempId ? { tempId, data: item } : pending
+									),
+								}));
+							}}
+							onRemovePendingItem={(itemId) => {
+								// Remove pending item by temp ID
+								setPendingItemChanges((prev) => ({
+									...prev,
+									created: prev.created.filter(
+										(pending) => pending.tempId !== itemId
+									),
+								}));
+							}}
+							onSubmit={() => setCurrentStep(3)}
+							onBack={() => setCurrentStep(1)}
 							onSave={() => {
 								setSaveRequested(true);
 								setOpen(false);
