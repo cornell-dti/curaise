@@ -1,12 +1,14 @@
 import { connection } from "next/server";
 import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
 import { format } from "date-fns";
-import { MapPin, Calendar, ShoppingBag } from "lucide-react";
+import { MapPin, Calendar, ShoppingBag, Star } from "lucide-react";
 import { FundraiserItemsPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemsPanel";
 import { FundraiserGallerySlider } from "@/app/buyer/fundraiser/[id]/components/FundraiserGallerySlider";
 import { FundraiserAnnouncementPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserAnnouncementPanel";
 import { UnpublishedFundraiser } from "@/app/buyer/fundraiser/[id]/components/UnpublishedFundraiser";
 import { Card, CardContent } from "@/components/ui/card";
+import { FundraiserReferralCard } from "./components/FundraiserReferralCard";
+import { createClient } from "@/utils/supabase/server";
 
 const getFundraiser = async (id: string) => {
   const response = await fetch(
@@ -47,6 +49,12 @@ export default async function FundraiserPage({
 }) {
   await connection();
 
+  const supabase = await createClient();
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
   const id = (await params).id;
   const { preview } = await searchParams;
   const fundraiser = await getFundraiser(id);
@@ -65,6 +73,14 @@ export default async function FundraiserPage({
       <div className="flex flex-col items-start w-full space-y-2">
         <h1 className="text-3xl font-bold my-2">{fundraiser.name}</h1>
         <p className="text-gray-600 mb-4">{fundraiser.description}</p>
+
+        {session && (
+          <FundraiserReferralCard
+            token={session.access_token}
+            fundraiser={fundraiser}
+            userId={session.user.id}
+          />
+        )}
 
         <Card className="w-full">
           <CardContent className="pt-6">
@@ -118,6 +134,7 @@ export default async function FundraiserPage({
       </div>
 
       <FundraiserAnnouncementPanel announcements={fundraiser.announcements} />
+
       <FundraiserItemsPanel
         fundraiserId={fundraiser.id}
         items={fundraiserItems}

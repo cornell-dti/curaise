@@ -14,6 +14,7 @@ import { EditFundraiserModal } from "./EditFundraiserModal";
 import Checklist from "./Checklist";
 import { z } from "zod";
 import { toast } from "sonner";
+import { ReferralApprovalModal, ReferralButton } from "./ReferralApprovalModal";
 
 export function FundraiserHeader({
   token,
@@ -25,8 +26,9 @@ export function FundraiserHeader({
   fundraiserItems: z.infer<typeof CompleteItemSchema>[];
 }) {
   const [openEdit, setOpenEdit] = useState(false);
+  const [openReferral, setOpenReferral] = useState(false);
   const [step, setStep] = useState(0);
-  const openModalAt = (step: number) => {
+  const openStepAt = (step: number) => {
     setStep(step);
     setOpenEdit(true);
   };
@@ -81,27 +83,40 @@ export function FundraiserHeader({
         step={step}
         setStep={setStep}
       />
+      <ReferralApprovalModal
+        fundraiser={fundraiser}
+        token={token}
+        open={openReferral}
+        setOpen={setOpenReferral}
+      />
+
       <div className="w-[90%] max-w-[1190px]">
         <div className="w-full flex justify-between">
           <h1 className="text-[32px] font-semibold">{fundraiser.name}</h1>
-          <div className="flex gap-4">
-            <Link href={`/buyer/fundraiser/${fundraiser.id}?preview=true`}>
-              <Button className="bg-[#265B34] text-white hover:bg-[#1f4a2b]">
-                Preview
+          <div className="flex flex-col gap-3 items-end">
+            <div className="flex gap-4">
+              <Link href={`/buyer/fundraiser/${fundraiser.id}?preview=true`}>
+                <Button className="w-[100px] bg-[#265B34] text-white hover:bg-[#1f4a2b]">
+                  Preview
+                </Button>
+              </Link>
+              <Button
+                onClick={() => {
+                  setStep(0);
+                  setOpenEdit(true);
+                }}
+                className="w-[100px] text-[#265B34] border border-current bg-transparent hover:bg-[#e6f0ea]"
+              >
+                Edit
               </Button>
-            </Link>
-            <Button
-              onClick={() => {
-                setStep(0);
-                setOpenEdit(true);
-              }}
-              className="text-[#265B34] border border-current bg-transparent hover:bg-[#e6f0ea]"
-            >
-              Edit
-            </Button>
+            </div>
+            <ReferralButton
+              fundraiser={fundraiser}
+              onClick={() => setOpenReferral(true)}
+            />
           </div>
         </div>
-        <div className="flex flex-col gap-4 min-w-[80vw]">
+        <div className="-mt-6 flex flex-col gap-2 min-w-[80vw]">
           {Object.entries(eventsByDay).map(([dateKey, events]) => {
             // Get the first event's date to format the day header
             const displayDate = format(events[0].startsAt, "EEEE, M/d/yyyy");
@@ -109,10 +124,10 @@ export function FundraiserHeader({
             return (
               <div
                 key={dateKey}
-                className="text-[18px] flex items-center gap-12 min-w-[80vw]"
+                className="text-[16px] flex items-center gap-12 min-w-[80vw]"
               >
                 <span className="flex gap-2 items-center">
-                  <Calendar className="h-5" /> {displayDate}
+                  <Calendar className="h-4" /> {displayDate}
                 </span>
                 <div>
                   {events.map((event) => (
@@ -142,7 +157,7 @@ export function FundraiserHeader({
             <Checklist
               fundraiser={fundraiser}
               fundraiserItems={fundraiserItems}
-              onAction={openModalAt}
+              onAction={openStepAt}
               publish={onPublish}
             />
           </div>
