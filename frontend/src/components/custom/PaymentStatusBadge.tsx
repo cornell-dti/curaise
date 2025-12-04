@@ -60,7 +60,7 @@ const PaymentStatusBadge = ({
         <TooltipTrigger asChild>
           <Badge
             variant="outline"
-            className={`border-transparent flex items-center text-xs sm:text-sm px-3 py-1 gap-1 ${color}`}
+            className={`border-transparent flex items-center text-xs sm:text-sm px-4 py-2 gap-1 ${color}`}
           >
             {icon}
             {text}

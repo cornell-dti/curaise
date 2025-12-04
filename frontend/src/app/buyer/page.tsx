@@ -57,21 +57,21 @@ export default async function BuyerHome() {
   const inProgressOrders = orders.filter((order) => !order.pickedUp);
 
   return (
-    <div className="px-4 md:px-[157px] py-10">
+    <div className="container mx-auto px-4 py-10 max-w-5xl">
       <div className="flex flex-col space-y-6">
-        <h1 className="text-3xl font-bold">Orders</h1>
+        <h1 className="text-2xl font-bold">Orders</h1>
 
         <Tabs defaultValue="active" className="w-full">
           <TabsList className="h-auto w-auto bg-transparent rounded-none p-0 gap-8">
             <TabsTrigger
               value="active"
-              className="text-[18px] rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent data-[state=active]:shadow-none bg-transparent px-0 pb-3 font-normal data-[state=active]:font-semibold data-[state=inactive]:text-gray-400"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent data-[state=active]:shadow-none bg-transparent px-0 pb-3 font-normal data-[state=active]:font-semibold data-[state=inactive]:text-gray-400"
             >
               Active
             </TabsTrigger>
             <TabsTrigger
               value="completed"
-              className="text-[18px] rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent data-[state=active]:shadow-none bg-transparent px-0 pb-3 font-normal data-[state=active]:font-semibold data-[state=inactive]:text-gray-400"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent data-[state=active]:shadow-none bg-transparent px-0 pb-3 font-normal data-[state=active]:font-semibold data-[state=inactive]:text-gray-400"
             >
               Completed
             </TabsTrigger>
