@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
+import { OrderActionButtons } from "@/components/custom/OrderActionButtons";
 import { CreditCard, ShoppingBag, User, CalendarIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
@@ -84,6 +85,19 @@ export default async function OrderPage({
       </div>
 
       <div className="grid gap-6">
+        {/* Action Buttons Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Order Actions</CardTitle>
+            <CardDescription>
+              Confirm payment and mark order as picked up
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <OrderActionButtons order={order} />
+          </CardContent>
+        </Card>
+
         {/* Order Status Card*/}
         <Card className="border-2">
           <CardContent className="pt-6">
