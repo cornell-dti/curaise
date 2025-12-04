@@ -92,18 +92,18 @@ export default async function OrderPage({
           <h1 className="text-2xl font-bold">Order Details</h1>
           <PaymentStatusBadge order={order} />
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-800">
+        <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-sm text-gray-800">
           <span>
             Ordered on {format(order.createdAt, "MMM d, yyyy 'at' h:mm a")}
           </span>
-          <span>|</span>
+          <span className="hidden md:inline">|</span>
           <span>Order Id: {order.id}</span>
         </div>
       </div>
 
-      <div className="grid gap-6">
+      <div className="flex flex-col gap-6">
         {/* Two-column grid layout */}
-        <div className="grid gap-6 md:grid-cols-[2fr_1fr]">
+        <div className="order-2 md:order-1 grid gap-6 md:grid-cols-[2fr_1fr]">
           {/* Left Column: Order Summary */}
           <Card>
             <CardHeader>
@@ -231,24 +231,26 @@ export default async function OrderPage({
         </div>
 
         {/* Venmo QR Code Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Venmo QR Code</CardTitle>
-            <CardDescription>
-              Show this to DTI at pick up to get your order.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-center mb-4">
-              {/* Placeholder QR code - dashed border box */}
-              <div className="w-64 h-64 border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center rounded">
-                <p className="text-sm text-muted-foreground">
-                  QR Code Placeholder
-                </p>
+        <div className="order-1 md:order-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Venmo QR Code</CardTitle>
+              <CardDescription>
+                Show this to DTI at pick up to get your order.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-center mb-4">
+                {/* Placeholder QR code - dashed border box */}
+                <div className="w-64 h-64 border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center rounded">
+                  <p className="text-sm text-muted-foreground">
+                    QR Code Placeholder
+                  </p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
