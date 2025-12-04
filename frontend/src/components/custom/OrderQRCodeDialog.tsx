@@ -48,7 +48,7 @@ export function OrderQRCodeDialog({ orderId, variant = "default" }: OrderQRCodeD
             <DialogTitle>Order Pickup QR Code</DialogTitle>
             <CopyButton text={sellerOrderUrl} />
           </div>
-          <DialogDescription>
+          <DialogDescription className="text-center">
             Show this QR code to the seller at pickup
           </DialogDescription>
         </DialogHeader>
