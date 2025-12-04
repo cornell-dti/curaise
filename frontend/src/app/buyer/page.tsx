@@ -1,34 +1,10 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { Clock, ShoppingBag } from "lucide-react";
+import { Clock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BasicOrderSchema, UserSchema } from "common";
+import { BasicOrderSchema } from "common";
 import { OrderCard } from "@/components/custom/OrderCard";
-import { isPast } from "date-fns";
-import { EditBuyerInfoDialog } from "@/components/custom/EditBuyerInfoDialog";
-
-const getUserProfile = async (userId: string, token: string) => {
-  const response = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + "/user/" + userId,
-    {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    }
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-
-  // parse user data
-  const data = UserSchema.safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse user data");
-  }
-  return data.data;
-};
 
 const getOrders = async (userId: string, token: string) => {
   const response = await fetch(
@@ -76,42 +52,32 @@ export default async function BuyerHome() {
     throw new Error("Session invalid");
   }
 
-  const userProfile = await getUserProfile(user.id, session.access_token);
   const orders = await getOrders(user.id, session.access_token);
 
-  const inProgressOrders = orders.filter((order) =>
-    order.fundraiser.pickupEvents.some((event) => !isPast(event.endsAt))
-  );
+  const inProgressOrders = orders.filter((order) => !order.pickedUp);
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-3xl">
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-100">
-        <div className="flex items-start gap-3">
-          <div className="bg-blue-100 rounded-full p-3">
-            <ShoppingBag className="h-6 w-6 text-blue-600" />
-          </div>
-          <p className="text-lg my-auto">
-            You currently have {inProgressOrders.length} active{" "}
-            {inProgressOrders.length == 1 ? "order" : "orders"}.
-          </p>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between space-x-4 mb-6 p-4">
-        <p>Looking to edit your account information?</p>
-        <EditBuyerInfoDialog user={userProfile} token={session.access_token} />
-      </div>
-
-      <div className="flex flex-col space-y-4">
-        <h1 className="text-2xl font-bold">My Orders</h1>
+    <div className="container mx-auto px-4 py-10 max-w-5xl">
+      <div className="flex flex-col space-y-6">
+        <h1 className="text-2xl font-bold">Orders</h1>
 
         <Tabs defaultValue="active" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="all">All</TabsTrigger>
+          <TabsList className="h-auto w-auto bg-transparent rounded-none p-0 gap-8">
+            <TabsTrigger
+              value="active"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent data-[state=active]:shadow-none bg-transparent px-0 pb-3 font-normal data-[state=active]:font-semibold data-[state=inactive]:text-gray-400"
+            >
+              Active
+            </TabsTrigger>
+            <TabsTrigger
+              value="completed"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent data-[state=active]:shadow-none bg-transparent px-0 pb-3 font-normal data-[state=active]:font-semibold data-[state=inactive]:text-gray-400"
+            >
+              Completed
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="active" className="space-y-4 mt-4">
+          <TabsContent value="active" className="space-y-4 mt-6">
             {inProgressOrders.length > 0 ? (
               inProgressOrders.map((order) => (
                 <OrderCard key={order.id} order={order} />
@@ -127,15 +93,19 @@ export default async function BuyerHome() {
             )}
           </TabsContent>
 
-          <TabsContent value="all" className="space-y-4 mt-4">
-            {orders.length > 0 ? (
-              orders.map((order) => <OrderCard key={order.id} order={order} />)
+          <TabsContent value="completed" className="space-y-4 mt-6">
+            {orders.filter((order) => order.pickedUp).length > 0 ? (
+              orders
+                .filter((order) => order.pickedUp)
+                .map((order) => <OrderCard key={order.id} order={order} />)
             ) : (
               <div className="text-center py-12">
                 <Clock className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-4 text-lg font-medium">No orders</h3>
+                <h3 className="mt-4 text-lg font-medium">
+                  No completed orders
+                </h3>
                 <p className="text-muted-foreground">
-                  You haven&apos;t placed any orders yet.
+                  You haven&apos;t completed any orders yet.
                 </p>
               </div>
             )}
