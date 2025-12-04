@@ -50,6 +50,7 @@ export default async function FundraiserPage({
   searchParams: Promise<{ preview?: string }>;
 }) {
   await connection();
+
   const supabase = await createClient();
   const {
     data: { user },

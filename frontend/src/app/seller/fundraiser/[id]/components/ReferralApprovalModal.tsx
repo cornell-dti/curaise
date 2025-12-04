@@ -1,4 +1,5 @@
 "use client";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { CompleteFundraiserSchema, ReferralSchema } from "common";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -23,10 +24,8 @@ const approveReferrer = async (
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: "Bearer " + token,
         },
-        body: JSON.stringify({}),
       }
     );
 
@@ -39,7 +38,6 @@ const approveReferrer = async (
 
     toast.success("Referrer approved!");
   } catch (err) {
-    console.error(err);
     toast.error("Something went wrong approving the referrer");
   }
 };
@@ -55,10 +53,8 @@ const deleteReferrer = async (
       {
         method: "DELETE",
         headers: {
-          "Content-Type": "application/json",
           Authorization: "Bearer " + token,
         },
-        body: JSON.stringify({}),
       }
     );
 
@@ -71,7 +67,6 @@ const deleteReferrer = async (
 
     toast.success("Referrer deleted!");
   } catch (err) {
-    console.error(err);
     toast.error("Something went wrong deleting the referrer");
   }
 };
@@ -81,21 +76,15 @@ export function ReferralApprovalModal({
   token,
   open,
   setOpen,
-  onAction,
 }: {
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
   token: string;
   open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  onAction: (total: number) => void;
+  setOpen: (open: boolean) => void;
 }) {
-  const [notApprovedReferrers, setNotApprovedReferrers] = useState<
+  const [unapprovedReferrers, setUnapprovedReferrers] = useState<
     z.infer<typeof ReferralSchema>[]
   >(fundraiser.referrals.filter((ref) => !ref.approved));
-
-  useEffect(() => {
-    onAction(notApprovedReferrers.length);
-  }, [notApprovedReferrers.length, onAction]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -106,7 +95,7 @@ export function ReferralApprovalModal({
           </DialogTitle>
         </DialogHeader>
         <div className="flex-1 min-h-0 overflow-y-auto -mr-2">
-          {notApprovedReferrers.map((referral, idx) => {
+          {unapprovedReferrers.map((referral, idx) => {
             return (
               <div key={referral.id}>
                 <div className="flex justify-between">
@@ -119,10 +108,9 @@ export function ReferralApprovalModal({
                           referral.id,
                           token
                         );
-                        setNotApprovedReferrers((prev) =>
+                        setUnapprovedReferrers((prev) =>
                           prev.filter((ref) => ref.id !== referral.id)
                         );
-                        onAction(notApprovedReferrers.length);
                       }}
                       className="text-[#265B34] border border-current bg-transparent hover:bg-[#e6f0ea]"
                     >
@@ -132,7 +120,7 @@ export function ReferralApprovalModal({
                       variant="ghost"
                       onClick={async () => {
                         await deleteReferrer(fundraiser.id, referral.id, token);
-                        setNotApprovedReferrers((prev) =>
+                        setUnapprovedReferrers((prev) =>
                           prev.filter((ref) => ref.id !== referral.id)
                         );
                       }}
@@ -153,5 +141,34 @@ export function ReferralApprovalModal({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+export function ReferralButton({
+  fundraiser,
+  onClick,
+}: {
+  fundraiser: z.infer<typeof CompleteFundraiserSchema>;
+  onClick: () => void;
+}) {
+  const pending = fundraiser.referrals.filter((ref) => !ref.approved).length;
+
+  return (
+    <div className="relative inline-flex">
+      <Button
+        variant="outline"
+        onClick={onClick}
+        className="bg-[#265B34] text-white hover:bg-[#1f4a2b] hover:text-white"
+      >
+        Manage Referrals
+      </Button>
+
+      <Badge
+        variant="destructive"
+        className="bg-[#f74545] absolute -top-2 -right-2 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] leading-none"
+      >
+        {pending}
+      </Badge>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,30 +15,26 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { usePathname } from "next/navigation";
 
-const copyToClipboard = async (link: string) => {
-  try {
-    await navigator.clipboard.writeText(link);
-    toast.success("Link copied to clipboard");
-  } catch {
-    toast.error("Failed to copy link");
-  }
+const copyToClipboard = (text: string) => {
+  navigator.clipboard.writeText(text);
+  toast.success("Copied to clipboard!");
 };
 
 export function FundraiserReferralCard({
   fundraiser,
-  userId,
   token,
+  userId,
 }: {
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
-  userId: string;
   token: string;
+  userId: string;
 }) {
-  const [referralOpen, setReferralOpen] = useState(false);
-  const [isReferrer, setIsReferrer] = useState(false);
-  const [hasClickedSignup, setHasClickedSignup] = useState(false);
-
   const pathname = usePathname();
-  const [link, setLink] = useState("");
+  const [referralOpen, setReferralOpen] = useState(false);
+  const [referralId, setReferralId] = useState<string>(
+    fundraiser.referrals.find((r) => r.referrer.id === userId)?.id || ""
+  );
+  const link = `${window.location.origin}${pathname}?code=${referralId}`;
 
   const addReferrer = async () => {
     try {
@@ -46,10 +43,8 @@ export function FundraiserReferralCard({
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: "Bearer " + token,
           },
-          body: JSON.stringify({}),
         }
       );
 
@@ -62,28 +57,14 @@ export function FundraiserReferralCard({
 
       toast.success("Referrer added!");
       setReferralOpen(true);
-      setIsReferrer(true);
+      setReferralId(result.data.id);
     } catch (err) {
-      console.error(err);
-      toast.error("Something went wrong adding the referrer");
+      toast.error("Something went wrong when adding the referrer");
     }
   };
 
-  useEffect(() => {
-    if (!userId) return;
-    setLink(`${window.location.origin}${pathname}?code=${userId}`);
-  }, [pathname, userId]);
-
-  useEffect(() => {
-    fundraiser.referrals.forEach((referral) => {
-      if (referral.referrer.id == userId) {
-        setIsReferrer(true);
-      }
-    });
-  }, [fundraiser.referrals, userId]);
-
   return (
-    <div>
+    <div className="w-full">
       <Card className="w-full">
         <CardContent className="py-3">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -100,39 +81,28 @@ export function FundraiserReferralCard({
                 </span>
               </span>
             </span>
-            {!isReferrer ? (
+            {!referralId ? (
               <Button
                 className="font-light mt-1 md:mt-0 w-full md:w-auto"
                 onClick={async () => {
-                  setHasClickedSignup(true);
                   await addReferrer();
-                  setReferralOpen(true);
                 }}
               >
                 Sign Up
               </Button>
             ) : (
-              <div className="flex flex-col gap-1 mt-1 text-sm md:mt-0 md:items-end md:text-right w-full md:w-auto">
-                <Button
-                  className="cursor-pointer font-light text-sm md:text-md w-full md:w-auto"
-                  onClick={async () => {
-                    await copyToClipboard(link);
-                  }}
-                >
-                  Copy Referral Link
-                </Button>
-                {isReferrer && hasClickedSignup && (
-                  <span className="text-muted-foreground text-center md:text-right">
-                    You have already signed up.
-                  </span>
-                )}
-              </div>
+              <Button
+                className="cursor-pointer font-light text-sm md:text-md"
+                onClick={() => copyToClipboard(link)}
+              >
+                Copy Referral Link
+              </Button>
             )}
           </div>
         </CardContent>
       </Card>
       <ReferralModal
-        userId={userId}
+        link={link}
         open={referralOpen}
         setOpen={setReferralOpen}
       />
@@ -141,26 +111,18 @@ export function FundraiserReferralCard({
 }
 
 function ReferralModal({
-  userId,
+  link,
   open,
   setOpen,
 }: {
-  userId: string;
+  link: string;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const pathname = usePathname();
-  const [link, setLink] = useState("");
-
-  useEffect(() => {
-    if (!userId) return;
-    setLink(`${window.location.origin}${pathname}?code=${userId}`);
-  }, [pathname, userId]);
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="md:max-w-[800px] sm:max-w-[600px]">
-        <DialogHeader className="pt-2 pb-[30px]">
+        <DialogHeader className="pt-2">
           <DialogTitle className="text-2xl font-semibold">
             Thanks for signing up!
           </DialogTitle>
@@ -170,8 +132,7 @@ function ReferralModal({
             <AlarmClock className="w-5 text-black" />
           </span>
           <span>
-            We will manually review your request, which may take a little
-            time.{" "}
+            We will manually review your request, which may take a little time.
           </span>
         </div>
         <div className="flex items-center gap-4">
@@ -180,7 +141,7 @@ function ReferralModal({
           </span>
           <span>
             While you wait, you can still share your referral link with others
-            to be automatically referred.{" "}
+            to be automatically referred.
           </span>
         </div>
         <div className="pb-3 flex items-center justify-between gap-2 -ml-3 md:ml-0">
@@ -190,9 +151,7 @@ function ReferralModal({
           </span>
           <Button
             className="cursor-pointer font-light text-xs md:text-md"
-            onClick={async () => {
-              await copyToClipboard(link);
-            }}
+            onClick={() => copyToClipboard(link)}
           >
             Copy Link
           </Button>
