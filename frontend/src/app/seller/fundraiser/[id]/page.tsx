@@ -11,6 +11,7 @@ import { ProfitGoalChart } from "@/app/seller/fundraiser/[id]/analytics/componen
 import { RevenueBreakdownChart } from "@/app/seller/fundraiser/[id]/analytics/components/RevenueBreakdownChart";
 import { ItemsSoldCard } from "@/app/seller/fundraiser/[id]/analytics/components/ItemsSoldCard";
 import { OrdersTableWrapper } from "@/app/seller/fundraiser/[id]/orders/components/OrdersTableWrapper";
+import { OrdersSectionHeader } from "@/app/seller/fundraiser/[id]/orders/components/OrdersSectionHeader";
 import { FundraiserHeader } from "./components/FundraiserHeader";
 
 interface FundraiserAnalytics {
@@ -241,7 +242,11 @@ export default async function FundraiserAnalyticsPage({
 
 				{/* Orders Section */}
 				<div className="mb-6">
-					<h2 className="text-xl font-bold mb-6">Orders</h2>
+					<OrdersSectionHeader
+						fundraiserId={fundraiserId}
+						items={items}
+						token={session.access_token}
+					/>
 					<div className="bg-white rounded-lg shadow-sm">
 						<div className="p-6">
 							<OrdersTableWrapper
