@@ -39,7 +39,7 @@ export const getOrganizationFundraisers = async (
   return fundraisers;
 };
 
-export const createOrFindPendingUser = async (email: string) => {
+export const upsertPendingUser = async (email: string) => {
   const pendingUser = await prisma.pendingUser.upsert({
     where: { email },
     update: {},
@@ -63,7 +63,7 @@ export const createOrganization = async (
     if (existingUser) {
       adminUsers.push({ id: existingUser.id });
     } else {
-      const pendingUser = await createOrFindPendingUser(email);
+      const pendingUser = await upsertPendingUser(email);
       pendingAdminUsers.push({ id: pendingUser.id });
     }
   }
@@ -106,7 +106,7 @@ export const updateOrganization = async (
     if (existingUser) {
       adminUsers.push({ id: existingUser.id });
     } else {
-      const pendingUser = await createOrFindPendingUser(email);
+      const pendingUser = await upsertPendingUser(email);
       pendingAdminUsers.push({ id: pendingUser.id });
     }
   }
