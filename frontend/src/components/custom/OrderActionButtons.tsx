@@ -119,7 +119,7 @@ export function OrderActionButtons({ order }: OrderActionButtonsProps) {
         </Button>
       )}
       {!isPaymentPending && !isPickupPending && (
-        <p className="text-foreground font-medium text-md text-center">
+        <p className="text-foreground text-md text-center">
           This order is complete. Payment has been confirmed and the order has
           been picked up.
         </p>

@@ -80,8 +80,8 @@ export default async function OrderPage({
 
   // Determine border color based on order state
   const getBorderColor = () => {
-    // If order is picked up, use green
-    if (order.pickedUp) {
+    // If both payment confirmed and picked up, use green
+    if (order.paymentStatus === "CONFIRMED" && order.pickedUp) {
       return "border-green-500";
     }
 
@@ -99,22 +99,17 @@ export default async function OrderPage({
       );
 
       // If pickup has ended and order not picked up, use red
-      if (isPast(latestEnd)) {
+      if (isPast(latestEnd) && !order.pickedUp) {
         return "border-red-500";
       }
     }
 
-    // If payment is pending, use yellow
-    if (order.paymentStatus === "PENDING") {
+    // As long as not picked up, use yellow
+    if (!order.pickedUp) {
       return "border-yellow-500";
     }
 
-    // If Venmo payment is confirmed but not picked up, use yellow
-    if (order.paymentStatus === "CONFIRMED" && order.paymentMethod === "VENMO" && !order.pickedUp) {
-      return "border-yellow-500";
-    }
-
-    // Otherwise (payment confirmed/unverifiable and pickup available), use green
+    // Fallback to green (shouldn't reach here if logic is correct)
     return "border-green-500";
   };
 
