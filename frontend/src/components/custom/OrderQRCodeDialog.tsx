@@ -38,7 +38,10 @@ export function OrderQRCodeDialog({ orderId, variant = "default" }: OrderQRCodeD
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md rounded-lg">
+      <DialogContent 
+        className="sm:max-w-md rounded-lg"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Order Pickup QR Code</DialogTitle>
           <DialogDescription>
