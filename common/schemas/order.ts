@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { UserSchema } from "./user";
 import { BasicFundraiserSchema, ReferralSchema } from "./fundraiser";
-import { BasicItemSchema } from "./item";
+import { CompleteItemSchema } from "./item";
 
 export const BasicOrderSchema = z.object({
   id: z.string().uuid(),
@@ -20,7 +20,7 @@ export const CompleteOrderSchema = BasicOrderSchema.extend({
   items: z.array(
     z.object({
       quantity: z.number().int().positive(),
-      item: BasicItemSchema,
+      item: CompleteItemSchema,
     })
   ),
 });
