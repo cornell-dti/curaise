@@ -146,7 +146,7 @@ export function CheckoutForm({
       setIsSubmitting(false);
       return;
     } else {
-      toast.success(result.message);
+      // toast.success(result.message);
       redirect(
         "/buyer/order/" + result.data.id + "/submitted?fromCheckout=true"
       );
