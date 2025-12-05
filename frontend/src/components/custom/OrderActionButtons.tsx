@@ -26,7 +26,7 @@ export function OrderActionButtons({ order, token }: OrderActionButtonsProps) {
         {
           method: "POST",
           headers: {
-            Authorization: "Bearer" + token,
+            Authorization: "Bearer " + token,
           },
         }
       );
@@ -56,7 +56,7 @@ export function OrderActionButtons({ order, token }: OrderActionButtonsProps) {
         {
           method: "POST",
           headers: {
-            Authorization: "Bearer" + token,
+            Authorization: "Bearer " + token,
           },
         }
       );
