@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { FundraiserReferralCard } from "./components/FundraiserReferralCard";
 import { createClient } from "@/utils/supabase/server";
+import { GoogleCalendarButton } from "./components/GoogleCalendarButton";
 
 const getFundraiser = async (id: string) => {
   const response = await fetch(
@@ -121,21 +122,27 @@ export default async function FundraiserPage({
               <CardContent className="pt-[14px] px-[14px] pb-[14px]">
                 <div className="flex flex-col gap-[10px]">
                   {fundraiser.pickupEvents.map((event, index) => (
-                    <div key={event.id} className="flex flex-col gap-3">
-                      {index > 0 && <div className="h-px bg-[#f6f6f6]" />}
-                      <div className="flex items-start gap-3">
-                        <Calendar className="h-[23px] w-[23px] flex-shrink-0 text-muted-foreground mt-0.5" />
-                        <span className="text-base">
-                          {format(event.startsAt, "EEEE, M/d/yyyy")}
-                        </span>
+                    <div key={event.id} className="flex justify-between items-center">
+                      <div className="flex flex-col gap-3">
+                        {index > 0 && <div className="h-px bg-[#f6f6f6]" />}
+                        <div className="flex items-start gap-3">
+                          <Calendar className="h-[23px] w-[23px] flex-shrink-0 text-muted-foreground mt-0.5" />
+                          <span className="text-base">
+                            {format(event.startsAt, "EEEE, M/d/yyyy")}
+                          </span>
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <MapPin className="h-[23px] w-[23px] flex-shrink-0 text-muted-foreground mt-0.5" />
+                          <span className="text-base">
+                            {event.location}, {format(event.startsAt, "h:mm a")}{" "}
+                            to {format(event.endsAt, "h:mm a")}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-start gap-3">
-                        <MapPin className="h-[23px] w-[23px] flex-shrink-0 text-muted-foreground mt-0.5" />
-                        <span className="text-base">
-                          {event.location}, {format(event.startsAt, "h:mm a")} to{" "}
-                          {format(event.endsAt, "h:mm a")}
-                        </span>
-                      </div>
+                      <GoogleCalendarButton
+                        fundraiser={fundraiser}
+                        pickupEvent={event}
+                      />
                     </div>
                   ))}
                 </div>
