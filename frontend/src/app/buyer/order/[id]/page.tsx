@@ -26,6 +26,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/custom/CopyButton";
 import { ConfettiWrapper } from "@/components/custom/ConfettiWrapper";
+import { OrderQRCodeDialog } from "@/components/custom/OrderQRCodeDialog";
 
 // data fetching function
 const getOrder = async (id: string, token: string) => {
@@ -243,6 +244,21 @@ export default async function OrderPage({
           )}
         </Card>
 
+        {/* QR Code Card - Desktop only */}
+        <Card className="hidden md:block">
+          <CardHeader>
+            <CardTitle>Order QR Code</CardTitle>
+            <CardDescription>
+              Show this QR code to the seller at pickup
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-center">
+              <OrderQRCodeDialog orderId={order.id} />
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Order Summary Card */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -292,7 +308,9 @@ export default async function OrderPage({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle>Pickup Events</CardTitle>
-            <PickupStatusBadge order={order} />
+            <div className="flex items-center gap-2">
+              <PickupStatusBadge order={order} />
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -409,6 +427,11 @@ export default async function OrderPage({
             </Card>
           </Link>
         </div>
+      </div>
+
+      {/* Floating QR Code Button - Mobile only */}
+      <div className="md:hidden fixed bottom-20 right-4 z-40">
+        <OrderQRCodeDialog orderId={order.id} variant="floating" />
       </div>
     </div>
   );

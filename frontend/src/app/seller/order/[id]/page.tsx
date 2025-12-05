@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { CompleteOrderSchema } from "common";
 import Decimal from "decimal.js";
-import { format } from "date-fns";
+import { format, isPast } from "date-fns";
 import {
   Card,
   CardContent,
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
+import { OrderActionButtons } from "@/components/custom/OrderActionButtons";
 import { CreditCard, ShoppingBag, User, CalendarIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
@@ -77,23 +78,80 @@ export default async function OrderPage({
     )
     .toFixed(2);
 
+  // Determine border color based on order state
+  const getBorderColor = () => {
+    // If both payment confirmed and picked up, use green
+    if (order.paymentStatus === "CONFIRMED" && order.pickedUp) {
+      return "border-green-500";
+    }
+
+    // If payment is pending or unverifiable but order is picked up, use yellow
+    if (
+      (order.paymentStatus === "PENDING" ||
+        order.paymentStatus === "UNVERIFIABLE") &&
+      order.pickedUp
+    ) {
+      return "border-yellow-500";
+    }
+
+    // Check pickup events
+    const pickupEvents = order.fundraiser.pickupEvents;
+    if (pickupEvents.length > 0) {
+      const earliestStart = pickupEvents.reduce(
+        (earliest, event) =>
+          event.startsAt < earliest ? event.startsAt : earliest,
+        pickupEvents[0].startsAt
+      );
+      const latestEnd = pickupEvents.reduce(
+        (latest, event) => (event.endsAt > latest ? event.endsAt : latest),
+        pickupEvents[0].endsAt
+      );
+
+      // If pickup has ended and order not picked up, use red
+      if (isPast(latestEnd) && !order.pickedUp) {
+        return "border-red-500";
+      }
+    }
+
+    // As long as not picked up, use yellow
+    if (!order.pickedUp) {
+      return "border-yellow-500";
+    }
+
+    // Fallback to green (shouldn't reach here if logic is correct)
+    return "border-green-500";
+  };
+
   return (
     <div className="container max-w-4xl py-6 px-4 md:py-8 md:px-6 mx-auto">
-      <div className="flex flex-col gap-2 mb-6">
+      <div className="mb-4">
         <h1 className="text-3xl font-bold tracking-tight">Order Details</h1>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-4">
+        {/* Action Buttons Card */}
+        <Card className={`border-2 ${getBorderColor()}`}>
+          <CardHeader>
+            <CardTitle>Order Actions</CardTitle>
+            <CardDescription>
+              Manage payment confirmation and pickup status
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <OrderActionButtons order={order} token={session.access_token} />
+          </CardContent>
+        </Card>
+
         {/* Order Status Card*/}
         <Card className="border-2">
-          <CardContent className="pt-6">
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
+          <CardContent className="pt-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-3">
+                <div className="flex items-start gap-2">
                   <CreditCard className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
                   <div>
                     <h3 className="font-semibold">Payment Status</h3>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-0.5">
                       <PaymentStatusBadge order={order} />
                       <span className="text-sm text-muted-foreground">
                         {order.paymentMethod}
@@ -101,30 +159,30 @@ export default async function OrderPage({
                     </div>
                   </div>
                 </div>
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2">
                   <User className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
                   <div>
                     <h3 className="font-semibold">Customer</h3>
-                    <p className="text-sm mt-1">{order.buyer.name}</p>
+                    <p className="text-sm mt-0.5">{order.buyer.name}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
+              <div className="space-y-3">
+                <div className="flex items-start gap-2">
                   <CalendarIcon className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
                   <div>
                     <h3 className="font-semibold">Pickup Status</h3>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-0.5">
                       <PickupStatusBadge order={order} />
                     </div>
                   </div>
                 </div>
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2">
                   <ShoppingBag className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
                   <div>
                     <h3 className="font-semibold">Order Total</h3>
-                    <p className="text-sm mt-1">
+                    <p className="text-sm mt-0.5">
                       ${orderTotal} •{" "}
                       {order.items.reduce(
                         (total, item) => total + item.quantity,
@@ -145,15 +203,18 @@ export default async function OrderPage({
             <CardTitle>Order Items</CardTitle>
             <CardDescription>
               {order.items.reduce((total, item) => total + item.quantity, 0)}{" "}
-              items purchased
+              {order.items.reduce((total, item) => total + item.quantity, 0) ===
+              1
+                ? "item"
+                : "items"}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {order.items.map((orderItem) => (
                 <div
                   key={orderItem.item.id}
-                  className="flex flex-col sm:flex-row gap-4 pb-4 border-b last:border-0 last:pb-0"
+                  className="flex flex-col sm:flex-row gap-3 pb-3 border-b last:border-0 last:pb-0"
                 >
                   <div className="flex-1 space-y-1 text-center sm:text-left">
                     <h3 className="font-medium">{orderItem.item.name}</h3>
@@ -168,7 +229,7 @@ export default async function OrderPage({
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-center sm:justify-end sm:w-24 mt-2 sm:mt-0">
+                  <div className="flex items-center justify-center sm:justify-end sm:w-24 mt-1 sm:mt-0">
                     <span className="font-medium">
                       $
                       {Decimal(orderItem.item.price)
@@ -179,7 +240,7 @@ export default async function OrderPage({
                 </div>
               ))}
             </div>
-            <Separator className="my-4" />
+            <Separator className="my-3" />
             <div className="flex justify-between">
               <span className="font-medium">Total</span>
               <span className="font-bold">${orderTotal}</span>
@@ -188,18 +249,18 @@ export default async function OrderPage({
         </Card>
 
         {/* Buyer and Order Info */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           <Card>
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <User className="h-5 w-5" />
                 <CardTitle>Buyer Info</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+              <div className="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
                 <div>
-                  <p className="font-medium mt-2 sm:mt-0">{order.buyer.name}</p>
+                  <p className="font-medium">{order.buyer.name}</p>
                   <p className="text-sm text-muted-foreground break-all">
                     {order.buyer.email}
                   </p>
@@ -209,7 +270,7 @@ export default async function OrderPage({
           </Card>
 
           <Card>
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <ShoppingBag className="h-5 w-5" />
                 <CardTitle>Order Info</CardTitle>
@@ -217,9 +278,9 @@ export default async function OrderPage({
             </CardHeader>
             <CardContent>
               <div>
-                <p className="font-medium mt-2 sm:mt-0">Order ID: {order.id}</p>
+                <p className="font-medium">Order ID: {order.id}</p>
                 <p className="text-sm text-muted-foreground">
-                  Placed on: {format(order.createdAt, "MMM d, yyyy")}
+                  Placed {format(order.createdAt, "MMM d, yyyy")}
                 </p>
               </div>
             </CardContent>
