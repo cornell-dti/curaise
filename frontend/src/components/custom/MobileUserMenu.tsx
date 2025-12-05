@@ -36,6 +36,10 @@ export default function MobileUserMenu({ userRole }: { userRole: UserRole }) {
 		redirect("/seller");
 	};
 
+	const handleLogin = () => {
+		signInWithGoogle();
+	};
+
 	const handleLogout = () => {
 		signOut();
 	};
@@ -70,7 +74,7 @@ export default function MobileUserMenu({ userRole }: { userRole: UserRole }) {
 						</DropdownMenuItem>
 					</>
 				) : (
-					<DropdownMenuItem onClick={signInWithGoogle} className="text-base">
+					<DropdownMenuItem onClick={handleLogin} className="text-base">
 						<User className="mr-2 h-4 w-4" />
 						<span>Log In</span>
 					</DropdownMenuItem>

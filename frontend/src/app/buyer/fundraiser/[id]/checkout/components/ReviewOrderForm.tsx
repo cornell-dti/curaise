@@ -49,13 +49,13 @@ export function ReviewOrderForm({
               {fundraiser.pickupEvents.map((event) => (
                 <div key={event.id} className="space-y-2">
                   <div className="flex items-start gap-2">
-                    <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
+                    <MapPin className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" aria-hidden="true" />
                     <span className="text-sm">
                       <b>{event.location}</b>
                     </span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <CalendarIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" />
+                    <CalendarIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground mt-0.5" aria-hidden="true" />
                     <span className="text-sm">
                       <b>
                         {format(event.startsAt, "MMM d, yyyy 'at' h:mm a")} -{" "}

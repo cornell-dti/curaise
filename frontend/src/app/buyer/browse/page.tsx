@@ -27,7 +27,7 @@ export default async function BrowseFundraisersPage({
 	const searchQuery = params.search || "";
 
 	return (
-		<div className="flex flex-col p-6 md:p-10 space-y-6 pt-20 md:pt-10">
+		<div className="flex flex-col px-4 md:px-[157px] pt-10">
 			<FundraisersList fundraisers={fundraisers} searchQuery={searchQuery} />
 		</div>
 	);

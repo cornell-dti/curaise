@@ -36,6 +36,10 @@ export default function DesktopUserMenu({ userRole }: { userRole: UserRole }) {
 		redirect("/seller");
 	};
 
+	const handleLogin = () => {
+		signInWithGoogle();
+	};
+
 	const handleLogout = () => {
 		signOut();
 	};
@@ -43,7 +47,7 @@ export default function DesktopUserMenu({ userRole }: { userRole: UserRole }) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" className="ml-2 flex items-center gap-1">
+				<Button variant="ghost" className="ml-2 flex items-center gap-1 text-base font-normal">
 					Account
 					<ChevronDown className="h-4 w-4" />
 				</Button>
@@ -63,7 +67,7 @@ export default function DesktopUserMenu({ userRole }: { userRole: UserRole }) {
 						</DropdownMenuItem>
 					</>
 				) : (
-					<DropdownMenuItem onClick={signInWithGoogle} className="text-base">
+					<DropdownMenuItem onClick={handleLogin} className="text-base">
 						<User className="mr-2 h-4 w-4" />
 						<span>Log In</span>
 					</DropdownMenuItem>

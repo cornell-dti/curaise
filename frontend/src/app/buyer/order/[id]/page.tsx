@@ -22,6 +22,10 @@ import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { ConfettiWrapper } from "@/components/custom/ConfettiWrapper";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { CopyButton } from "@/components/custom/CopyButton";
+import { QRCodeSVG } from "qrcode.react";
 
 // data fetching function
 const getOrder = async (id: string, token: string) => {
@@ -204,7 +208,9 @@ export default async function OrderPage({
                         />
                       ) : (
                         <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded flex-shrink-0 flex items-center justify-center">
-                          <span className="text-xs text-gray-400">No image</span>
+                          <span className="text-xs text-gray-400">
+                            No image
+                          </span>
                         </div>
                       )}
                       <span className="text-sm">{orderItem.item.name}</span>
@@ -228,22 +234,27 @@ export default async function OrderPage({
           </Card>
         </div>
 
-        {/* Venmo QR Code Section */}
+        {/* Order QR Code Section */}
         <div className="order-1 md:order-2">
           <Card>
             <CardHeader>
-              <CardTitle>Venmo QR Code</CardTitle>
+              <CardTitle>Order QR Code</CardTitle>
               <CardDescription>
-                Show this to DTI at pick up to get your order.
+                Show this QR code to the seller at pickup
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex justify-center mb-4">
-                {/* Placeholder QR code - dashed border box */}
-                <div className="w-64 h-64 border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center rounded">
-                  <p className="text-sm text-muted-foreground">
-                    QR Code Placeholder
-                  </p>
+                <div className="bg-white p-4 rounded-lg">
+                  <QRCodeSVG
+                    value={`${
+                      typeof window !== "undefined"
+                        ? window.location.origin
+                        : process.env.NEXT_PUBLIC_BASE_URL || ""
+                    }/seller/order/${order.id}`}
+                    size={256}
+                    level="H"
+                  />
                 </div>
               </div>
             </CardContent>

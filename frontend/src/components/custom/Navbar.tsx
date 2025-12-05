@@ -73,10 +73,18 @@ export default function Navbar() {
 		router.push(`${pathname}?${params.toString()}`);
 	};
 
+	// Hide top navbar on mobile for fundraiser pages
+	const isFundraiserPage = pathname.includes("/buyer/fundraiser/") && !pathname.includes("/checkout");
+	const hideTopNavbarOnMobile = isFundraiserPage;
+
 	return (
 		<>
-			<header className="sticky top-0 z-50 w-full border-b bg-background">
-				<div className="relative flex h-16 items-center px-4 md:px-8 lg:px-12">
+			<header className={`sticky top-0 z-50 w-full border-b bg-background ${
+				pathname.includes("/buyer/browse") && showSearchBar ? "md:h-20" : "h-16 md:h-20"
+			} ${hideTopNavbarOnMobile ? "hidden md:block" : ""}`}>
+				<div className={`relative flex items-center px-4 md:px-8 lg:px-12 ${
+					pathname.includes("/buyer/browse") && showSearchBar ? "h-0 md:h-20" : "h-16 md:h-20"
+				}`}>
 					{/* Logo - Desktop */}
 					<div className="hidden md:flex items-center flex-shrink-0">
 						<Link
@@ -86,18 +94,20 @@ export default function Navbar() {
 						</Link>
 					</div>
 
-					{/* Logo - Mobile (centered) */}
-					<div className="md:hidden flex items-center justify-center w-full">
-						<Link
-							href={isBuyer ? "/buyer" : "/seller"}
-							className="text-2xl font-bold">
-							CURaise
-						</Link>
-					</div>
+					{/* Logo - Mobile (centered) - Hidden on browse page and fundraiser pages */}
+					{!pathname.includes("/buyer/browse") && !isFundraiserPage && (
+						<div className="md:hidden flex items-center justify-center w-full">
+							<Link
+								href={isBuyer ? "/buyer" : "/seller"}
+								className="text-2xl font-bold">
+								CURaise
+							</Link>
+						</div>
+					)}
 
-					{/* Mobile Search Bar - Top */}
+					{/* Mobile Search Bar - Top - Full width */}
 					{showSearchBar && (
-						<div className="md:hidden absolute top-full left-0 right-0 p-4 bg-background border-b">
+						<div className="md:hidden absolute top-0 left-0 right-0 px-4 py-4 bg-background w-full">
 							<SearchBar
 								searchType={searchType}
 								onSearchChange={handleSearchChange}
@@ -136,7 +146,7 @@ export default function Navbar() {
 											</NavigationMenuLink>
 										</Link>
 									</NavigationMenuItem>
-									{showCart && fundraiserId && (
+									{/* {showCart && fundraiserId && (
 										<NavigationMenuItem>
 											<NavigationMenuTrigger className="gap-2">
 												Cart{" "}
@@ -154,7 +164,7 @@ export default function Navbar() {
 												</div>
 											</NavigationMenuContent>
 										</NavigationMenuItem>
-									)}
+									)} */}
 								</>
 							</NavigationMenuList>
 						</NavigationMenu>
