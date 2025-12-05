@@ -22,6 +22,7 @@ import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { ConfettiWrapper } from "@/components/custom/ConfettiWrapper";
+import { OrderQRCodeDisplay } from "@/components/custom/OrderQRCodeDisplay";
 
 // data fetching function
 const getOrder = async (id: string, token: string) => {
@@ -240,14 +241,7 @@ export default async function OrderPage({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex justify-center mb-4">
-                {/* Placeholder QR code - dashed border box */}
-                <div className="w-64 h-64 border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center rounded">
-                  <p className="text-sm text-muted-foreground">
-                    QR Code Placeholder
-                  </p>
-                </div>
-              </div>
+              <OrderQRCodeDisplay orderId={order.id} />
             </CardContent>
           </Card>
         </div>
