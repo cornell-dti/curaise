@@ -7,35 +7,26 @@ import { CheckCircle2, DollarSign } from "lucide-react";
 import { BasicOrderSchema } from "common";
 import { z } from "zod";
 import { toast } from "sonner";
-import { createClient } from "@/utils/supabase/client";
 
 interface OrderActionButtonsProps {
   order: z.infer<typeof BasicOrderSchema>;
+  token: string;
 }
 
-export function OrderActionButtons({ order }: OrderActionButtonsProps) {
+export function OrderActionButtons({ order, token }: OrderActionButtonsProps) {
   const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
   const [isCompletingPickup, setIsCompletingPickup] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   const handleConfirmPayment = async () => {
     setIsConfirmingPayment(true);
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session?.access_token) {
-        throw new Error("No session found");
-      }
-
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/order/${order.id}/confirm-payment`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${session.access_token}`,
+            Authorization: "Bearer" + token,
           },
         }
       );
@@ -48,7 +39,8 @@ export function OrderActionButtons({ order }: OrderActionButtonsProps) {
       toast.success("Payment confirmed successfully");
       router.refresh();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to confirm payment";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to confirm payment";
       toast.error(errorMessage);
       console.error(error);
     } finally {
@@ -59,33 +51,30 @@ export function OrderActionButtons({ order }: OrderActionButtonsProps) {
   const handleCompletePickup = async () => {
     setIsCompletingPickup(true);
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session?.access_token) {
-        throw new Error("No session found");
-      }
-
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/order/${order.id}/complete-pickup`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${session.access_token}`,
+            Authorization: "Bearer" + token,
           },
         }
       );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to mark order as picked up");
+        throw new Error(
+          errorData.message || "Failed to mark order as picked up"
+        );
       }
 
       toast.success("Order marked as picked up");
       router.refresh();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to mark order as picked up";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to mark order as picked up";
       toast.error(errorMessage);
       console.error(error);
     } finally {
@@ -99,7 +88,11 @@ export function OrderActionButtons({ order }: OrderActionButtonsProps) {
   const hasButtons = shouldShowConfirmPayment || isPickupPending;
 
   return (
-    <div className={hasButtons ? "flex flex-col gap-3 sm:flex-row" : "flex flex-col"}>
+    <div
+      className={
+        hasButtons ? "flex flex-col gap-3 sm:flex-row" : "flex flex-col"
+      }
+    >
       {shouldShowConfirmPayment && (
         <Button
           onClick={handleConfirmPayment}

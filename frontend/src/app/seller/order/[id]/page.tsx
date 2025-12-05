@@ -86,7 +86,11 @@ export default async function OrderPage({
     }
 
     // If payment is pending or unverifiable but order is picked up, use yellow
-    if ((order.paymentStatus === "PENDING" || order.paymentStatus === "UNVERIFIABLE") && order.pickedUp) {
+    if (
+      (order.paymentStatus === "PENDING" ||
+        order.paymentStatus === "UNVERIFIABLE") &&
+      order.pickedUp
+    ) {
       return "border-yellow-500";
     }
 
@@ -134,7 +138,7 @@ export default async function OrderPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <OrderActionButtons order={order} />
+            <OrderActionButtons order={order} token={session.access_token} />
           </CardContent>
         </Card>
 
@@ -199,7 +203,10 @@ export default async function OrderPage({
             <CardTitle>Order Items</CardTitle>
             <CardDescription>
               {order.items.reduce((total, item) => total + item.quantity, 0)}{" "}
-              {order.items.reduce((total, item) => total + item.quantity, 0) === 1 ? "item" : "items"}
+              {order.items.reduce((total, item) => total + item.quantity, 0) ===
+              1
+                ? "item"
+                : "items"}
             </CardDescription>
           </CardHeader>
           <CardContent>
