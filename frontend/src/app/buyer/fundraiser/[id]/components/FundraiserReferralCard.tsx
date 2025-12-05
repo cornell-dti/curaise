@@ -67,29 +67,35 @@ export function FundraiserReferralCard({
     <div className="w-full">
       <Card className="w-full">
         <CardContent className="py-3">
-          <div className="flex items-center justify-between gap-2">
-            <span className="flex gap-2 justify-center">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <span className="flex gap-2 items-start">
               <Star />
               <span className="text-md font-semibold">
-                [{fundraiser.organization.name} Members Only] Become a Referrer
+                <span className="hidden md:inline">
+                  [{fundraiser.organization.name} Members Only] Become a Referrer
+                </span>
+                <span className="inline md:hidden">
+                  [{fundraiser.organization.name} Members Only]
+                  <br />
+                  Become a Referrer
+                </span>
               </span>
             </span>
             {!referralId ? (
+              <Button
+                className="font-light mt-1 md:mt-0 w-full md:w-auto"
+                onClick={async () => {
+                  await addReferrer();
+                }}
+              >
+                Sign Up
+              </Button>
+            ) : (
               <Button
                 className="cursor-pointer font-light text-sm md:text-md"
                 onClick={() => copyToClipboard(link)}
               >
                 Copy Referral Link
-              </Button>
-            ) : (
-              <Button
-                className="font-light"
-                onClick={async () => {
-                  await addReferrer();
-                  setReferralOpen(true);
-                }}
-              >
-                Sign Up
               </Button>
             )}
           </div>

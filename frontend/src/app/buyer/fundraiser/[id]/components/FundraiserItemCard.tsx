@@ -7,6 +7,7 @@ import type Decimal from "decimal.js";
 import { Plus, Minus, Trash } from "lucide-react";
 import type { z } from "zod";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 export function FundraiserItemCard({
   item,
@@ -80,87 +81,118 @@ export function FundraiserItemCard({
   };
 
   return (
-    <div className="border rounded-md flex flex-col overflow-hidden h-full hover:scale-105 transition-transform duration-150">
-      <div className="relative w-full h-48 bg-gray-100">
-        {item.imageUrl ? (
-          <img
-            src={item.imageUrl || "/placeholder.svg"}
-            alt={item.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-200">
-            <span className="text-gray-400">No image</span>
-          </div>
-        )}
+    <>
+      {/* Mobile: Simple list style like fundraisers */}
+      <div className="md:hidden flex flex-col gap-[15px] w-full">
+        {/* Image */}
+        <div className="bg-white h-[240px] rounded-md shadow-[2px_2px_5px_0px_rgba(140,140,140,0.25)] overflow-hidden relative">
+          {item.imageUrl ? (
+            <Image
+              src={item.imageUrl || "/placeholder.svg"}
+              alt={item.name}
+              fill
+              className="object-cover"
+              style={{ objectFit: 'cover' }}
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-200" />
+          )}
+        </div>
+
+        {/* Title and Price */}
+        <div className="flex flex-col gap-1">
+          <h3 className="text-[20px] font-semibold leading-6 text-black">
+            {item.name}
+          </h3>
+          <p className="text-base font-normal leading-6 text-[#545454]">
+            ${Number(item.price).toFixed(2)}
+          </p>
+        </div>
       </div>
 
-      <div className="flex-1 p-4">
-        <h3 className="font-medium text-lg">{item.name}</h3>
-        <div className="flex items-center justify-between mt-2">
-          <p className="font-medium text-gray-800">{`$${Number(
-            item.price
-          ).toFixed(2)}`}</p>
+      {/* Desktop: Card style */}
+      <div className="hidden md:flex border rounded-md flex-col overflow-hidden h-full hover:scale-105 transition-transform duration-150">
+        <div className="relative w-full h-48 bg-gray-200">
+          {item.imageUrl ? (
+            <Image
+              src={item.imageUrl || "/placeholder.svg"}
+              alt={item.name}
+              fill
+              className="object-cover"
+              style={{ objectFit: 'cover' }}
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-200" />
+          )}
+        </div>
 
-          {/* add item component */}
-          <div className="relative">
-            <div
-              ref={selectorRef}
-              className={cn(
-                "quantity-selector flex items-center justify-center bg-gray-100 rounded-full h-8 shadow-sm",
-                showAmount ? "w-24" : "w-8",
-                "origin-right overflow-hidden whitespace-nowrap transition-all duration-300 ease-out"
-              )}
-            >
-              {showAmount ? (
-                <>
-                  {amount > 1 ? (
+        <div className="flex-1 p-4">
+          <h3 className="font-semibold text-[20px]">{item.name}</h3>
+          <div className="flex items-center justify-between mt-1">
+            <p className="font-[400] text-muted-foreground">{`$${Number(
+              item.price
+            ).toFixed(2)}`}</p>
+
+            {/* add item component */}
+            <div className="relative">
+              <div
+                ref={selectorRef}
+                className={cn(
+                  "quantity-selector flex items-center justify-center bg-gray-400 rounded-full h-8 shadow-sm",
+                  showAmount ? "w-24" : "w-8",
+                  "origin-right overflow-hidden whitespace-nowrap transition-all duration-300 ease-out"
+                )}
+              >
+                {showAmount ? (
+                  <>
+                    {amount > 1 ? (
+                      <button
+                        onClick={handleMinusClick}
+                        className="p-2 mx-1 hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
+                      >
+                        <Minus className="w-4 h-4 text-white" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleRemove}
+                        className="p-2 mx-1 hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
+                      >
+                        <Trash className="w-4 h-4 text-white" />
+                      </button>
+                    )}
+                    <span className="px-2 font-medium text-white text-center flex-shrink-0">
+                      {amount}
+                    </span>
                     <button
-                      onClick={handleMinusClick}
-                      className="p-2 mx-1 hover:bg-gray-200 rounded-full transition-colors flex-shrink-0"
+                      onClick={handlePlusClick}
+                      className="p-2 mx-1 hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
                     >
-                      <Minus className="w-4 h-4 text-gray-700" />
+                      <Plus className="w-4 h-4 text-white" />
                     </button>
-                  ) : (
-                    <button
-                      onClick={handleRemove}
-                      className="p-2 mx-1 hover:bg-gray-200 rounded-full transition-colors flex-shrink-0"
-                    >
-                      <Trash className="w-4 h-4 text-gray-500" />
-                    </button>
-                  )}
-                  <span className="px-2 font-medium text-gray-800 text-center flex-shrink-0">
+                  </>
+                ) : amount > 0 ? (
+                  <span
+                    className="px-2 font-medium text-white text-center flex-shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpen(e);
+                    }}
+                  >
                     {amount}
                   </span>
+                ) : (
                   <button
-                    onClick={handlePlusClick}
-                    className="p-2 mx-auto hover:bg-gray-200 rounded-full transition-colors flex-shrink-0"
+                    onClick={handleOpen}
+                    className="p-2 mx-auto hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
                   >
-                    <Plus className="w-4 h-4 text-gray-700" />
+                    <Plus className="w-4 h-4 text-white" />
                   </button>
-                </>
-              ) : amount > 0 ? (
-                <span
-                  className="px-2 font-medium text-gray-800 text-center flex-shrink-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpen(e);
-                  }}
-                >
-                  {amount}
-                </span>
-              ) : (
-                <button
-                  onClick={handleOpen}
-                  className="p-2 mx-auto hover:bg-gray-200 rounded-full transition-colors flex-shrink-0"
-                >
-                  <Plus className="w-4 h-4 text-gray-700" />
-                </button>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

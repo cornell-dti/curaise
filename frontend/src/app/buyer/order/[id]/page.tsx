@@ -16,7 +16,6 @@ import {
   MapPin,
   ShoppingBag,
   User,
-  ExternalLink,
 } from "lucide-react";
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { Separator } from "@/components/ui/separator";
@@ -25,7 +24,6 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/custom/CopyButton";
-import { ConfettiWrapper } from "@/components/custom/ConfettiWrapper";
 import { OrderQRCodeDialog } from "@/components/custom/OrderQRCodeDialog";
 
 // data fetching function
@@ -103,7 +101,10 @@ export default async function OrderPage({
   }
 
   const order = await getOrder(id, session.access_token);
-  const fundraiser = await getFundraiser(order.fundraiser.id, session.access_token);
+  const fundraiser = await getFundraiser(
+    order.fundraiser.id,
+    session.access_token
+  );
 
   const orderTotal = order.items
     .reduce(
@@ -124,30 +125,36 @@ export default async function OrderPage({
         borderColor: "border-green-500",
         textColor: "text-green-800 dark:text-green-200",
         title: "Payment Confirmed",
-        message: "Your payment has been verified. No further action is required.",
+        message:
+          "Your payment has been verified. No further action is required.",
       };
     }
-    
+
     // If unverifiable AND venmo, show unverifiable message
-    if (order.paymentStatus === "UNVERIFIABLE" && order.paymentMethod === "VENMO") {
+    if (
+      order.paymentStatus === "UNVERIFIABLE" &&
+      order.paymentMethod === "VENMO"
+    ) {
       return {
         borderColor: "border-blue-500",
         textColor: "text-blue-800 dark:text-blue-200",
         title: "Order Processed",
-        message: "Your order has been received. Payment will have to be manually verified by the fundraiser managers.",
+        message:
+          "Your order has been received. Payment will have to be manually verified by the fundraiser managers.",
       };
     }
-    
+
     // For OTHER payment method (PENDING or UNVERIFIABLE), show unverifiable messaging
     if (order.paymentMethod === "OTHER") {
       return {
         borderColor: "border-blue-500",
         textColor: "text-blue-800 dark:text-blue-200",
         title: "Order Processed",
-        message: "Your order has been received. Payment will have to be manually verified by the fundraiser managers.",
+        message:
+          "Your order has been received. Payment will have to be manually verified by the fundraiser managers.",
       };
     }
-    
+
     // Default case: VENMO + PENDING (show payment required message)
     return {
       borderColor: "border-blue-500",
@@ -161,7 +168,6 @@ export default async function OrderPage({
 
   return (
     <div className="container max-w-4xl py-6 px-4 md:py-8 md:px-6 mx-auto">
-      <ConfettiWrapper />
       <div className="flex flex-col gap-2 mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Order Details</h1>
         <p className="text-muted-foreground">
@@ -170,7 +176,6 @@ export default async function OrderPage({
       </div>
 
       <div className="grid gap-6">
-
         {/* Payment Banner */}
         <Card className={`${bannerStyle.borderColor}`}>
           <CardHeader className="py-6">
@@ -181,55 +186,84 @@ export default async function OrderPage({
               {bannerStyle.message}
             </CardDescription>
           </CardHeader>
-           {/* Show CardContent for PENDING VENMO orders with venmoUsername */}
-           {order.paymentStatus === "PENDING" && order.paymentMethod === "VENMO" && fundraiser.venmoUsername && (
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-center">
-                  <Button
-                    size="lg"
-                    asChild
-                    className="flex items-center gap-2 bg-[#3D95CE] hover:bg-[#2E7BB8] text-white font-semibold px-8 py-3 text-md"
-                  >
-                    <a
-                      href={`https://venmo.com/${fundraiser.venmoUsername}?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+          {/* Show CardContent for PENDING VENMO orders with venmoUsername */}
+          {order.paymentStatus === "PENDING" &&
+            order.paymentMethod === "VENMO" &&
+            fundraiser.venmoUsername && (
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-center">
+                    <Button
+                      size="lg"
+                      asChild
+                      className="flex items-center gap-2 bg-[#008CFF] hover:bg-[#2E7BB8] text-white font-semibold px-4 py-3 text-md"
                     >
-                      <ExternalLink className="h-5 w-5" />
-                      Pay with Venmo</a>
-                  </Button>
-                </div>
+                      <a
+                        href={`https://venmo.com/${
+                          fundraiser.venmoUsername
+                        }?txn=pay&note=${encodeURIComponent(
+                          orderIdForPayment
+                        )}&amount=${encodeURIComponent(orderTotal)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <span className="flex items-center gap-2">
+                          <svg
+                            width="48"
+                            height="48"
+                            style={{ width: "2rem", height: "2rem" }}
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-label="Venmo"
+                            role="img"
+                            viewBox="0 0 512 512"
+                          >
+                            <rect
+                              width="512"
+                              height="512"
+                              rx="15%"
+                              fill="transparent"
+                            />
+                            <path
+                              d="m381.4 105.3c11 18.1 15.9 36.7 15.9 60.3 0 75.1-64.1 172.7-116.2 241.2h-118.8l-47.6-285 104.1-9.9 25.3 202.8c23.5-38.4 52.6-98.7 52.6-139.7 0-22.5-3.9-37.8-9.9-50.4z"
+                              fill="#ffffff"
+                            />
+                          </svg>
+                          <span>Pay with Venmo</span>
+                        </span>
+                      </a>
+                    </Button>
+                  </div>
 
-                {/* Show payment details */}
-                <details className="text-sm text-muted-foreground">
-                  <summary className="cursor-pointer hover:text-foreground">
-                    Link not working?
-                  </summary>
-                  <div className="mt-2 pl-4 border-l-2 border-muted space-y-3">
-                    <p className="mb-1 text-sm">
-                      Manual entry details (enter exactly as shown, or the order may not be processed correctly):
-                    </p>
-                    <p className="mb-1 text-sm">Send to Venmo username:</p>
-                    <div className="flex items-center gap-2">
-                      <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
-                        @{fundraiser.venmoUsername}
-                      </code>
-                      <CopyButton text={`${fundraiser.venmoUsername}`} />
-                    </div>
+                  {/* Show payment details */}
+                  <details className="text-sm text-muted-foreground">
+                    <summary className="cursor-pointer hover:text-foreground">
+                      Link not working?
+                    </summary>
+                    <div className="mt-2 pl-4 border-l-2 border-muted space-y-2">
+                      <p className="mb-1 text-sm">
+                        Manual entry details (enter exactly as shown, or the
+                        order may not be processed correctly):
+                      </p>
 
-                    <div>
-                      <p className="mb-1 text-sm">Amount to send:</p>
+                      <p className="text-sm">Send to Venmo username:</p>
+                      <div className="flex items-center gap-2">
+                        <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
+                          @{fundraiser.venmoUsername}
+                        </code>
+                        <CopyButton text={`${fundraiser.venmoUsername}`} />
+                      </div>
+
+                      <p className="text-sm">Amount to send:</p>
                       <div className="flex items-center gap-2">
                         <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
                           ${orderTotal}
                         </code>
                         <CopyButton text={orderTotal} />
                       </div>
-                    </div>
 
-                    <div>
-                      <p className="mb-1 text-sm">Send this exact order ID as your Venmo message:</p>
+                      <p className="text-sm">
+                        Send this exact order ID as your Venmo message:
+                      </p>
                       <div className="flex items-center gap-2">
                         <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
                           {orderIdForPayment}
@@ -237,11 +271,10 @@ export default async function OrderPage({
                         <CopyButton text={orderIdForPayment} />
                       </div>
                     </div>
-                  </div>
-                </details>
-              </div>
-            </CardContent>
-          )}
+                  </details>
+                </div>
+              </CardContent>
+            )}
         </Card>
 
         {/* QR Code Card - Desktop only */}
@@ -267,7 +300,7 @@ export default async function OrderPage({
           </CardHeader>
           <CardContent>
             <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-4">
+              <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <CalendarIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                   <span className="text-sm break-words">

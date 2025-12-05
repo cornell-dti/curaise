@@ -12,6 +12,7 @@ import { BasicFundraiserSchema } from "common";
 import Link from "next/link";
 import { format } from "date-fns";
 import { Button } from "../ui/button";
+import Image from "next/image";
 
 export function FundraiserCard({
   fundraiser,
@@ -30,10 +31,12 @@ export function FundraiserCard({
       {/* Image Section */}
       <div className="relative h-48 bg-gray-100">
         {fundraiser.imageUrls && fundraiser.imageUrls.length > 0 ? (
-          <img
+          <Image
             src={fundraiser.imageUrls[0]}
             alt={fundraiser.name}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            style={{ objectFit: 'cover' }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-200">
