@@ -33,7 +33,9 @@ export function ReferralsTable<TValue>({
 	columns,
 	data,
 }: ReferralsTableProps<TValue>) {
-	const [sorting, setSorting] = useState<SortingState>([]);
+	const [sorting, setSorting] = useState<SortingState>([
+		{ id: "orderCount", desc: true }, // Referral with most order quantities default at the top
+	]);
 	const [globalFilter, setGlobalFilter] = useState("");
 
 	const table = useReactTable({

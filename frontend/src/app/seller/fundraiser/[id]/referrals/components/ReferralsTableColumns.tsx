@@ -119,10 +119,10 @@ export const getReferralsColumns = (): ColumnDef<ReferralWithQuantities>[] => [
 					<DropdownMenuContent align="end">
 						<DropdownMenuItem
 							onClick={() => {
-								navigator.clipboard.writeText(referral.referrer.id);
-								toast.success("User ID copied to clipboard");
+								navigator.clipboard.writeText(referral.id);
+								toast.success("Referral ID copied to clipboard");
 							}}>
-							Copy referrer ID
+							Copy referral ID
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
