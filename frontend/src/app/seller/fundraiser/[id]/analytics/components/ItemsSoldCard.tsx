@@ -37,7 +37,7 @@ export function ItemsSoldCard({ items }: ItemsSoldCardProps) {
 
 	return (
 		<div className="space-y-6">
-			<div className="space-y-6">
+			<div className="space-y-6 min-h-[200px]">
 				{currentItems.map((item, index) => {
 					const percentage = total > 0 ? (item.quantity / total) * 100 : 0;
 					return (
@@ -74,8 +74,7 @@ export function ItemsSoldCard({ items }: ItemsSoldCardProps) {
 						size="sm"
 						onClick={goToPrevPage}
 						disabled={currentPage === 1}>
-						<ChevronLeft className="h-4 w-4" />
-						Prev
+						Previous
 					</Button>
 					<Button
 						variant="outline"
@@ -83,7 +82,6 @@ export function ItemsSoldCard({ items }: ItemsSoldCardProps) {
 						onClick={goToNextPage}
 						disabled={currentPage === totalPages}>
 						Next
-						<ChevronRight className="h-4 w-4" />
 					</Button>
 				</div>
 			)}
