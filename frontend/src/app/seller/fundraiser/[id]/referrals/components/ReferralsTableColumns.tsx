@@ -85,7 +85,7 @@ export const getReferralsColumns = (): ColumnDef<ReferralWithQuantities>[] => [
 	{
 		accessorKey: "approved",
 		header: () => {
-			return <div className="flex justify-center w-full px-2">Approved</div>;
+			return <div className="flex justify-center w-full px-2">Status</div>;
 		},
 		cell: ({ row }) => {
 			const isApproved = row.original.approved;
