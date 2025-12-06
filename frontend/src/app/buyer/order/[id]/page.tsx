@@ -184,9 +184,9 @@ export default async function OrderPage({
         </div>
       </div>
 
-      <div className="flex flex-col gap-6">
-        {/* Payment Banner */}
-        <Card className={`${bannerStyle.borderColor}`}>
+      <div className="grid gap-6 md:grid-cols-3 md:auto-rows-min">
+        {/* Row 1, Column 1 - Payment Banner (1/3 width) */}
+        <Card className={`${bannerStyle.borderColor} order-1 md:order-none md:row-start-1 md:col-start-1`}>
           <CardHeader className="py-6">
             <CardTitle className={bannerStyle.textColor}>
               {bannerStyle.title}
@@ -286,10 +286,8 @@ export default async function OrderPage({
             )}
         </Card>
 
-        {/* Two-column grid layout */}
-        <div className="order-2 md:order-1 grid gap-6 md:grid-cols-[2fr_1fr]">
-          {/* Left Column: Order Summary */}
-          <Card>
+        {/* Row 1, Column 2-3 - Order Summary (spans 2 columns for 2/3 width) */}
+        <Card className="order-4 md:order-none md:row-start-1 md:col-start-2 md:col-span-2">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
             </CardHeader>
@@ -357,10 +355,10 @@ export default async function OrderPage({
                 </div>
               </div>
             </CardContent>
-          </Card>
+        </Card>
 
-          {/* Right Column: Order Items */}
-          <Card>
+        {/* Row 2, Column 3 - Order Items */}
+        <Card className="order-3 md:order-none md:row-start-2 md:col-start-3">
             <CardHeader>
               <CardTitle>Order Items</CardTitle>
             </CardHeader>
@@ -411,12 +409,10 @@ export default async function OrderPage({
                 </div>
               </div>
             </CardContent>
-          </Card>
-        </div>
+        </Card>
 
-        {/* Order QR Code Section */}
-        <div className="order-1 md:order-2">
-          <Card>
+        {/* Row 2, Column 1-2 - QR Code (spans 2 columns for 2/3 width) */}
+        <Card className="order-2 md:order-none md:row-start-2 md:col-start-1 md:col-span-2">
             <CardHeader>
               <CardTitle>Order QR Code</CardTitle>
               <CardDescription>
@@ -426,8 +422,7 @@ export default async function OrderPage({
             <CardContent>
               <OrderQRCodeDisplay orderId={order.id} />
             </CardContent>
-          </Card>
-        </div>
+        </Card>
       </div>
     </div>
   );
