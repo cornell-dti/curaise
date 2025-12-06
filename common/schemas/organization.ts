@@ -36,7 +36,7 @@ export const CreateOrganizationBody = z.object({
       value ? (value.length === 0 ? undefined : value) : undefined
     )
     .pipe(z.string().min(1).max(30).optional()),
-  addedAdminsIds: z.array(z.string().uuid()),
+  addedAdminsEmails: z.array(z.string().email()),
 });
 
 export const UpdateOrganizationBody = z.object({
@@ -57,5 +57,5 @@ export const UpdateOrganizationBody = z.object({
       value ? (value.length === 0 ? undefined : value) : undefined
     )
     .pipe(z.string().min(1).max(30).optional()),
-  addedAdminsIds: z.array(z.string().uuid()), // appends additional admin ids, doesn't replace original
+  addedAdminsEmails: z.array(z.string().email()), // appends additional admins by email, doesn't replace original
 });

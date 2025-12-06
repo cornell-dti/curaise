@@ -7,16 +7,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CreateOrganizationBody, UserSchema } from "common";
+import { CreateOrganizationBody } from "common";
 import { z } from "zod";
 
 export function ReviewOrganizationForm({
-  admins,
+  adminEmails,
   formData,
   onSubmit,
   onBack,
 }: {
-  admins: z.infer<typeof UserSchema>[];
+  adminEmails: string[];
   formData: z.infer<typeof CreateOrganizationBody>;
   onSubmit: () => void;
   onBack: () => void;
@@ -49,18 +49,16 @@ export function ReviewOrganizationForm({
             </p>
           )}
         </div>
-        {admins.length > 0 && (
+        {adminEmails.length > 0 && (
           <div className="mt-4 space-y-2">
             <p>Additional Admins:</p>
             <ul className="space-y-2">
-              {admins.map((admin) => (
+              {adminEmails.map((email) => (
                 <li
-                  key={admin.id}
+                  key={email}
                   className="flex items-center justify-between bg-muted p-2 rounded-md"
                 >
-                  <span className="text-sm">
-                    {admin.name} ({admin.email})
-                  </span>
+                  <span className="text-sm">{email}</span>
                 </li>
               ))}
             </ul>
