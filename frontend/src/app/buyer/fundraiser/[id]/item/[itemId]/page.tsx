@@ -5,9 +5,9 @@ import { useState, useEffect } from "react";
 import { ChevronLeft, Plus, Minus, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useCartStore } from "@/lib/store/useCartStore";
-import useStore from "@/lib/store/useStore";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
+import { useShallow } from "zustand/react/shallow";
 
 const getItem = async (fundraiserId: string, itemId: string) => {
   const response = await fetch(
@@ -30,8 +30,10 @@ export default function ItemPage() {
   const params = useParams();
   const fundraiserId = params.id as string;
   const itemId = params.itemId as string;
-  
-  const [item, setItem] = useState<typeof CompleteItemSchema._type | null>(null);
+
+  const [item, setItem] = useState<typeof CompleteItemSchema._type | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
 
@@ -49,7 +51,9 @@ export default function ItemPage() {
     }
   }, [fundraiserId, itemId]);
 
-  const cart = useStore(useCartStore, (state) => state.carts[fundraiserId] || []) || [];
+  const cart = useCartStore(
+    useShallow((state) => state.carts[fundraiserId] || [])
+  );
   const addItem = useCartStore((state) => state.addItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
@@ -111,7 +115,7 @@ export default function ItemPage() {
             alt={item.name}
             fill
             className="object-cover"
-            style={{ objectFit: 'cover' }}
+            style={{ objectFit: "cover" }}
           />
         ) : (
           <div className="w-full h-full bg-gray-200" />
@@ -172,11 +176,12 @@ export default function ItemPage() {
           onClick={handleAddToCart}
           className="bg-black text-white rounded-lg h-[50px] flex items-center justify-center gap-2 px-12 py-3"
         >
-          <span className="text-lg font-normal leading-[27px]">Add to Cart</span>
+          <span className="text-lg font-normal leading-[27px]">
+            Add to Cart
+          </span>
           <ShoppingCart className="h-5 w-5" />
         </button>
       </div>
     </div>
   );
 }
-
