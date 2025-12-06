@@ -30,13 +30,8 @@ export default function Navbar() {
   const isSeller = pathname.startsWith("/seller");
   const userRole = isBuyer ? "buyer" : isSeller ? "seller" : "buyer";
 
-  // Show search bar logic
-  const showSearchBar =
-    pathname.includes("/buyer/browse") || pathname === "/seller";
-
-  // Determine search type based on route
-  const searchType: "fundraisers" | "organizations" =
-    pathname === "/seller" ? "organizations" : "fundraisers";
+  // Show search bar logic - only on browse page
+  const showSearchBar = pathname.includes("/buyer/browse");
 
   // Shopping cart logic (buyer only)
   const showCart =
@@ -88,7 +83,7 @@ export default function Navbar() {
         } ${hideTopNavbarOnMobile ? "hidden md:block" : ""}`}
       >
         <div
-          className={`relative flex items-center px-4 md:px-[157px] ${
+          className={`relative flex items-center px-4 md:px-8 lg:px-16 xl:px-24 ${
             pathname.includes("/buyer/browse") && showSearchBar
               ? "h-0 md:h-20"
               : "h-16 md:h-20"
@@ -119,20 +114,14 @@ export default function Navbar() {
           {/* Mobile Search Bar - Top - Full width */}
           {showSearchBar && (
             <div className="md:hidden absolute top-0 left-0 right-0 px-4 py-4 bg-background w-full">
-              <SearchBar
-                searchType={searchType}
-                onSearchChange={handleSearchChange}
-              />
+              <SearchBar onSearchChange={handleSearchChange} />
             </div>
           )}
 
           {/* Desktop Search Bar - Centered with responsive width */}
           {showSearchBar && (
-            <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-64 lg:w-96 xl:w-[500px] 2xl:w-[600px] pointer-events-auto">
-              <SearchBar
-                searchType={searchType}
-                onSearchChange={handleSearchChange}
-              />
+            <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-48 md:w-64 lg:w-80 xl:w-96 pointer-events-auto">
+              <SearchBar onSearchChange={handleSearchChange} />
             </div>
           )}
 
