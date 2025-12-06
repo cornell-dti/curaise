@@ -7,210 +7,217 @@ import { z } from "zod";
 import MultiStepForm from "../../../../../../components/custom/MultiStepForm";
 import { useState } from "react";
 import { FundraiserBasicInfoForm } from "./FundraiserBasicInfoForm";
+import { FundraiserPickupEventsForm } from "./FundraiserPickupEventsForm";
 import { FundraiserAddItemsForm } from "./FundraiserAddItemsForm";
 import { ReviewFundraiserForm } from "./ReviewFundraiserForm";
 import { FundraiserVenmoInfoForm } from "./FundraiserVenmoInfoForm";
 
 const getDefaultDates = () => {
-  const now = new Date();
+	const now = new Date();
 
-  const buyingStartsAt = new Date(now);
-  buyingStartsAt.setHours(9, 0, 0, 0);
+	const buyingStartsAt = new Date(now);
+	buyingStartsAt.setHours(9, 0, 0, 0);
 
-  const buyingEndsAt = new Date(now);
-  buyingEndsAt.setDate(now.getDate() + 1);
-  buyingEndsAt.setHours(21, 0, 0, 0);
+	const buyingEndsAt = new Date(now);
+	buyingEndsAt.setDate(now.getDate() + 1);
+	buyingEndsAt.setHours(21, 0, 0, 0);
 
-  const pickupStartsAt = new Date(now);
-  pickupStartsAt.setDate(now.getDate() + 1);
-  pickupStartsAt.setHours(9, 0, 0, 0);
+	const pickupStartsAt = new Date(now);
+	pickupStartsAt.setDate(now.getDate() + 1);
+	pickupStartsAt.setHours(9, 0, 0, 0);
 
-  const pickupEndsAt = new Date(now);
-  pickupEndsAt.setDate(now.getDate() + 1);
-  pickupEndsAt.setHours(22, 0, 0, 0);
+	const pickupEndsAt = new Date(now);
+	pickupEndsAt.setDate(now.getDate() + 1);
+	pickupEndsAt.setHours(22, 0, 0, 0);
 
-  return {
-    buyingStartsAt,
-    buyingEndsAt,
-    pickupStartsAt,
-    pickupEndsAt,
-  };
+	return {
+		buyingStartsAt,
+		buyingEndsAt,
+		pickupStartsAt,
+		pickupEndsAt,
+	};
 };
 
 export function CreateFundraiserForm({
-  token,
-  organizationId,
+	token,
+	organizationId,
 }: {
-  token: string;
-  organizationId: string;
+	token: string;
+	organizationId: string;
 }) {
-  const defaultDates = getDefaultDates();
-  const [currentStep, setCurrentStep] = useState(0);
+	const defaultDates = getDefaultDates();
+	const [currentStep, setCurrentStep] = useState(0);
 
-  const [formData, setFormData] = useState<
-    z.infer<typeof CreateFundraiserBody>
-  >({
-    name: "",
-    description: "",
-    imageUrls: [], // Not implemented yet
-    goalAmount: undefined,
-    buyingStartsAt: defaultDates.buyingStartsAt,
-    buyingEndsAt: defaultDates.buyingEndsAt,
-    pickupEvents: [
-      {
-        startsAt: defaultDates.pickupStartsAt,
-        endsAt: defaultDates.pickupEndsAt,
-        location: "",
-      },
-    ],
-    organizationId: organizationId,
-    venmoEmail: "",
-    venmoUsername: "",
-  });
+	const [formData, setFormData] = useState<
+		z.infer<typeof CreateFundraiserBody>
+	>({
+		name: "",
+		description: "",
+		imageUrls: [], // Not implemented yet
+		goalAmount: undefined,
+		buyingStartsAt: defaultDates.buyingStartsAt,
+		buyingEndsAt: defaultDates.buyingEndsAt,
+		pickupEvents: [],
+		organizationId: organizationId,
+		venmoEmail: "",
+		venmoUsername: "",
+	});
 
-  // State for fundraiser items list
-  const [fundraiserItems, setFundraiserItems] = useState<
-    z.infer<typeof CreateFundraiserItemBody>[]
-  >([]);
+	// State for pickup events list
+	const [pickupEvents, setPickupEvents] = useState<
+		z.infer<typeof CreateFundraiserBody>["pickupEvents"]
+	>([]);
 
-  async function onSave() {
-    // First create the fundraiser
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "/fundraiser/create",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
-        body: JSON.stringify(formData),
-      }
-    );
+	// State for fundraiser items list
+	const [fundraiserItems, setFundraiserItems] = useState<
+		z.infer<typeof CreateFundraiserItemBody>[]
+	>([]);
 
-    const result = await response.json();
-    if (!response.ok) {
-      toast.error(
-        `Failed to create fundraiser: ${result.message || "Unknown error"}`
-      );
-      return;
-    }
+	async function onSave() {
+		// Add pickupEvents into formData before submission
+		const completeFormData = { ...formData, pickupEvents };
 
-    const fundraiserId = result.data.id;
+		// First create the fundraiser
+		const response = await fetch(
+			process.env.NEXT_PUBLIC_API_URL + "/fundraiser/create",
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: "Bearer " + token,
+				},
+				body: JSON.stringify(completeFormData),
+			}
+		);
 
-    // Then add items if there are any
-    if (fundraiserItems.length > 0) {
-      const itemResults = await Promise.allSettled(
-        fundraiserItems.map(async (item, index) => {
-          const itemResponse = await fetch(
-            process.env.NEXT_PUBLIC_API_URL +
-              `/fundraiser/${fundraiserId}/items/create`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer " + token,
-              },
-              body: JSON.stringify(item),
-            }
-          );
+		const result = await response.json();
+		if (!response.ok) {
+			toast.error(
+				`Failed to create fundraiser: ${result.message || "Unknown error"}`
+			);
+			return;
+		}
 
-          const itemResult = await itemResponse.json();
+		const fundraiserId = result.data.id;
 
-          if (!itemResponse.ok) {
-            return {
-              success: false,
-              item: item.name || `Item ${index + 1}`,
-              error: itemResult.message || "Unknown error",
-            };
-          }
+		// Then add items if there are any
+		if (fundraiserItems.length > 0) {
+			const itemResults = await Promise.allSettled(
+				fundraiserItems.map(async (item, index) => {
+					const itemResponse = await fetch(
+						process.env.NEXT_PUBLIC_API_URL +
+							`/fundraiser/${fundraiserId}/items/create`,
+						{
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+								Authorization: "Bearer " + token,
+							},
+							body: JSON.stringify(item),
+						}
+					);
 
-          return { success: true, data: itemResult.data };
-        })
-      );
+					const itemResult = await itemResponse.json();
 
-      // Check for any failed items
-      const failedItems = itemResults.filter(
-        (result) =>
-          result.status === "rejected" ||
-          (result.status === "fulfilled" && result.value.success === false)
-      );
+					if (!itemResponse.ok) {
+						return {
+							success: false,
+							item: item.name || `Item ${index + 1}`,
+							error: itemResult.message || "Unknown error",
+						};
+					}
 
-      if (failedItems.length > 0) {
-        failedItems.forEach((result) => {
-          if (result.status === "rejected") {
-            toast.error(`Failed to create an item: ${result.reason}`);
-          } else if (result.status === "fulfilled" && !result.value.success) {
-            toast.error(
-              `Failed to create ${result.value.item}: ${result.value.error}`
-            );
-          }
-        });
+					return { success: true, data: itemResult.data };
+				})
+			);
 
-        toast.warning(
-          `Created fundraiser but ${failedItems.length} item(s) failed to be added`
-        );
-        redirect("/seller/fundraiser/" + fundraiserId);
-      } else {
-        toast.success("Fundraiser and all items created successfully");
-        redirect("/seller/fundraiser/" + fundraiserId);
-      }
-    } else {
-      toast.success("Fundraiser created successfully");
-      redirect("/seller/fundraiser/" + fundraiserId);
-    }
-  }
+			// Check for any failed items
+			const failedItems = itemResults.filter(
+				(result) =>
+					result.status === "rejected" ||
+					(result.status === "fulfilled" && result.value.success === false)
+			);
 
-  return (
-    <div className="container mx-auto px-4 py-6 max-w-4xl">
-      <MultiStepForm
-        labels={[
-          "Basic Information",
-          "Add Items",
-          "Venmo Information",
-          "Review Fundraiser",
-        ]}
-        currentStep={currentStep}
-      >
-        <FundraiserBasicInfoForm
-          defaultValues={formData}
-          onNext={(data) => {
-            setFormData((prev) => ({ ...prev, ...data }));
-            setCurrentStep(1);
-          }}
-          onSave={(data) => {
-            setFormData((prev) => ({ ...prev, ...data }));
-            onSave();
-          }}
-        />
+			if (failedItems.length > 0) {
+				failedItems.forEach((result) => {
+					if (result.status === "rejected") {
+						toast.error(`Failed to create an item: ${result.reason}`);
+					} else if (result.status === "fulfilled" && !result.value.success) {
+						toast.error(
+							`Failed to create ${result.value.item}: ${result.value.error}`
+						);
+					}
+				});
 
-        <FundraiserAddItemsForm
-          items={fundraiserItems}
-          setItems={setFundraiserItems}
-          onNext={() => setCurrentStep(2)}
-          onBack={() => setCurrentStep(0)}
-          onSave={onSave}
-        />
+				toast.warning(
+					`Created fundraiser but ${failedItems.length} item(s) failed to be added`
+				);
+				redirect("/seller/fundraiser/" + fundraiserId);
+			} else {
+				toast.success("Fundraiser and all items created successfully");
+				redirect("/seller/fundraiser/" + fundraiserId);
+			}
+		} else {
+			toast.success("Fundraiser created successfully");
+			redirect("/seller/fundraiser/" + fundraiserId);
+		}
+	}
 
-        <FundraiserVenmoInfoForm
-          defaultValues={formData}
-          onNext={(data) => {
-            setFormData((prev) => ({ ...prev, ...data }));
-            setCurrentStep(3);
-          }}
-          onBack={() => setCurrentStep(1)}
-          onSave={(data) => {
-            setFormData((prev) => ({ ...prev, ...data }));
-            onSave();
-          }}
-        />
-
-        <ReviewFundraiserForm
-          formData={formData}
-          items={fundraiserItems}
-          onSave={onSave}
-          onBack={() => setCurrentStep(2)}
-        />
-      </MultiStepForm>
-    </div>
-  );
+	return (
+		<div className="container mx-auto px-4 py-6 max-w-4xl">
+			<MultiStepForm
+				labels={[
+					"Basic Information",
+					"Pickup Events",
+					"Add Items",
+					"Venmo Information",
+					"Review Fundraiser",
+				]}
+				currentStep={currentStep}>
+				<FundraiserBasicInfoForm
+					defaultValues={formData}
+					onNext={(data) => {
+						setFormData((prev) => ({ ...prev, ...data }));
+						setCurrentStep(1);
+					}}
+					onSave={(data) => {
+						setFormData((prev) => ({ ...prev, ...data }));
+						onSave();
+					}}
+				/>
+				<FundraiserPickupEventsForm
+					events={pickupEvents}
+					setEvents={setPickupEvents}
+					onNext={() => setCurrentStep(2)}
+					onBack={() => setCurrentStep(0)}
+					onSave={onSave}
+				/>
+				<FundraiserAddItemsForm
+					items={fundraiserItems}
+					setItems={setFundraiserItems}
+					onNext={() => setCurrentStep(3)}
+					onBack={() => setCurrentStep(1)}
+					onSave={onSave}
+				/>
+				<FundraiserVenmoInfoForm
+					defaultValues={formData}
+					onNext={(data) => {
+						setFormData((prev) => ({ ...prev, ...data }));
+						setCurrentStep(4);
+					}}
+					onBack={() => setCurrentStep(2)}
+					onSave={(data) => {
+						setFormData((prev) => ({ ...prev, ...data }));
+						onSave();
+					}}
+				/>
+				<ReviewFundraiserForm
+					formData={{ ...formData, pickupEvents }}
+					items={fundraiserItems}
+					onSave={onSave}
+					onBack={() => setCurrentStep(3)}
+				/>
+			</MultiStepForm>
+		</div>
+	);
 }

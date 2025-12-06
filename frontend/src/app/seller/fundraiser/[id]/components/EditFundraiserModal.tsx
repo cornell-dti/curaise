@@ -31,7 +31,6 @@ export function EditFundraiserModal({
 	open,
 	setOpen,
 	step,
-	setStep,
 }: {
 	token: string;
 	fundraiser: z.infer<typeof CompleteFundraiserSchema>;
