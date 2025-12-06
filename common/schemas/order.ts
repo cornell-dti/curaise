@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { UserSchema } from "./user";
-import { BasicFundraiserSchema, ReferralSchema } from "./fundraiser";
+import {
+  BasicFundraiserSchema,
+  ReferralSchema,
+  CompleteFundraiserSchema,
+} from "./fundraiser";
 import { CompleteItemSchema } from "./item";
 
 export const BasicOrderSchema = z.object({
@@ -23,6 +27,7 @@ export const CompleteOrderSchema = BasicOrderSchema.extend({
       item: CompleteItemSchema,
     })
   ),
+  fundraiser: CompleteFundraiserSchema,
 });
 
 // CRUD BODIES:

@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { BasicOrganizationSchema } from "./organization";
+import {
+  BasicOrganizationSchema,
+  CompleteOrganizationSchema,
+} from "./organization";
 import { MoneySchema } from "./decimal";
 import { UserSchema } from "./user";
 
@@ -40,6 +43,7 @@ export const BasicFundraiserSchema = z.object({
 export const CompleteFundraiserSchema = BasicFundraiserSchema.extend({
   announcements: z.array(AnnouncementSchema),
   referrals: z.array(ReferralSchema),
+  organization: CompleteOrganizationSchema,
 });
 
 // CRUD BODIES:
