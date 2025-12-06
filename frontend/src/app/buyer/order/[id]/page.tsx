@@ -1,8 +1,9 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { CompleteOrderSchema } from "common";
+import { CompleteOrderSchema, BasicFundraiserSchema } from "common";
 import Decimal from "decimal.js";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -19,6 +20,8 @@ import {
   User,
 } from "lucide-react";
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
+import { Button } from "@/components/ui/button";
+import { CopyButton } from "@/components/custom/CopyButton";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { ConfettiWrapper } from "@/components/custom/ConfettiWrapper";
@@ -43,6 +46,29 @@ const getOrder = async (id: string, token: string) => {
   const data = CompleteOrderSchema.safeParse(result.data);
   if (!data.success) {
     throw new Error("Could not parse order data");
+  }
+  return data.data;
+};
+
+// fundraiser data fetching function
+const getFundraiser = async (id: string, token: string) => {
+  const response = await fetch(
+    process.env.NEXT_PUBLIC_API_URL + "/fundraiser/" + id,
+    {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    }
+  );
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message);
+  }
+
+  // parse fundraiser data
+  const data = BasicFundraiserSchema.safeParse(result.data);
+  if (!data.success) {
+    throw new Error("Could not parse fundraiser data");
   }
   return data.data;
 };
@@ -76,6 +102,10 @@ export default async function OrderPage({
   }
 
   const order = await getOrder(id, session.access_token);
+  const fundraiser = await getFundraiser(
+    order.fundraiser.id,
+    session.access_token
+  );
 
   const orderTotal = order.items
     .reduce(
@@ -84,6 +114,58 @@ export default async function OrderPage({
       new Decimal(0)
     )
     .toFixed(2);
+
+  // Use full order ID for Venmo payment
+  const orderIdForPayment = order.id;
+
+  // Get banner styling based on payment status and method
+  const getBannerStyling = () => {
+    // If payment is confirmed, show confirmed UI regardless of payment method
+    if (order.paymentStatus === "CONFIRMED") {
+      return {
+        borderColor: "border-green-500",
+        textColor: "text-green-800 dark:text-green-200",
+        title: "Payment Confirmed",
+        message:
+          "Your payment has been verified. No further action is required.",
+      };
+    }
+
+    // If unverifiable AND venmo, show unverifiable message
+    if (
+      order.paymentStatus === "UNVERIFIABLE" &&
+      order.paymentMethod === "VENMO"
+    ) {
+      return {
+        borderColor: "border-blue-500",
+        textColor: "text-blue-800 dark:text-blue-200",
+        title: "Order Processed",
+        message:
+          "Your order has been received. Payment will have to be manually verified by the fundraiser managers.",
+      };
+    }
+
+    // For OTHER payment method (PENDING or UNVERIFIABLE), show unverifiable messaging
+    if (order.paymentMethod === "OTHER") {
+      return {
+        borderColor: "border-blue-500",
+        textColor: "text-blue-800 dark:text-blue-200",
+        title: "Order Processed",
+        message:
+          "Your order has been received. Payment will have to be manually verified by the fundraiser managers.",
+      };
+    }
+
+    // Default case: VENMO + PENDING (show payment required message)
+    return {
+      borderColor: "border-blue-500",
+      textColor: "text-blue-800 dark:text-blue-200",
+      title: "Payment Required",
+      message: "Complete your payment to confirm your order.",
+    };
+  };
+
+  const bannerStyle = getBannerStyling();
 
   return (
     <div className="container mx-auto px-4 py-10 max-w-5xl">
@@ -102,11 +184,110 @@ export default async function OrderPage({
         </div>
       </div>
 
-      <div className="flex flex-col gap-6">
-        {/* Two-column grid layout */}
-        <div className="order-2 md:order-1 grid gap-6 md:grid-cols-[2fr_1fr]">
-          {/* Left Column: Order Summary */}
-          <Card>
+      <div className="grid gap-6 md:grid-cols-3 md:auto-rows-min">
+        {/* Row 1, Column 1 - Payment Banner (1/3 width) */}
+        <Card className={`${bannerStyle.borderColor} order-1 md:order-none md:row-start-1 md:col-start-1`}>
+          <CardHeader className="py-6">
+            <CardTitle className={bannerStyle.textColor}>
+              {bannerStyle.title}
+            </CardTitle>
+            <CardDescription className={bannerStyle.textColor}>
+              {bannerStyle.message}
+            </CardDescription>
+          </CardHeader>
+          {/* Show CardContent for PENDING VENMO orders with venmoUsername */}
+          {order.paymentStatus === "PENDING" &&
+            order.paymentMethod === "VENMO" &&
+            fundraiser.venmoUsername && (
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-center">
+                    <Button
+                      size="lg"
+                      asChild
+                      className="flex items-center gap-2 bg-[#008CFF] hover:bg-[#2E7BB8] text-white font-semibold px-4 py-3 text-md"
+                    >
+                      <a
+                        href={`https://venmo.com/${
+                          fundraiser.venmoUsername
+                        }?txn=pay&note=${encodeURIComponent(
+                          orderIdForPayment
+                        )}&amount=${encodeURIComponent(orderTotal)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <span className="flex items-center gap-2">
+                          <svg
+                            width="48"
+                            height="48"
+                            style={{ width: "2rem", height: "2rem" }}
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-label="Venmo"
+                            role="img"
+                            viewBox="0 0 512 512"
+                          >
+                            <rect
+                              width="512"
+                              height="512"
+                              rx="15%"
+                              fill="transparent"
+                            />
+                            <path
+                              d="m381.4 105.3c11 18.1 15.9 36.7 15.9 60.3 0 75.1-64.1 172.7-116.2 241.2h-118.8l-47.6-285 104.1-9.9 25.3 202.8c23.5-38.4 52.6-98.7 52.6-139.7 0-22.5-3.9-37.8-9.9-50.4z"
+                              fill="#ffffff"
+                            />
+                          </svg>
+                          <span>Pay with Venmo</span>
+                        </span>
+                      </a>
+                    </Button>
+                  </div>
+
+                  {/* Show payment details */}
+                  <details className="text-sm text-muted-foreground">
+                    <summary className="cursor-pointer hover:text-foreground">
+                      Link not working?
+                    </summary>
+                    <div className="mt-2 pl-4 border-l-2 border-muted space-y-2">
+                      <p className="mb-1 text-sm">
+                        Manual entry details (enter exactly as shown, or the
+                        order may not be processed correctly):
+                      </p>
+
+                      <p className="text-sm">Send to Venmo username:</p>
+                      <div className="flex items-center gap-2">
+                        <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
+                          @{fundraiser.venmoUsername}
+                        </code>
+                        <CopyButton text={`${fundraiser.venmoUsername}`} />
+                      </div>
+
+                      <p className="text-sm">Amount to send:</p>
+                      <div className="flex items-center gap-2">
+                        <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
+                          ${orderTotal}
+                        </code>
+                        <CopyButton text={orderTotal} />
+                      </div>
+
+                      <p className="text-sm">
+                        Send this exact order ID as your Venmo message:
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
+                          {orderIdForPayment}
+                        </code>
+                        <CopyButton text={orderIdForPayment} />
+                      </div>
+                    </div>
+                  </details>
+                </div>
+              </CardContent>
+            )}
+        </Card>
+
+        {/* Row 1, Column 2-3 - Order Summary (spans 2 columns for 2/3 width) */}
+        <Card className="order-4 md:order-none md:row-start-1 md:col-start-2 md:col-span-2">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
             </CardHeader>
@@ -174,10 +355,10 @@ export default async function OrderPage({
                 </div>
               </div>
             </CardContent>
-          </Card>
+        </Card>
 
-          {/* Right Column: Order Items */}
-          <Card>
+        {/* Row 2, Column 3 - Order Items */}
+        <Card className="order-3 md:order-none md:row-start-2 md:col-start-3">
             <CardHeader>
               <CardTitle>Order Items</CardTitle>
             </CardHeader>
@@ -228,12 +409,10 @@ export default async function OrderPage({
                 </div>
               </div>
             </CardContent>
-          </Card>
-        </div>
+        </Card>
 
-        {/* Order QR Code Section */}
-        <div className="order-1 md:order-2">
-          <Card>
+        {/* Row 2, Column 1-2 - QR Code (spans 2 columns for 2/3 width) */}
+        <Card className="order-2 md:order-none md:row-start-2 md:col-start-1 md:col-span-2">
             <CardHeader>
               <CardTitle>Order QR Code</CardTitle>
               <CardDescription>
@@ -243,8 +422,7 @@ export default async function OrderPage({
             <CardContent>
               <OrderQRCodeDisplay orderId={order.id} />
             </CardContent>
-          </Card>
-        </div>
+        </Card>
       </div>
     </div>
   );
