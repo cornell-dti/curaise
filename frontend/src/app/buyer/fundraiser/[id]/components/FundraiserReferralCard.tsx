@@ -72,7 +72,8 @@ export function FundraiserReferralCard({
               <Star />
               <span className="text-md font-semibold">
                 <span className="hidden md:inline">
-                  [{fundraiser.organization.name} Members Only] Become a Referrer
+                  [{fundraiser.organization.name} Members Only] Become a
+                  Referrer
                 </span>
                 <span className="inline md:hidden">
                   [{fundraiser.organization.name} Members Only]
@@ -144,10 +145,10 @@ function ReferralModal({
             to be automatically referred.
           </span>
         </div>
-        <div className="pb-3 flex items-center justify-between gap-2 -ml-3 md:ml-0">
+        <div className="pb-3 flex items-center justify-between gap-2">
           <span className="p-1 pl-2 flex-1 flex flex-row gap-2 items-center border border-muted-foreground rounded-sm text-xs md:text-sm">
             <Link className="max-w-5 min-w-5" />
-            {link}
+            fundraiser/{link.match(/code=([^&]+)/)?.[1]}
           </span>
           <Button
             className="cursor-pointer font-light text-xs md:text-md"

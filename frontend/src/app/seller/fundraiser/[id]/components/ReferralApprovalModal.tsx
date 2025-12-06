@@ -171,17 +171,19 @@ export function ReferralButton({
       <Button
         variant="outline"
         onClick={onClick}
-        className="bg-[#265B34] text-white hover:bg-[#1f4a2b] hover:text-white"
+        className="text-[#265B34] border border-current bg-transparent hover:bg-[#e6f0ea]"
       >
         Manage Referrals
       </Button>
 
-      <Badge
-        variant="destructive"
-        className="bg-[#f74545] absolute -top-2 -right-2 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] leading-none"
-      >
-        {pending}
-      </Badge>
+      {pending > 0 && (
+        <Badge
+          variant="destructive"
+          className="bg-[#f74545] absolute -top-2 -right-2 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] leading-none"
+        >
+          {pending}
+        </Badge>
+      )}
     </div>
   );
 }
