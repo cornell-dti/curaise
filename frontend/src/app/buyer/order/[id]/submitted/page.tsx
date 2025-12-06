@@ -165,9 +165,9 @@ export default async function OrderSubmittedPage({
               </CardContent>
             </Card>
 
-            <Link href="/buyer" className="w-full mt-2">
+            <Link href={`/buyer/order/${id}`} className="w-full mt-2">
               <Button className="w-full h-[50px] rounded-[8px] bg-black hover:bg-black/90 text-[#fefdfd] text-[18px] leading-[27px] font-normal">
-                View Orders and Pay
+                View Order Details and Pay
               </Button>
             </Link>
           </CardContent>
