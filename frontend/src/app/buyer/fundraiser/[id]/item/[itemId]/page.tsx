@@ -2,7 +2,7 @@
 
 import { CompleteItemSchema } from "common";
 import { useState, useEffect } from "react";
-import { ChevronLeft, Plus, Minus, ShoppingCart } from "lucide-react";
+import { ChevronLeft, Plus, Minus, ShoppingCart, Trash } from "lucide-react";
 import Link from "next/link";
 import { useCartStore } from "@/lib/store/useCartStore";
 import { useRouter, useParams } from "next/navigation";
@@ -35,6 +35,18 @@ export default function ItemPage() {
     null
   );
   const [loading, setLoading] = useState(true);
+
+  const cart = useCartStore(
+    useShallow((state) => state.carts[fundraiserId] || [])
+  );
+  const addItem = useCartStore((state) => state.addItem);
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
+  const removeItem = useCartStore((state) => state.removeItem);
+
+  const cartItem = cart?.find((ci) => ci.item.id === itemId);
+  const cartQuantity = cartItem?.quantity || 0;
+
+  // Local quantity state - defaults to 1 or current cart quantity
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
@@ -51,22 +63,22 @@ export default function ItemPage() {
     }
   }, [fundraiserId, itemId]);
 
-  const cart = useCartStore(
-    useShallow((state) => state.carts[fundraiserId] || [])
-  );
-  const addItem = useCartStore((state) => state.addItem);
-  const updateQuantity = useCartStore((state) => state.updateQuantity);
-  const removeItem = useCartStore((state) => state.removeItem);
+  // Sync local quantity with cart quantity when cart changes
+  useEffect(() => {
+    setQuantity(cartQuantity > 0 ? cartQuantity : 1);
+  }, [cartQuantity]);
 
-  const cartItem = cart?.find((ci) => ci.item.id === itemId);
-  const currentQuantity = cartItem?.quantity || 0;
-
-  const handleAddToCart = () => {
+  const handleUpdateCart = () => {
     if (item) {
-      if (currentQuantity === 0) {
-        addItem(fundraiserId, item, quantity);
+      if (quantity === 0) {
+        // Remove from cart if quantity is 0
+        removeItem(fundraiserId, item);
+      } else if (cartItem) {
+        // Update existing cart item
+        updateQuantity(fundraiserId, item, quantity);
       } else {
-        updateQuantity(fundraiserId, item, currentQuantity + quantity);
+        // Add new item to cart
+        addItem(fundraiserId, item, quantity);
       }
       router.back();
     }
@@ -77,8 +89,11 @@ export default function ItemPage() {
   };
 
   const handleDecrement = () => {
-    setQuantity((prev) => Math.max(1, prev - 1));
+    setQuantity((prev) => Math.max(0, prev - 1));
   };
+
+  // Button text: "Add to Cart" only if item is not in cart at all, otherwise always "Update Cart"
+  const buttonText = cartQuantity === 0 ? "Add to Cart" : "Update Cart";
 
   if (loading) {
     return (
@@ -154,9 +169,13 @@ export default function ItemPage() {
               <button
                 onClick={handleDecrement}
                 className="p-0.5 rounded-lg hover:bg-gray-100 transition-colors"
-                disabled={quantity <= 1}
+                disabled={quantity === 0}
               >
-                <Minus className="h-[18px] w-[18px] text-black" />
+                {quantity === 1 ? (
+                  <Trash className="h-[18px] w-[18px] text-black" />
+                ) : (
+                  <Minus className="h-[18px] w-[18px] text-black" />
+                )}
               </button>
               <p className="text-base font-semibold text-[#545454] min-w-[7px] text-center">
                 {quantity}
@@ -171,13 +190,13 @@ export default function ItemPage() {
           </div>
         </div>
 
-        {/* Add to Cart Button */}
+        {/* Add/Update Cart Button */}
         <button
-          onClick={handleAddToCart}
+          onClick={handleUpdateCart}
           className="bg-black text-white rounded-lg h-[50px] flex items-center justify-center gap-2 px-12 py-3"
         >
           <span className="text-lg font-normal leading-[27px]">
-            Add to Cart
+            {buttonText}
           </span>
           <ShoppingCart className="h-5 w-5" />
         </button>
