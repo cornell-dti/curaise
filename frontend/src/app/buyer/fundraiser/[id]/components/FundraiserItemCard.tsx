@@ -138,7 +138,7 @@ export function FundraiserItemCard({
               <div
                 ref={selectorRef}
                 className={cn(
-                  "quantity-selector flex items-center justify-center bg-gray-700 rounded-full h-8 shadow-sm",
+                  "quantity-selector flex items-center justify-center bg-[#404040] rounded-full h-8 shadow-sm",
                   showAmount ? "w-24" : "w-8",
                   "origin-right overflow-hidden whitespace-nowrap transition-all duration-300 ease-out"
                 )}
