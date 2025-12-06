@@ -59,7 +59,7 @@ export default async function SellerHome({
   const searchQuery = params.search || "";
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-4 pt-20 md:pt-6">
+    <div className="container px-4 md:px-[157px] py-6 space-y-4 pt-20 md:pt-6">
       <h1 className="text-2xl font-bold">Organizations</h1>
       <OrganizationsList
         organizations={organizations}
