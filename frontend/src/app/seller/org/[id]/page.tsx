@@ -101,7 +101,7 @@ export default async function OrganizationPage({
   );
 
   return (
-    <div className="container px-4 md:px-[157px] py-6 space-y-4">
+    <div className="px-4 md:px-[157px] py-6 space-y-4">
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-100">
         <p className="text-lg my-auto">Welcome, admin!</p>
       </div>

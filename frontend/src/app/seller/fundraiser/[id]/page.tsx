@@ -165,7 +165,7 @@ export default async function FundraiserAnalyticsPage({
 
   return (
     <div className="px-4 md:px-[157px] min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+      <div className="mx-auto">
         <div className="mb-6">
           <Link
             // Return back to seller organization page
