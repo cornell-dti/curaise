@@ -201,8 +201,8 @@ export default function CartPage() {
                       </div>
 
                       {/* Quantity Selector */}
-                      <div className="border border-[#dddddd] rounded h-[30px] w-fit">
-                        <div className="flex items-center gap-2 h-full px-1.5 py-1.5">
+                      <div className="border border-[#dddddd] rounded-md w-fit">
+                        <div className="flex items-center gap-[10px] p-2">
                           <button
                             onClick={() => {
                               if (cartItem.quantity === 1) {
@@ -211,20 +211,20 @@ export default function CartPage() {
                                 handleDecrement(cartItem.item);
                               }
                             }}
-                            className="p-0.5 rounded-sm hover:bg-gray-100 transition-colors flex-shrink-0 w-3.5 h-3.5 flex items-center justify-center"
+                            className="p-0.5 rounded-lg hover:bg-gray-100 transition-colors"
                             aria-label={cartItem.quantity === 1 ? `Remove ${cartItem.item.name} from cart` : `Decrease quantity of ${cartItem.item.name}`}
                           >
-                             <Trash className="h-3 w-3 text-[#545454]" />
+                             <Trash className="h-[18px] w-[18px] text-black" />
                           </button>
-                          <p className="text-xs font-normal leading-[18px] text-[#545454] min-w-[5px] text-center" aria-label={`Quantity: ${cartItem.quantity}`}>
+                          <p className="text-base font-semibold text-[#545454] min-w-[7px] text-center" aria-label={`Quantity: ${cartItem.quantity}`}>
                             {cartItem.quantity}
                           </p>
                           <button
                             onClick={() => handleIncrement(cartItem.item)}
-                            className="p-0.5 rounded-md hover:bg-gray-100 transition-colors flex-shrink-0 w-4 h-4 flex items-center justify-center"
+                            className="p-0.5 rounded-lg hover:bg-gray-100 transition-colors"
                             aria-label={`Increase quantity of ${cartItem.item.name}`}
                           >
-                            <Plus className="h-3.5 w-3.5 text-[#545454]" />
+                            <Plus className="h-[18px] w-[18px] text-black" />
                           </button>
                         </div>
                       </div>

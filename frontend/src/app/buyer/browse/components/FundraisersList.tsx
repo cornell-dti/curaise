@@ -34,7 +34,12 @@ export function FundraisersList({
   const [filter, setFilter] = useState<FilterType>("all");
   const [category, setCategory] = useState<CategoryType>("desserts");
   const [sortOpen, setSortOpen] = useState(false);
-  const [selectedLabel, setSelectedLabel] = useState("All Fundraisers");
+
+  // Map filter types to display labels
+  const filterLabels: Record<FilterType, string> = {
+    all: "All fundraisers",
+    "pickup-today": "Pick-up Today",
+  };
 
   const filteredFundraisers = useMemo(() => {
     let filtered = fundraisers;
@@ -52,14 +57,20 @@ export function FundraisersList({
 
     // Apply dropdown filter
     if (filter === "pickup-today") {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const now = new Date();
+      const todayStart = new Date(now);
+      todayStart.setHours(0, 0, 0, 0);
+      const todayEnd = new Date(now);
+      todayEnd.setHours(23, 59, 59, 999);
 
       filtered = filtered.filter((fundraiser) =>
         fundraiser.pickupEvents.some((event) => {
-          const eventDate = new Date(event.startsAt);
-          eventDate.setHours(0, 0, 0, 0);
-          return eventDate.getTime() === today.getTime();
+          const eventStart = new Date(event.startsAt);
+          const eventEnd = new Date(event.endsAt);
+
+          // Check if the event is active during today
+          // Event is active if it starts before today ends AND ends after today starts
+          return eventStart <= todayEnd && eventEnd >= todayStart;
         })
       );
     }
@@ -85,7 +96,7 @@ export function FundraisersList({
 
         <div className="flex flex-col gap-3 w-full">
           {/* Category Filters - Horizontal scroll on mobile */}
-          <div className="flex gap-3 items-center overflow-x-auto md:overflow-x-visible -mt-8 md:mt-0 pb-4 pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+          <div className="flex gap-3 items-center overflow-x-auto md:overflow-x-visible -mt-8 md:mt-0 pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
             {categories.map((cat) => {
               const Icon = cat.icon;
               const isActive = category === cat.id;
@@ -113,7 +124,7 @@ export function FundraisersList({
               <PopoverTrigger asChild>
                 <button className="bg-white border border-[#dddddd] rounded-md px-[20px] py-2 flex items-center justify-center gap-[10px]">
                   <span className="text-base font-normal leading-6 text-black">
-                    {selectedLabel}
+                    {filterLabels[filter]}
                   </span>
                   <ChevronDown className="h-4 w-4 text-black" />
                 </button>
@@ -124,21 +135,26 @@ export function FundraisersList({
                   <button
                     onClick={() => {
                       setFilter("all");
-                      setSelectedLabel("All Fundraisers");
                       setSortOpen(false);
                     }}
-                    className="text-base font-normal leading-6 text-black text-left hover:bg-gray-50 rounded px-2 py-1"
+                    className={`text-base font-normal leading-6 text-left hover:bg-gray-50 rounded px-2 py-1 ${
+                      filter === "all"
+                        ? "bg-gray-100 text-black font-medium"
+                        : "text-black"
+                    }`}
                   >
-                    All Fundraisers
+                    All fundraisers
                   </button>
-
                   <button
                     onClick={() => {
                       setFilter("pickup-today");
-                      setSelectedLabel("Pick-up Today");
                       setSortOpen(false);
                     }}
-                    className="text-base font-normal leading-6 text-black text-left hover:bg-gray-50 rounded px-2 py-1"
+                    className={`text-base font-normal leading-6 text-left hover:bg-gray-50 rounded px-2 py-1 ${
+                      filter === "pickup-today"
+                        ? "bg-gray-100 text-black font-medium"
+                        : "text-black"
+                    }`}
                   >
                     Pick-up Today
                   </button>
