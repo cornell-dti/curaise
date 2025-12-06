@@ -49,6 +49,7 @@ export function FundraisersList({
 		// Apply category filter (for now, we'll show all since we don't have category data)
 		// This can be implemented when categories are added to the schema
 
+<<<<<<< Updated upstream
 		// Apply dropdown filter
 		if (filter === "pickup-today") {
 			const today = new Date();
@@ -62,6 +63,27 @@ export function FundraisersList({
 				})
 			);
 		}
+=======
+    // Apply dropdown filter
+    if (filter === "pickup-today") {
+      const now = new Date();
+      const todayStart = new Date(now);
+      todayStart.setHours(0, 0, 0, 0);
+      const todayEnd = new Date(now);
+      todayEnd.setHours(23, 59, 59, 999);
+
+      filtered = filtered.filter((fundraiser) =>
+        fundraiser.pickupEvents.some((event) => {
+          const eventStart = new Date(event.startsAt);
+          const eventEnd = new Date(event.endsAt);
+
+          // Check if the event is active during today
+          // Event is active if it starts before today ends AND ends after today starts
+          return eventStart <= todayEnd && eventEnd >= todayStart;
+        })
+      );
+    }
+>>>>>>> Stashed changes
 
 		return filtered;
 	}, [fundraisers, filter, searchQuery]);
