@@ -1,7 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { CompleteOrderSchema, CompleteFundraiserSchema } from "common";
+import { CompleteOrderSchema, BasicFundraiserSchema } from "common";
 import Decimal from "decimal.js";
 import Link from "next/link";
 import {
@@ -50,6 +50,7 @@ const getOrder = async (id: string, token: string) => {
   return data.data;
 };
 
+// fundraiser data fetching function
 const getFundraiser = async (id: string, token: string) => {
   const response = await fetch(
     process.env.NEXT_PUBLIC_API_URL + "/fundraiser/" + id,
@@ -64,7 +65,8 @@ const getFundraiser = async (id: string, token: string) => {
     throw new Error(result.message);
   }
 
-  const data = CompleteFundraiserSchema.safeParse(result.data);
+  // parse fundraiser data
+  const data = BasicFundraiserSchema.safeParse(result.data);
   if (!data.success) {
     throw new Error("Could not parse fundraiser data");
   }
@@ -184,7 +186,9 @@ export default async function OrderPage({
 
       <div className="grid gap-6 md:grid-cols-3 md:auto-rows-min">
         {/* Row 1, Column 1 - Payment Banner (1/3 width) */}
-        <Card className={`${bannerStyle.borderColor} order-1 md:order-none md:row-start-1 md:col-start-1`}>
+        <Card
+          className={`${bannerStyle.borderColor} order-1 md:order-none md:row-start-1 md:col-start-1`}
+        >
           <CardHeader className="py-6">
             <CardTitle className={bannerStyle.textColor}>
               {bannerStyle.title}
@@ -286,139 +290,136 @@ export default async function OrderPage({
 
         {/* Row 1, Column 2-3 - Order Summary (spans 2 columns for 2/3 width) */}
         <Card className="order-4 md:order-none md:row-start-1 md:col-start-2 md:col-span-2">
-            <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Pickup Details Section */}
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-base">Pickup Details</h3>
-                  {order.fundraiser.pickupEvents.length > 0 && (
-                    <div className="flex items-center gap-2">
-                      <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">
-                        {format(
-                          order.fundraiser.pickupEvents[0].startsAt,
-                          "EEEE, M/d/yyyy"
-                        )}
+          <CardHeader>
+            <CardTitle>Order Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Pickup Details Section */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-base">Pickup Details</h3>
+                {order.fundraiser.pickupEvents.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">
+                      {format(
+                        order.fundraiser.pickupEvents[0].startsAt,
+                        "EEEE, M/d/yyyy"
+                      )}
+                    </span>
+                  </div>
+                )}
+                <div className="flex flex-col gap-2">
+                  {order.fundraiser.pickupEvents.map((event) => (
+                    <div key={event.id} className="flex items-start gap-2">
+                      <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm">
+                        <span className="font-medium">{event.location}</span>
+                        <br />
+                        {format(event.startsAt, "h:mm a")} to{" "}
+                        {format(event.endsAt, "h:mm a")}
                       </span>
                     </div>
-                  )}
-                  <div className="flex flex-col gap-2">
-                    {order.fundraiser.pickupEvents.map((event) => (
-                      <div key={event.id} className="flex items-start gap-2">
-                        <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <span className="text-sm">
-                          <span className="font-medium">{event.location}</span>
-                          <br />
-                          {format(event.startsAt, "h:mm a")} to{" "}
-                          {format(event.endsAt, "h:mm a")}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Payment Details Section */}
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-base">Payment Details</h3>
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">
-                      Paid with {order.paymentMethod}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">
-                      ${orderTotal} Total
-                    </span>
-                  </div>
-                </div>
-
-                {/* Buyer Info Section */}
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-base">Buyer Info</h3>
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm">{order.buyer.name}</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-                    <span className="text-sm break-all">
-                      {order.buyer.email}
-                    </span>
-                  </div>
+                  ))}
                 </div>
               </div>
-            </CardContent>
+
+              {/* Payment Details Section */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-base">Payment Details</h3>
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">
+                    Paid with {order.paymentMethod}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">
+                    ${orderTotal} Total
+                  </span>
+                </div>
+              </div>
+
+              {/* Buyer Info Section */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-base">Buyer Info</h3>
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-sm">{order.buyer.name}</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                  <span className="text-sm break-all">{order.buyer.email}</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
         </Card>
 
         {/* Row 2, Column 3 - Order Items */}
         <Card className="order-3 md:order-none md:row-start-2 md:col-start-3">
-            <CardHeader>
-              <CardTitle>Order Items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* Header */}
-                <div className="grid grid-cols-[1fr_auto_auto] gap-4 text-sm font-semibold border-b pb-2">
-                  <div>Items</div>
-                  <div>Qty</div>
-                  <div>Cost</div>
-                </div>
-
-                {/* Items */}
-                {order.items.map((orderItem) => (
-                  <div
-                    key={orderItem.item.id}
-                    className="grid grid-cols-[1fr_auto_auto] gap-4 items-center"
-                  >
-                    <div className="flex items-center gap-3">
-                      {orderItem.item.imageUrl ? (
-                        <img
-                          src={orderItem.item.imageUrl || "/placeholder.svg"}
-                          alt={orderItem.item.name}
-                          className="w-12 h-12 rounded object-cover flex-shrink-0"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded flex-shrink-0 flex items-center justify-center">
-                          <span className="text-xs text-gray-400">No image</span>
-                        </div>
-                      )}
-                      <span className="text-sm">{orderItem.item.name}</span>
-                    </div>
-                    <div className="text-sm">x{orderItem.quantity}</div>
-                    <div className="text-sm">
-                      ${Decimal(orderItem.item.price).toFixed(2)}
-                    </div>
-                  </div>
-                ))}
-
-                {/* Total */}
-                <Separator />
-                <div className="grid grid-cols-[1fr_auto_auto] gap-4 font-bold">
-                  <div>Total</div>
-                  <div></div>
-                  <div>${orderTotal}</div>
-                </div>
+          <CardHeader>
+            <CardTitle>Order Items</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Header */}
+              <div className="grid grid-cols-[1fr_auto_auto] gap-4 text-sm font-semibold border-b pb-2">
+                <div>Items</div>
+                <div>Qty</div>
+                <div>Cost</div>
               </div>
-            </CardContent>
+
+              {/* Items */}
+              {order.items.map((orderItem) => (
+                <div
+                  key={orderItem.item.id}
+                  className="grid grid-cols-[1fr_auto_auto] gap-4 items-center"
+                >
+                  <div className="flex items-center gap-3">
+                    {orderItem.item.imageUrl ? (
+                      <img
+                        src={orderItem.item.imageUrl || "/placeholder.svg"}
+                        alt={orderItem.item.name}
+                        className="w-12 h-12 rounded object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded flex-shrink-0 flex items-center justify-center">
+                        <span className="text-xs text-gray-400">No image</span>
+                      </div>
+                    )}
+                    <span className="text-sm">{orderItem.item.name}</span>
+                  </div>
+                  <div className="text-sm">x{orderItem.quantity}</div>
+                  <div className="text-sm">
+                    ${Decimal(orderItem.item.price).toFixed(2)}
+                  </div>
+                </div>
+              ))}
+
+              {/* Total */}
+              <Separator />
+              <div className="grid grid-cols-[1fr_auto_auto] gap-4 font-bold">
+                <div>Total</div>
+                <div></div>
+                <div>${orderTotal}</div>
+              </div>
+            </div>
+          </CardContent>
         </Card>
 
-        {/* Venmo QR Code Section */}
-        <div className="order-1 md:order-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Venmo QR Code</CardTitle>
-              <CardDescription>
-                Show this to DTI at pick up to get your order.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <OrderQRCodeDisplay orderId={order.id} />
-            </CardContent>
+        {/* Row 2, Column 1-2 - QR Code (spans 2 columns for 2/3 width) */}
+        <Card className="order-2 md:order-none md:row-start-2 md:col-start-1 md:col-span-2">
+          <CardHeader>
+            <CardTitle>Venmo QR Code</CardTitle>
+            <CardDescription>
+              Show this to DTI at pick up to get your order.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <OrderQRCodeDisplay orderId={order.id} />
+          </CardContent>
         </Card>
       </div>
     </div>
