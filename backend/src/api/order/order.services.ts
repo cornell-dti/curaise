@@ -29,9 +29,7 @@ export const getOrder = async (orderId: string) => {
               description: true,
               authorized: true,
               logoUrl: true,
-              admins: {
-                select: { id: true },
-              },
+              admins: true,
             },
           },
           pickupEvents: {
@@ -106,6 +104,7 @@ export const createOrder = async (
               description: true,
               authorized: true,
               logoUrl: true,
+              admins: true,
             },
           },
           pickupEvents: {
@@ -154,6 +153,7 @@ export const completeOrderPickup = async (orderId: string) => {
               description: true,
               authorized: true,
               logoUrl: true,
+              admins: true,
             },
           },
           pickupEvents: {
@@ -217,6 +217,7 @@ export const confirmOrderPayment = async (orderId: string) => {
               description: true,
               authorized: true,
               logoUrl: true,
+              admins: true,
             },
           },
           pickupEvents: {

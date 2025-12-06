@@ -23,11 +23,7 @@ export const getFundraiser = async (fundraiserId: string) => {
     include: {
       organization: {
         include: {
-          admins: {
-            select: {
-              id: true,
-            },
-          },
+          admins: true,
         },
       },
       pickupEvents: {
@@ -88,6 +84,7 @@ export const getFundraiserOrders = async (fundraiserId: string) => {
               description: true,
               authorized: true,
               logoUrl: true,
+              admins: true,
             },
           },
           pickupEvents: {
