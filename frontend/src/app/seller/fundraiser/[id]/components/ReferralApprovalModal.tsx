@@ -89,55 +89,68 @@ export function ReferralApprovalModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="flex flex-col max-h-[80vh] md:max-w-[600px] sm:max-w-[500px]">
-        <DialogHeader className="pt-2 pb-[30px]">
+        <DialogHeader className="pt-2">
           <DialogTitle className="text-2xl font-semibold">
             Referrer Sign Up
           </DialogTitle>
         </DialogHeader>
         <div className="flex-1 min-h-0 overflow-y-auto -mr-2">
-          {unapprovedReferrers.map((referral, idx) => {
-            return (
-              <div key={referral.id}>
-                <div className="flex justify-between">
-                  <span>{referral.referrer.name}</span>
-                  <span className="flex gap-2 items-center">
-                    <Button
-                      onClick={async () => {
-                        await approveReferrer(
-                          fundraiser.id,
-                          referral.id,
-                          token
-                        );
-                        setUnapprovedReferrers((prev) =>
-                          prev.filter((ref) => ref.id !== referral.id)
-                        );
-                      }}
-                      className="text-[#265B34] border border-current bg-transparent hover:bg-[#e6f0ea]"
-                    >
-                      Approve
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={async () => {
-                        await deleteReferrer(fundraiser.id, referral.id, token);
-                        setUnapprovedReferrers((prev) =>
-                          prev.filter((ref) => ref.id !== referral.id)
-                        );
-                      }}
-                      className="text-[#f74545] bg-transparent hover:bg-[#fdeaea] hover:text-[#f74545]"
-                    >
-                      Deny
-                    </Button>
-                  </span>
-                </div>
-                {idx < fundraiser.referrals.length - 1 && (
-                  <div className="flex justify-center">
-                    <Separator className="my-3 w-[90%]" />
+          {unapprovedReferrers.length === 0 ? (
+            <div>
+              There are currently no referrer sign ups. You can manually approve
+              them once they appear.
+            </div>
+          ) : (
+            <>
+              {unapprovedReferrers.map((referral, idx) => {
+                return (
+                  <div key={referral.id}>
+                    <div className="flex justify-between">
+                      <span>{referral.referrer.name}</span>
+                      <span className="flex gap-2 items-center">
+                        <Button
+                          onClick={async () => {
+                            await approveReferrer(
+                              fundraiser.id,
+                              referral.id,
+                              token
+                            );
+                            setUnapprovedReferrers((prev) =>
+                              prev.filter((ref) => ref.id !== referral.id)
+                            );
+                          }}
+                          className="text-[#265B34] border border-current bg-transparent hover:bg-[#e6f0ea]"
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          onClick={async () => {
+                            await deleteReferrer(
+                              fundraiser.id,
+                              referral.id,
+                              token
+                            );
+                            setUnapprovedReferrers((prev) =>
+                              prev.filter((ref) => ref.id !== referral.id)
+                            );
+                          }}
+                          className="text-[#f74545] bg-transparent hover:bg-[#fdeaea] hover:text-[#f74545]"
+                        >
+                          Deny
+                        </Button>
+                      </span>
+                    </div>
+                    {idx < fundraiser.referrals.length - 1 && (
+                      <div className="flex justify-center">
+                        <Separator className="my-3 w-[90%]" />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

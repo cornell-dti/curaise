@@ -89,7 +89,7 @@ export default async function FundraiserPage({
         )}
       </div>
 
-      <div className="flex flex-col px-[17px] md:px-10 pb-10 space-y-[22px] md:space-y-6">
+      <div className="flex flex-col px-4 md:px-[157px] pb-10 space-y-[22px] md:space-y-6">
         <div className="flex flex-col items-start w-full space-y-4">
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-medium">{fundraiser.name}</h1>
@@ -97,15 +97,6 @@ export default async function FundraiserPage({
               Hosted by: <span>{fundraiser.organization.name}</span>
             </p>
           </div>
-
-          <div className="h-px w-full bg-[#f6f6f6]" />
-
-          <div className="w-full">
-            <p className="text-lg leading-[27px] whitespace-pre-wrap">
-              {fundraiser.description}
-            </p>
-          </div>
-
           <div className="w-full">
             {user && session?.access_token && (
               <FundraiserReferralCard
@@ -116,13 +107,24 @@ export default async function FundraiserPage({
             )}
           </div>
 
+          <div className="h-px w-full bg-[#f6f6f6]" />
+
+          <div className="w-full">
+            <p className="text-lg leading-[27px] whitespace-pre-wrap">
+              {fundraiser.description}
+            </p>
+          </div>
+
           <div className="flex flex-col gap-2 w-full">
             <h3 className="text-lg font-semibold">Pickup Details</h3>
             <Card className="w-full border-[#f6f6f6]">
               <CardContent className="pt-[14px] px-[14px] pb-[14px]">
                 <div className="flex flex-col gap-[10px]">
                   {fundraiser.pickupEvents.map((event, index) => (
-                    <div key={event.id} className="flex justify-between items-center">
+                    <div
+                      key={event.id}
+                      className="flex justify-between items-center"
+                    >
                       <div className="flex flex-col gap-3">
                         {index > 0 && <div className="h-px bg-[#f6f6f6]" />}
                         <div className="flex items-start gap-3">
