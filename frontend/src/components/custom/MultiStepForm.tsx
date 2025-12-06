@@ -1,14 +1,4 @@
-import { UseFormReturn } from "react-hook-form";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Children, PropsWithChildren, useState } from "react";
+import { Children, PropsWithChildren } from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,32 +16,63 @@ export default function MultiStepForm({
     <div className="space-y-8">
       {/* Form Progress Bar */}
       <div className="px-14 md:px-0">
-        <div className="relative mb-20">
-          {/* Progress bar */}
-          <div className="absolute top-4 left-0 right-0 h-0.5 -translate-y-1/2 z-0">
-            <div className="absolute inset-0 bg-gray-200"></div>
+        <div className="relative mb-12 md:mb-20">
+          {/* Progress bar - mobile */}
+          <div
+            className="absolute top-4 h-0.5 -translate-y-1/2 z-0 md:hidden"
+            style={{ left: '-24px', width: 'calc(100% + 48px)' }}
+          >
+            <div className="w-full h-full bg-gray-200"></div>
             <div
-              className="absolute inset-y-0 left-0 bg-black transition-all duration-300"
+              className="absolute top-0 left-0 h-full bg-black transition-all duration-300"
               style={{
                 width: `${(currentStep / (labels.length - 1)) * 100}%`,
               }}
             ></div>
           </div>
 
-          {/* Steps with labels */}
+          {/* Progress bar - desktop */}
+          <div
+            className="absolute top-4 h-0.5 -translate-y-1/2 z-0 hidden md:block"
+            style={{ left: '48px', width: 'calc(100% - 100px)' }}
+          >
+            <div className="w-full h-full bg-gray-200"></div>
+            <div
+              className="absolute top-0 left-0 h-full bg-black transition-all duration-300"
+              style={{
+                width: `${(currentStep / (labels.length - 1)) * 100}%`,
+              }}
+            ></div>
+          </div>
+
+          {/* Steps with labels container */}
           <div className="flex relative z-10">
             {labels.map((label, index) => {
+              const isFirst = index === 0;
+              const isLast = index === labels.length - 1;
+
               // Calculate position as percentage
               const position = (index / (labels.length - 1)) * 100;
+
+              // Circles positioning
+              // Mobile: negative margins to compensate for px-14 padding
+              // Desktop: standard positioning
+              let className = "absolute";
+              let style = {};
+
+              if (isFirst) {
+                className += " -left-14 md:left-0";
+              } else if (isLast) {
+                className += " -right-14 md:right-auto md:left-full md:-translate-x-full";
+              } else {
+                style = { left: `${position}%`, transform: 'translateX(-50%)' };
+              }
 
               return (
                 <div
                   key={index}
-                  className="absolute"
-                  style={{
-                    left: `${position}%`,
-                    transform: "translateX(-50%)",
-                  }}
+                  className={className}
+                  style={style}
                 >
                   <div className="flex flex-col items-center">
                     <div
@@ -70,7 +91,7 @@ export default function MultiStepForm({
                         <span>{index + 1}</span>
                       )}
                     </div>
-                    <span className="mt-2 text-sm font-medium text-center whitespace-nowrap">
+                    <span className="mt-2 text-sm font-medium text-center whitespace-nowrap hidden md:block">
                       {label}
                     </span>
                   </div>
