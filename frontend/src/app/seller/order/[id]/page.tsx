@@ -16,29 +16,7 @@ import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
 import { OrderActionButtons } from "@/components/custom/OrderActionButtons";
 import { CreditCard, ShoppingBag, User, CalendarIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-
-// data fetching function
-const getOrder = async (id: string, token: string) => {
-  const response = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + "/order/" + id,
-    {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    }
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message || "Failed to fetch order");
-  }
-
-  // parse order data
-  const data = CompleteOrderSchema.safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse order data");
-  }
-  return data.data;
-};
+import { serverFetch } from "@/lib/fetcher";
 
 export default async function OrderPage({
   params,
@@ -68,7 +46,10 @@ export default async function OrderPage({
     throw new Error("No session found");
   }
 
-  const order = await getOrder(id, session.access_token);
+  const order = await serverFetch(`/order/${id}`, {
+    token: session.access_token,
+    schema: CompleteOrderSchema,
+  });
 
   const orderTotal = order.items
     .reduce(

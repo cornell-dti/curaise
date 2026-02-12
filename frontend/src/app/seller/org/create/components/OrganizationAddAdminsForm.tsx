@@ -23,6 +23,7 @@ import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { serverFetch } from "@/lib/fetcher";
 
 const AddAdminsSchema = CreateOrganizationBody.pick({
   addedAdminsIds: true,
@@ -48,20 +49,10 @@ export function OrganizationAddAdminsForm({
     }
 
     try {
-      const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_URL
-        }/user/search?email=${encodeURIComponent(adminEmail)}`
+      const user = await serverFetch(
+        `/user/search?email=${encodeURIComponent(adminEmail)}`,
+        { schema: UserSchema },
       );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        toast.error(result.message || "Failed to find user");
-        return;
-      }
-
-      const user = UserSchema.parse(result.data);
 
       // Check if admin is already in the list
       if (admins.some((admin) => admin.id === user.id)) {
@@ -73,7 +64,7 @@ export function OrganizationAddAdminsForm({
       setAdminEmail("");
       toast.success(`${user.name} added to list`);
     } catch (error) {
-      toast.error("Error adding admin");
+      toast.error(error instanceof Error ? error.message : "Error adding admin");
     }
   };
 

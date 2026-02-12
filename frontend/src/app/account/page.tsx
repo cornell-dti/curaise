@@ -3,28 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { UserSchema } from "common";
 import { AccountForm } from "./components/AccountForm";
-
-const getUserProfile = async (userId: string, token: string) => {
-  const response = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + "/user/" + userId,
-    {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    }
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-
-  // parse user data
-  const data = UserSchema.safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse user data");
-  }
-  return data.data;
-};
+import { serverFetch } from "@/lib/fetcher";
 
 export default async function AccountPage() {
   await connection(); // ensures dynamic rendering
@@ -49,7 +28,10 @@ export default async function AccountPage() {
     throw new Error("Session invalid");
   }
 
-  const userProfile = await getUserProfile(user.id, session.access_token);
+  const userProfile = await serverFetch(`/user/${user.id}`, {
+    token: session.access_token,
+    schema: UserSchema,
+  });
 
   return (
     <div className="container mx-auto px-4 py-10 max-w-5xl">

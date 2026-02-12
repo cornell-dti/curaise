@@ -9,44 +9,7 @@ import { isPast } from "date-fns";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { EditOrgInfoDialog } from "@/components/custom/EditOrgInfoDialog";
-
-const getOrganization = async (id: string) => {
-  const response = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + "/organization/" + id
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-
-  const data = CompleteOrganizationSchema.safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse organization data");
-  }
-  return data.data;
-};
-
-const getFundraisers = async (organizationId: string, token: string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/organization/${organizationId}/fundraisers`,
-    {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    }
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-
-  const data = BasicFundraiserSchema.array().safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse fundraiser data.");
-  }
-
-  return data.data;
-};
+import { serverFetch } from "@/lib/fetcher";
 
 export default async function OrganizationPage({
   params,
@@ -77,8 +40,13 @@ export default async function OrganizationPage({
 
   const id = (await params).id;
 
-  const org = await getOrganization(id);
-  const fundraisers = await getFundraisers(id, session.access_token);
+  const org = await serverFetch(`/organization/${id}`, {
+    schema: CompleteOrganizationSchema,
+  });
+  const fundraisers = await serverFetch(`/organization/${id}/fundraisers`, {
+    token: session.access_token,
+    schema: BasicFundraiserSchema.array(),
+  });
 
   // Check if user is an admin of the organization
   if (!org.admins.map((admin) => admin.id).includes(user.id)) {

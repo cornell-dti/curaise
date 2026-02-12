@@ -16,21 +16,6 @@ import { noAuthFetcher } from "@/lib/fetcher";
 import Decimal from "decimal.js";
 import Image from "next/image";
 
-const getFundraiser = async (id: string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${id}`
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-  const data = CompleteFundraiserSchema.safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse fundraiser data");
-  }
-  return data.data;
-};
-
 export default function CartPage() {
   const router = useRouter();
   const params = useParams();

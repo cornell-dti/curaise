@@ -5,6 +5,7 @@ import { CreateFundraiserBody, CreateFundraiserItemBody } from "common";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useEffect, useState } from "react";
+import { mutationFetch } from "@/lib/fetcher";
 import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
 import MultiStepForm from "@/components/custom/MultiStepForm";
 import { FundraiserBasicInfoForm } from "@/app/seller/org/[id]/create-fundraiser/components/FundraiserBasicInfoForm";
@@ -103,22 +104,14 @@ export function EditFundraiserModal({
 		};
 
 		// Update the fundraiser basic info
-		const response = await fetch(
-			process.env.NEXT_PUBLIC_API_URL + `/fundraiser/${fundraiser.id}/update`,
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: "Bearer " + token,
-				},
-				body: JSON.stringify(payload),
-			}
-		);
-
-		const result = await response.json();
-		if (!response.ok) {
+		try {
+			await mutationFetch(`/fundraiser/${fundraiser.id}/update`, {
+				token,
+				body: payload,
+			});
+		} catch (error) {
 			toast.error(
-				`Failed to update fundraiser: ${result.message || "Unknown error"}`
+				`Failed to update fundraiser: ${error instanceof Error ? error.message : "Unknown error"}`
 			);
 			return;
 		}
@@ -130,20 +123,10 @@ export function EditFundraiserModal({
 		// 1. Delete events
 		const deleteResults = await Promise.allSettled(
 			pendingPickupEventChanges.deleted.map(async (eventId) => {
-				const deleteRes = await fetch(
-					`${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiser.id}/pickup-events/${eventId}/delete`,
-					{
-						method: "DELETE",
-						headers: {
-							"Content-Type": "application/json",
-							Authorization: "Bearer " + token,
-						},
-					}
+				await mutationFetch(
+					`/fundraiser/${fundraiser.id}/pickup-events/${eventId}/delete`,
+					{ method: "DELETE", token },
 				);
-				if (!deleteRes.ok) {
-					const err = await deleteRes.json();
-					throw new Error(err.message);
-				}
 			})
 		);
 		// AllSettled will finish when ALL promises are settled
@@ -157,21 +140,10 @@ export function EditFundraiserModal({
 		// 2. Update events
 		const updateResults = await Promise.allSettled(
 			pendingPickupEventChanges.updated.map(async (update) => {
-				const updateRes = await fetch(
-					`${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiser.id}/pickup-events/${update.id}/update`,
-					{
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							Authorization: "Bearer " + token,
-						},
-						body: JSON.stringify(update.data),
-					}
+				await mutationFetch(
+					`/fundraiser/${fundraiser.id}/pickup-events/${update.id}/update`,
+					{ token, body: update.data },
 				);
-				if (!updateRes.ok) {
-					const err = await updateRes.json();
-					throw new Error(err.message);
-				}
 			})
 		);
 		updateResults.forEach((result) => {
@@ -183,21 +155,10 @@ export function EditFundraiserModal({
 		// 3. Create events
 		const createEventResults = await Promise.allSettled(
 			pendingPickupEventChanges.created.map(async (pending) => {
-				const createRes = await fetch(
-					`${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiser.id}/pickup-events/create`,
-					{
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							Authorization: "Bearer " + token,
-						},
-						body: JSON.stringify(pending.data),
-					}
+				await mutationFetch(
+					`/fundraiser/${fundraiser.id}/pickup-events/create`,
+					{ token, body: pending.data },
 				);
-				if (!createRes.ok) {
-					const err = await createRes.json();
-					throw new Error(err.message);
-				}
 			})
 		);
 		createEventResults.forEach((result) => {
@@ -209,23 +170,11 @@ export function EditFundraiserModal({
 		// Submit pending new items concurrently and collect created items with real IDs
 		const createItemResults = await Promise.allSettled(
 			pendingItemChanges.created.map(async (pending) => {
-				const createRes = await fetch(
-					`${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiser.id}/items/create`,
-					{
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							Authorization: "Bearer " + token,
-						},
-						body: JSON.stringify(pending.data),
-					}
+				const itemResult = await mutationFetch(
+					`/fundraiser/${fundraiser.id}/items/create`,
+					{ token, body: pending.data },
 				);
-				if (!createRes.ok) {
-					const err = await createRes.json();
-					throw new Error(err.message);
-				}
-				const itemResult = await createRes.json();
-				return itemResult.data;
+				return itemResult.data as z.infer<typeof CompleteItemSchema>;
 			})
 		);
 
@@ -258,10 +207,8 @@ export function EditFundraiserModal({
 			toast.error(`Some changes failed: ${errors.join(", ")}`);
 		}
 
-		const fundraiserId = result.data.id;
-
 		toast.success("Fundraiser saved successfully");
-		redirect("/seller/fundraiser/" + fundraiserId);
+		redirect("/seller/fundraiser/" + fundraiser.id);
 	}
 	const [currentStep, setCurrentStep] = useState(step);
 	const [saveRequested, setSaveRequested] = useState(false);

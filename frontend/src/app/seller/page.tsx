@@ -3,29 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import { connection } from "next/server";
 import { BasicOrganizationSchema } from "common";
 import { OrganizationsList } from "./components/OrganizationsList";
-
-const getOrganizations = async (userId: string, token: string) => {
-  const response = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + "/user/" + userId + "/organizations",
-    {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    }
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-
-  // parse org data
-  const data = BasicOrganizationSchema.array().safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse organization data");
-  }
-
-  return data.data;
-};
+import { serverFetch } from "@/lib/fetcher";
 
 export default async function SellerHome({
   searchParams,
@@ -54,7 +32,10 @@ export default async function SellerHome({
     throw new Error("Session invalid");
   }
 
-  const organizations = await getOrganizations(user.id, session.access_token);
+  const organizations = await serverFetch(`/user/${user.id}/organizations`, {
+    token: session.access_token,
+    schema: BasicOrganizationSchema.array(),
+  });
   const params = await searchParams;
   const searchQuery = params.search || "";
 
