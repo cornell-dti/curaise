@@ -12,6 +12,7 @@ import { useStore } from "zustand";
 import { useCartStore, CartItem } from "@/lib/store/useCartStore";
 import { toast } from "sonner";
 import { redirect } from "next/navigation";
+import { mutationFetch } from "@/lib/fetcher";
 import { format } from "date-fns";
 import Decimal from "decimal.js";
 import { useFundraiserItems } from "@/hooks/useFundraiserItems";
@@ -136,28 +137,17 @@ export function CheckoutForm({
         selectedReferralId !== "none" && { referralId: selectedReferralId }),
     };
 
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "/order/create",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
-        body: JSON.stringify(dataToSubmit),
-      }
-    );
-
-    const result = await response.json();
-    if (!response.ok) {
-      toast.error(result.message);
-      setIsSubmitting(false);
-      return;
-    } else {
-      // toast.success(result.message);
+    try {
+      const result = await mutationFetch("/order/create", {
+        token,
+        body: dataToSubmit,
+      });
       redirect(
-        "/buyer/order/" + result.data.id + "/submitted?fromCheckout=true"
+        "/buyer/order/" + (result.data as { id: string }).id + "/submitted?fromCheckout=true"
       );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to create order");
+      setIsSubmitting(false);
     }
   }
 

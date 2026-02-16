@@ -23,7 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import useSWR from "swr";
-import { authFetcher } from "@/lib/fetcher";
+import { authFetcher, mutationFetch } from "@/lib/fetcher";
 
 export function AccountForm({
   user,
@@ -51,29 +51,19 @@ export function AccountForm({
   });
 
   async function onSubmit(formData: z.infer<typeof UpdateUserBody>) {
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "/user/" + user.id,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
-        body: JSON.stringify(formData),
-      }
-    );
-
-    const result = await response.json();
-    if (!response.ok) {
-      toast.error(result.message);
-      return;
-    } else {
+    try {
+      const result = await mutationFetch(`/user/${user.id}`, {
+        token,
+        body: formData,
+      });
       mutate({
         ...data,
         ...formData,
       });
       form.reset({ name: formData.name });
       toast.success(result.message);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Something went wrong");
     }
   }
 

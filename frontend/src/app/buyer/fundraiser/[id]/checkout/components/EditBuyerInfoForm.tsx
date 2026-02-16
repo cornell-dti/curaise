@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/form";
 import { useState } from "react";
 import useSWR from "swr";
-import { authFetcher } from "@/lib/fetcher";
+import { authFetcher, mutationFetch } from "@/lib/fetcher";
 
 export function EditBuyerInfoForm({
   user,
@@ -60,23 +60,11 @@ export function EditBuyerInfoForm({
       return;
     }
 
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "/user/" + user.id,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
-        body: JSON.stringify(formData),
-      }
-    );
-
-    const result = await response.json();
-    if (!response.ok) {
-      toast.error(result.message);
-      return;
-    } else {
+    try {
+      const result = await mutationFetch(`/user/${user.id}`, {
+        token,
+        body: formData,
+      });
       mutate({
         ...data,
         ...formData,
@@ -84,6 +72,8 @@ export function EditBuyerInfoForm({
       form.reset();
       toast.success(result.message);
       onNext();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Something went wrong");
     }
   }
 

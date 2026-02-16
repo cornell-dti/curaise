@@ -5,39 +5,7 @@ import { connection } from "next/server";
 import { FundraiserCard } from "@/components/custom/FundraiserCard";
 import { ExternalLink, ShieldCheck, ShoppingBag } from "lucide-react";
 import { isPast } from "date-fns";
-
-const getOrganization = async (id: string) => {
-  const response = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + "/organization/" + id
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-
-  const data = CompleteOrganizationSchema.safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse order data");
-  }
-  return data.data;
-};
-
-const getFundraisers = async (organizationId: string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/organization/${organizationId}/fundraisers`
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-
-  const data = BasicFundraiserSchema.array().safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse fundraiser data.");
-  }
-
-  return data.data;
-};
+import { serverFetch } from "@/lib/fetcher";
 
 export default async function OrganizationPage({
   params,
@@ -48,8 +16,12 @@ export default async function OrganizationPage({
 
   const id = (await params).id;
 
-  const org = await getOrganization(id);
-  const fundraisers = await getFundraisers(id);
+  const org = await serverFetch(`/organization/${id}`, {
+    schema: CompleteOrganizationSchema,
+  });
+  const fundraisers = await serverFetch(`/organization/${id}/fundraisers`, {
+    schema: BasicFundraiserSchema.array(),
+  });
 
   const currentAndFutureFundraisers = fundraisers.filter((fundraiser) =>
     fundraiser.pickupEvents.some((event) => !isPast(event.endsAt))

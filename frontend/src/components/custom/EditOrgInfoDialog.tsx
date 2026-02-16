@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/form";
 import { useState } from "react";
 import useSWR from "swr";
-import { authFetcher } from "@/lib/fetcher";
+import { authFetcher, serverFetch, mutationFetch } from "@/lib/fetcher";
 import { UpdateOrganizationBody } from "common";
 import { X } from "lucide-react";
 
@@ -75,20 +75,10 @@ export function EditOrgInfoDialog({
     }
 
     try {
-      const response = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_URL
-        }/user/search?email=${encodeURIComponent(adminEmail)}`
+      const user = await serverFetch(
+        `/user/search?email=${encodeURIComponent(adminEmail)}`,
+        { schema: UserSchema }
       );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        toast.error(result.message || "Failed to find user");
-        return;
-      }
-
-      const user = UserSchema.parse(result.data);
 
       // Check if admin is already in the list
       if (
@@ -103,7 +93,7 @@ export function EditOrgInfoDialog({
       setAdminEmail("");
       toast.success(`${user.name} added to list, click save to confirm`);
     } catch (error) {
-      toast.error("Error adding admin");
+      toast.error(error instanceof Error ? error.message : "Error adding admin");
     }
   };
 
@@ -119,23 +109,11 @@ export function EditOrgInfoDialog({
       addedAdminsIds: additionalAdmins.map((admin) => admin.id),
     };
 
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "/organization/" + org.id + "/update",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
-        body: JSON.stringify(dataToSubmit),
-      }
-    );
-
-    const result = await response.json();
-    if (!response.ok) {
-      toast.error(result.message);
-      return;
-    } else {
+    try {
+      const result = await mutationFetch(`/organization/${org.id}/update`, {
+        token,
+        body: dataToSubmit,
+      });
       setOpen(false);
       setAdditionalAdmins([]); // Reset admin list after successful submission
       mutate({
@@ -144,6 +122,8 @@ export function EditOrgInfoDialog({
       });
       form.reset();
       toast.success(result.message);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update organization");
     }
   }
 

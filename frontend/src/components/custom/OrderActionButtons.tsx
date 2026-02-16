@@ -7,6 +7,7 @@ import { CheckCircle2, DollarSign } from "lucide-react";
 import { BasicOrderSchema } from "common";
 import { z } from "zod";
 import { toast } from "sonner";
+import { mutationFetch } from "@/lib/fetcher";
 
 interface OrderActionButtonsProps {
   order: z.infer<typeof BasicOrderSchema>;
@@ -21,21 +22,7 @@ export function OrderActionButtons({ order, token }: OrderActionButtonsProps) {
   const handleConfirmPayment = async () => {
     setIsConfirmingPayment(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/order/${order.id}/confirm-payment`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer " + token,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to confirm payment");
-      }
-
+      await mutationFetch(`/order/${order.id}/confirm-payment`, { token });
       toast.success("Payment confirmed successfully");
       router.refresh();
     } catch (error) {
@@ -51,23 +38,7 @@ export function OrderActionButtons({ order, token }: OrderActionButtonsProps) {
   const handleCompletePickup = async () => {
     setIsCompletingPickup(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/order/${order.id}/complete-pickup`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer " + token,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || "Failed to mark order as picked up"
-        );
-      }
-
+      await mutationFetch(`/order/${order.id}/complete-pickup`, { token });
       toast.success("Order marked as picked up");
       router.refresh();
     } catch (error) {

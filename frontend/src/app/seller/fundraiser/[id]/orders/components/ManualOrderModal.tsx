@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { FundraiserItemCard } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemCard";
+import { mutationFetch } from "@/lib/fetcher";
 
 type Item = z.infer<typeof CompleteItemSchema>;
 
@@ -82,28 +83,14 @@ export function ManualOrderModal({
 				})
 			);
 
-			const response = await fetch(
-				process.env.NEXT_PUBLIC_API_URL + "/order/create",
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: "Bearer " + token,
-					},
-					body: JSON.stringify({
-						fundraiserId,
-						items: orderItems,
-						payment_method: "OTHER",
-					}),
-				}
-			);
-
-			const result = await response.json();
-
-			if (!response.ok) {
-				toast.error(result.message || "Failed to create order");
-				return;
-			}
+			await mutationFetch("/order/create", {
+				token,
+				body: {
+					fundraiserId,
+					items: orderItems,
+					payment_method: "OTHER",
+				},
+			});
 
 			toast.success("Manual order created successfully");
 			setOpen(false);
@@ -111,7 +98,7 @@ export function ManualOrderModal({
 			onOrderCreated(); // Will refresh the page
 		} catch (error) {
 			console.error("Error creating order:", error);
-			toast.error("Failed to create order");
+			toast.error(error instanceof Error ? error.message : "Failed to create order");
 		} finally {
 			setIsSubmitting(false);
 		}
