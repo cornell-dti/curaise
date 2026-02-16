@@ -55,17 +55,17 @@ export default async function OrganizationPage({
 
   // Separate fundraisers into three categories: active, drafts, and past
   const draftFundraisers = fundraisers.filter(
-    (fundraiser) => !fundraiser.published
+    (fundraiser) => !fundraiser.published,
   );
   const activeFundraisers = fundraisers.filter(
     (fundraiser) =>
       fundraiser.published &&
-      fundraiser.pickupEvents.some((event) => !isPast(event.endsAt))
+      fundraiser.pickupEvents.some((event) => !isPast(event.endsAt)),
   );
   const pastFundraisers = fundraisers.filter(
     (fundraiser) =>
       fundraiser.published &&
-      fundraiser.pickupEvents.every((event) => isPast(event.endsAt))
+      fundraiser.pickupEvents.every((event) => isPast(event.endsAt)),
   );
 
   return (
@@ -135,7 +135,11 @@ export default async function OrganizationPage({
         <div className="space-y-4 mt-4">
           {pastFundraisers.length > 0 ? (
             pastFundraisers.map((fundraiser) => (
-              <FundraiserCard key={fundraiser.id} fundraiser={fundraiser} />
+              <FundraiserCard
+                key={fundraiser.id}
+                fundraiser={fundraiser}
+                seller
+              />
             ))
           ) : (
             <div className="text-center py-6">
