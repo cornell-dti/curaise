@@ -12,36 +12,7 @@ import Link from "next/link";
 import { FundraiserReferralCard } from "./components/FundraiserReferralCard";
 import { createClient } from "@/utils/supabase/server";
 import { GoogleCalendarButton } from "./components/GoogleCalendarButton";
-
-const getFundraiser = async (id: string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${id}`
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-  const data = CompleteFundraiserSchema.safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse fundraiser data");
-  }
-  return data.data;
-};
-
-const getFundraiserItems = async (id: string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${id}/items`
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-  const data = CompleteItemSchema.array().safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse fundraiser items data");
-  }
-  return data.data;
-};
+import { serverFetch } from "@/lib/fetcher";
 
 export default async function FundraiserPage({
   params,
@@ -63,8 +34,12 @@ export default async function FundraiserPage({
 
   const id = (await params).id;
   const { preview } = await searchParams;
-  const fundraiser = await getFundraiser(id);
-  const fundraiserItems = await getFundraiserItems(id);
+  const fundraiser = await serverFetch(`/fundraiser/${id}`, {
+    schema: CompleteFundraiserSchema,
+  });
+  const fundraiserItems = await serverFetch(`/fundraiser/${id}/items`, {
+    schema: CompleteItemSchema.array(),
+  });
 
   if (!fundraiser.published && preview !== "true") {
     return <UnpublishedFundraiser fundraiser={fundraiser} />;

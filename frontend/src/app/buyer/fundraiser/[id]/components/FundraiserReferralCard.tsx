@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { usePathname } from "next/navigation";
+import { mutationFetch } from "@/lib/fetcher";
 
 const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text);
@@ -38,28 +39,15 @@ export function FundraiserReferralCard({
 
   const addReferrer = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiser.id}/referrals`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: "Bearer " + token,
-          },
-        }
-      );
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        toast.error(result.error || "Failed to add referrer");
-        return;
-      }
+      const result = await mutationFetch(`/fundraiser/${fundraiser.id}/referrals`, {
+        token,
+      });
 
       toast.success("Referrer added!");
       setReferralOpen(true);
-      setReferralId(result.data.id);
+      setReferralId((result.data as { id: string }).id);
     } catch (err) {
-      toast.error("Something went wrong when adding the referrer");
+      toast.error(err instanceof Error ? err.message : "Something went wrong when adding the referrer");
     }
   };
 

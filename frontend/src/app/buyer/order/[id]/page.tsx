@@ -26,52 +26,7 @@ import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { ConfettiWrapper } from "@/components/custom/ConfettiWrapper";
 import { OrderQRCodeDisplay } from "@/components/custom/OrderQRCodeDisplay";
-
-// data fetching function
-const getOrder = async (id: string, token: string) => {
-	const response = await fetch(
-		process.env.NEXT_PUBLIC_API_URL + "/order/" + id,
-		{
-			headers: {
-				Authorization: "Bearer " + token,
-			},
-		}
-	);
-	const result = await response.json();
-	if (!response.ok) {
-		throw new Error(result.message);
-	}
-
-	// parse order data
-	const data = CompleteOrderSchema.safeParse(result.data);
-	if (!data.success) {
-		throw new Error("Could not parse order data");
-	}
-	return data.data;
-};
-
-// fundraiser data fetching function
-const getFundraiser = async (id: string, token: string) => {
-	const response = await fetch(
-		process.env.NEXT_PUBLIC_API_URL + "/fundraiser/" + id,
-		{
-			headers: {
-				Authorization: "Bearer " + token,
-			},
-		}
-	);
-	const result = await response.json();
-	if (!response.ok) {
-		throw new Error(result.message);
-	}
-
-	// parse fundraiser data
-	const data = BasicFundraiserSchema.safeParse(result.data);
-	if (!data.success) {
-		throw new Error("Could not parse fundraiser data");
-	}
-	return data.data;
-};
+import { serverFetch } from "@/lib/fetcher";
 
 export default async function OrderPage({
 	params,
@@ -101,11 +56,14 @@ export default async function OrderPage({
 		throw new Error("No session found");
 	}
 
-	const order = await getOrder(id, session.access_token);
-	const fundraiser = await getFundraiser(
-		order.fundraiser.id,
-		session.access_token
-	);
+	const order = await serverFetch(`/order/${id}`, {
+		token: session.access_token,
+		schema: CompleteOrderSchema,
+	});
+	const fundraiser = await serverFetch(`/fundraiser/${order.fundraiser.id}`, {
+		token: session.access_token,
+		schema: BasicFundraiserSchema,
+	});
 
 	const orderTotal = order.items
 		.reduce(

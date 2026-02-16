@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import MultiStepForm from "../../../../../components/custom/MultiStepForm";
 import { useState } from "react";
+import { mutationFetch } from "@/lib/fetcher";
 import { OrganizationBasicInfoForm } from "./OrganizationBasicInfoForm";
 import { OrganizationAddAdminsForm } from "./OrganizationAddAdminsForm";
 import { ReviewOrganizationForm } from "./ReviewOrganizationForm";
@@ -30,25 +31,16 @@ export function CreateOrganizationForm({ token }: { token: string }) {
       addedAdminsIds: admins.map((admin) => admin.id),
     };
 
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "/organization/create",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
-        body: JSON.stringify(dataToSubmit),
-      }
-    );
-
-    const result = await response.json();
-    if (!response.ok) {
-      toast.error(result.message);
-      return;
-    } else {
+    try {
+      const result = await mutationFetch("/organization/create", {
+        token,
+        body: dataToSubmit,
+      });
       toast.success(result.message);
-      redirect("/seller/org/" + result.data.id);
+      redirect("/seller/org/" + (result.data as { id: string }).id);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Something went wrong");
+      return;
     }
   }
 

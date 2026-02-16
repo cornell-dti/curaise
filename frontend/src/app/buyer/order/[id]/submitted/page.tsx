@@ -14,45 +14,7 @@ import { Check } from "lucide-react";
 import Link from "next/link";
 import { ConfettiWrapper } from "@/components/custom/ConfettiWrapper";
 import Image from "next/image";
-
-const getOrder = async (id: string, token: string) => {
-  const response = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + "/order/" + id,
-    {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    }
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-
-  const data = CompleteOrderSchema.safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse order data");
-  }
-
-  return data.data;
-};
-
-const getFundraiserItems = async (fundraiserId: string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/items`
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-
-  const data = CompleteItemSchema.array().safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse fundraiser items");
-  }
-
-  return data.data;
-};
+import { serverFetch } from "@/lib/fetcher";
 
 export default async function OrderSubmittedPage({
   params,
@@ -80,8 +42,13 @@ export default async function OrderSubmittedPage({
     throw new Error("No session found");
   }
 
-  const order = await getOrder(id, session.access_token);
-  const items = await getFundraiserItems(order.fundraiser.id);
+  const order = await serverFetch(`/order/${id}`, {
+    token: session.access_token,
+    schema: CompleteOrderSchema,
+  });
+  const items = await serverFetch(`/fundraiser/${order.fundraiser.id}/items`, {
+    schema: CompleteItemSchema.array(),
+  });
   const itemsById = new Map(items.map((item) => [item.id, item]));
 
   const orderTotal = order.items

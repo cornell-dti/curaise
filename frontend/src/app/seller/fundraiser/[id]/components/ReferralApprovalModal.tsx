@@ -12,6 +12,7 @@ import { CompleteFundraiserSchema, ReferralSchema } from "common";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { mutationFetch } from "@/lib/fetcher";
 
 const approveReferrer = async (
   fundraiserId: string,
@@ -19,26 +20,13 @@ const approveReferrer = async (
   token: string
 ) => {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/referrals/${referralId}/approve`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      }
+    await mutationFetch(
+      `/fundraiser/${fundraiserId}/referrals/${referralId}/approve`,
+      { token },
     );
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      toast.error(result.error || "Failed to approve referrer");
-      return;
-    }
-
     toast.success("Referrer approved!");
   } catch (err) {
-    toast.error("Something went wrong approving the referrer");
+    toast.error(err instanceof Error ? err.message : "Failed to approve referrer");
   }
 };
 
@@ -48,26 +36,13 @@ const deleteReferrer = async (
   token: string
 ) => {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/referrals/${referralId}/delete`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      }
+    await mutationFetch(
+      `/fundraiser/${fundraiserId}/referrals/${referralId}/delete`,
+      { method: "DELETE", token },
     );
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      toast.error(result.error || "Failed to delete referrer");
-      return;
-    }
-
     toast.success("Referrer deleted!");
   } catch (err) {
-    toast.error("Something went wrong deleting the referrer");
+    toast.error(err instanceof Error ? err.message : "Failed to delete referrer");
   }
 };
 

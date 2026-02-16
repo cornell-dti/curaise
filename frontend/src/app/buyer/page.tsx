@@ -5,29 +5,7 @@ import { Clock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BasicOrderSchema } from "common";
 import { OrderCard } from "@/components/custom/OrderCard";
-
-const getOrders = async (userId: string, token: string) => {
-	const response = await fetch(
-		process.env.NEXT_PUBLIC_API_URL + "/user/" + userId + "/orders",
-		{
-			headers: {
-				Authorization: "Bearer " + token,
-			},
-		}
-	);
-	const result = await response.json();
-	if (!response.ok) {
-		throw new Error(result.message);
-	}
-
-	// parse order data
-	const data = BasicOrderSchema.array().safeParse(result.data);
-	if (!data.success) {
-		throw new Error("Could not parse order data");
-	}
-
-	return data.data;
-};
+import { serverFetch } from "@/lib/fetcher";
 
 export default async function BuyerHome() {
 	await connection(); // ensures server component is dynamically rendered at runtime, not statically rendered at build time
@@ -52,7 +30,10 @@ export default async function BuyerHome() {
 		throw new Error("Session invalid");
 	}
 
-	const orders = await getOrders(user.id, session.access_token);
+	const orders = await serverFetch(`/user/${user.id}/orders`, {
+		token: session.access_token,
+		schema: BasicOrderSchema.array(),
+	});
 
 	const inProgressOrders = orders.filter((order) => !order.pickedUp);
 

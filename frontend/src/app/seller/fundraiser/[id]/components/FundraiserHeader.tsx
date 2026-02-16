@@ -16,6 +16,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { ReferralApprovalModal, ReferralButton } from "./ReferralApprovalModal";
 import { Card, CardContent } from "@/components/ui/card";
+import { mutationFetch } from "@/lib/fetcher";
 
 export function FundraiserHeader({
   token,
@@ -51,25 +52,13 @@ export function FundraiserHeader({
   }, {});
 
   async function onPublish() {
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + `/fundraiser/${fundraiser.id}/publish`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
-      }
-    );
-
-    const result = await response.json();
-    if (!response.ok) {
-      toast.error(
-        `Failed to publish fundraiser: ${result.message || "Unknown error"}`
-      );
-      return;
-    } else {
+    try {
+      await mutationFetch(`/fundraiser/${fundraiser.id}/publish`, { token });
       toast.success("Fundraiser published successfully");
+    } catch (error) {
+      toast.error(
+        `Failed to publish fundraiser: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   }
 

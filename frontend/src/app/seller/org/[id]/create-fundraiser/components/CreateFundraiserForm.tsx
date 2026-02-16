@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import MultiStepForm from "../../../../../../components/custom/MultiStepForm";
 import { useState } from "react";
+import { mutationFetch } from "@/lib/fetcher";
 import { FundraiserBasicInfoForm } from "./FundraiserBasicInfoForm";
 import { FundraiserPickupEventsForm } from "./FundraiserPickupEventsForm";
 import { FundraiserAddItemsForm } from "./FundraiserAddItemsForm";
@@ -78,56 +79,38 @@ export function CreateFundraiserForm({
 		const completeFormData = { ...formData, pickupEvents };
 
 		// First create the fundraiser
-		const response = await fetch(
-			process.env.NEXT_PUBLIC_API_URL + "/fundraiser/create",
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: "Bearer " + token,
-				},
-				body: JSON.stringify(completeFormData),
-			}
-		);
-
-		const result = await response.json();
-		if (!response.ok) {
+		let result;
+		try {
+			result = await mutationFetch("/fundraiser/create", {
+				token,
+				body: completeFormData,
+			});
+		} catch (error) {
 			toast.error(
-				`Failed to create fundraiser: ${result.message || "Unknown error"}`
+				`Failed to create fundraiser: ${error instanceof Error ? error.message : "Unknown error"}`
 			);
 			return;
 		}
 
-		const fundraiserId = result.data.id;
+		const fundraiserId = (result.data as { id: string }).id;
 
 		// Then add items if there are any
 		if (fundraiserItems.length > 0) {
 			const itemResults = await Promise.allSettled(
 				fundraiserItems.map(async (item, index) => {
-					const itemResponse = await fetch(
-						process.env.NEXT_PUBLIC_API_URL +
+					try {
+						const itemResult = await mutationFetch(
 							`/fundraiser/${fundraiserId}/items/create`,
-						{
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-								Authorization: "Bearer " + token,
-							},
-							body: JSON.stringify(item),
-						}
-					);
-
-					const itemResult = await itemResponse.json();
-
-					if (!itemResponse.ok) {
+							{ token, body: item },
+						);
+						return { success: true, data: itemResult.data };
+					} catch (error) {
 						return {
 							success: false,
 							item: item.name || `Item ${index + 1}`,
-							error: itemResult.message || "Unknown error",
+							error: error instanceof Error ? error.message : "Unknown error",
 						};
 					}
-
-					return { success: true, data: itemResult.data };
 				})
 			);
 
