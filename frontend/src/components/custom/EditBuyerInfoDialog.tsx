@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/form";
 import { useState } from "react";
 import useSWR from "swr";
-import { authFetcher } from "@/lib/fetcher";
+import { authFetcher, mutationFetch } from "@/lib/fetcher";
 
 export function EditBuyerInfoDialog({
   user,
@@ -56,23 +56,11 @@ export function EditBuyerInfoDialog({
   });
 
   async function onSubmit(formData: z.infer<typeof UpdateUserBody>) {
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "/user/" + user.id,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
-        body: JSON.stringify(formData),
-      }
-    );
-
-    const result = await response.json();
-    if (!response.ok) {
-      toast.error(result.message);
-      return;
-    } else {
+    try {
+      const result = await mutationFetch(`/user/${user.id}`, {
+        token,
+        body: formData,
+      });
       setOpen(false);
       mutate({
         ...data,
@@ -80,6 +68,8 @@ export function EditBuyerInfoDialog({
       });
       form.reset();
       toast.success(result.message);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update user");
     }
   }
 

@@ -8,16 +8,12 @@ import { useCartStore } from "@/lib/store/useCartStore";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import { useShallow } from "zustand/react/shallow";
+import { serverFetch } from "@/lib/fetcher";
 
 const getItem = async (fundraiserId: string, itemId: string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/items`
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-  const items = CompleteItemSchema.array().parse(result.data);
+  const items = await serverFetch(`/fundraiser/${fundraiserId}/items`, {
+    schema: CompleteItemSchema.array(),
+  });
   const item = items.find((i) => i.id === itemId);
   if (!item) {
     throw new Error("Item not found");
