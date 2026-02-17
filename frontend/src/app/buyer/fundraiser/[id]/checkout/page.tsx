@@ -3,43 +3,7 @@ import { CompleteFundraiserSchema, UserSchema } from "common";
 import { CheckoutForm } from "./components/CheckoutForm";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-
-const getUserProfile = async (userId: string, token: string) => {
-  const response = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + "/user/" + userId,
-    {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    }
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-
-  // parse user data
-  const data = UserSchema.safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse user data");
-  }
-  return data.data;
-};
-
-const getFundraiser = async (id: string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${id}`
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-  const data = CompleteFundraiserSchema.safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse fundraiser data");
-  }
-  return data.data;
-};
+import { serverFetch } from "@/lib/fetcher";
 
 export default async function CheckoutPage({
   params,
@@ -50,13 +14,15 @@ export default async function CheckoutPage({
 
   const supabase = await createClient();
 
+  const id = (await params).id;
+
   // protect page (must use supabase.auth.getUser() according to docs)
   const {
     data: { user },
     error: error1,
   } = await supabase.auth.getUser();
   if (error1 || !user) {
-    redirect("/login");
+    redirect(`/login?next=/buyer/fundraiser/${id}/checkout`);
   }
 
   // get auth jwt token
@@ -68,16 +34,20 @@ export default async function CheckoutPage({
     throw new Error("Session invalid");
   }
 
-  const userProfile = await getUserProfile(user.id, session.access_token);
+  const userProfile = await serverFetch(`/user/${user.id}`, {
+    token: session.access_token,
+    schema: UserSchema,
+  });
 
-  const id = (await params).id;
-  const fundraiser = await getFundraiser(id);
+  const fundraiser = await serverFetch(`/fundraiser/${id}`, {
+    schema: CompleteFundraiserSchema,
+  });
   if (!fundraiser.published) {
     throw new Error("Fundraiser is not published");
   }
 
   return (
-    <div>
+    <div className=" md:overflow-y-clip">
       <CheckoutForm
         fundraiser={fundraiser}
         token={session.access_token}

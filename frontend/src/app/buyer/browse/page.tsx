@@ -1,19 +1,7 @@
 import { FundraisersList } from "./components/FundraisersList";
 import { BasicFundraiserSchema } from "common";
 import { connection } from "next/server";
-
-const getAllFundraisers = async () => {
-	const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/fundraiser`);
-	const result = await response.json();
-	if (!response.ok) {
-		throw new Error(result.message);
-	}
-	const data = BasicFundraiserSchema.array().safeParse(result.data);
-	if (!data.success) {
-		throw new Error("Could not parse fundraiser data");
-	}
-	return data.data;
-};
+import { serverFetch } from "@/lib/fetcher";
 
 export default async function BrowseFundraisersPage({
 	searchParams,
@@ -22,12 +10,14 @@ export default async function BrowseFundraisersPage({
 }) {
 	await connection(); // ensures server component is dynamically rendered at runtime
 
-	const fundraisers = await getAllFundraisers();
+	const fundraisers = await serverFetch("/fundraiser", {
+		schema: BasicFundraiserSchema.array(),
+	});
 	const params = await searchParams;
 	const searchQuery = params.search || "";
 
 	return (
-		<div className="flex flex-col p-6 md:p-10 space-y-6 pt-20 md:pt-10">
+		<div className="flex flex-col px-4 md:px-[157px] pt-10">
 			<FundraisersList fundraisers={fundraisers} searchQuery={searchQuery} />
 		</div>
 	);

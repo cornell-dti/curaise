@@ -11,7 +11,8 @@ export const config = {
     "/login",
     "/buyer",
     "/buyer/order/:path*",
-    "/buyer/account",
+    "/account-actions",
+    "/account",
     "/seller/:path*",
   ],
 };

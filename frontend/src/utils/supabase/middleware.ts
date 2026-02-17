@@ -53,9 +53,11 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && request.nextUrl.pathname.startsWith("/login")) {
-    // user is logged in, redirect to the home page
+    // user is logged in, redirect to the next parameter or home page
+    const next = request.nextUrl.searchParams.get("next");
     const url = request.nextUrl.clone();
-    url.pathname = "/";
+    url.pathname = next && next.startsWith("/") ? next : "/";
+    url.search = ""; // Clear the search params
     return NextResponse.redirect(url);
   }
 

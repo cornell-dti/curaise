@@ -3,49 +3,13 @@ import Link from "next/link";
 import { BasicFundraiserSchema, CompleteOrganizationSchema } from "common";
 import { connection } from "next/server";
 import { FundraiserCard } from "@/components/custom/FundraiserCard";
+import { FundraiserDraftCard } from "@/components/custom/FundraiserDraftCard";
 import { ShieldCheck } from "lucide-react";
 import { isPast } from "date-fns";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { EditOrgInfoDialog } from "@/components/custom/EditOrgInfoDialog";
-
-const getOrganization = async (id: string) => {
-  const response = await fetch(
-    process.env.NEXT_PUBLIC_API_URL + "/organization/" + id
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-
-  const data = CompleteOrganizationSchema.safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse organization data");
-  }
-  return data.data;
-};
-
-const getFundraisers = async (organizationId: string, token: string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/organization/${organizationId}/fundraisers`,
-    {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    }
-  );
-  const result = await response.json();
-  if (!response.ok) {
-    throw new Error(result.message);
-  }
-
-  const data = BasicFundraiserSchema.array().safeParse(result.data);
-  if (!data.success) {
-    throw new Error("Could not parse fundraiser data.");
-  }
-
-  return data.data;
-};
+import { serverFetch } from "@/lib/fetcher";
 
 export default async function OrganizationPage({
   params,
@@ -76,24 +40,36 @@ export default async function OrganizationPage({
 
   const id = (await params).id;
 
-  const org = await getOrganization(id);
-  const fundraisers = await getFundraisers(id, session.access_token);
+  const org = await serverFetch(`/organization/${id}`, {
+    schema: CompleteOrganizationSchema,
+  });
+  const fundraisers = await serverFetch(`/organization/${id}/fundraisers`, {
+    token: session.access_token,
+    schema: BasicFundraiserSchema.array(),
+  });
 
   // Check if user is an admin of the organization
   if (!org.admins.map((admin) => admin.id).includes(user.id)) {
     throw new Error("You are not authorized to view this organization.");
   }
 
-  // Separate fundraisers into two categories: active and past
-  const activeFundraisers = fundraisers.filter((fundraiser) =>
-    fundraiser.pickupEvents.some((event) => !isPast(event.endsAt))
+  // Separate fundraisers into three categories: active, drafts, and past
+  const draftFundraisers = fundraisers.filter(
+    (fundraiser) => !fundraiser.published,
   );
-  const pastFundraisers = fundraisers.filter((fundraiser) =>
-    fundraiser.pickupEvents.every((event) => isPast(event.endsAt))
+  const activeFundraisers = fundraisers.filter(
+    (fundraiser) =>
+      fundraiser.published &&
+      fundraiser.pickupEvents.some((event) => !isPast(event.endsAt)),
+  );
+  const pastFundraisers = fundraisers.filter(
+    (fundraiser) =>
+      fundraiser.published &&
+      fundraiser.pickupEvents.every((event) => isPast(event.endsAt)),
   );
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-4xl space-y-4">
+    <div className="px-4 md:px-[157px] py-6 space-y-4">
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-100">
         <p className="text-lg my-auto">Welcome, admin!</p>
       </div>
@@ -136,13 +112,34 @@ export default async function OrganizationPage({
         </div>
       </div>
 
+      {draftFundraisers.length > 0 && (
+        <div className="flex flex-col">
+          <h1 className="text-2xl font-bold">Unpublished Fundraisers</h1>
+
+          <div className="space-y-4 mt-4">
+            {draftFundraisers.map((fundraiser) => (
+              <FundraiserDraftCard
+                key={fundraiser.id}
+                fundraiser={fundraiser}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col">
-        <h1 className="text-2xl font-bold">Past Fundraisers</h1>
+        <h1 className="text-2xl font-bold">
+          Past Fundraisers ({pastFundraisers.length})
+        </h1>
 
         <div className="space-y-4 mt-4">
           {pastFundraisers.length > 0 ? (
             pastFundraisers.map((fundraiser) => (
-              <FundraiserCard key={fundraiser.id} fundraiser={fundraiser} />
+              <FundraiserCard
+                key={fundraiser.id}
+                fundraiser={fundraiser}
+                seller
+              />
             ))
           ) : (
             <div className="text-center py-6">

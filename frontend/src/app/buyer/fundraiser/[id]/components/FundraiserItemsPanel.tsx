@@ -3,8 +3,10 @@
 import { CompleteItemSchema } from "common";
 import { z } from "zod";
 import { FundraiserItemModal } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemModal";
+import { FundraiserItemCard } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemCard";
 import { useCartStore } from "@/lib/store/useCartStore";
 import useStore from "@/lib/store/useStore";
+import Link from "next/link";
 
 export function FundraiserItemsPanel({
   fundraiserId,
@@ -39,26 +41,45 @@ export function FundraiserItemsPanel({
 
   return (
     <div className="bg-white rounded-md">
-      <h2 className="text-2xl font-bold mb-4">Items</h2>
-
       {items.length === 0 ? (
-        <p className="text-gray-500 col-span-2 text-center py-8">
+        <p className="text-gray-500 text-center py-8">
           No items available for this fundraiser.
         </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
-          {items.map((item) => (
-            <FundraiserItemModal
-              key={item.id}
-              item={item}
-              amount={
-                cart?.find((cartItem) => cartItem.item.id === item.id)
-                  ?.quantity || 0
-              }
-              increment={() => handleIncrement(item)}
-              decrement={() => handleDecrement(item)}
-            />
-          ))}
+        <div className="grid grid-cols-2 gap-6">
+          {items.map((item) => {
+            const amount =
+              cart?.find((cartItem) => cartItem.item.id === item.id)?.quantity ||
+              0;
+
+            return (
+              <div key={item.id}>
+                {/* Desktop: Modal */}
+                <div className="hidden md:block">
+                  <FundraiserItemModal
+                    item={item}
+                    amount={amount}
+                    increment={() => handleIncrement(item)}
+                    decrement={() => handleDecrement(item)}
+                    fundraiserId={fundraiserId}
+                  />
+                </div>
+
+                {/* Mobile: Link to item page */}
+                <Link
+                  href={`/buyer/fundraiser/${fundraiserId}/item/${item.id}`}
+                  className="md:hidden block"
+                >
+                  <FundraiserItemCard
+                    item={item}
+                    amount={amount}
+                    increment={() => handleIncrement(item)}
+                    decrement={() => handleDecrement(item)}
+                  />
+                </Link>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

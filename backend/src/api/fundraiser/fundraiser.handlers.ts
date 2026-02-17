@@ -222,11 +222,6 @@ export const updateFundraiserHandler = async (
     return;
   }
 
-  if (fundraiser.published) {
-    res.status(400).json({ message: "Cannot update a published fundraiser" });
-    return;
-  }
-
   // Check if venmoEmail was edited
   const venmoEmailEdited =
     req.body.venmoEmail && req.body.venmoEmail !== fundraiser.venmoEmail;

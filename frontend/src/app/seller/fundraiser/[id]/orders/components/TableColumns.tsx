@@ -17,6 +17,7 @@ import { ArrowUpDown } from "lucide-react";
 import { z } from "zod";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { toast } from "sonner";
+import { mutationFetch } from "@/lib/fetcher";
 
 type Order = z.infer<typeof CompleteOrderSchema>;
 
@@ -123,23 +124,7 @@ const PaymentStatusCell = ({ order }: { order: Order }) => {
 // API call to complete pickup
 // This function posts to the API to update the pickup status of an order
 const completePickup = async (orderId: string, token: string) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/order/${orderId}/complete-pickup`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
-  if (!response.ok) {
-    const result = await response.json();
-    throw new Error(result.message || "Failed to update pickup status");
-  }
-
-  return response.json();
+  return mutationFetch(`/order/${orderId}/complete-pickup`, { token });
 };
 
 // Create a function that returns columns with the token (access token)

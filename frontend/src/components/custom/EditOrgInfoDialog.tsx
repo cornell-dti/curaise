@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/form";
 import { useState } from "react";
 import useSWR from "swr";
-import { authFetcher } from "@/lib/fetcher";
+import { authFetcher, serverFetch, mutationFetch } from "@/lib/fetcher";
 import { UpdateOrganizationBody } from "common";
 import { X } from "lucide-react";
 
@@ -107,23 +107,11 @@ export function EditOrgInfoDialog({
       addedAdminsEmails: additionalAdminEmails,
     };
 
-    const response = await fetch(
-      process.env.NEXT_PUBLIC_API_URL + "/organization/" + org.id + "/update",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
-        body: JSON.stringify(dataToSubmit),
-      }
-    );
-
-    const result = await response.json();
-    if (!response.ok) {
-      toast.error(result.message);
-      return;
-    } else {
+    try {
+      const result = await mutationFetch(`/organization/${org.id}/update`, {
+        token,
+        body: dataToSubmit,
+      });
       setOpen(false);
       setAdditionalAdminEmails([]); // Reset admin list after successful submission
       mutate({
@@ -132,6 +120,8 @@ export function EditOrgInfoDialog({
       });
       form.reset();
       toast.success(result.message);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update organization");
     }
   }
 

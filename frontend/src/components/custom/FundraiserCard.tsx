@@ -12,7 +12,14 @@ import { BasicFundraiserSchema } from "common";
 import Link from "next/link";
 import { format } from "date-fns";
 import { Button } from "../ui/button";
+import Image from "next/image";
 
+/**
+ * Shared fundraiser card used in both buyer and seller pages.
+ * @param seller - When true, "View Details" links to `/seller/fundraiser/[id]`.
+ *   When false/omitted, links to `/buyer/fundraiser/[id]`.
+ *   Must be passed in all seller-context usages.
+ */
 export function FundraiserCard({
   fundraiser,
   seller,
@@ -30,10 +37,12 @@ export function FundraiserCard({
       {/* Image Section */}
       <div className="relative h-48 bg-gray-100">
         {fundraiser.imageUrls && fundraiser.imageUrls.length > 0 ? (
-          <img
+          <Image
             src={fundraiser.imageUrls[0]}
             alt={fundraiser.name}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            style={{ objectFit: "cover" }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-200">
@@ -47,8 +56,8 @@ export function FundraiserCard({
             isBuyingActive
               ? "bg-green-100 text-green-800"
               : isUpcoming
-              ? "bg-blue-100 text-blue-800"
-              : "bg-gray-100 text-gray-800"
+                ? "bg-blue-100 text-blue-800"
+                : "bg-gray-100 text-gray-800"
           }`}
         >
           {isBuyingActive ? "Active" : isUpcoming ? "Upcoming" : "Ended"}

@@ -7,10 +7,9 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User, ChevronDown } from "lucide-react";
+import { User, ChevronDown } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Button } from "../ui/button";
 
@@ -36,6 +35,14 @@ export default function DesktopUserMenu({ userRole }: { userRole: UserRole }) {
 		redirect("/seller");
 	};
 
+	const navigateToSettings = () => {
+		redirect("/account");
+	};
+
+	const handleLogin = () => {
+		signInWithGoogle();
+	};
+
 	const handleLogout = () => {
 		signOut();
 	};
@@ -43,7 +50,9 @@ export default function DesktopUserMenu({ userRole }: { userRole: UserRole }) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" className="ml-2 flex items-center gap-1">
+				<Button
+					variant="ghost"
+					className="ml-2 flex items-center gap-1 text-base font-normal">
 					Account
 					<ChevronDown className="h-4 w-4" />
 				</Button>
@@ -56,14 +65,19 @@ export default function DesktopUserMenu({ userRole }: { userRole: UserRole }) {
 							className="text-base">
 							Organizations
 						</DropdownMenuItem>
-						<DropdownMenuSeparator />
-						<DropdownMenuItem onClick={handleLogout} className="text-base">
-							<LogOut className="mr-2 h-4 w-4" />
-							<span>Log Out</span>
+						<DropdownMenuItem
+							onClick={navigateToSettings}
+							className="text-base">
+							Settings
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							onClick={handleLogout}
+							className="text-base text-red-600">
+							Log Out
 						</DropdownMenuItem>
 					</>
 				) : (
-					<DropdownMenuItem onClick={signInWithGoogle} className="text-base">
+					<DropdownMenuItem onClick={handleLogin} className="text-base">
 						<User className="mr-2 h-4 w-4" />
 						<span>Log In</span>
 					</DropdownMenuItem>

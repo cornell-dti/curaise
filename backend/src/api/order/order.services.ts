@@ -42,7 +42,19 @@ export const getOrder = async (orderId: string) => {
         },
       },
       items: {
-        select: { quantity: true, item: true },
+        select: {
+          quantity: true,
+          item: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              price: true,
+              imageUrl: true,
+              offsale: true,
+            },
+          },
+        },
       },
       referral: {
         include: {
@@ -152,7 +164,19 @@ export const completeOrderPickup = async (orderId: string) => {
         },
       },
       items: {
-        select: { quantity: true, item: true },
+        select: {
+          quantity: true,
+          item: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              price: true,
+              imageUrl: true,
+              offsale: true,
+            },
+          },
+        },
       },
       referral: {
         include: {
@@ -163,7 +187,7 @@ export const completeOrderPickup = async (orderId: string) => {
   });
 
   // Update analytics cache for the fundraiser when an order is picked up, so pending order and picked up order counts are not stale
-  await updateCacheForOrderPickup(order.fundraiser.id, order);
+  await updateCacheForOrderPickup(order.fundraiser.id, order, order.paymentStatus);
 
   return order;
 };
