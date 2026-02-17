@@ -15,11 +15,14 @@ import {
 } from "common";
 import { z } from "zod";
 import { getUsersByIds, getUser, findUserByEmail } from "../user/user.services";
-import { sendOrganizationInviteEmail, sendPendingAdminInviteEmail } from "../../utils/email";
+import {
+  sendOrganizationInviteEmail,
+  sendPendingAdminInviteEmail,
+} from "../../utils/email";
 
 export const getOrganizationHandler = async (
   req: Request<OrganizationRouteParams, any, {}, {}>,
-  res: Response
+  res: Response,
 ) => {
   const organization = await getOrganization(req.params.id);
   if (!organization) {
@@ -42,7 +45,7 @@ export const getOrganizationHandler = async (
 
 export const getOrganizationFundraisersHandler = async (
   req: Request<OrganizationRouteParams, any, {}, {}>,
-  res: Response
+  res: Response,
 ) => {
   // ensure organization exists
   const organization = await getOrganization(req.params.id);
@@ -72,7 +75,7 @@ export const getOrganizationFundraisersHandler = async (
 
 export const createOrganizationHandler = async (
   req: Request<{}, any, z.infer<typeof CreateOrganizationBody>, {}>,
-  res: Response
+  res: Response,
 ) => {
   const organization = await createOrganization({
     ...req.body,
@@ -95,34 +98,28 @@ export const createOrganizationHandler = async (
   if (addedAdminsEmails.length > 0) {
     try {
       // Separate existing users from pending users
-      const existingUserEmails = [];
+      const existingUsers = [];
       const pendingUserEmails = [];
 
       for (const email of addedAdminsEmails) {
         const existingUser = await findUserByEmail(email);
         if (existingUser) {
-          existingUserEmails.push(email);
+          existingUsers.push(existingUser);
         } else {
           pendingUserEmails.push(email);
         }
       }
 
       // Send emails to existing users
-      if (existingUserEmails.length > 0) {
-        const invitedAdmins = [];
-        for (const email of existingUserEmails) {
-          const user = await findUserByEmail(email);
-          if (user) invitedAdmins.push(user);
-        }
-
-        if (invitedAdmins.length > 0) {
-          await sendOrganizationInviteEmail({
-            organization: organization,
-            creator,
-            invitedAdmins,
-          });
-          console.log(`Invitation emails sent to ${invitedAdmins.length} existing users`);
-        }
+      if (existingUsers.length > 0) {
+        await sendOrganizationInviteEmail({
+          organization: organization,
+          creator,
+          invitedAdmins: existingUsers,
+        });
+        console.log(
+          `Invitation emails sent to ${existingUsers.length} existing users`,
+        );
       }
 
       // Send emails to pending users
@@ -132,7 +129,9 @@ export const createOrganizationHandler = async (
           creator,
           pendingAdminEmails: pendingUserEmails,
         });
-        console.log(`Pending invitation emails sent to ${pendingUserEmails.length} users`);
+        console.log(
+          `Pending invitation emails sent to ${pendingUserEmails.length} users`,
+        );
       }
     } catch (error) {
       console.error("Failed to send admin invitation emails:", error);
@@ -161,7 +160,7 @@ export const updateOrganizationHandler = async (
     z.infer<typeof UpdateOrganizationBody>,
     {}
   >,
-  res: Response
+  res: Response,
 ) => {
   const organization = await getOrganization(req.params.id);
   if (!organization) {
@@ -200,7 +199,7 @@ export const updateOrganizationHandler = async (
       for (const email of addedAdminsEmails) {
         const existingUser = await findUserByEmail(email);
         if (existingUser) {
-          existingUserEmails.push(email);
+          existingUserEmails.push(existingUser);
         } else {
           pendingUserEmails.push(email);
         }
@@ -208,20 +207,14 @@ export const updateOrganizationHandler = async (
 
       // Send emails to existing users
       if (existingUserEmails.length > 0) {
-        const invitedAdmins = [];
-        for (const email of existingUserEmails) {
-          const user = await findUserByEmail(email);
-          if (user) invitedAdmins.push(user);
-        }
-
-        if (invitedAdmins.length > 0) {
-          await sendOrganizationInviteEmail({
-            organization: organization,
-            creator,
-            invitedAdmins,
-          });
-          console.log(`Invitation emails sent to ${invitedAdmins.length} existing users`);
-        }
+        await sendOrganizationInviteEmail({
+          organization: organization,
+          creator,
+          invitedAdmins: existingUserEmails,
+        });
+        console.log(
+          `Invitation emails sent to ${existingUserEmails.length} existing users`,
+        );
       }
 
       // Send emails to pending users
@@ -231,7 +224,9 @@ export const updateOrganizationHandler = async (
           creator,
           pendingAdminEmails: pendingUserEmails,
         });
-        console.log(`Pending invitation emails sent to ${pendingUserEmails.length} users`);
+        console.log(
+          `Pending invitation emails sent to ${pendingUserEmails.length} users`,
+        );
       }
     } catch (error) {
       console.error("Failed to send admin invitation emails:", error);

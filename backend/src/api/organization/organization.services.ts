@@ -16,7 +16,7 @@ export const getOrganization = async (organizationId: string) => {
 
 export const getOrganizationFundraisers = async (
   organizationId: string,
-  includeUnpublished: boolean
+  includeUnpublished: boolean,
 ) => {
   const fundraisers = await prisma.fundraiser.findMany({
     where: {
@@ -52,7 +52,7 @@ export const upsertPendingUser = async (email: string) => {
 export const createOrganization = async (
   organizationBody: z.infer<typeof CreateOrganizationBody> & {
     creatorId: string;
-  }
+  },
 ) => {
   // Process emails to determine which are existing users vs pending users
   const adminUsers = [];
@@ -95,7 +95,7 @@ export const createOrganization = async (
 export const updateOrganization = async (
   organizationBody: z.infer<typeof UpdateOrganizationBody> & {
     organizationId: string;
-  }
+  },
 ) => {
   // Process emails to determine which are existing users vs pending users
   const adminUsers = [];
@@ -119,7 +119,6 @@ export const updateOrganization = async (
       logoUrl: organizationBody.logoUrl ?? null,
       websiteUrl: organizationBody.websiteUrl ?? null,
       instagramUsername: organizationBody.instagramUsername ?? null,
-
       admins: {
         connect: adminUsers,
       },
