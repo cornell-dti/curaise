@@ -1,7 +1,7 @@
 "use client";
 
 import { redirect } from "next/navigation";
-import { CreateOrganizationBody, UserSchema } from "common";
+import { CreateOrganizationBody } from "common";
 import { toast } from "sonner";
 import { z } from "zod";
 import MultiStepForm from "../../../../../components/custom/MultiStepForm";
@@ -12,7 +12,7 @@ import { OrganizationAddAdminsForm } from "./OrganizationAddAdminsForm";
 import { ReviewOrganizationForm } from "./ReviewOrganizationForm";
 
 export function CreateOrganizationForm({ token }: { token: string }) {
-  const [admins, setAdmins] = useState<z.infer<typeof UserSchema>[]>([]);
+  const [adminEmails, setAdminEmails] = useState<string[]>([]);
 
   const [formData, setFormData] = useState<
     z.infer<typeof CreateOrganizationBody>
@@ -22,13 +22,13 @@ export function CreateOrganizationForm({ token }: { token: string }) {
     logoUrl: undefined, // temporarily undefined because form doesn't populate these values
     websiteUrl: "",
     instagramUsername: "",
-    addedAdminsIds: [],
+    addedAdminsEmails: [],
   });
 
   async function onSubmit() {
     const dataToSubmit = {
       ...formData,
-      addedAdminsIds: admins.map((admin) => admin.id),
+      addedAdminsEmails: adminEmails,
     };
 
     try {
@@ -61,8 +61,8 @@ export function CreateOrganizationForm({ token }: { token: string }) {
         />
 
         <OrganizationAddAdminsForm
-          admins={admins}
-          setAdmins={setAdmins}
+          adminEmails={adminEmails}
+          setAdminEmails={setAdminEmails}
           onSubmit={(data) => {
             setFormData((prev) => ({ ...prev, ...data }));
             setCurrentStep(2);
@@ -71,7 +71,7 @@ export function CreateOrganizationForm({ token }: { token: string }) {
         />
 
         <ReviewOrganizationForm
-          admins={admins}
+          adminEmails={adminEmails}
           formData={formData}
           onSubmit={onSubmit}
           onBack={() => setCurrentStep(1)}

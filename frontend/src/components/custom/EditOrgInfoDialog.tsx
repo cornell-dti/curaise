@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CompleteOrganizationSchema, UserSchema } from "common";
+import { CompleteOrganizationSchema } from "common";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -49,9 +49,7 @@ export function EditOrgInfoDialog({
   const [open, setOpen] = useState(false);
   // Admin management states
   const [adminEmail, setAdminEmail] = useState("");
-  const [additionalAdmins, setAdditionalAdmins] = useState<
-    z.infer<typeof UserSchema>[]
-  >([]);
+  const [additionalAdminEmails, setAdditionalAdminEmails] = useState<string[]>([]);
 
   const form = useForm<z.infer<typeof UpdateOrganizationBody>>({
     resolver: zodResolver(UpdateOrganizationBody),
@@ -61,52 +59,52 @@ export function EditOrgInfoDialog({
       logoUrl: data.logoUrl ?? undefined, // Keep this in the form values but don't render the field
       websiteUrl: data.websiteUrl ?? "",
       instagramUsername: data.instagramUsername ?? "",
-      addedAdminsIds: [], // This will be populated with the IDs of additional admins
+      addedAdminsEmails: [], // This will be populated with the emails of additional admins
     },
     resetOptions: {
       keepDirtyValues: true,
     },
   });
 
-  const handleAddAdmin = async () => {
-    if (!adminEmail.trim()) {
+  const handleAddAdmin = () => {
+    const trimmedEmail = adminEmail.trim();
+
+    if (!trimmedEmail) {
       toast.error("Please enter an admin email");
       return;
     }
 
-    try {
-      const user = await serverFetch(
-        `/user/search?email=${encodeURIComponent(adminEmail)}`,
-        { schema: UserSchema }
-      );
-
-      // Check if admin is already in the list
-      if (
-        additionalAdmins.some((admin) => admin.id === user.id) ||
-        org.admins.some((admin) => admin.id === user.id)
-      ) {
-        toast.error("This user is already added as an admin");
-        return;
-      }
-
-      setAdditionalAdmins((prev) => [...prev, user]);
-      setAdminEmail("");
-      toast.success(`${user.name} added to list, click save to confirm`);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Error adding admin");
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      toast.error("Please enter a valid email address");
+      return;
     }
+
+    // Check if email is already in the list
+    if (
+      additionalAdminEmails.some((email) => email.toLowerCase() === trimmedEmail.toLowerCase()) ||
+      org.admins.some((admin) => admin.email.toLowerCase() === trimmedEmail.toLowerCase())
+    ) {
+      toast.error("This email is already added as an admin");
+      return;
+    }
+
+    setAdditionalAdminEmails((prev) => [...prev, trimmedEmail]);
+    setAdminEmail("");
+    toast.success(`${trimmedEmail} added to list, click save to confirm`);
   };
 
-  const removeAdmin = (adminId: string) => {
-    setAdditionalAdmins((prev) => prev.filter((admin) => admin.id !== adminId));
+  const removeAdmin = (emailToRemove: string) => {
+    setAdditionalAdminEmails((prev) => prev.filter((email) => email !== emailToRemove));
   };
 
   async function onSubmit(formData: z.infer<typeof UpdateOrganizationBody>) {
-    // Keep the existing logoUrl in the submission and add admin IDs
+    // Keep the existing logoUrl in the submission and add admin emails
     const dataToSubmit = {
       ...formData,
       logoUrl: data.logoUrl ?? undefined,
-      addedAdminsIds: additionalAdmins.map((admin) => admin.id),
+      addedAdminsEmails: additionalAdminEmails,
     };
 
     try {
@@ -115,7 +113,7 @@ export function EditOrgInfoDialog({
         body: dataToSubmit,
       });
       setOpen(false);
-      setAdditionalAdmins([]); // Reset admin list after successful submission
+      setAdditionalAdminEmails([]); // Reset admin list after successful submission
       mutate({
         ...data,
         ...dataToSubmit,
@@ -217,23 +215,21 @@ export function EditOrgInfoDialog({
                   </Button>
                 </div>
 
-                {additionalAdmins.length > 0 && (
+                {additionalAdminEmails.length > 0 && (
                   <div className="mt-4 space-y-2">
                     <p className="text-sm font-medium">Additional Admins:</p>
                     <ul className="space-y-2">
-                      {additionalAdmins.map((admin) => (
+                      {additionalAdminEmails.map((email) => (
                         <li
-                          key={admin.id}
+                          key={email}
                           className="flex items-center justify-between bg-muted p-2 rounded-md"
                         >
-                          <span className="text-sm">
-                            {admin.name} ({admin.email})
-                          </span>
+                          <span className="text-sm">{email}</span>
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            onClick={() => removeAdmin(admin.id)}
+                            onClick={() => removeAdmin(email)}
                             className="h-7 w-7 p-0"
                           >
                             <X className="h-4 w-4" />
@@ -249,7 +245,7 @@ export function EditOrgInfoDialog({
               <Button
                 type="submit"
                 disabled={
-                  !form.formState.isDirty && additionalAdmins.length === 0
+                  !form.formState.isDirty && additionalAdminEmails.length === 0
                 }
               >
                 Save changes
