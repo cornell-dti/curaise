@@ -4,7 +4,7 @@
   "private": true,
   "main": "./dist/src/server.js",
   "scripts": {
-    "build": "tsc --build",
+    "build": "tsc --build && cp -r src/generated dist/src/",
     "switch:dev": "cp .env.dev .env",
     "switch:prod": "cp .env.prod .env",
     "start": "node ./dist/src/server.js",
