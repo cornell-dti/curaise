@@ -18,6 +18,6 @@
   "ts-node": {
     "files": true
   },
-  "include": ["src/**/*", "prisma/seed.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "prisma/seed.ts"]
 }
