@@ -46,7 +46,7 @@ export function EditFundraiserModal({
 	>({
 		name: fundraiser.name,
 		description: fundraiser.description,
-		imageUrls: [], // Not implemented yet
+		imageUrls: fundraiser.imageUrls,
 		goalAmount: fundraiser.goalAmount ?? undefined,
 		buyingStartsAt: fundraiser.buyingStartsAt,
 		buyingEndsAt: fundraiser.buyingEndsAt,
