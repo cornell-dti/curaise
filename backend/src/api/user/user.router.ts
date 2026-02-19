@@ -10,36 +10,46 @@ import {
   updateUserHandler,
   findUserByEmailHandler,
 } from "./user.handlers";
+import {
+  asyncHandler,
+  handlePrismaErrors,
+} from "../../middleware/handlePrismaErrors";
 
 const userRouter = Router();
 
 userRouter.get(
   "/search",
   validate({ query: UserSearchQueryParams }),
-  findUserByEmailHandler
+  asyncHandler(findUserByEmailHandler)
 );
 
-userRouter.get("/:id", validate({ params: UserRouteParams }), getUserHandler);
+userRouter.get(
+  "/:id",
+  validate({ params: UserRouteParams }),
+  asyncHandler(getUserHandler)
+);
 
 userRouter.get(
   "/:id/orders",
   validate({ params: UserRouteParams }),
   authenticate,
-  getUserOrdersHandler
+  asyncHandler(getUserOrdersHandler)
 );
 
 userRouter.get(
   "/:id/organizations",
   validate({ params: UserRouteParams }),
   authenticate,
-  getUserOrganizationsHandler
+  asyncHandler(getUserOrganizationsHandler)
 );
 
 userRouter.post(
   "/:id",
   validate({ params: UserRouteParams, body: UpdateUserBody }),
   authenticate,
-  updateUserHandler
+  asyncHandler(updateUserHandler)
 );
+
+userRouter.use(handlePrismaErrors);
 
 export default userRouter;

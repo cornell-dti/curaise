@@ -12,34 +12,40 @@ import {
   authenticate,
   authenticateOptional,
 } from "../../middleware/authenticate";
+import {
+  asyncHandler,
+  handlePrismaErrors,
+} from "../../middleware/handlePrismaErrors";
 
 const organizationRouter = Router();
 
 organizationRouter.get(
   "/:id",
   validate({ params: OrganizationRouteParams }),
-  getOrganizationHandler
+  asyncHandler(getOrganizationHandler)
 );
 
 organizationRouter.get(
   "/:id/fundraisers",
   validate({ params: OrganizationRouteParams }),
   authenticateOptional,
-  getOrganizationFundraisersHandler
+  asyncHandler(getOrganizationFundraisersHandler)
 );
 
 organizationRouter.post(
   "/create",
   validate({ body: CreateOrganizationBody }),
   authenticate,
-  createOrganizationHandler
+  asyncHandler(createOrganizationHandler)
 );
 
 organizationRouter.post(
   "/:id/update",
   validate({ params: OrganizationRouteParams, body: UpdateOrganizationBody }),
   authenticate,
-  updateOrganizationHandler
+  asyncHandler(updateOrganizationHandler)
 );
+
+organizationRouter.use(handlePrismaErrors);
 
 export default organizationRouter;
