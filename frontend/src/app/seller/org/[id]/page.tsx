@@ -73,6 +73,15 @@ export default async function OrganizationPage({
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-100">
         <p className="text-lg my-auto">Welcome, admin!</p>
       </div>
+      {!org.authorized && (
+        <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-lg p-4 border border-red-100">
+          <p className="text-sm my-auto">
+            NOTE: Since this organization has not yet been approved, prospective
+            buyers will not be able to see published fundraisers you make until
+            then. Thank you for your patience!
+          </p>
+        </div>
+      )}
 
       <div className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-4">

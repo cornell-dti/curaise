@@ -41,8 +41,19 @@ export default async function FundraiserPage({
     schema: CompleteItemSchema.array(),
   });
 
-  if (!fundraiser.published && preview !== "true") {
-    return <UnpublishedFundraiser fundraiser={fundraiser} />;
+  if (
+    (!fundraiser.organization.authorized || !fundraiser.published) &&
+    preview !== "true"
+  ) {
+    let text = "";
+    if (!fundraiser.published) {
+      text = `${fundraiser.organization.name} is currently still working on this
+          fundraiser. Check back soon!`;
+    } else if (!fundraiser.organization.authorized) {
+      text =
+        "This organization is currently still being authorized. Check back soon!";
+    }
+    return <UnpublishedFundraiser fundraiser={fundraiser} caption={text} />;
   }
 
   return (
