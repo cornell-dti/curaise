@@ -33,21 +33,33 @@ export function FundraiserReferralCard({
   const pathname = usePathname();
   const [referralOpen, setReferralOpen] = useState(false);
   const [referralId, setReferralId] = useState<string>(
-    fundraiser.referrals.find((r) => r.referrer.id === userId)?.id || ""
+    fundraiser.referrals.find((r) => r.referrer.id === userId)?.id || "",
   );
-  const link = `${window.location.origin}${pathname}?code=${referralId}`;
+
+  const [href, setHref] = useState("#");
+
+  useEffect(() => {
+    setHref(`${window.location.origin}${pathname}?code=${referralId}`);
+  }, [pathname, referralId]);
 
   const addReferrer = async () => {
     try {
-      const result = await mutationFetch(`/fundraiser/${fundraiser.id}/referrals`, {
-        token,
-      });
+      const result = await mutationFetch(
+        `/fundraiser/${fundraiser.id}/referrals`,
+        {
+          token,
+        },
+      );
 
       toast.success("Referrer added!");
       setReferralOpen(true);
       setReferralId((result.data as { id: string }).id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong when adding the referrer");
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong when adding the referrer",
+      );
     }
   };
 
@@ -82,7 +94,7 @@ export function FundraiserReferralCard({
             ) : (
               <Button
                 className="cursor-pointer font-light text-sm md:text-md"
-                onClick={() => copyToClipboard(link)}
+                onClick={() => copyToClipboard(href)}
               >
                 Copy Referral Link
               </Button>
@@ -91,7 +103,7 @@ export function FundraiserReferralCard({
         </CardContent>
       </Card>
       <ReferralModal
-        link={link}
+        link={href}
         open={referralOpen}
         setOpen={setReferralOpen}
       />

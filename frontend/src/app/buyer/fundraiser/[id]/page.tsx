@@ -19,7 +19,7 @@ export default async function FundraiserPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ preview?: string }>;
+  searchParams: Promise<{ preview?: string; code?: string }>;
 }) {
   await connection();
 
@@ -33,7 +33,9 @@ export default async function FundraiserPage({
   } = await supabase.auth.getSession();
 
   const id = (await params).id;
-  const { preview } = await searchParams;
+  const { code, preview } = await searchParams;
+  const codeValue = typeof code === "string" ? code : "";
+
   const fundraiser = await serverFetch(`/fundraiser/${id}`, {
     schema: CompleteFundraiserSchema,
   });
@@ -140,7 +142,10 @@ export default async function FundraiserPage({
               />
             </div>
             <div className="lg:col-span-1">
-              <FundraiserCartSidebar fundraiserId={fundraiser.id} />
+              <FundraiserCartSidebar
+                fundraiserId={fundraiser.id}
+                referralId={codeValue}
+              />
             </div>
           </div>
         </div>

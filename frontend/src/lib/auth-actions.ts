@@ -8,9 +8,7 @@ export async function signInWithGoogle(nextPath?: string) {
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
-  const next = nextPath && nextPath.startsWith("/")
-    ? nextPath
-    : undefined;
+  let next = nextPath && nextPath.startsWith("/") ? nextPath : undefined;
 
   const redirectToBase = origin ? `${origin}/auth/callback` : "/auth/callback";
   const redirectTo = next
@@ -38,12 +36,12 @@ export async function signInWithGoogle(nextPath?: string) {
 }
 
 export async function signOut() {
-	const supabase = await createClient();
-	const { error } = await supabase.auth.signOut();
-	if (error) {
-		console.log(error);
-		redirect("/logout"); // TODO: add error page
-	}
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    console.log(error);
+    redirect("/logout"); // TODO: add error page
+  }
 
-	redirect("/");
+  redirect("/");
 }

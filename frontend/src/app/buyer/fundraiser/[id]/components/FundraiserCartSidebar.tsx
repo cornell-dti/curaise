@@ -7,10 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+function sanitizePath(s: string) {
+  return s
+    .replace(/^\uFEFF/, "") // remove BOM at start
+    .replace(/[\u200B-\u200D\u2060]/g, "") // remove zero-width chars anywhere
+    .trim();
+}
+
 export function FundraiserCartSidebar({
   fundraiserId,
+  referralId,
 }: {
   fundraiserId: string;
+  referralId: string;
 }) {
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -31,15 +40,17 @@ export function FundraiserCartSidebar({
   const handleCheckout = () => {
     if (isEmpty) return;
 
-    const nextCheckoutPath = `/buyer/fundraiser/${fundraiserId}/checkout`;
-
     // On mobile, go to cart page first; on desktop, go directly to login which
     // will auto-start Google sign-in and return to the checkout page
-    if (isMobile) {
-      router.push(`/buyer/fundraiser/${fundraiserId}/cart`);
-    } else {
-      router.push(`/login?next=${encodeURIComponent(nextCheckoutPath)}`);
-    }
+    const nextPath = isMobile
+      ? referralId
+        ? `/buyer/fundraiser/${fundraiserId}/cart?code=${referralId}`
+        : `/buyer/fundraiser/${fundraiserId}/cart`
+      : referralId
+        ? `/buyer/fundraiser/${fundraiserId}/checkout?code=${referralId}`
+        : `/buyer/fundraiser/${fundraiserId}/checkout`;
+
+    router.push(`/login?next=${encodeURIComponent(sanitizePath(nextPath))}`);
   };
 
   return (
@@ -75,7 +86,10 @@ export function FundraiserCartSidebar({
                       </span>
                     </div>
                     <span className="font-medium">
-                      ${(Number(cartItem.item.price) * cartItem.quantity).toFixed(2)}
+                      $
+                      {(
+                        Number(cartItem.item.price) * cartItem.quantity
+                      ).toFixed(2)}
                     </span>
                   </div>
                 ))}
@@ -91,7 +105,9 @@ export function FundraiserCartSidebar({
                   onClick={handleCheckout}
                   className="w-full h-[50px] rounded-lg"
                 >
-                  {isMobile ? `View Cart (${totalItems})` : "Proceed to Checkout"}
+                  {isMobile
+                    ? `View Cart (${totalItems})`
+                    : "Proceed to Checkout"}
                 </Button>
               </div>
             </div>

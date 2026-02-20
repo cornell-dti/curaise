@@ -8,26 +8,55 @@ import { createClient } from "@/utils/supabase/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  // if "next" is in param, use it as the redirect URL
   const next = searchParams.get("next") ?? "/";
+
+  const supabase = await createClient();
+  const {
+    data: { user: existingUser },
+  } = await supabase.auth.getUser();
 
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      const forwardedHost = request.headers.get("x-forwarded-host"); // original origin before load balancer
+      const forwardedHost = request.headers.get("x-forwarded-host");
       const isLocalEnv = process.env.NODE_ENV === "development";
-      if (isLocalEnv) {
-        // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
-        return NextResponse.redirect(`${origin}${next}`);
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`);
-      } else {
-        return NextResponse.redirect(`${origin}${next}`);
+      let decodedNext = next;
+      try {
+        decodedNext = decodeURIComponent(next);
+      } catch {
+        // already decoded or malformed; keep as-is
       }
+
+      const base = isLocalEnv
+        ? origin
+        : forwardedHost
+          ? `https://${forwardedHost}`
+          : origin;
+
+      return NextResponse.redirect(new URL(decodedNext, base));
+    } else {
+      console.log("[auth/callback] exchangeCodeForSession error:", error);
     }
   }
 
-  // return the user to an error page with instructions
+  // If user is already logged in, redirect to 'next' instead of error page
+  if (existingUser) {
+    let decodedNext = next;
+    try {
+      decodedNext = decodeURIComponent(next);
+    } catch {
+      // already decoded or malformed; keep as-is
+    }
+    const forwardedHost = request.headers.get("x-forwarded-host");
+    const isLocalEnv = process.env.NODE_ENV === "development";
+    const base = isLocalEnv
+      ? origin
+      : forwardedHost
+        ? `https://${forwardedHost}`
+        : origin;
+    return NextResponse.redirect(new URL(decodedNext, base));
+  }
+  // Otherwise, return the user to an error page with instructions
   return NextResponse.redirect(`${origin}/auth/auth-code-error`);
 }

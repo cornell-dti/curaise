@@ -25,7 +25,7 @@ export default function CartPage() {
 
   const { data: fundraiser, isLoading: fundraiserLoading } = useSWR(
     fundraiserId ? `/fundraiser/${fundraiserId}` : null,
-    noAuthFetcher(CompleteFundraiserSchema)
+    noAuthFetcher(CompleteFundraiserSchema),
   );
   const { items, isLoading: itemsLoading } = useFundraiserItems(fundraiserId);
 
@@ -44,7 +44,7 @@ export default function CartPage() {
   }, [mounted, isMobile, fundraiserId, router]);
 
   const cart = useCartStore(
-    useShallow((state) => state.carts[fundraiserId] || [])
+    useShallow((state) => state.carts[fundraiserId] || []),
   );
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
@@ -62,7 +62,7 @@ export default function CartPage() {
     .reduce(
       (total, item) =>
         total.plus(Decimal(item.item.price).times(item.quantity)),
-      new Decimal(0)
+      new Decimal(0),
     )
     .toFixed(2);
 
@@ -86,23 +86,29 @@ export default function CartPage() {
 
   const handleCheckout = async () => {
     const nextCheckoutPath = `/buyer/fundraiser/${fundraiserId}/checkout`;
-    
+
     // Check if user is already authenticated
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (user) {
       // User is authenticated, go directly to checkout
       router.push(nextCheckoutPath);
     } else {
       // User is not authenticated, redirect to login with next parameter
-      router.push(`/login?next=${encodeURIComponent(nextCheckoutPath)}`);
+      router.push(`/login?next=${nextCheckoutPath}`);
     }
   };
 
   if (loading || !fundraiser || !items || !mounted) {
     return (
-      <div className="flex items-center justify-center min-h-screen" role="status" aria-live="polite">
+      <div
+        className="flex items-center justify-center min-h-screen"
+        role="status"
+        aria-live="polite"
+      >
         <p className="sr-only">Loading cart items</p>
         <p aria-hidden="true">Loading...</p>
       </div>
@@ -167,10 +173,13 @@ export default function CartPage() {
                           alt={`${cartItem.item.name} - $${Decimal(cartItem.item.price).toFixed(2)} from ${fundraiser.name}`}
                           fill
                           className="object-cover"
-                          style={{ objectFit: 'cover' }}
+                          style={{ objectFit: "cover" }}
                         />
                       ) : (
-                        <div className="w-full h-full bg-gray-200" aria-label={`No image available for ${cartItem.item.name}`} />
+                        <div
+                          className="w-full h-full bg-gray-200"
+                          aria-label={`No image available for ${cartItem.item.name}`}
+                        />
                       )}
                     </div>
 
@@ -197,11 +206,18 @@ export default function CartPage() {
                               }
                             }}
                             className="p-0.5 rounded-lg hover:bg-gray-100 transition-colors"
-                            aria-label={cartItem.quantity === 1 ? `Remove ${cartItem.item.name} from cart` : `Decrease quantity of ${cartItem.item.name}`}
+                            aria-label={
+                              cartItem.quantity === 1
+                                ? `Remove ${cartItem.item.name} from cart`
+                                : `Decrease quantity of ${cartItem.item.name}`
+                            }
                           >
-                             <Trash className="h-[18px] w-[18px] text-black" />
+                            <Trash className="h-[18px] w-[18px] text-black" />
                           </button>
-                          <p className="text-base font-semibold text-[#545454] min-w-[7px] text-center" aria-label={`Quantity: ${cartItem.quantity}`}>
+                          <p
+                            className="text-base font-semibold text-[#545454] min-w-[7px] text-center"
+                            aria-label={`Quantity: ${cartItem.quantity}`}
+                          >
                             {cartItem.quantity}
                           </p>
                           <button
@@ -252,4 +268,3 @@ export default function CartPage() {
     </div>
   );
 }
-
