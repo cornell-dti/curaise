@@ -7,13 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-function sanitizePath(s: string) {
-  return s
-    .replace(/^\uFEFF/, "") // remove BOM at start
-    .replace(/[\u200B-\u200D\u2060]/g, "") // remove zero-width chars anywhere
-    .trim();
-}
-
 export function FundraiserCartSidebar({
   fundraiserId,
   referralId,
@@ -50,7 +43,7 @@ export function FundraiserCartSidebar({
         ? `/buyer/fundraiser/${fundraiserId}/checkout?code=${referralId}`
         : `/buyer/fundraiser/${fundraiserId}/checkout`;
 
-    router.push(`/login?next=${encodeURIComponent(sanitizePath(nextPath))}`);
+    router.push(`/login?next=${encodeURIComponent(nextPath)}`);
   };
 
   return (
