@@ -25,31 +25,46 @@ export function FundraiserReferralCard({
   fundraiser,
   token,
   userId,
+  isPast,
 }: {
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
   token: string;
   userId: string;
+  isPast: boolean;
 }) {
   const pathname = usePathname();
   const [referralOpen, setReferralOpen] = useState(false);
   const [referralId, setReferralId] = useState<string>(
-    fundraiser.referrals.find((r) => r.referrer.id === userId)?.id || ""
+    fundraiser.referrals.find((r) => r.referrer.id === userId)?.id || "",
   );
-  const link = `${window.location.origin}${pathname}?code=${referralId}`;
+  const [link, setLink] = useState("");
 
   const addReferrer = async () => {
     try {
-      const result = await mutationFetch(`/fundraiser/${fundraiser.id}/referrals`, {
-        token,
-      });
+      const result = await mutationFetch(
+        `/fundraiser/${fundraiser.id}/referrals`,
+        {
+          token,
+        },
+      );
 
       toast.success("Referrer added!");
       setReferralOpen(true);
       setReferralId((result.data as { id: string }).id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong when adding the referrer");
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong when adding the referrer",
+      );
     }
   };
+
+  useEffect(() => {
+    if (referralId) {
+      setLink(`${window.location.origin}${pathname}?code=${referralId}`);
+    }
+  }, [pathname, referralId]);
 
   return (
     <div className="w-full">
@@ -72,6 +87,7 @@ export function FundraiserReferralCard({
             </span>
             {!referralId ? (
               <Button
+                disabled={isPast}
                 className="font-light mt-1 md:mt-0 w-full md:w-auto"
                 onClick={async () => {
                   await addReferrer();
@@ -81,6 +97,7 @@ export function FundraiserReferralCard({
               </Button>
             ) : (
               <Button
+                disabled={isPast}
                 className="cursor-pointer font-light text-sm md:text-md"
                 onClick={() => copyToClipboard(link)}
               >

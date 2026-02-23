@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/popover";
 import Link from "next/link";
 import Image from "next/image";
+import { isPast } from "date-fns";
 
 type FilterType = "all" | "pickup-today";
 type CategoryType = "desserts" | "food" | "crafts" | "drinks" | "all";
@@ -39,9 +40,11 @@ export function FundraisersList({
   const filteredFundraisers = useMemo(() => {
     let filtered = fundraisers;
 
-    // Filter out all fundraisers from un-approved organizations
+    // Filter out all fundraisers from un-approved organizations and fundraiser
     filtered = filtered.filter(
-      (fundraiser) => fundraiser.organization.authorized === true,
+      (fundraiser) =>
+        fundraiser.organization.authorized === true &&
+        !fundraiser.pickupEvents.every((event) => isPast(event.endsAt)),
     );
 
     // Apply search filter
