@@ -1,6 +1,6 @@
 import { connection } from "next/server";
 import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
-import { format } from "date-fns";
+import { format, isPast } from "date-fns";
 import { MapPin, Calendar, ChevronLeft } from "lucide-react";
 import { FundraiserItemsPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemsPanel";
 import { FundraiserGallerySlider } from "@/app/buyer/fundraiser/[id]/components/FundraiserGallerySlider";
@@ -41,9 +41,21 @@ export default async function FundraiserPage({
     schema: CompleteItemSchema.array(),
   });
 
-  if (!fundraiser.published && preview !== "true") {
-    return <UnpublishedFundraiser fundraiser={fundraiser} />;
+  if (
+    (!fundraiser.organization.authorized || !fundraiser.published) &&
+    preview !== "true"
+  ) {
+    let text = "";
+    if (!fundraiser.published) {
+      text = `${fundraiser.organization.name} is currently still working on this
+          fundraiser. Check back soon!`;
+    } else if (!fundraiser.organization.authorized) {
+      text =
+        "This organization is currently still being authorized. Check back soon!";
+    }
+    return <UnpublishedFundraiser fundraiser={fundraiser} caption={text} />;
   }
+  const past = fundraiser.pickupEvents.every((event) => isPast(event.endsAt));
 
   return (
     <div className="flex flex-col -mt-16 md:mt-0">
@@ -66,6 +78,14 @@ export default async function FundraiserPage({
 
       <div className="flex flex-col px-4 md:px-[157px] pb-10 space-y-[22px] md:space-y-6">
         <div className="flex flex-col items-start w-full space-y-4">
+          {past && (
+            <div className="w-full bg-gradient-to-r from-red-50 to-rose-50 rounded-lg p-4 border border-red-100">
+              <p className="text-sm my-auto">
+                NOTE: This fundraiser has passed, you can no longer purchase
+                items in this fundraiser
+              </p>
+            </div>
+          )}
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl font-medium">{fundraiser.name}</h1>
             <p className="text-base text-muted-foreground">
@@ -78,6 +98,7 @@ export default async function FundraiserPage({
                 token={session.access_token}
                 fundraiser={fundraiser}
                 userId={user.id}
+                isPast={past}
               />
             )}
           </div>
@@ -119,6 +140,7 @@ export default async function FundraiserPage({
                       <GoogleCalendarButton
                         fundraiser={fundraiser}
                         pickupEvent={event}
+                        isPast={past}
                       />
                     </div>
                   ))}
@@ -135,12 +157,18 @@ export default async function FundraiserPage({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <FundraiserItemsPanel
+                isPast={fundraiser.pickupEvents.every((event) =>
+                  isPast(event.endsAt),
+                )}
                 fundraiserId={fundraiser.id}
                 items={fundraiserItems}
               />
             </div>
             <div className="lg:col-span-1">
-              <FundraiserCartSidebar fundraiserId={fundraiser.id} />
+              <FundraiserCartSidebar
+                fundraiserId={fundraiser.id}
+                isPast={past}
+              />
             </div>
           </div>
         </div>

@@ -18,13 +18,13 @@ export function FundraiserItemModal({
   amount,
   increment,
   decrement,
-  fundraiserId,
+  isPast,
 }: {
   item: z.infer<typeof CompleteItemSchema>;
   amount: number;
   increment: () => void;
   decrement: () => void;
-  fundraiserId: string;
+  isPast: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -46,7 +46,7 @@ export function FundraiserItemModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isPast ? false : isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <div className="cursor-pointer">
           <FundraiserItemCard
@@ -54,6 +54,7 @@ export function FundraiserItemModal({
             amount={amount}
             increment={increment}
             decrement={decrement}
+            isPast={isPast}
           />
         </div>
       </DialogTrigger>
@@ -69,7 +70,7 @@ export function FundraiserItemModal({
                 alt={item.name}
                 fill
                 className="object-cover rounded-md"
-                style={{ objectFit: 'cover' }}
+                style={{ objectFit: "cover" }}
               />
             </div>
           </div>
@@ -117,6 +118,7 @@ export function FundraiserItemModal({
                 <button
                   onClick={handleIncrement}
                   className="p-0.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  disabled={isPast}
                 >
                   <Plus className="h-[18px] w-[18px] text-black" />
                 </button>
@@ -129,7 +131,9 @@ export function FundraiserItemModal({
             onClick={handleAddToCart}
             className="bg-black text-white rounded-lg h-[50px] flex items-center justify-center gap-2 px-12 py-3"
           >
-            <span className="text-lg font-normal leading-[27px]">Add to Cart</span>
+            <span className="text-lg font-normal leading-[27px]">
+              Add to Cart
+            </span>
             <ShoppingCart className="h-5 w-5" />
           </button>
         </div>
