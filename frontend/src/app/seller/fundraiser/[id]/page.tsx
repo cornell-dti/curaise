@@ -13,6 +13,8 @@ import { ItemsSoldCard } from "@/app/seller/fundraiser/[id]/analytics/components
 import { OrdersTableWrapper } from "@/app/seller/fundraiser/[id]/orders/components/OrdersTableWrapper";
 import { OrdersSectionHeader } from "@/app/seller/fundraiser/[id]/orders/components/OrdersSectionHeader";
 import { ReferralsTableWrapper } from "@/app/seller/fundraiser/[id]/referrals/components/ReferralsTableWrapper";
+import { RealtimeOrdersWrapper } from "@/app/seller/fundraiser/[id]/orders/components/RealtimeOrdersWrapper";
+import { RealtimeReferralsWrapper } from "@/app/seller/fundraiser/[id]/referrals/components/RealtimeReferralsWrapper";
 import { FundraiserHeader } from "./components/FundraiserHeader";
 import { serverFetch } from "@/lib/fetcher";
 
@@ -181,8 +183,9 @@ export default async function FundraiserAnalyticsPage({
           />
           <div className="bg-white rounded-lg shadow-sm">
             <div className="p-6">
-              <OrdersTableWrapper
-                orders={orders}
+              <RealtimeOrdersWrapper
+                initialOrders={orders}
+                fundraiserId={fundraiserId}
                 token={session.access_token}
                 fundraiserName={fundraiser.name}
               />
@@ -195,9 +198,11 @@ export default async function FundraiserAnalyticsPage({
           <h2 className="text-xl font-bold mb-6">Referrals</h2>
           <div className="bg-white rounded-lg shadow-sm">
             <div className="p-6">
-              <ReferralsTableWrapper
-                referrals={fundraiser.referrals}
+              <RealtimeReferralsWrapper
+                initialReferrals={fundraiser.referrals}
+                fundraiserId={fundraiserId}
                 orders={orders}
+                token={session.access_token}
               />
             </div>
           </div>
