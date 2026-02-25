@@ -5,14 +5,12 @@ import {
   CompleteOrderSchema,
   CompleteItemSchema,
 } from "common";
-import { ArrowLeft, Banknote, Goal, Receipt } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { ProfitGoalChart } from "@/app/seller/fundraiser/[id]/analytics/components/ProfitGoalChart";
-import { RevenueBreakdownChart } from "@/app/seller/fundraiser/[id]/analytics/components/RevenueBreakdownChart";
-import { ItemsSoldCard } from "@/app/seller/fundraiser/[id]/analytics/components/ItemsSoldCard";
 import { OrdersSectionHeader } from "@/app/seller/fundraiser/[id]/orders/components/OrdersSectionHeader";
 import { RealtimeOrdersWrapper } from "@/app/seller/fundraiser/[id]/orders/components/RealtimeOrdersWrapper";
 import { RealtimeReferralsWrapper } from "@/app/seller/fundraiser/[id]/referrals/components/RealtimeReferralsWrapper";
+import { RealtimeAnalyticsWrapper } from "@/app/seller/fundraiser/[id]/analytics/components/RealtimeAnalyticsWrapper";
 import { FundraiserHeader } from "./components/FundraiserHeader";
 import { serverFetch } from "@/lib/fetcher";
 
@@ -108,69 +106,14 @@ export default async function FundraiserAnalyticsPage({
           />
         </div>
 
-        {/* Key Insights */}
-        <div className="mb-6">
-          <h2 className="text-xl font-bold mb-6">Key Insights</h2>
-          <div className="grid grid-cols-[0.6fr_0.8fr_1fr_1.5fr] gap-6">
-            {/* First Column - Revenue and Total Orders stacked */}
-            <div className="flex flex-col gap-6 h-full">
-              {/* Revenue Card */}
-              <div className="bg-white rounded-lg shadow p-6 flex-1 flex flex-col">
-                <div className="flex items-center gap-2 mb-2 font-semibold">
-                  <Banknote />
-                  Revenue
-                </div>
-                <div className="text-3xl font-semibold">
-                  ${analytics.total_revenue.toFixed(2)}
-                </div>
-              </div>
-
-              {/* Total Orders Card */}
-              <div className="bg-white rounded-lg shadow p-6 flex-1">
-                <div className="flex items-center gap-2 mb-2 font-semibold">
-                  <Receipt />
-                  Total Orders
-                </div>
-                <div className="text-3xl font-semibold">
-                  {analytics.total_orders}
-                </div>
-              </div>
-            </div>
-
-            {/* Profit Goal Card */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center gap-2 mb-4 font-semibold">
-                <Goal />
-                Profit Goal
-              </div>
-              <ProfitGoalChart
-                profit={0}
-                goalAmount={Number(fundraiser.goalAmount)}
-              />
-            </div>
-
-            {/* Revenue Breakdown Card */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center gap-2 mb-4 font-semibold">
-                <Receipt />
-                Revenue Breakdown
-              </div>
-              <RevenueBreakdownChart
-                itemRevenue={itemRevenue}
-                totalRevenue={analytics.total_revenue}
-              />
-            </div>
-
-            {/* Items Sold Card */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center gap-2 mb-4 font-semibold">
-                <Receipt />
-                Items Sold
-              </div>
-              <ItemsSoldCard items={analytics.items} />
-            </div>
-          </div>
-        </div>
+        {/* Key Insights - Realtime */}
+        <RealtimeAnalyticsWrapper
+          initialAnalytics={analytics}
+          fundraiserId={fundraiserId}
+          token={session.access_token}
+          goalAmount={Number(fundraiser.goalAmount)}
+          items={items}
+        />
 
         {/* Orders Section */}
         <div className="mb-6">
