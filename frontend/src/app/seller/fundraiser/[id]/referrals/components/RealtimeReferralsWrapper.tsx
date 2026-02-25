@@ -66,20 +66,13 @@ export function RealtimeReferralsWrapper({
           event: "*", // Listen to INSERT, UPDATE, DELETE
           schema: "public",
           table: "referrals",
-          filter: `fundraiser_id=eq.${fundraiserId}`,
         },
         () => {
           // On any change event, refetch the full dataset
           refetchReferrals();
         }
       )
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          console.log("Subscribed to referrals realtime updates");
-        } else if (status === "CHANNEL_ERROR") {
-          console.error("Error subscribing to referrals channel");
-        }
-      });
+      .subscribe();
 
     // Cleanup subscription on unmount
     return () => {
