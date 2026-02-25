@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { OrdersTableWrapper } from "./OrdersTableWrapper";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { z } from "zod";
+import { toast } from "sonner";
 
 type Order = z.infer<typeof CompleteOrderSchema>;
 
@@ -23,6 +24,7 @@ export function RealtimeOrdersWrapper({
 }: RealtimeOrdersWrapperProps) {
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const supabase = createClient();
+  const previousOrderCountRef = useRef<number>(initialOrders.length);
 
   useEffect(() => {
     // Refetch orders from API with all relations
@@ -42,7 +44,24 @@ export function RealtimeOrdersWrapper({
         if (response.ok) {
           const validatedData = CompleteOrderSchema.array().safeParse(result.data);
           if (validatedData.success) {
-            setOrders(validatedData.data);
+            const newOrders = validatedData.data;
+            const newOrderCount = newOrders.length;
+            const previousCount = previousOrderCountRef.current;
+
+            // Show notification if new orders were added
+            if (newOrderCount > previousCount) {
+              const numNewOrders = newOrderCount - previousCount;
+              toast.success(
+                `${numNewOrders} new order${numNewOrders > 1 ? "s" : ""} received!`,
+                {
+                  position: "bottom-right",
+                  duration: 4000,
+                }
+              );
+            }
+
+            previousOrderCountRef.current = newOrderCount;
+            setOrders(newOrders);
           } else {
             console.error("Invalid order data format:", validatedData.error);
           }
