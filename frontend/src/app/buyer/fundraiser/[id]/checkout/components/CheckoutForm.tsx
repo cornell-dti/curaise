@@ -11,7 +11,6 @@ import { useState } from "react";
 import { useStore } from "zustand";
 import { useCartStore, CartItem } from "@/lib/store/useCartStore";
 import { toast } from "sonner";
-import { redirect } from "next/navigation";
 import { mutationFetch } from "@/lib/fetcher";
 import { format } from "date-fns";
 import Decimal from "decimal.js";
@@ -142,7 +141,7 @@ export function CheckoutForm({
         token,
         body: dataToSubmit,
       });
-      redirect(
+      router.push(
         "/buyer/order/" + (result.data as { id: string }).id + "/submitted?fromCheckout=true"
       );
     } catch (error) {
