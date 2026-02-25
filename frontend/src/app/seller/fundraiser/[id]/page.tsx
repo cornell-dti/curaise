@@ -73,19 +73,6 @@ export default async function FundraiserAnalyticsPage({
     }),
   ]);
 
-  // Create a map of item name to price for revenue calculation
-  const itemPriceMap = new Map<string, number>();
-  items.forEach((item) => {
-    itemPriceMap.set(item.name, Number(item.price));
-  });
-
-  // Calculate revenue per item
-  const itemRevenue: Record<string, number> = {};
-  Object.entries(analytics.items).forEach(([itemName, count]) => {
-    const price = itemPriceMap.get(itemName) || 0;
-    itemRevenue[itemName] = count * price;
-  });
-
   return (
     <div className="px-4 md:px-[157px] min-h-screen bg-gray-50 p-6">
       <div className="mx-auto">
