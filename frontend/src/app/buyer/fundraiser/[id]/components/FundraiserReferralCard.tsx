@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CompleteFundraiserSchema } from "common";
-import { Star, AlarmClock, Share2, Link } from "lucide-react";
+import { Star, AlarmClock, Share2, Link, UserStar } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -69,7 +69,7 @@ export function FundraiserReferralCard({
         <CardContent className="py-3">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <span className="flex gap-2 items-start">
-              <Star />
+              <UserStar />
               <span className="text-md font-semibold">
                 <span className="hidden md:inline">
                   [{fundraiser.organization.name} Members Only] Become a

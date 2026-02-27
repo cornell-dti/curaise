@@ -656,6 +656,9 @@ export function CheckoutForm({
                             aria-hidden="true"
                           />
                           <p className="text-base leading-6">
+                            {selectedReferralName != "No Referral" && (
+                              <span>Referrer: </span>
+                            )}
                             {selectedReferralName}
                           </p>
                         </div>

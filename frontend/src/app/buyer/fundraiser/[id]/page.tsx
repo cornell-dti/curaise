@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
 import { format } from "date-fns";
-import { MapPin, Calendar, ChevronLeft } from "lucide-react";
+import { MapPin, Calendar, ChevronLeft, UserStar } from "lucide-react";
 import { FundraiserItemsPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemsPanel";
 import { FundraiserGallerySlider } from "@/app/buyer/fundraiser/[id]/components/FundraiserGallerySlider";
 import { FundraiserAnnouncementPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserAnnouncementPanel";
@@ -75,12 +75,25 @@ export default async function FundraiserPage({
             </p>
           </div>
           <div className="w-full">
-            {user && session?.access_token && (
+            {codeValue == "" && user && session?.access_token && (
               <FundraiserReferralCard
                 token={session.access_token}
                 fundraiser={fundraiser}
                 userId={user.id}
               />
+            )}
+            {codeValue != "" && (
+              <Card className="w-full">
+                <CardContent className="py-3">
+                  <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                    <span className="flex gap-2 items-start text-md font-semibold">
+                      <UserStar /> This order will be referring{" "}
+                      {fundraiser.referrals.find((r) => r.id === codeValue)
+                        ?.referrer.name || "No Referral"}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </div>
 
