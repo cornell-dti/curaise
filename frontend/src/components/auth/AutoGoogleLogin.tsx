@@ -8,11 +8,9 @@ async function autoGoogleLoginAction(formData: FormData) {
 }
 
 export function AutoGoogleLogin({ next }: { next?: string }) {
+  console.log(next);
   return (
-    <form
-      id="auto-google-login-form"
-      action={autoGoogleLoginAction}
-    >
+    <form id="auto-google-login-form" action={autoGoogleLoginAction}>
       <input type="hidden" name="next" value={next ?? "/buyer"} />
       <p className="text-center text-sm text-muted-foreground">
         Redirecting you to Google to sign in...

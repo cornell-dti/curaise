@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CompleteFundraiserSchema } from "common";
-import { Star, AlarmClock, Share2, Link } from "lucide-react";
+import { Star, AlarmClock, Share2, Link, UserStar } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -33,21 +33,33 @@ export function FundraiserReferralCard({
   const pathname = usePathname();
   const [referralOpen, setReferralOpen] = useState(false);
   const [referralId, setReferralId] = useState<string>(
-    fundraiser.referrals.find((r) => r.referrer.id === userId)?.id || ""
+    fundraiser.referrals.find((r) => r.referrer.id === userId)?.id || "",
   );
-  const link = `${window.location.origin}${pathname}?code=${referralId}`;
+
+  const [href, setHref] = useState("#");
+
+  useEffect(() => {
+    setHref(`${window.location.origin}${pathname}?code=${referralId}`);
+  }, [pathname, referralId]);
 
   const addReferrer = async () => {
     try {
-      const result = await mutationFetch(`/fundraiser/${fundraiser.id}/referrals`, {
-        token,
-      });
+      const result = await mutationFetch(
+        `/fundraiser/${fundraiser.id}/referrals`,
+        {
+          token,
+        },
+      );
 
       toast.success("Referrer added!");
       setReferralOpen(true);
       setReferralId((result.data as { id: string }).id);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong when adding the referrer");
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong when adding the referrer",
+      );
     }
   };
 
@@ -57,7 +69,7 @@ export function FundraiserReferralCard({
         <CardContent className="py-3">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <span className="flex gap-2 items-start">
-              <Star />
+              <UserStar />
               <span className="text-md font-semibold">
                 <span className="hidden md:inline">
                   [{fundraiser.organization.name} Members Only] Become a
@@ -82,7 +94,7 @@ export function FundraiserReferralCard({
             ) : (
               <Button
                 className="cursor-pointer font-light text-sm md:text-md"
-                onClick={() => copyToClipboard(link)}
+                onClick={() => copyToClipboard(href)}
               >
                 Copy Referral Link
               </Button>
@@ -91,7 +103,7 @@ export function FundraiserReferralCard({
         </CardContent>
       </Card>
       <ReferralModal
-        link={link}
+        link={href}
         open={referralOpen}
         setOpen={setReferralOpen}
       />

@@ -7,8 +7,10 @@ import { serverFetch } from "@/lib/fetcher";
 
 export default async function CheckoutPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ code?: string }>;
 }) {
   await connection();
 
@@ -46,12 +48,15 @@ export default async function CheckoutPage({
     throw new Error("Fundraiser is not published");
   }
 
+  const { code } = await searchParams;
+
   return (
     <div className=" md:overflow-y-clip">
       <CheckoutForm
         fundraiser={fundraiser}
         token={session.access_token}
         userProfile={userProfile}
+        code={code ? code : ""}
       />
     </div>
   );
