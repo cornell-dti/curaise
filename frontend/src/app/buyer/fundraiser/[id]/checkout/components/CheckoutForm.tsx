@@ -238,7 +238,12 @@ export function CheckoutForm({
               >
                 <div className="flex gap-3 items-center text-left">
                   <User className="h-5 w-5 text-black" aria-hidden="true" />
-                  <p className="text-base leading-6">{selectedReferralName}</p>
+                  <p className="text-base leading-6">
+                    {selectedReferralName != "No Referral" && (
+                      <span>Referrer: </span>
+                    )}
+                    {selectedReferralName}
+                  </p>
                 </div>
                 {approvedReferrals.length > 0 && (
                   <ChevronRight className="h-5 w-5 text-black" />
