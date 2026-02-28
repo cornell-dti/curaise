@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Search, ShieldCheck, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DialogDescription } from "@radix-ui/react-dialog";
 
 interface Referral {
   id: string;
@@ -39,17 +40,17 @@ export function ReferrersModal({
 }: ReferralSelectionDialogProps) {
   // Local UI state
   const [pendingReferralId, setPendingReferralId] = useState<string | null>(
-    selectedReferralId
+    selectedReferralId,
   );
   const [referralSearch, setReferralSearch] = useState("");
 
   // Filter logic
   const filteredApproved = approvedReferrals.filter((ref) =>
-    ref.referrer.name.toLowerCase().includes(referralSearch.toLowerCase())
+    ref.referrer.name.toLowerCase().includes(referralSearch.toLowerCase()),
   );
 
   const filteredUnapproved = unapprovedReferrals.filter((ref) =>
-    ref.referrer.name.toLowerCase().includes(referralSearch.toLowerCase())
+    ref.referrer.name.toLowerCase().includes(referralSearch.toLowerCase()),
   );
 
   return (
@@ -66,10 +67,15 @@ export function ReferrersModal({
     >
       <DialogContent className="sm:max-w-md w-full max-h-[80vh] flex flex-col pb-6 pt-6 px-5">
         <DialogHeader className="mb-4">
-          <div className="flex items-center justify-center w-full">
+          <div className="flex flex-col items-center justify-center w-full">
             <DialogTitle className="text-[18px] font-semibold leading-[27px] text-center">
               Who referred you?
             </DialogTitle>
+            <DialogDescription className="text-sm text-center text-muted-foreground">
+              {" "}
+              Click on the person who referred your order. If no one referred
+              you, feel free to click out.{" "}
+            </DialogDescription>
           </div>
         </DialogHeader>
 
