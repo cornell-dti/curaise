@@ -26,6 +26,7 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PickupEventWarningModal } from "./PickupEventWarningModal";
 import { CreatePickupEventBody } from "common";
 import { Dispatch, SetStateAction, useState } from "react";
 import { z } from "zod";
@@ -52,7 +53,7 @@ const PickupEventFormSchema = CreatePickupEventBody.refine(
 	{
 		message: "End time must be after start time",
 		path: ["endsAt"],
-	}
+	},
 );
 
 // Default values
@@ -88,6 +89,10 @@ export function FundraiserPickupEventsForm({
 	const [open, setOpen] = useState(false);
 	const [mode, setMode] = useState<"add" | "edit">("add");
 	const [editingIndex, setEditingIndex] = useState<number | null>(null);
+	const [warningOpen, setWarningOpen] = useState(false);
+	const [conflictingEvents, setConflictingEvents] = useState<
+		z.infer<typeof CreatePickupEventBody>[]
+	>([]);
 
 	const form = useForm<z.infer<typeof CreatePickupEventBody>>({
 		resolver: zodResolver(PickupEventFormSchema),
@@ -99,11 +104,27 @@ export function FundraiserPickupEventsForm({
 
 	// Ths handles either add or edit of the pickup event depending on the "mode"
 	const handleSubmit = (data: z.infer<typeof CreatePickupEventBody>) => {
+		// When adding a new pickup event, we want to make sure the new event does not conflict with existing events
+		// When editing an existing pickup event, we want to make sure the updated event does not conflict with existing events (excluding the original event)
+		const conflicts = events.filter((event, idx) => {
+			if (mode === "edit" && idx === editingIndex) return false;
+			return !isPickupTimeValid(
+				{ startsAt: new Date(data.startsAt), endsAt: new Date(data.endsAt) },
+				{ startsAt: new Date(event.startsAt), endsAt: new Date(event.endsAt) },
+			);
+		});
+
+		if (conflicts.length > 0) {
+			setConflictingEvents(conflicts);
+			setWarningOpen(true);
+			return;
+		}
+
 		if (mode === "add") {
 			setEvents((prev) => [...prev, data]);
 		} else if (editingIndex !== null) {
 			setEvents((prev) =>
-				prev.map((event, idx) => (idx === editingIndex ? data : event))
+				prev.map((event, idx) => (idx === editingIndex ? data : event)),
 			);
 		}
 		setOpen(false);
@@ -140,157 +161,186 @@ export function FundraiserPickupEventsForm({
 		}
 	};
 
+	type PickupEventDuration = {
+		startsAt: Date;
+		endsAt: Date;
+	};
+
+	// Returns true if the two pickup event durations do not overlap, false otherwise
+	// @params pickupDuration1: duration of the first pickup event
+	// @params pickupDuration2: duration of the second pickup event
+	const isPickupTimeValid = (
+		pickupDuration1: PickupEventDuration,
+		pickupDuration2: PickupEventDuration,
+	) => {
+		const start1 = new Date(pickupDuration1.startsAt).getTime();
+		const end1 = new Date(pickupDuration1.endsAt).getTime();
+		const start2 = new Date(pickupDuration2.startsAt).getTime();
+		const end2 = new Date(pickupDuration2.endsAt).getTime();
+		// Two intervals overlap iff start1 < end2 && start2 < end1
+		return !(start1 < end2 && start2 < end1);
+	};
+
 	return (
-		<Card>
-			<CardHeader>
-				<CardTitle>Add Pickup Events</CardTitle>
-				<CardDescription>
-					Add pickup events for when and where buyers can pick up their orders.
-					You can always add more pickup events after creating the fundraiser.
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<div className="flex justify-end mb-4">
-					<Dialog open={open} onOpenChange={handleDialogChange}>
-						<DialogTrigger asChild>
-							<Button
-								onClick={() => {
-									setMode("add");
-									setEditingIndex(null);
-								}}>
-								<PlusCircle className="mr-2 h-4 w-4" />
-								Add Pickup Event
-							</Button>
-						</DialogTrigger>
-						<DialogContent className="max-w-2xl">
-							<Form {...form}>
-								<form onSubmit={form.handleSubmit(handleSubmit)}>
-									<DialogHeader>
-										<DialogTitle>
-											{mode === "add"
-												? "Add Pickup Event"
-												: "Edit Pickup Event"}
-										</DialogTitle>
-									</DialogHeader>
-									<div className="grid gap-4 py-4">
-										<FormField
-											control={form.control}
-											name="location"
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Location</FormLabel>
-													<FormControl>
-														<Input
-															placeholder="e.g. Phillips Hall"
-															{...field}
-														/>
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-
-										<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+		<>
+			<Card>
+				<CardHeader>
+					<CardTitle>Add Pickup Events</CardTitle>
+					<CardDescription>
+						Add pickup events for when and where buyers can pick up their
+						orders. You can always add more pickup events after creating the
+						fundraiser.
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<div className="flex justify-end mb-4">
+						<Dialog open={open} onOpenChange={handleDialogChange}>
+							<DialogTrigger asChild>
+								<Button
+									onClick={() => {
+										setMode("add");
+										setEditingIndex(null);
+									}}>
+									<PlusCircle className="mr-2 h-4 w-4" />
+									Add Pickup Event
+								</Button>
+							</DialogTrigger>
+							<DialogContent className="max-w-2xl">
+								<Form {...form}>
+									<form onSubmit={form.handleSubmit(handleSubmit)}>
+										<DialogHeader>
+											<DialogTitle>
+												{mode === "add"
+													? "Add Pickup Event"
+													: "Edit Pickup Event"}
+											</DialogTitle>
+										</DialogHeader>
+										<div className="grid gap-4 py-4">
 											<FormField
 												control={form.control}
-												name="startsAt"
+												name="location"
 												render={({ field }) => (
 													<FormItem>
-														<FormLabel>Start Time</FormLabel>
+														<FormLabel>Location</FormLabel>
 														<FormControl>
-															<DateTimeFieldAdapter field={field} />
+															<Input
+																placeholder="e.g. Phillips Hall"
+																{...field}
+															/>
 														</FormControl>
 														<FormMessage />
 													</FormItem>
 												)}
 											/>
 
-											<FormField
-												control={form.control}
-												name="endsAt"
-												render={({ field }) => (
-													<FormItem>
-														<FormLabel>End Time</FormLabel>
-														<FormControl>
-															<DateTimeFieldAdapter field={field} />
-														</FormControl>
-														<FormMessage />
-													</FormItem>
-												)}
-											/>
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+												<FormField
+													control={form.control}
+													name="startsAt"
+													render={({ field }) => (
+														<FormItem>
+															<FormLabel>Start Time</FormLabel>
+															<FormControl>
+																<DateTimeFieldAdapter field={field} />
+															</FormControl>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+
+												<FormField
+													control={form.control}
+													name="endsAt"
+													render={({ field }) => (
+														<FormItem>
+															<FormLabel>End Time</FormLabel>
+															<FormControl>
+																<DateTimeFieldAdapter field={field} />
+															</FormControl>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+											</div>
 										</div>
-									</div>
-									<DialogFooter>
-										<Button type="submit">
-											{mode === "add" ? "Add Event" : "Save Changes"}
-										</Button>
-									</DialogFooter>
-								</form>
-							</Form>
-						</DialogContent>
-					</Dialog>
-				</div>
+										<DialogFooter>
+											<Button type="submit">
+												{mode === "add" ? "Add Event" : "Save Changes"}
+											</Button>
+										</DialogFooter>
+									</form>
+								</Form>
+							</DialogContent>
+						</Dialog>
+					</div>
 
-				{events.length === 0 ? (
-					<div className="flex flex-col items-center justify-center p-8 text-center border rounded-lg border-dashed">
-						<MapPin className="w-12 h-12 text-gray-400 mb-4" />
-						<p className="text-sm text-gray-500">
-							No pickup events added yet. Click &quot;Add Pickup Event&quot; to
-							create one.
-						</p>
-					</div>
-				) : (
-					<div className="space-y-4">
-						{events.map((event, index) => (
-							<div
-								key={index}
-								className="flex items-start justify-between p-4 border rounded-lg">
-								<div className="flex-1">
-									<div className="flex items-center gap-2">
-										<MapPin className="h-4 w-4 text-gray-500" />
-										<h4 className="font-medium">{event.location}</h4>
+					{events.length === 0 ? (
+						<div className="flex flex-col items-center justify-center p-8 text-center border rounded-lg border-dashed">
+							<MapPin className="w-12 h-12 text-gray-400 mb-4" />
+							<p className="text-sm text-gray-500">
+								No pickup events added yet. Click &quot;Add Pickup Event&quot;
+								to create one.
+							</p>
+						</div>
+					) : (
+						<div className="space-y-4">
+							{events.map((event, index) => (
+								<div
+									key={index}
+									className="flex items-start justify-between p-4 border rounded-lg">
+									<div className="flex-1">
+										<div className="flex items-center gap-2">
+											<MapPin className="h-4 w-4 text-gray-500" />
+											<h4 className="font-medium">{event.location}</h4>
+										</div>
+										<p className="text-sm text-gray-500 mt-1">
+											{format(new Date(event.startsAt), "MMM d, yyyy h:mm a")} -{" "}
+											{format(new Date(event.endsAt), "MMM d, yyyy h:mm a")}
+										</p>
 									</div>
-									<p className="text-sm text-gray-500 mt-1">
-										{format(new Date(event.startsAt), "MMM d, yyyy h:mm a")} -{" "}
-										{format(new Date(event.endsAt), "MMM d, yyyy h:mm a")}
-									</p>
+									<div className="flex items-center gap-1">
+										<Button
+											variant="ghost"
+											size="icon"
+											onClick={() => handleEditEvent(index)}
+											aria-label="Edit pickup event">
+											<Pencil className="h-4 w-4" />
+										</Button>
+										<Button
+											variant="ghost"
+											size="icon"
+											onClick={() => handleRemoveEvent(index)}
+											aria-label="Remove pickup event">
+											<X className="h-4 w-4" />
+										</Button>
+									</div>
 								</div>
-								<div className="flex items-center gap-1">
-									<Button
-										variant="ghost"
-										size="icon"
-										onClick={() => handleEditEvent(index)}
-										aria-label="Edit pickup event">
-										<Pencil className="h-4 w-4" />
-									</Button>
-									<Button
-										variant="ghost"
-										size="icon"
-										onClick={() => handleRemoveEvent(index)}
-										aria-label="Remove pickup event">
-										<X className="h-4 w-4" />
-									</Button>
-								</div>
-							</div>
-						))}
+							))}
+						</div>
+					)}
+				</CardContent>
+				<CardFooter className="flex justify-between">
+					<Button variant="outline" onClick={onBack}>
+						Back
+					</Button>
+					<div className="flex gap-2">
+						<Button
+							onClick={onSave}
+							className="text-[#333F37] border border-current bg-transparent hover:bg-[#e6f0ea]">
+							Save
+						</Button>
+						<Button type="button" onClick={onNext}>
+							Next
+						</Button>
 					</div>
-				)}
-			</CardContent>
-			<CardFooter className="flex justify-between">
-				<Button variant="outline" onClick={onBack}>
-					Back
-				</Button>
-				<div className="flex gap-2">
-					<Button
-						onClick={onSave}
-						className="text-[#333F37] border border-current bg-transparent hover:bg-[#e6f0ea]">
-						Save
-					</Button>
-					<Button type="button" onClick={onNext}>
-						Next
-					</Button>
-				</div>
-			</CardFooter>
-		</Card>
+				</CardFooter>
+			</Card>
+
+			<PickupEventWarningModal
+				open={warningOpen}
+				onClose={() => setWarningOpen(false)}
+				conflictingEvents={conflictingEvents}
+			/>
+		</>
 	);
 }
