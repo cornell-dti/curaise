@@ -14,6 +14,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import UploadImageComponent from "@/components/custom/UploadImageComponent";
+import { UnsplashPickerModal } from "@/components/custom/UnsplashPickerModal";
 import { UseFormReturn } from "react-hook-form";
 import { CompleteItemSchema, CreateFundraiserItemBody } from "common";
 import { z } from "zod";
@@ -21,9 +22,11 @@ import { toast } from "sonner";
 import { DEFAULT_ITEM_VALUES } from "./EditItems";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { SetStateAction } from "react";
+import { SetStateAction, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Decimal } from "decimal.js";
+import { ImageIcon, X } from "lucide-react";
+import Image from "next/image";
 
 // Type for tracking pending new items
 export type PendingItemChanges = {
@@ -68,6 +71,8 @@ export function ItemDialog({
 	onAddPendingItem?: OnAddPendingItem;
 	onUpdatePendingItem?: OnUpdatePendingItem;
 }) {
+	const [unsplashOpen, setUnsplashOpen] = useState(false);
+
 	const handleSubmitItem = async (
 		data: z.infer<typeof CreateFundraiserItemBody>
 	) => {
@@ -128,110 +133,158 @@ export function ItemDialog({
 	};
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogContent className="max-w-2xl">
-				<Form {...form}>
-					<form onSubmit={form.handleSubmit(handleSubmitItem)}>
-						<DialogHeader>
-							<DialogTitle>
-								{mode === "add"
-									? "Add Fundraiser Item"
-									: "Edit Fundraiser Item"}
-							</DialogTitle>
-						</DialogHeader>
-						<div className="grid gap-4 py-4">
-							<FormField
-								control={form.control}
-								name="name"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Item Name</FormLabel>
-										<FormControl>
-											<Input
-												placeholder="T-Shirt, Cookie Box, etc."
-												{...field}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+		<>
+			<Dialog open={open} onOpenChange={setOpen}>
+				<DialogContent className="max-w-2xl">
+					<Form {...form}>
+						<form onSubmit={form.handleSubmit(handleSubmitItem)}>
+							<DialogHeader>
+								<DialogTitle>
+									{mode === "add"
+										? "Add Fundraiser Item"
+										: "Edit Fundraiser Item"}
+								</DialogTitle>
+							</DialogHeader>
+							<div className="grid gap-4 py-4">
+								<FormField
+									control={form.control}
+									name="name"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Item Name</FormLabel>
+											<FormControl>
+												<Input
+													placeholder="T-Shirt, Cookie Box, etc."
+													{...field}
+												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
 
-							<FormField
-								control={form.control}
-								name="description"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Description</FormLabel>
-										<FormControl>
-											<Textarea
-												placeholder="Describe your item..."
-												{...field}
-												className="min-h-20"
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+								<FormField
+									control={form.control}
+									name="description"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Description</FormLabel>
+											<FormControl>
+												<Textarea
+													placeholder="Describe your item..."
+													{...field}
+													className="min-h-20"
+												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
 
-							<FormField
-								control={form.control}
-								name="imageUrl"
-								render={() => (
-									<FormItem>
-										<FormLabel>Image</FormLabel>
-										<UploadImageComponent
-											imageUrls={[form.getValues("imageUrl") || ""]}
-											setImageUrls={(imageUrls: string[]) => {
-												if (imageUrls.length > 0) {
-													form.setValue("imageUrl", imageUrls[0]);
-												} else {
-													form.setValue("imageUrl", undefined);
-												}
-											}}
-											folder="items"
-										/>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-							<FormField
-								control={form.control}
-								name="price"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Price</FormLabel>
-										<FormControl>
-											<Input
-												type="number"
-												step="0.01"
-												placeholder="0.00"
-												value={
-													field.value !== undefined
-														? field.value.toString()
-														: "0"
-												}
-												onChange={(e) => {
-													const numericValue = parseFloat(e.target.value) || 0;
-													field.onChange(numericValue);
+								<FormField
+									control={form.control}
+									name="imageUrl"
+									render={() => (
+										<FormItem>
+											<div className="flex items-center justify-between">
+												<FormLabel>Image</FormLabel>
+												<Button
+													type="button"
+													variant="outline"
+													size="sm"
+													onClick={() => setUnsplashOpen(true)}
+													className="flex items-center gap-1.5 text-xs h-7 px-2">
+													<ImageIcon className="h-3.5 w-3.5" />
+													Search Unsplash
+												</Button>
+											</div>
+											<UploadImageComponent
+												imageUrls={[form.getValues("imageUrl") || ""]}
+												setImageUrls={(imageUrls: string[]) => {
+													if (imageUrls.length > 0) {
+														form.setValue("imageUrl", imageUrls[0]);
+													} else {
+														form.setValue("imageUrl", undefined);
+													}
 												}}
+												folder="items"
 											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-						</div>
-						<DialogFooter>
-							<Button type="submit">
-								{mode === "add" ? "Add Item" : "Save Changes"}
-							</Button>
-						</DialogFooter>
-					</form>
-				</Form>
-			</DialogContent>
-		</Dialog>
+											{(() => {
+												const url = form.watch("imageUrl");
+												if (!url || !url.includes("unsplash.com")) return null;
+												return (
+													<div className="relative aspect-video bg-gray-50 rounded-md border overflow-hidden group min-h-[100px] mt-2">
+														<Image
+															src={url}
+															fill
+															sizes="(max-width: 768px) 100vw, 50vw"
+															alt="Unsplash photo"
+															className="object-cover"
+														/>
+														<button
+															type="button"
+															onClick={() =>
+																form.setValue("imageUrl", undefined)
+															}
+															className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+															aria-label="Remove image">
+															<X className="h-3 w-3" />
+														</button>
+													</div>
+												);
+											})()}
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+
+								<FormField
+									control={form.control}
+									name="price"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Price</FormLabel>
+											<FormControl>
+												<Input
+													type="number"
+													step="0.01"
+													placeholder="0.00"
+													value={
+														field.value !== undefined
+															? field.value.toString()
+															: "0"
+													}
+													onChange={(e) => {
+														const numericValue = parseFloat(e.target.value) || 0;
+														field.onChange(numericValue);
+													}}
+												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+							</div>
+							<DialogFooter>
+								<Button type="submit">
+									{mode === "add" ? "Add Item" : "Save Changes"}
+								</Button>
+							</DialogFooter>
+						</form>
+					</Form>
+				</DialogContent>
+			</Dialog>
+
+			<UnsplashPickerModal
+				open={unsplashOpen}
+				onOpenChange={setUnsplashOpen}
+				onSelectPhotos={(urls) => {
+					if (urls.length > 0) {
+						form.setValue("imageUrl", urls[0]);
+					}
+				}}
+				allowMultiple={false}
+			/>
+		</>
 	);
 }

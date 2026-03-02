@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -24,6 +27,9 @@ import { z } from "zod";
 import { DateTimePicker } from "@/components/custom/DateTimePicker";
 import { ControllerRenderProps } from "react-hook-form";
 import UploadImageComponent from "@/components/custom/UploadImageComponent";
+import { UnsplashPickerModal } from "@/components/custom/UnsplashPickerModal";
+import { ImageIcon, X } from "lucide-react";
+import Image from "next/image";
 
 const BasicInformationSchema = CreateFundraiserBody.omit({
 	organizationId: true,
@@ -65,6 +71,8 @@ export function FundraiserBasicInfoForm({
 		resolver: zodResolver(BasicInformationSchema),
 		defaultValues: defaultValues,
 	});
+
+	const [unsplashOpen, setUnsplashOpen] = useState(false);
 
 	return (
 		<Card>
@@ -117,7 +125,18 @@ export function FundraiserBasicInfoForm({
 							name="imageUrls"
 							render={() => (
 								<FormItem>
-									<FormLabel>Images (Optional)</FormLabel>
+									<div className="flex items-center justify-between">
+										<FormLabel>Images (Optional)</FormLabel>
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											onClick={() => setUnsplashOpen(true)}
+											className="flex items-center gap-1.5 text-xs h-7 px-2">
+											<ImageIcon className="h-3.5 w-3.5" />
+											Search Unsplash
+										</Button>
+									</div>
 									<UploadImageComponent
 										imageUrls={form.getValues("imageUrls")}
 										setImageUrls={(imageUrls: string[]) => {
@@ -126,6 +145,44 @@ export function FundraiserBasicInfoForm({
 										folder="fundraisers"
 										allowMultiple
 									/>
+									{/* Preview strip for Unsplash-sourced images */}
+									{(() => {
+										const unsplashUrls = (
+											form.watch("imageUrls") ?? []
+										).filter((url) => url.includes("unsplash.com"));
+										if (unsplashUrls.length === 0) return null;
+										return (
+											<div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+												{unsplashUrls.map((url) => (
+													<div
+														key={url}
+														className="relative aspect-video bg-gray-50 rounded-md border overflow-hidden group min-h-[100px]">
+														<Image
+															src={url}
+															fill
+															sizes="(max-width: 768px) 50vw, 33vw"
+															alt="Unsplash photo"
+															className="object-cover"
+														/>
+														<button
+															type="button"
+															onClick={() => {
+																const current =
+																	form.getValues("imageUrls") ?? [];
+																form.setValue(
+																	"imageUrls",
+																	current.filter((u) => u !== url)
+																);
+															}}
+															className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+															aria-label="Remove image">
+															<X className="h-3 w-3" />
+														</button>
+													</div>
+												))}
+											</div>
+										);
+									})()}
 									<FormMessage />
 								</FormItem>
 							)}
@@ -199,6 +256,16 @@ export function FundraiserBasicInfoForm({
 					</CardFooter>
 				</form>
 			</Form>
+
+			<UnsplashPickerModal
+				open={unsplashOpen}
+				onOpenChange={setUnsplashOpen}
+				onSelectPhotos={(urls) => {
+					const current = form.getValues("imageUrls") ?? [];
+					form.setValue("imageUrls", [...current, ...urls]);
+				}}
+				allowMultiple
+			/>
 		</Card>
 	);
 }
