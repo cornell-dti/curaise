@@ -45,7 +45,7 @@ const PickupStatusCell = ({
           ...data,
           pickedUp: true,
         },
-        false // Without revalidation
+        false, // Without revalidation
       );
 
       toast.success("Pickup status updated successfully");
@@ -206,12 +206,12 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
     cell: ({ row }) => {
       const createdAt = new Date(row.original.createdAt);
       const createdAtStr = `${createdAt.getFullYear()}-${String(
-        createdAt.getMonth() + 1
+        createdAt.getMonth() + 1,
       ).padStart(2, "0")}-${String(createdAt.getDate()).padStart(
         2,
-        "0"
+        "0",
       )} ${String(createdAt.getHours()).padStart(2, "0")}:${String(
-        createdAt.getMinutes()
+        createdAt.getMinutes(),
       ).padStart(2, "0")}`;
 
       return (
@@ -285,7 +285,7 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
       const items = row.items;
       return items.reduce(
         (total, item) => total + Number(item.item.price) * item.quantity,
-        0
+        0,
       );
     },
     header: ({ column }) => {
@@ -304,7 +304,7 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
       const items = row.original.items;
       const orderTotal = items.reduce(
         (total, item) => total + Number(item.item.price) * item.quantity,
-        0
+        0,
       );
       return (
         <div className="flex items-center justify-center">

@@ -4,6 +4,7 @@ import {
   confirmOrderPaymentHandler,
   createOrderHandler,
   getOrderHandler,
+  undoOrderPickupHandler,
 } from "./order.handlers";
 import validate from "../../middleware/validate";
 import { OrderRouteParams } from "./order.types";
@@ -16,28 +17,35 @@ orderRouter.get(
   "/:id",
   validate({ params: OrderRouteParams }),
   authenticate,
-  getOrderHandler
+  getOrderHandler,
 );
 
 orderRouter.post(
   "/create",
   validate({ body: CreateOrderBody }),
   authenticate,
-  createOrderHandler
+  createOrderHandler,
 );
 
 orderRouter.post(
   "/:id/complete-pickup",
   validate({ params: OrderRouteParams }),
   authenticate,
-  completeOrderPickupHandler
+  completeOrderPickupHandler,
+);
+
+orderRouter.post(
+  "/:id/undo-pickup",
+  validate({ params: OrderRouteParams }),
+  authenticate,
+  undoOrderPickupHandler,
 );
 
 orderRouter.post(
   "/:id/confirm-payment",
   validate({ params: OrderRouteParams }),
   authenticate,
-  confirmOrderPaymentHandler
+  confirmOrderPaymentHandler,
 );
 
 export default orderRouter;
