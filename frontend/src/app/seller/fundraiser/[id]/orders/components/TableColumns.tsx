@@ -47,8 +47,6 @@ const PickupStatusCell = ({
         },
         false, // Without revalidation
       );
-
-      toast.success("Pickup status updated successfully");
     } catch (error) {
       console.error("Error updating pickup status:", error);
       toast.error("Failed to update pickup status");
@@ -124,7 +122,35 @@ const PaymentStatusCell = ({ order }: { order: Order }) => {
 // API call to complete pickup
 // This function posts to the API to update the pickup status of an order
 const completePickup = async (orderId: string, token: string) => {
-  return mutationFetch(`/order/${orderId}/complete-pickup`, { token });
+  try {
+    await mutationFetch(`/order/${orderId}/complete-pickup`, { token });
+    const toastId = toast("Order marked as picked up", {
+      duration: 10000, // 10 seconds
+      action: (
+        <div className="ml-auto">
+          <button
+            onClick={async () => {
+              try {
+                await mutationFetch(`/order/${orderId}/undo-pickup`, { token });
+                toast.dismiss(toastId);
+                toast.success("Pickup undone");
+              } catch (err: any) {
+                toast.error(
+                  err?.response?.data?.message ||
+                    "Undo window expired or request failed.",
+                );
+              }
+            }}
+            className="text-green-600 hover:text-green-700 font-semibold flex flex-end"
+          >
+            Undo
+          </button>
+        </div>
+      ),
+    });
+  } catch (err) {
+    toast.error("Failed to complete pickup");
+  }
 };
 
 // Create a function that returns columns with the token (access token)
