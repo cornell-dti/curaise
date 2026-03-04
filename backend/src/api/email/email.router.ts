@@ -3,6 +3,10 @@ import express from "express";
 import { parseEmailHandler } from "./email.handlers";
 import { MailgunInboundEmailBody } from "./email.types";
 import validate from "../../middleware/validate";
+import {
+  asyncHandler,
+  handlePrismaErrors,
+} from "../../middleware/handlePrismaErrors";
 
 const emailRouter = Router();
 
@@ -27,7 +31,9 @@ emailRouter.post(
   mailgunMiddleware,
   loggingMiddleware,
   validate({ body: MailgunInboundEmailBody }),
-  parseEmailHandler
+  asyncHandler(parseEmailHandler),
 );
+
+emailRouter.use(handlePrismaErrors);
 
 export default emailRouter;

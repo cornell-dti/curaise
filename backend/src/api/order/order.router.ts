@@ -9,6 +9,10 @@ import validate from "../../middleware/validate";
 import { OrderRouteParams } from "./order.types";
 import { CreateOrderBody } from "common";
 import { authenticate } from "../../middleware/authenticate";
+import {
+  asyncHandler,
+  handlePrismaErrors,
+} from "../../middleware/handlePrismaErrors";
 
 const orderRouter = Router();
 
@@ -16,28 +20,30 @@ orderRouter.get(
   "/:id",
   validate({ params: OrderRouteParams }),
   authenticate,
-  getOrderHandler
+  asyncHandler(getOrderHandler)
 );
 
 orderRouter.post(
   "/create",
   validate({ body: CreateOrderBody }),
   authenticate,
-  createOrderHandler
+  asyncHandler(createOrderHandler)
 );
 
 orderRouter.post(
   "/:id/complete-pickup",
   validate({ params: OrderRouteParams }),
   authenticate,
-  completeOrderPickupHandler
+  asyncHandler(completeOrderPickupHandler)
 );
 
 orderRouter.post(
   "/:id/confirm-payment",
   validate({ params: OrderRouteParams }),
   authenticate,
-  confirmOrderPaymentHandler
+  asyncHandler(confirmOrderPaymentHandler)
 );
+
+orderRouter.use(handlePrismaErrors);
 
 export default orderRouter;
