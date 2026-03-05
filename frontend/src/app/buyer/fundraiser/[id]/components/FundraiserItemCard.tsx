@@ -14,11 +14,13 @@ export function FundraiserItemCard({
   amount,
   increment,
   decrement,
+  isOutOfStock = false,
 }: {
   item: z.infer<typeof CompleteItemSchema>;
   amount: number;
   increment: () => void;
   decrement: () => void;
+  isOutOfStock?: boolean;
 }) {
   const [showAmount, setShowAmount] = useState(false);
   const selectorRef = useRef<HTMLDivElement>(null);
@@ -97,6 +99,11 @@ export function FundraiserItemCard({
           ) : (
             <div className="w-full h-full bg-gray-200" />
           )}
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+              <span className="text-white font-semibold text-lg">Out of Stock</span>
+            </div>
+          )}
         </div>
 
         {/* Title and Price */}
@@ -123,6 +130,11 @@ export function FundraiserItemCard({
             />
           ) : (
             <div className="w-full h-full bg-gray-200" />
+          )}
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+              <span className="text-white font-semibold text-lg">Out of Stock</span>
+            </div>
           )}
         </div>
 
@@ -183,7 +195,13 @@ export function FundraiserItemCard({
                 ) : (
                   <button
                     onClick={handleOpen}
-                    className="p-2 mx-auto hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
+                    disabled={isOutOfStock}
+                    className={cn(
+                      "p-2 mx-auto rounded-full transition-colors flex-shrink-0",
+                      isOutOfStock
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-gray-600"
+                    )}
                   >
                     <Plus className="w-4 h-4 text-white" />
                   </button>

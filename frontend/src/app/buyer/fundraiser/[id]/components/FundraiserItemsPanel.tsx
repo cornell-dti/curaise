@@ -1,34 +1,42 @@
 "use client";
 
-import { CompleteItemSchema } from "common";
 import { z } from "zod";
 import { FundraiserItemModal } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemModal";
 import { FundraiserItemCard } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemCard";
 import { useCartStore } from "@/lib/store/useCartStore";
 import useStore from "@/lib/store/useStore";
 import Link from "next/link";
+import { ItemWithAvailabilitySchema } from "@/hooks/useItemsAvailability";
+import { toast } from "sonner";
 
 export function FundraiserItemsPanel({
   fundraiserId,
   items,
 }: {
   fundraiserId: string;
-  items: z.infer<typeof CompleteItemSchema>[];
+  items: z.infer<typeof ItemWithAvailabilitySchema>[];
 }) {
   const { addItem, removeItem, updateQuantity } = useCartStore();
   // fixes nextjs hydration issue: https://github.com/pmndrs/zustand/issues/938#issuecomment-1481801942
   const cart = useStore(useCartStore, (state) => state.carts[fundraiserId]);
 
-  const handleIncrement = (item: z.infer<typeof CompleteItemSchema>) => {
+  const handleIncrement = (item: z.infer<typeof ItemWithAvailabilitySchema>) => {
     const cartItem = cart?.find((cartItem) => cartItem.item.id === item.id);
+    const currentQty = cartItem?.quantity ?? 0;
+
+    if (item.available !== null && currentQty + 1 > item.available) {
+      toast.error(`Only ${item.available} available for ${item.name}`);
+      return;
+    }
+
     if (cartItem) {
-      updateQuantity(fundraiserId, item, cartItem.quantity + 1);
+      updateQuantity(fundraiserId, item, currentQty + 1);
     } else {
       addItem(fundraiserId, item, 1);
     }
   };
 
-  const handleDecrement = (item: z.infer<typeof CompleteItemSchema>) => {
+  const handleDecrement = (item: z.infer<typeof ItemWithAvailabilitySchema>) => {
     const cartItem = cart?.find((cartItem) => cartItem.item.id === item.id);
     if (cartItem) {
       if (cartItem.quantity > 1) {
@@ -51,6 +59,7 @@ export function FundraiserItemsPanel({
             const amount =
               cart?.find((cartItem) => cartItem.item.id === item.id)?.quantity ||
               0;
+            const isOutOfStock = item.available !== null && item.available <= 0;
 
             return (
               <div key={item.id}>
@@ -62,6 +71,7 @@ export function FundraiserItemsPanel({
                     increment={() => handleIncrement(item)}
                     decrement={() => handleDecrement(item)}
                     fundraiserId={fundraiserId}
+                    isOutOfStock={isOutOfStock}
                   />
                 </div>
 
@@ -75,6 +85,7 @@ export function FundraiserItemsPanel({
                     amount={amount}
                     increment={() => handleIncrement(item)}
                     decrement={() => handleDecrement(item)}
+                    isOutOfStock={isOutOfStock}
                   />
                 </Link>
               </div>

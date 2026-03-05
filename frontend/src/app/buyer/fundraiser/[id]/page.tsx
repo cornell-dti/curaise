@@ -1,5 +1,6 @@
 import { connection } from "next/server";
-import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
+import { CompleteFundraiserSchema } from "common";
+import { ItemWithAvailabilitySchema } from "@/hooks/useItemsAvailability";
 import { format } from "date-fns";
 import { MapPin, Calendar, ChevronLeft } from "lucide-react";
 import { FundraiserItemsPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemsPanel";
@@ -37,8 +38,8 @@ export default async function FundraiserPage({
   const fundraiser = await serverFetch(`/fundraiser/${id}`, {
     schema: CompleteFundraiserSchema,
   });
-  const fundraiserItems = await serverFetch(`/fundraiser/${id}/items`, {
-    schema: CompleteItemSchema.array(),
+  const fundraiserItems = await serverFetch(`/fundraiser/${id}/items/availability`, {
+    schema: ItemWithAvailabilitySchema.array(),
   });
 
   if (!fundraiser.published && preview !== "true") {

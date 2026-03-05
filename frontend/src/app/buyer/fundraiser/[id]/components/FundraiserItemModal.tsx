@@ -19,12 +19,14 @@ export function FundraiserItemModal({
   increment,
   decrement,
   fundraiserId,
+  isOutOfStock = false,
 }: {
   item: z.infer<typeof CompleteItemSchema>;
   amount: number;
   increment: () => void;
   decrement: () => void;
   fundraiserId: string;
+  isOutOfStock?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -54,6 +56,7 @@ export function FundraiserItemModal({
             amount={amount}
             increment={increment}
             decrement={decrement}
+            isOutOfStock={isOutOfStock}
           />
         </div>
       </DialogTrigger>
@@ -127,9 +130,12 @@ export function FundraiserItemModal({
           {/* Add to Cart Button */}
           <button
             onClick={handleAddToCart}
-            className="bg-black text-white rounded-lg h-[50px] flex items-center justify-center gap-2 px-12 py-3"
+            disabled={isOutOfStock}
+            className="bg-black text-white rounded-lg h-[50px] flex items-center justify-center gap-2 px-12 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span className="text-lg font-normal leading-[27px]">Add to Cart</span>
+            <span className="text-lg font-normal leading-[27px]">
+              {isOutOfStock ? "Out of Stock" : "Add to Cart"}
+            </span>
             <ShoppingCart className="h-5 w-5" />
           </button>
         </div>
