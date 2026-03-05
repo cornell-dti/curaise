@@ -4,6 +4,7 @@ import { z } from "zod";
 import {
   updateCacheForNewOrder,
   updateCacheForOrderPickup,
+  getItemsConfirmedCounts,
 } from "../fundraiser/fundraiser.services";
 import { Decimal } from "decimal.js";
 
@@ -70,60 +71,94 @@ export const getOrder = async (orderId: string) => {
 export const createOrder = async (
   orderBody: z.infer<typeof CreateOrderBody> & { buyerId: string }
 ) => {
-  const order = await prisma.order.create({
-    data: {
-      paymentMethod: orderBody.payment_method,
-      paymentStatus:
-        orderBody.payment_method === "VENMO" ? "PENDING" : "UNVERIFIABLE",
-      buyer: { connect: { id: orderBody.buyerId } },
-      fundraiser: { connect: { id: orderBody.fundraiserId } },
-      items: {
-        create: orderBody.items.map((item) => ({
-          quantity: item.quantity,
-          item: { connect: { id: item.itemId } },
-        })),
-      },
-      ...(orderBody.referralId && {
-        referral: { connect: { id: orderBody.referralId } },
-      }),
-    },
-    include: {
-      buyer: true,
-      fundraiser: {
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          published: true,
-          goalAmount: true,
-          imageUrls: true,
-          buyingStartsAt: true,
-          buyingEndsAt: true,
-          organization: {
+  const order = await prisma.$transaction(
+    async (tx) => {
+      // Validate stock availability inside transaction
+      const itemIds = orderBody.items.map((oi) => oi.itemId);
+
+      const items = await tx.item.findMany({
+        where: { id: { in: itemIds } },
+        select: { id: true, limit: true, name: true },
+      });
+
+      const confirmedCounts = await getItemsConfirmedCounts(itemIds);
+
+      for (const orderItem of orderBody.items) {
+        const item = items.find((i) => i.id === orderItem.itemId);
+        if (!item) {
+          throw new Error(`Item ${orderItem.itemId} not found`);
+        }
+
+        if (item.limit !== null) {
+          const confirmedCount = confirmedCounts.get(orderItem.itemId) ?? 0;
+          const newTotal = confirmedCount + orderItem.quantity;
+
+          if (newTotal > item.limit) {
+            const available = item.limit - confirmedCount;
+            throw new Error(
+              `Insufficient stock for ${item.name}. Available: ${available}, Requested: ${orderItem.quantity}`
+            );
+          }
+        }
+      }
+
+      return tx.order.create({
+        data: {
+          paymentMethod: orderBody.payment_method,
+          paymentStatus:
+            orderBody.payment_method === "VENMO" ? "PENDING" : "UNVERIFIABLE",
+          buyer: { connect: { id: orderBody.buyerId } },
+          fundraiser: { connect: { id: orderBody.fundraiserId } },
+          items: {
+            create: orderBody.items.map((item) => ({
+              quantity: item.quantity,
+              item: { connect: { id: item.itemId } },
+            })),
+          },
+          ...(orderBody.referralId && {
+            referral: { connect: { id: orderBody.referralId } },
+          }),
+        },
+        include: {
+          buyer: true,
+          fundraiser: {
             select: {
               id: true,
               name: true,
               description: true,
-              authorized: true,
-              logoUrl: true,
+              published: true,
+              goalAmount: true,
+              imageUrls: true,
+              buyingStartsAt: true,
+              buyingEndsAt: true,
+              organization: {
+                select: {
+                  id: true,
+                  name: true,
+                  description: true,
+                  authorized: true,
+                  logoUrl: true,
+                },
+              },
+              pickupEvents: {
+                orderBy: {
+                  startsAt: "asc",
+                },
+              },
             },
           },
-          pickupEvents: {
-            orderBy: {
-              startsAt: "asc",
+          referral: {
+            include: {
+              referrer: true,
             },
           },
         },
-      },
-      referral: {
-        include: {
-          referrer: true,
-        },
-      },
+      });
     },
-  });
+    { isolationLevel: "Serializable" }
+  );
 
-  // Update analytics cache for the fundraiser when a new order is created
+  // Update analytics cache outside transaction
   await updateCacheForNewOrder(orderBody.fundraiserId, order.createdAt);
 
   return order;
