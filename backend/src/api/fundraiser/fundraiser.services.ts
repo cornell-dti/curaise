@@ -278,6 +278,7 @@ export const createFundraiserItem = async (
       description: itemBody.description,
       price: itemBody.price,
       imageUrl: itemBody.imageUrl,
+      limit: itemBody.limit ?? null,
       fundraiser: {
         connect: {
           id: itemBody.fundraiserId,
@@ -300,6 +301,13 @@ export const getFundraiserItem = async (itemId: string) => {
 export const updateFundraiserItem = async (
   itemBody: z.infer<typeof UpdateFundraiserItemBody> & { itemId: string }
 ) => {
+  if (itemBody.limit !== undefined) {
+    const validation = await validateCapUpdate(itemBody.itemId, itemBody.limit ?? null);
+    if (!validation.valid) {
+      throw new Error(validation.reason);
+    }
+  }
+
   const item = await prisma.item.update({
     where: {
       id: itemBody.itemId,
@@ -310,6 +318,7 @@ export const updateFundraiserItem = async (
       price: itemBody.price,
       imageUrl: itemBody.imageUrl ?? null,
       offsale: itemBody.offsale,
+      limit: itemBody.limit ?? undefined,
     },
   });
 
