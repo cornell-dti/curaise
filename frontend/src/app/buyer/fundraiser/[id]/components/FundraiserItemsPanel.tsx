@@ -6,7 +6,7 @@ import { FundraiserItemCard } from "@/app/buyer/fundraiser/[id]/components/Fundr
 import { useCartStore } from "@/lib/store/useCartStore";
 import useStore from "@/lib/store/useStore";
 import Link from "next/link";
-import { ItemWithAvailabilitySchema } from "@/hooks/useItemsAvailability";
+import { ItemWithAvailabilitySchema } from "@/lib/schemas/itemAvailability";
 import { toast } from "sonner";
 
 export function FundraiserItemsPanel({

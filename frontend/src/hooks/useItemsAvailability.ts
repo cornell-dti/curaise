@@ -1,14 +1,9 @@
 import useSWR from "swr";
-import { CompleteItemSchema } from "common";
 import { noAuthFetcher } from "@/lib/fetcher";
-import { z } from "zod";
+import { ItemWithAvailabilitySchema } from "@/lib/schemas/itemAvailability";
 
-export const ItemWithAvailabilitySchema = CompleteItemSchema.extend({
-  confirmedCount: z.number(),
-  available: z.number().nullable(),
-});
-
-export type ItemWithAvailability = z.infer<typeof ItemWithAvailabilitySchema>;
+export { ItemWithAvailabilitySchema } from "@/lib/schemas/itemAvailability";
+export type { ItemWithAvailability } from "@/lib/schemas/itemAvailability";
 
 export function useItemsAvailability(fundraiserId: string | null | undefined) {
   const { data, error, isLoading, mutate } = useSWR(
