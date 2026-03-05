@@ -157,9 +157,7 @@ export default async function FundraiserPage({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <FundraiserItemsPanel
-                isPast={fundraiser.pickupEvents.every((event) =>
-                  isPast(event.endsAt),
-                )}
+                isPast={past}
                 fundraiserId={fundraiser.id}
                 items={fundraiserItems}
               />
