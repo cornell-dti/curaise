@@ -68,7 +68,7 @@ export const getOrder = async (orderId: string) => {
 };
 
 export const createOrder = async (
-  orderBody: z.infer<typeof CreateOrderBody> & { buyerId: string }
+  orderBody: z.infer<typeof CreateOrderBody> & { buyerId: string },
 ) => {
   const order = await prisma.order.create({
     data: {
@@ -187,7 +187,98 @@ export const completeOrderPickup = async (orderId: string) => {
   });
 
   // Update analytics cache for the fundraiser when an order is picked up, so pending order and picked up order counts are not stale
-  await updateCacheForOrderPickup(order.fundraiser.id, order, order.paymentStatus);
+  await updateCacheForOrderPickup(
+    order.fundraiser.id,
+    order,
+    order.paymentStatus,
+  );
+
+  return order;
+};
+
+export const undoOrderPickup = async (orderId: string) => {
+  const existingOrder = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      pickedUp: true,
+      updatedAt: true,
+      fundraiser: { select: { id: true } },
+      paymentStatus: true,
+    },
+  });
+
+  // If order doesn't exist, or isn't picked up already
+  if (!existingOrder || !existingOrder.pickedUp) return null;
+
+  const nowMs = Date.now();
+  const pickedUpAtMs = new Date(existingOrder.updatedAt).getTime();
+  const elapsedMs = nowMs - pickedUpAtMs;
+  // After 1 minute, order can no longer be undone
+  if (elapsedMs > 60_000) return null;
+
+  const order = await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      pickedUp: false,
+    },
+    include: {
+      buyer: true,
+      fundraiser: {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          published: true,
+          goalAmount: true,
+          imageUrls: true,
+          buyingStartsAt: true,
+          buyingEndsAt: true,
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              authorized: true,
+              logoUrl: true,
+            },
+          },
+          pickupEvents: {
+            orderBy: {
+              startsAt: "asc",
+            },
+          },
+        },
+      },
+      items: {
+        select: {
+          quantity: true,
+          item: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              price: true,
+              imageUrl: true,
+              offsale: true,
+            },
+          },
+        },
+      },
+      referral: {
+        include: {
+          referrer: true,
+        },
+      },
+    },
+  });
+
+  // Update analytics cache for the fundraiser when an order is picked up, so pending order and picked up order counts are not stale
+  await updateCacheForOrderPickup(
+    order.fundraiser.id,
+    order,
+    order.paymentStatus,
+  );
 
   return order;
 };
@@ -289,7 +380,7 @@ export const getUnremindedUnpaidOrders = async () => {
  * Calculate the total amount for an order based on its items and quantities
  */
 export const calculateOrderTotal = async (
-  orderId: string
+  orderId: string,
 ): Promise<Decimal> => {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -313,9 +404,9 @@ export const calculateOrderTotal = async (
   const total = order.items.reduce(
     (sum, orderItem) =>
       sum.plus(
-        new Decimal(orderItem.item.price.toString()).times(orderItem.quantity)
+        new Decimal(orderItem.item.price.toString()).times(orderItem.quantity),
       ),
-    new Decimal(0)
+    new Decimal(0),
   );
 
   return total;

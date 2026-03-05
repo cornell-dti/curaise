@@ -5,6 +5,7 @@ import {
   createOrderHandler,
   getOrderHandler,
   sendPaymentRemindersHandler,
+  undoOrderPickupHandler,
 } from "./order.handlers";
 import validate from "../../middleware/validate";
 import { OrderRouteParams } from "./order.types";
@@ -21,28 +22,35 @@ orderRouter.get(
   "/:id",
   validate({ params: OrderRouteParams }),
   authenticate,
-  asyncHandler(getOrderHandler)
+  asyncHandler(getOrderHandler),
 );
 
 orderRouter.post(
   "/create",
   validate({ body: CreateOrderBody }),
   authenticate,
-  asyncHandler(createOrderHandler)
+  asyncHandler(createOrderHandler),
 );
 
 orderRouter.post(
   "/:id/complete-pickup",
   validate({ params: OrderRouteParams }),
   authenticate,
-  asyncHandler(completeOrderPickupHandler)
+  asyncHandler(completeOrderPickupHandler),
+);
+
+orderRouter.post(
+  "/:id/undo-pickup",
+  validate({ params: OrderRouteParams }),
+  authenticate,
+  asyncHandler(undoOrderPickupHandler),
 );
 
 orderRouter.post(
   "/:id/confirm-payment",
   validate({ params: OrderRouteParams }),
   authenticate,
-  asyncHandler(confirmOrderPaymentHandler)
+  asyncHandler(confirmOrderPaymentHandler),
 );
 
 orderRouter.post(
@@ -55,7 +63,7 @@ orderRouter.post(
     }
     next();
   },
-  asyncHandler(sendPaymentRemindersHandler)
+  asyncHandler(sendPaymentRemindersHandler),
 );
 
 orderRouter.use(handlePrismaErrors);
