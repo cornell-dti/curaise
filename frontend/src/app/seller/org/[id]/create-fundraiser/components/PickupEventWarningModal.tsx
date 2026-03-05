@@ -16,10 +16,12 @@ import { format } from "date-fns";
 export function PickupEventWarningModal({
 	open,
 	onClose,
+	onConfirm,
 	conflictingEvents,
 }: {
 	open: boolean;
 	onClose: () => void;
+	onConfirm: () => void;
 	conflictingEvents: z.infer<typeof CreatePickupEventBody>[];
 }) {
 	return (
@@ -54,11 +56,16 @@ export function PickupEventWarningModal({
 					</div>
 					<p className="text-sm text-muted-foreground mt-3">
 						Please adjust the start or end time of this pickup event to avoid
-						conflicts.
+						conflicts, or add it anyway.
 					</p>
 				</div>
-				<DialogFooter>
-					<Button onClick={onClose}>Go Back and Fix</Button>
+				<DialogFooter className="gap-2">
+					<Button variant="outline" onClick={onClose}>
+						Go Back and Fix
+					</Button>
+					<Button variant="destructive" onClick={onConfirm}>
+						Add Anyway
+					</Button>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

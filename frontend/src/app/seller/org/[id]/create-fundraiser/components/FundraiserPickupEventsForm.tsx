@@ -93,6 +93,9 @@ export function FundraiserPickupEventsForm({
 	const [conflictingEvents, setConflictingEvents] = useState<
 		z.infer<typeof CreatePickupEventBody>[]
 	>([]);
+	const [pendingEvent, setPendingEvent] = useState<z.infer<
+		typeof CreatePickupEventBody
+	> | null>(null);
 
 	const form = useForm<z.infer<typeof CreatePickupEventBody>>({
 		resolver: zodResolver(PickupEventFormSchema),
@@ -116,10 +119,16 @@ export function FundraiserPickupEventsForm({
 
 		if (conflicts.length > 0) {
 			setConflictingEvents(conflicts);
+			setPendingEvent(data);
 			setWarningOpen(true);
 			return;
 		}
 
+		commitEvent(data);
+	};
+
+	// This commits the pickup event to the state, either by adding a new event or updating an existing event based on the "mode"
+	const commitEvent = (data: z.infer<typeof CreatePickupEventBody>) => {
 		if (mode === "add") {
 			setEvents((prev) => [...prev, data]);
 		} else if (editingIndex !== null) {
@@ -132,6 +141,14 @@ export function FundraiserPickupEventsForm({
 			location: "",
 			...getDefaultPickupEventDates(),
 		});
+	};
+
+	const handleConfirmAnyway = () => {
+		if (pendingEvent) {
+			commitEvent(pendingEvent);
+			setPendingEvent(null);
+		}
+		setWarningOpen(false);
 	};
 
 	const handleEditEvent = (index: number) => {
@@ -339,6 +356,7 @@ export function FundraiserPickupEventsForm({
 			<PickupEventWarningModal
 				open={warningOpen}
 				onClose={() => setWarningOpen(false)}
+				onConfirm={handleConfirmAnyway}
 				conflictingEvents={conflictingEvents}
 			/>
 		</>
