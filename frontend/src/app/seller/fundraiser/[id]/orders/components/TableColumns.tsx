@@ -4,7 +4,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, TriangleAlert } from "lucide-react";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,26 +13,60 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { ArrowUpDown } from "lucide-react";
 import { z } from "zod";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { toast } from "sonner";
 import { mutationFetch } from "@/lib/fetcher";
+import { useState } from "react";
 
 type Order = z.infer<typeof CompleteOrderSchema>;
 
 // Component for the pickup status cell
-const PickupStatusCell = ({
+export function PickupStatusCell({
   order,
   token,
 }: {
-  order: Order;
+  order: z.infer<typeof CompleteOrderSchema>;
   token: string;
-}) => {
+}) {
+  const [showWarning, setShowWarning] = useState(false);
+
   const { data, mutate } = useSWR(`/order/${order.id}`, null, {
     fallbackData: order, // Use the original order data as fallback (default)
     revalidateOnFocus: false, // Don't revalidate on focus
   });
+
+  // Check if the order is picked up
+  const isPickedUp = data?.pickedUp === true;
+
+  // Handle checkbox changes only if its not checked off yet
+  async function handleCheckboxChange() {
+    if (order.paymentStatus == "PENDING") {
+      setShowWarning(true);
+    } else {
+      await togglePickedUp();
+    }
+  }
+
+  // Check off the box, ignoring the warning
+  async function handleIgnore() {
+    await togglePickedUp();
+    setShowWarning(false);
+  }
+  function handleCancel() {
+    setShowWarning(false);
+  }
 
   // Triggers pickup status update when checkbox is clicked
   const togglePickedUp = async () => {
@@ -52,20 +86,48 @@ const PickupStatusCell = ({
       toast.error("Failed to update pickup status");
     }
   };
-  // Check if the order is picked up
-  const isPickedUp = data?.pickedUp === true;
 
   return (
     <div className="flex items-center justify-center">
-      <Checkbox
-        checked={isPickedUp}
-        onChange={!isPickedUp ? togglePickedUp : undefined}
-        disabled={isPickedUp}
-        aria-label={isPickedUp ? "Mark as not picked up" : "Mark as picked up"}
-      />
+      <div className="flex items-center gap-3">
+        <Checkbox
+          id={order.id}
+          checked={isPickedUp}
+          onChange={!isPickedUp ? handleCheckboxChange : undefined}
+          disabled={isPickedUp}
+          className="cursor-pointer"
+        />
+      </div>
+
+      <AlertDialog open={showWarning} onOpenChange={setShowWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+                <TriangleAlert className="size-5" />
+              </div>
+              <AlertDialogTitle>Payment Not Confirmed</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="pt-2">
+              This order&apos;s payment must be confirmed before it can be
+              checked off. Are you sure you want to proceed without confirming
+              payment?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancel}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleIgnore}
+              className="bg-green-600 text-white hover:bg-green-700"
+            >
+              Ignore &amp; Check Off
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
-};
+}
 
 // Component for the payment status cell
 const PaymentStatusCell = ({ order }: { order: Order }) => {
