@@ -135,11 +135,12 @@ model Item {
 
 model Order {
   id            String        @id @default(uuid()) @db.Uuid
-  paymentMethod PaymentMethod @map("payment_method")
-  paymentStatus PaymentStatus @map("payment_status")
-  pickedUp      Boolean       @default(false) @map("picked_up")
-  createdAt     DateTime      @default(now()) @map("created_at")
-  updatedAt     DateTime      @updatedAt @map("updated_at")
+  paymentMethod         PaymentMethod @map("payment_method")
+  paymentStatus         PaymentStatus @map("payment_status")
+  pickedUp              Boolean       @default(false) @map("picked_up")
+  paymentReminderSentAt DateTime?     @map("payment_reminder_sent_at")
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
 
   buyer        User         @relation(fields: [buyerId], references: [id])
   buyerId      String       @map("buyer_id") @db.Uuid

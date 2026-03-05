@@ -4,6 +4,7 @@ import {
   confirmOrderPaymentHandler,
   createOrderHandler,
   getOrderHandler,
+  sendPaymentRemindersHandler,
 } from "./order.handlers";
 import validate from "../../middleware/validate";
 import { OrderRouteParams } from "./order.types";
@@ -42,6 +43,19 @@ orderRouter.post(
   validate({ params: OrderRouteParams }),
   authenticate,
   asyncHandler(confirmOrderPaymentHandler)
+);
+
+orderRouter.post(
+  "/cron/payment-reminders",
+  (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader !== `Bearer ${process.env.SUPABASE_SERVICE_KEY}`) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+    next();
+  },
+  asyncHandler(sendPaymentRemindersHandler)
 );
 
 orderRouter.use(handlePrismaErrors);

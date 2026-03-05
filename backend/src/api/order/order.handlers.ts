@@ -5,11 +5,13 @@ import {
   confirmOrderPayment,
   createOrder,
   getOrder,
+  getUnremindedUnpaidOrders,
+  markPaymentReminderSent,
 } from "./order.services";
 import { BasicOrderSchema, CompleteOrderSchema, CreateOrderBody } from "common";
 import { getFundraiser } from "../fundraiser/fundraiser.services";
 import { z } from "zod";
-import { sendOrderConfirmation } from "../../utils/email";
+import { sendOrderConfirmation, sendPaymentReminderEmail } from "../../utils/email";
 
 export const getOrderHandler = async (
   req: Request<OrderRouteParams, any, {}, {}>,
@@ -169,4 +171,36 @@ export const confirmOrderPaymentHandler = async (
   res
     .status(200)
     .json({ message: "Order payment confirmed", data: cleanedOrder });
+};
+
+export const sendPaymentRemindersHandler = async (
+  req: Request,
+  res: Response
+) => {
+  const orders = await getUnremindedUnpaidOrders();
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const order of orders) {
+    const parsed = BasicOrderSchema.safeParse(order);
+    if (!parsed.success) {
+      failed++;
+      continue;
+    }
+
+    try {
+      await sendPaymentReminderEmail(parsed.data);
+      await markPaymentReminderSent(order.id);
+      sent++;
+    } catch (error) {
+      console.error(`Failed to send payment reminder for order ${order.id}:`, error);
+      failed++;
+    }
+  }
+
+  res.status(200).json({
+    message: "Payment reminders processed",
+    data: { total: orders.length, sent, failed },
+  });
 };

@@ -391,6 +391,52 @@ export const sendVenmoSetupEmail = async (options: {
 };
 
 /**
+ * Send payment reminder email to a buyer with an unpaid order
+ */
+export const sendPaymentReminderEmail = async (order: Order): Promise<any> => {
+  const { buyer, fundraiser } = order;
+
+  const subject = `Payment Reminder - ${fundraiser.name}`;
+
+  const orderDateFormatted = format(order.createdAt, "MMMM d, yyyy");
+
+  const text = `
+    Hi ${buyer.name},
+
+    This is a friendly reminder that your order #${order.id} for ${fundraiser.name} placed on ${orderDateFormatted} has not been paid yet.
+
+    Please complete your payment via Venmo to finalize your order.
+
+    If you have already paid, please disregard this email — it may take some time for us to verify your payment.
+
+    Thank you,
+    The CURaise Team
+  `;
+
+  const html = `
+    <h1>Payment Reminder</h1>
+
+    <p>Hi ${buyer.name},</p>
+
+    <p>This is a friendly reminder that your order <strong>#${order.id}</strong> for <strong>${fundraiser.name}</strong> placed on ${orderDateFormatted} has not been paid yet.</p>
+
+    <p>Please complete your payment via Venmo to finalize your order.</p>
+
+    <p>If you have already paid, please disregard this email — it may take some time for us to verify your payment.</p>
+
+    <p>Thank you,<br>
+    The CURaise Team</p>
+  `;
+
+  return sendEmail({
+    to: buyer.email,
+    subject,
+    text,
+    html,
+  });
+};
+
+/**
  * Send order confirmation email to a buyer
  */
 export const sendOrderConfirmation = async (order: Order): Promise<any> => {

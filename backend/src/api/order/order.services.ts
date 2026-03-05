@@ -238,6 +238,65 @@ export const confirmOrderPayment = async (orderId: string) => {
 };
 
 /**
+ * Find unpaid orders created 1-2 hours ago that haven't been reminded yet
+ */
+export const getUnremindedUnpaidOrders = async () => {
+  const now = new Date();
+  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+  const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+
+  return prisma.order.findMany({
+    where: {
+      paymentStatus: "PENDING",
+      paymentReminderSentAt: null,
+      createdAt: {
+        gte: twoHoursAgo,
+        lte: oneHourAgo,
+      },
+    },
+    include: {
+      buyer: true,
+      fundraiser: {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          published: true,
+          goalAmount: true,
+          imageUrls: true,
+          buyingStartsAt: true,
+          buyingEndsAt: true,
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              authorized: true,
+              logoUrl: true,
+            },
+          },
+          pickupEvents: {
+            orderBy: {
+              startsAt: "asc",
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
+/**
+ * Mark an order as having been sent a payment reminder
+ */
+export const markPaymentReminderSent = async (orderId: string) => {
+  return prisma.order.update({
+    where: { id: orderId },
+    data: { paymentReminderSentAt: new Date() },
+  });
+};
+
+/**
  * Calculate the total amount for an order based on its items and quantities
  */
 export const calculateOrderTotal = async (
