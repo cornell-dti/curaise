@@ -223,6 +223,37 @@ export function ItemDialog({
 									</FormItem>
 								)}
 							/>
+
+							<FormField
+								control={form.control}
+								name="limit"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Inventory Cap (Optional)</FormLabel>
+										<FormControl>
+											<Input
+												type="number"
+												step="1"
+												min="1"
+												placeholder="Leave blank for unlimited"
+												value={field.value ?? ""}
+												onChange={(e) => {
+													const val =
+														e.target.value === ""
+															? undefined
+															: parseInt(e.target.value);
+													field.onChange(val);
+												}}
+											/>
+										</FormControl>
+										<p className="text-sm text-muted-foreground">
+											Maximum number that can be sold. Can only be
+											increased once set.
+										</p>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
 						</div>
 						<DialogFooter>
 							<Button type="submit">

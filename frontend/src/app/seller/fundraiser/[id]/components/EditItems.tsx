@@ -26,6 +26,7 @@ export const DEFAULT_ITEM_VALUES = {
 	price: 0,
 	imageUrl: undefined,
 	offsale: false,
+	limit: undefined,
 };
 
 export function FundraiserEditItemsForm({
@@ -79,6 +80,7 @@ export function FundraiserEditItemsForm({
 			price: item.price,
 			imageUrl: item.imageUrl ?? undefined,
 			offsale: item.offsale,
+			limit: item.limit ?? undefined,
 		});
 		setOpen(true);
 	};

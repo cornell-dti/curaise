@@ -64,9 +64,10 @@ export function EditFundraiserModal({
 	const [formFundraiserItems, setFormFundraiserItems] = useState<
 		z.infer<typeof CreateFundraiserItemBody>[]
 	>(
-		currentFundraiserItems.map(({ id, imageUrl, ...rest }) => ({
+		currentFundraiserItems.map(({ id, imageUrl, limit, ...rest }) => ({
 			...rest,
 			imageUrl: imageUrl ?? undefined,
+			limit: limit ?? undefined,
 		}))
 	);
 
@@ -230,9 +231,10 @@ export function EditFundraiserModal({
 
 	useEffect(() => {
 		setFormFundraiserItems(
-			fundraiserItems.map(({ id, imageUrl, ...rest }) => ({
+			fundraiserItems.map(({ id, imageUrl, limit, ...rest }) => ({
 				...rest,
 				imageUrl: imageUrl ?? undefined,
+				limit: limit ?? undefined,
 			}))
 		);
 	}, [fundraiserItems]);
