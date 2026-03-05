@@ -433,6 +433,23 @@ export const deleteReferral = async (referralId: string) => {
   return referral;
 };
 
+export const getFundraiserItemsWithAvailability = async (
+  fundraiserId: string
+) => {
+  const items = await getFundraiserItems(fundraiserId);
+  const itemIds = items.map((i) => i.id);
+  const confirmedCounts = await getItemsConfirmedCounts(itemIds);
+
+  return items.map((item) => ({
+    ...item,
+    confirmedCount: confirmedCounts.get(item.id) ?? 0,
+    available:
+      item.limit !== null
+        ? item.limit - (confirmedCounts.get(item.id) ?? 0)
+        : null,
+  }));
+};
+
 /**
  * Get confirmed quantity sold for a specific item
  * Only counts orders with paymentStatus === "CONFIRMED"

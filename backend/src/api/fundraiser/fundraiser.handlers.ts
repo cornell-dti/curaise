@@ -28,6 +28,7 @@ import {
   getReferral,
   approveReferral,
   deleteReferral,
+  getFundraiserItemsWithAvailability,
 } from "./fundraiser.services";
 import {
   AnnouncementSchema,
@@ -850,4 +851,16 @@ export const deleteReferralHandler = async (
   }
 
   res.status(200).json({ message: "Referral deleted successfully" });
+};
+
+export const getFundraiserItemsAvailabilityHandler = async (
+  req: Request<FundraiserRouteParams, any, {}, {}>,
+  res: Response
+) => {
+  const items = await getFundraiserItemsWithAvailability(req.params.id);
+
+  res.status(200).json({
+    message: "Items with availability fetched successfully",
+    data: items,
+  });
 };
