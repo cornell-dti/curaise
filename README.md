@@ -4,6 +4,27 @@
 
 ## Contributors
 
+### Spring 2026
+- Frank Dai (Developer)
+- Olivia Lee (Designer)
+- Chelsea She (Developer)
+- Arsh Singh (TPM)
+- Eric Weng (Developer)
+- Andrew Wilmott (PM)
+- Steven Yu (TPM)
+
+### Fall 2025
+- Lucy Bazezy (Designer)
+- Frank Dai (Developer)
+- Olivia Lee (Designer)
+- Evelyn Mai (Designer)
+- Darian Pan (APM)
+- Chelsea She (Developer)
+- Arsh Singh (TPM)
+- Vicky Wang (PM)
+- Eric Weng (Developer)
+- Steven Yu (TPM)
+
 ### 2024-25
 - Lucy Bazezy (Designer)
 - Frank Dai (Developer)

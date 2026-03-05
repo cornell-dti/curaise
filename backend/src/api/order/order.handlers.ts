@@ -5,6 +5,7 @@ import {
   confirmOrderPayment,
   createOrder,
   getOrder,
+  undoOrderPickup,
 } from "./order.services";
 import { BasicOrderSchema, CompleteOrderSchema, CreateOrderBody } from "common";
 import { getFundraiser } from "../fundraiser/fundraiser.services";
@@ -13,7 +14,7 @@ import { sendOrderConfirmation } from "../../utils/email";
 
 export const getOrderHandler = async (
   req: Request<OrderRouteParams, any, {}, {}>,
-  res: Response
+  res: Response,
 ) => {
   const order = await getOrder(req.params.id);
   if (!order) {
@@ -26,7 +27,7 @@ export const getOrderHandler = async (
     order.buyerId !== res.locals.user!.id &&
     // Check if user is admin of fundraiser's organization
     !order.fundraiser.organization.admins.some(
-      (admin) => admin.id === res.locals.user!.id
+      (admin) => admin.id === res.locals.user!.id,
     )
   ) {
     res.status(403).json({ message: "Unauthorized to view order" });
@@ -46,7 +47,7 @@ export const getOrderHandler = async (
 
 export const createOrderHandler = async (
   req: Request<{}, any, z.infer<typeof CreateOrderBody>, {}>,
-  res: Response
+  res: Response,
 ) => {
   const fundraiser = await getFundraiser(req.body.fundraiserId);
   if (!fundraiser) {
@@ -95,7 +96,7 @@ export const createOrderHandler = async (
 
 export const completeOrderPickupHandler = async (
   req: Request<OrderRouteParams, any, {}, {}>,
-  res: Response
+  res: Response,
 ) => {
   const order = await getOrder(req.params.id);
   if (!order) {
@@ -106,7 +107,7 @@ export const completeOrderPickupHandler = async (
   if (
     // Check if user is admin of fundraiser's organization
     !order.fundraiser.organization.admins.some(
-      (admin) => admin.id === res.locals.user!.id
+      (admin) => admin.id === res.locals.user!.id,
     )
   ) {
     res.status(403).json({ message: "Unauthorized to complete order pickup" });
@@ -132,9 +133,9 @@ export const completeOrderPickupHandler = async (
     .json({ message: "Order pickup completed", data: cleanedOrder });
 };
 
-export const confirmOrderPaymentHandler = async (
+export const undoOrderPickupHandler = async (
   req: Request<OrderRouteParams, any, {}, {}>,
-  res: Response
+  res: Response,
 ) => {
   const order = await getOrder(req.params.id);
   if (!order) {
@@ -145,7 +146,59 @@ export const confirmOrderPaymentHandler = async (
   if (
     // Check if user is admin of fundraiser's organization
     !order.fundraiser.organization.admins.some(
-      (admin) => admin.id === res.locals.user!.id
+      (admin) => admin.id === res.locals.user!.id,
+    )
+  ) {
+    res.status(403).json({ message: "Unauthorized to undo order pickup" });
+    return;
+  }
+
+  // Ensure order is shown as pickedUp
+  if (!order.pickedUp) {
+    res.status(400).json({ message: "Order is not eligible for undo" });
+    return;
+  }
+
+  // Ensure order is trying to be undone within 1 minute
+  const elapsedMs = Date.now() - new Date(order.updatedAt).getTime();
+  if (elapsedMs > 60_000) {
+    res
+      .status(400)
+      .json({ message: "You are no longer eligible to change pickup status." });
+    return;
+  }
+
+  const undoneOrder = await undoOrderPickup(req.params.id);
+  if (!undoneOrder) {
+    res.status(500).json({ message: "Failed to undo order pickup" });
+    return;
+  }
+
+  // remove irrelevant fields from returned order
+  const parsedOrder = BasicOrderSchema.safeParse(undoneOrder);
+  if (!parsedOrder.success) {
+    res.status(500).json({ message: "Couldn't parse order" });
+    return;
+  }
+  const cleanedOrder = parsedOrder.data;
+
+  res.status(200).json({ message: "Order pickup undone", data: cleanedOrder });
+};
+
+export const confirmOrderPaymentHandler = async (
+  req: Request<OrderRouteParams, any, {}, {}>,
+  res: Response,
+) => {
+  const order = await getOrder(req.params.id);
+  if (!order) {
+    res.status(404).json({ message: "Order not found" });
+    return;
+  }
+
+  if (
+    // Check if user is admin of fundraiser's organization
+    !order.fundraiser.organization.admins.some(
+      (admin) => admin.id === res.locals.user!.id,
     )
   ) {
     res.status(403).json({ message: "Unauthorized to confirm order payment" });
