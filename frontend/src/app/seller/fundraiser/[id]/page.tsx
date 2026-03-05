@@ -81,6 +81,12 @@ export default async function FundraiserAnalyticsPage({
     itemPriceMap.set(item.name, Number(item.price));
   });
 
+  // Create a map of item name to limit for cap display
+  const itemLimitMap: Record<string, number | null> = {};
+  items.forEach((item) => {
+    itemLimitMap[item.name] = item.limit ?? null;
+  });
+
   // Calculate revenue per item
   const itemRevenue: Record<string, number> = {};
   Object.entries(analytics.items).forEach(([itemName, count]) => {
@@ -167,7 +173,7 @@ export default async function FundraiserAnalyticsPage({
                 <Receipt />
                 Items Sold
               </div>
-              <ItemsSoldCard items={analytics.items} />
+              <ItemsSoldCard items={analytics.items} itemLimits={itemLimitMap} />
             </div>
           </div>
         </div>
