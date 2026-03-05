@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { usePathname } from "next/navigation";
 import { mutationFetch } from "@/lib/fetcher";
+import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
 
 const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text);
@@ -70,18 +71,14 @@ export function FundraiserReferralCard({
     <div className="w-full">
       <Card className="w-full">
         <CardContent className="py-3">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
             <span className="flex gap-2 items-start">
               <Star />
               <span className="text-md font-semibold">
-                <span className="hidden md:inline">
+                <span className="flex items-center ">
                   [{fundraiser.organization.name} Members Only] Become a
-                  Referrer
-                </span>
-                <span className="inline md:hidden">
-                  [{fundraiser.organization.name} Members Only]
-                  <br />
-                  Become a Referrer
+                  Referrer{" "}
+                  <InfoTooltip content="Once you sign up and get verified as a referrer, other users can add you as a referrer in their orders. You can also send other users a custom referral link that will automatically add you as a referrer for that order. " />
                 </span>
               </span>
             </span>
@@ -98,7 +95,7 @@ export function FundraiserReferralCard({
             ) : (
               <Button
                 disabled={isPast}
-                className="cursor-pointer font-light text-sm md:text-md"
+                className="cursor-pointer font-light text-sm lg:text-md lg:mt-0 w-full lg:w-auto"
                 onClick={() => copyToClipboard(link)}
               >
                 Copy Referral Link

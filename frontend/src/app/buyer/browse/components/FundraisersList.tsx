@@ -21,7 +21,7 @@ import Image from "next/image";
 import { isPast } from "date-fns";
 
 type FilterType = "all" | "pickup-today";
-type CategoryType = "desserts" | "food" | "crafts" | "drinks" | "all";
+// type CategoryType = "desserts" | "food" | "crafts" | "drinks" | "all";
 
 interface FundraisersListProps {
   fundraisers: z.infer<typeof BasicFundraiserSchema>[];
@@ -33,7 +33,7 @@ export function FundraisersList({
   searchQuery = "",
 }: FundraisersListProps) {
   const [filter, setFilter] = useState<FilterType>("all");
-  const [category, setCategory] = useState<CategoryType>("desserts");
+  // const [category, setCategory] = useState<CategoryType>("desserts");
   const [sortOpen, setSortOpen] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState("All Fundraisers");
 
@@ -62,7 +62,6 @@ export function FundraisersList({
     if (filter === "pickup-today") {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-
       filtered = filtered.filter((fundraiser) =>
         fundraiser.pickupEvents.some((event) => {
           const eventDate = new Date(event.startsAt);
@@ -74,14 +73,13 @@ export function FundraisersList({
 
     return filtered;
   }, [fundraisers, filter, searchQuery]);
-
   // TODO This isn't actually used yet, but should be in the future; just adding to match Figma design right now
-  const categories = [
-    { id: "desserts" as CategoryType, label: "Desserts", icon: Lollipop },
-    { id: "food" as CategoryType, label: "Food", icon: Utensils },
-    { id: "crafts" as CategoryType, label: "Crafts", icon: Scissors },
-    { id: "drinks" as CategoryType, label: "Drinks", icon: CupSoda },
-  ];
+  // const categories = [
+  // 	{ id: "desserts" as CategoryType, label: "Desserts", icon: Lollipop },
+  // 	{ id: "food" as CategoryType, label: "Food", icon: Utensils },
+  // 	{ id: "crafts" as CategoryType, label: "Crafts", icon: Scissors },
+  // 	{ id: "drinks" as CategoryType, label: "Drinks", icon: CupSoda },
+  // ];
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -94,7 +92,7 @@ export function FundraisersList({
         <div className="flex flex-col gap-3 w-full">
           {/* Category Filters - Horizontal scroll on mobile */}
           <div className="flex gap-3 items-center overflow-x-auto md:overflow-x-visible -mt-8 md:mt-0 pb-4 pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
-            {categories.map((cat) => {
+            {/* {categories.map((cat) => {
               const Icon = cat.icon;
               const isActive = category === cat.id;
               return (
@@ -113,7 +111,7 @@ export function FundraisersList({
                   </span>
                 </button>
               );
-            })}
+            })} */}
           </div>
           {/* Sort By Dropdown */}
           <div className="flex gap-3 items-center">
