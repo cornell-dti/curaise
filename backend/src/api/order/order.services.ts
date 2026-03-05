@@ -339,6 +339,7 @@ export const getUnremindedUnpaidOrders = async () => {
   return prisma.order.findMany({
     where: {
       paymentStatus: "PENDING",
+      paymentMethod: "VENMO",
       createdAt: {
         gte: twoHoursAgo,
         lte: oneHourAgo,
