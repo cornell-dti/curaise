@@ -69,7 +69,7 @@ export default async function OrderPage({
 		.reduce(
 			(total, item) =>
 				total.plus(Decimal(item.item.price).times(item.quantity)),
-			new Decimal(0)
+			new Decimal(0),
 		)
 		.toFixed(2);
 
@@ -142,10 +142,10 @@ export default async function OrderPage({
 				</div>
 			</div>
 
-			<div className="grid gap-6 md:grid-cols-3 md:auto-rows-min">
+			<div className="grid gap-6 lg:grid-cols-3 lg:auto-rows-min">
 				{/* Row 1, Column 1 - Payment Banner (1/3 width) */}
 				<Card
-					className={`${bannerStyle.borderColor} order-1 md:order-none md:row-start-1 md:col-start-1`}>
+					className={`${bannerStyle.borderColor} order-1 lg:order-none lg:row-start-1 lg:col-start-1`}>
 					<CardHeader className="py-6">
 						<CardTitle className={bannerStyle.textColor}>
 							{bannerStyle.title}
@@ -169,7 +169,7 @@ export default async function OrderPage({
 												href={`https://venmo.com/${
 													fundraiser.venmoUsername
 												}?txn=pay&note=${encodeURIComponent(
-													orderIdForPayment
+													orderIdForPayment,
 												)}&amount=${encodeURIComponent(orderTotal)}`}
 												target="_blank"
 												rel="noopener noreferrer">
@@ -243,12 +243,12 @@ export default async function OrderPage({
 				</Card>
 
 				{/* Row 1, Column 2-3 - Order Summary (spans 2 columns for 2/3 width) */}
-				<Card className="order-4 md:order-none md:row-start-1 md:col-start-2 md:col-span-2">
+				<Card className="order-4 lg:order-none lg:row-start-1 lg:col-start-2 lg:col-span-2">
 					<CardHeader>
 						<CardTitle>Order Summary</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+						<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 							{/* Pickup Details Section */}
 							<div className="space-y-3">
 								<h3 className="font-semibold text-base">Pickup Details</h3>
@@ -258,7 +258,7 @@ export default async function OrderPage({
 										<span className="text-sm font-medium">
 											{format(
 												order.fundraiser.pickupEvents[0].startsAt,
-												"EEEE, M/d/yyyy"
+												"EEEE, M/d/yyyy",
 											)}
 										</span>
 									</div>
@@ -312,7 +312,7 @@ export default async function OrderPage({
 				</Card>
 
 				{/* Row 2, Column 3 - Order Items */}
-				<Card className="order-3 md:order-none md:row-start-2 md:col-start-3">
+				<Card className="order-3 lg:order-none lg:row-start-2 lg:col-start-3">
 					<CardHeader>
 						<CardTitle>Order Items</CardTitle>
 					</CardHeader>
@@ -363,7 +363,7 @@ export default async function OrderPage({
 				</Card>
 
 				{/* Row 2, Column 1-2 - QR Code (spans 2 columns for 2/3 width) */}
-				<Card className="order-2 md:order-none md:row-start-2 md:col-start-1 md:col-span-2">
+				<Card className="order-2 lg:order-none lg:row-start-2 lg:col-start-1 lg:col-span-2">
 					<CardHeader>
 						<CardTitle>Venmo QR Code</CardTitle>
 						<CardDescription>

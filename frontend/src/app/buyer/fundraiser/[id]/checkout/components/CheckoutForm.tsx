@@ -47,6 +47,7 @@ import { User } from "lucide-react";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
@@ -72,13 +73,13 @@ export function CheckoutForm({
   const { items } = useFundraiserItems(fundraiser.id);
   const [selectedReferralId, setSelectedReferralId] = useState<string>("none");
   const [paymentMethod, setPaymentMethod] = useState<"VENMO" | "OTHER">(
-    "VENMO"
+    "VENMO",
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isReferralSheetOpen, setIsReferralSheetOpen] = useState(false);
   const [referralSearch, setReferralSearch] = useState("");
   const [pendingReferralId, setPendingReferralId] = useState<string | null>(
-    null
+    null,
   );
 
   // Merge cart items with fetched items to get latest imageUrl
@@ -103,7 +104,7 @@ export function CheckoutForm({
     .reduce(
       (total, item) =>
         total.plus(Decimal(item.item.price).times(item.quantity)),
-      new Decimal(0)
+      new Decimal(0),
     )
     .toFixed(2);
 
@@ -145,7 +146,9 @@ export function CheckoutForm({
         "/buyer/order/" + (result.data as { id: string }).id + "/submitted?fromCheckout=true"
       );
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to create order");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to create order",
+      );
       setIsSubmitting(false);
     }
   }
@@ -425,10 +428,14 @@ export function CheckoutForm({
               className="rounded-t-[40px] pb-6 pt-6 px-5 h-[80vh] flex flex-col"
             >
               <SheetHeader className="mb-4">
-                <div className="flex items-center justify-center w-full relative">
+                <div className="flex flex-col items-center justify-center w-full relative">
                   <SheetTitle className="text-[18px] font-semibold leading-[27px] text-center w-full">
                     Who referred you?
                   </SheetTitle>
+                  <SheetDescription className="text-sm">
+                    Click on the person who referred your order. If no one
+                    referred you, feel free to click out.{" "}
+                  </SheetDescription>
                 </div>
               </SheetHeader>
 
@@ -458,13 +465,13 @@ export function CheckoutForm({
                     (referral) =>
                       referral.referrer.name
                         .toLowerCase()
-                        .includes(referralSearch.toLowerCase())
+                        .includes(referralSearch.toLowerCase()),
                   );
                   const filteredUnapproved = unapprovedReferrals.filter(
                     (referral) =>
                       referral.referrer.name
                         .toLowerCase()
-                        .includes(referralSearch.toLowerCase())
+                        .includes(referralSearch.toLowerCase()),
                   );
 
                   return (
@@ -596,7 +603,7 @@ export function CheckoutForm({
                           {fundraiser.pickupEvents
                             .sort(
                               (a, b) =>
-                                a.startsAt.getTime() - b.startsAt.getTime()
+                                a.startsAt.getTime() - b.startsAt.getTime(),
                             )
                             .map((event, index) => (
                               <div key={event.id}>

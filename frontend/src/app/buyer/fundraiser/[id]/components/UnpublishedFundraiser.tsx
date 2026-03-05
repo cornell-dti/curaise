@@ -7,8 +7,10 @@ import { z } from "zod";
 
 export function UnpublishedFundraiser({
   fundraiser,
+  caption,
 }: {
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
+  caption: string;
 }) {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 space-y-6 text-center">
@@ -17,10 +19,7 @@ export function UnpublishedFundraiser({
         <h1 className="text-4xl md:text-5xl font-bold text-foreground text-balance">
           Coming Soon
         </h1>
-        <p className="text-lg text-muted-foreground">
-          {fundraiser.organization.name} is currently still working on this
-          fundraiser. Check back soon!
-        </p>
+        <p className="text-lg text-muted-foreground">{caption}</p>
       </div>
     </div>
   );
