@@ -424,6 +424,98 @@ export const deleteReferral = async (referralId: string) => {
   return referral;
 };
 
+/**
+ * Get confirmed quantity sold for a specific item
+ * Only counts orders with paymentStatus === "CONFIRMED"
+ */
+export const getItemConfirmedCount = async (itemId: string): Promise<number> => {
+  const result = await prisma.orderItems.aggregate({
+    where: {
+      itemId,
+      order: {
+        paymentStatus: "CONFIRMED",
+      },
+    },
+    _sum: {
+      quantity: true,
+    },
+  });
+
+  return result._sum.quantity ?? 0;
+};
+
+/**
+ * Get confirmed counts for multiple items (bulk operation)
+ */
+export const getItemsConfirmedCounts = async (
+  itemIds: string[]
+): Promise<Map<string, number>> => {
+  if (itemIds.length === 0) {
+    return new Map();
+  }
+
+  const results = await prisma.orderItems.groupBy({
+    by: ["itemId"],
+    where: {
+      itemId: { in: itemIds },
+      order: {
+        paymentStatus: "CONFIRMED",
+      },
+    },
+    _sum: {
+      quantity: true,
+    },
+  });
+
+  const countsMap = new Map<string, number>();
+  itemIds.forEach((id) => countsMap.set(id, 0));
+  results.forEach((result) => {
+    countsMap.set(result.itemId, result._sum.quantity ?? 0);
+  });
+
+  return countsMap;
+};
+
+/**
+ * Validate that a cap update is allowed
+ * Rules: can always remove cap, can increase, cannot decrease, new cap >= confirmed count
+ */
+export const validateCapUpdate = async (
+  itemId: string,
+  newLimit: number | null
+): Promise<{ valid: boolean; reason?: string; confirmedCount?: number }> => {
+  if (newLimit === null) {
+    return { valid: true };
+  }
+
+  const item = await prisma.item.findUnique({
+    where: { id: itemId },
+    select: { limit: true },
+  });
+
+  if (!item) {
+    return { valid: false, reason: "Item not found" };
+  }
+
+  if (item.limit !== null && newLimit < item.limit) {
+    return {
+      valid: false,
+      reason: `Limit cannot decrease from ${item.limit} to ${newLimit}`,
+    };
+  }
+
+  const confirmedCount = await getItemConfirmedCount(itemId);
+  if (newLimit < confirmedCount) {
+    return {
+      valid: false,
+      reason: `Limit cannot be set below confirmed count. Already sold: ${confirmedCount}`,
+      confirmedCount,
+    };
+  }
+
+  return { valid: true };
+};
+
 export interface FundraiserAnalytics {
   total_revenue: number;
   total_orders: number;
