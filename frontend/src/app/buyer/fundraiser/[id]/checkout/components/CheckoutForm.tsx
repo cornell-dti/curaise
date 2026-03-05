@@ -48,6 +48,7 @@ import { User } from "lucide-react";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
@@ -431,10 +432,14 @@ export function CheckoutForm({
               className="rounded-t-[40px] pb-6 pt-6 px-5 h-[80vh] flex flex-col"
             >
               <SheetHeader className="mb-4">
-                <div className="flex items-center justify-center w-full relative">
+                <div className="flex flex-col items-center justify-center w-full relative">
                   <SheetTitle className="text-[18px] font-semibold leading-[27px] text-center w-full">
                     Who referred you?
                   </SheetTitle>
+                  <SheetDescription className="text-sm">
+                    Click on the person who referred your order. If no one
+                    referred you, feel free to click out.{" "}
+                  </SheetDescription>
                 </div>
               </SheetHeader>
 
