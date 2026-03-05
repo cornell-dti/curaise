@@ -6,7 +6,6 @@ import {
   createOrder,
   getOrder,
   getUnremindedUnpaidOrders,
-  markPaymentReminderSent,
 } from "./order.services";
 import { BasicOrderSchema, CompleteOrderSchema, CreateOrderBody } from "common";
 import { getFundraiser } from "../fundraiser/fundraiser.services";
@@ -191,7 +190,6 @@ export const sendPaymentRemindersHandler = async (
 
     try {
       await sendPaymentReminderEmail(parsed.data);
-      await markPaymentReminderSent(order.id);
       sent++;
     } catch (error) {
       console.error(`Failed to send payment reminder for order ${order.id}:`, error);

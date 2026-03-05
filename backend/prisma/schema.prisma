@@ -138,7 +138,6 @@ model Order {
   paymentMethod         PaymentMethod @map("payment_method")
   paymentStatus         PaymentStatus @map("payment_status")
   pickedUp              Boolean       @default(false) @map("picked_up")
-  paymentReminderSentAt DateTime?     @map("payment_reminder_sent_at")
   createdAt             DateTime      @default(now()) @map("created_at")
   updatedAt             DateTime      @updatedAt @map("updated_at")
 

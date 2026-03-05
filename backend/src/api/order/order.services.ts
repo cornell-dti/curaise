@@ -238,7 +238,7 @@ export const confirmOrderPayment = async (orderId: string) => {
 };
 
 /**
- * Find unpaid orders created 1-2 hours ago that haven't been reminded yet
+ * Find unpaid orders created 1-2 hours ago
  */
 export const getUnremindedUnpaidOrders = async () => {
   const now = new Date();
@@ -248,7 +248,6 @@ export const getUnremindedUnpaidOrders = async () => {
   return prisma.order.findMany({
     where: {
       paymentStatus: "PENDING",
-      paymentReminderSentAt: null,
       createdAt: {
         gte: twoHoursAgo,
         lte: oneHourAgo,
@@ -283,16 +282,6 @@ export const getUnremindedUnpaidOrders = async () => {
         },
       },
     },
-  });
-};
-
-/**
- * Mark an order as having been sent a payment reminder
- */
-export const markPaymentReminderSent = async (orderId: string) => {
-  return prisma.order.update({
-    where: { id: orderId },
-    data: { paymentReminderSentAt: new Date() },
   });
 };
 
