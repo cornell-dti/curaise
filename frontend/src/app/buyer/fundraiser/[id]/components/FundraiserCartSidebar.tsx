@@ -6,6 +6,7 @@ import useStore from "@/lib/store/useStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useMemo } from "react";
 
 export function FundraiserCartSidebar({
   fundraiserId,
@@ -22,13 +23,17 @@ export function FundraiserCartSidebar({
   const cartItems = cart || [];
   const isEmpty = cartItems.length === 0;
 
-  const totalItems = cartItems.reduce((sum, cartItem) => {
-    return sum + cartItem.quantity;
-  }, 0);
+  const totalItems = useMemo(() => {
+    return cartItems.reduce((sum, cartItem) => {
+      return sum + cartItem.quantity;
+    }, 0);
+  }, [cartItems]);
 
-  const totalPrice = cartItems.reduce((sum, cartItem) => {
-    return sum + Number(cartItem.item.price) * cartItem.quantity;
-  }, 0);
+  const totalPrice = useMemo(() => {
+    return cartItems.reduce((sum, cartItem) => {
+      return sum + Number(cartItem.item.price) * cartItem.quantity;
+    }, 0);
+  }, [cartItems]);
 
   const handleCheckout = () => {
     if (isEmpty) return;

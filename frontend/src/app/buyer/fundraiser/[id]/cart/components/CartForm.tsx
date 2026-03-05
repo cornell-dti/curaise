@@ -1,7 +1,7 @@
 "use client";
 
 import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ChevronLeft, Plus, Trash } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
@@ -58,13 +58,15 @@ export function CartForm({ code }: { code: string }) {
     };
   });
 
-  const totalPrice = cartWithImages
-    .reduce(
-      (total, item) =>
-        total.plus(Decimal(item.item.price).times(item.quantity)),
-      new Decimal(0),
-    )
-    .toFixed(2);
+  const totalPrice = useMemo(() => {
+    return cartWithImages
+      .reduce(
+        (total, item) =>
+          total.plus(new Decimal(item.item.price).times(item.quantity)),
+        new Decimal(0),
+      )
+      .toFixed(2);
+  }, [cartWithImages]);
 
   const handleIncrement = (item: typeof CompleteItemSchema._type) => {
     const cartItem = cartWithImages.find((ci) => ci.item.id === item.id);
