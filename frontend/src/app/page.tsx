@@ -1,5 +1,6 @@
 import { SignInWithGoogleButton } from "../components/auth/SignInWithGoogleButton";
 import Image from "next/image";
+import Link from "next/link";
 import loginPhone from "../../public/images/login-phone.png";
 import loginLineChart from "../../public/images/login-line-chart.png";
 import { createClient } from "@/utils/supabase/server";
@@ -55,6 +56,11 @@ export default async function LoginPage() {
             />
           </div>
         </div>
+      </div>
+      <div className="absolute bottom-4 w-full text-center text-xs text-gray-400">
+        <Link href="/privacy-policy" className="hover:underline">
+          Privacy Policy
+        </Link>
       </div>
     </div>
   );

@@ -38,77 +38,81 @@ import {
   deleteReferralHandler,
 } from "./fundraiser.handlers";
 import { authenticate } from "../../middleware/authenticate";
+import {
+  asyncHandler,
+  handlePrismaErrors,
+} from "../../middleware/handlePrismaErrors";
 
 const fundraiserRouter = Router();
 
-fundraiserRouter.get("/", getAllFundraisersHandler);
+fundraiserRouter.get("/", asyncHandler(getAllFundraisersHandler));
 
 fundraiserRouter.get(
   "/:id",
   validate({ params: FundraiserRouteParams }),
-  getFundraiserHandler
+  asyncHandler(getFundraiserHandler)
 );
 
 fundraiserRouter.get(
   "/:id/items",
   validate({ params: FundraiserRouteParams }),
-  getFundraiserItemsHandler
+  asyncHandler(getFundraiserItemsHandler)
 );
 
 fundraiserRouter.get(
   "/:id/orders",
   validate({ params: FundraiserRouteParams }),
   authenticate,
-  getFundraiserOrdersHandler
+  asyncHandler(getFundraiserOrdersHandler)
 );
 
 fundraiserRouter.post(
   "/create",
   validate({ body: CreateFundraiserBody }),
   authenticate,
-  createFundraiserHandler
+  asyncHandler(createFundraiserHandler)
 );
 
 fundraiserRouter.post(
   "/:id/update",
   validate({ params: FundraiserRouteParams, body: UpdateFundraiserBody }),
   authenticate,
-  updateFundraiserHandler
+  asyncHandler(updateFundraiserHandler)
 );
 
 fundraiserRouter.post(
   "/:id/publish",
   validate({ params: FundraiserRouteParams }),
   authenticate,
-  publishFundraiserHandler
+  asyncHandler(publishFundraiserHandler)
 );
 
 fundraiserRouter.post(
   "/:id/pickup-events/create",
   validate({ params: FundraiserRouteParams, body: CreatePickupEventBody }),
   authenticate,
-  createPickupEventHandler
+  asyncHandler(createPickupEventHandler)
 );
 
 fundraiserRouter.post(
   "/:fundraiserId/pickup-events/:pickupEventId/update",
   validate({ params: PickupEventRouteParams, body: UpdatePickupEventBody }),
   authenticate,
-  updatePickupEventHandler
+  asyncHandler(updatePickupEventHandler)
 );
 
 fundraiserRouter.delete(
   "/:fundraiserId/pickup-events/:pickupEventId/delete",
   validate({ params: PickupEventRouteParams }),
   authenticate,
-  deletePickupEventHandler
+  asyncHandler(deletePickupEventHandler)
 );
 
 fundraiserRouter.post(
   "/:id/items/create",
   validate({ params: FundraiserRouteParams, body: CreateFundraiserItemBody }),
   authenticate,
-  createFundraiserItemHandler
+  asyncHandler(createFundraiserItemHandler)
 );
 
 fundraiserRouter.post(
@@ -118,7 +122,7 @@ fundraiserRouter.post(
     body: UpdateFundraiserItemBody,
   }),
   authenticate,
-  updateFundraiserItemHandler
+  asyncHandler(updateFundraiserItemHandler)
 );
 
 fundraiserRouter.delete(
@@ -127,28 +131,28 @@ fundraiserRouter.delete(
     params: FundraiserItemRouteParams,
   }),
   authenticate,
-  deleteFundraiserItemHandler
+  asyncHandler(deleteFundraiserItemHandler)
 );
 
 fundraiserRouter.post(
   "/:id/announcements/create",
   validate({ params: FundraiserRouteParams, body: CreateAnnouncementBody }),
   authenticate,
-  createAnnouncementHandler
+  asyncHandler(createAnnouncementHandler)
 );
 
 fundraiserRouter.delete(
   "/:fundraiserid/announcements/:announcementid/delete",
   validate({ params: DeleteAnnouncementRouteParams }),
   authenticate,
-  deleteAnnouncementHandler
+  asyncHandler(deleteAnnouncementHandler)
 );
 
 fundraiserRouter.get(
   "/:id/analytics",
   validate({ params: FundraiserRouteParams }),
   authenticate,
-  getFundraiserAnalyticsHandler
+  asyncHandler(getFundraiserAnalyticsHandler)
 );
 
 // Create a referral request
@@ -156,7 +160,7 @@ fundraiserRouter.post(
   "/:id/referrals",
   validate({ params: FundraiserRouteParams }),
   authenticate,
-  createReferralHandler
+  asyncHandler(createReferralHandler)
 );
 
 // Approve a referral request (admin only)
@@ -164,7 +168,7 @@ fundraiserRouter.post(
   "/:fundraiserId/referrals/:referralId/approve",
   validate({ params: ApproveReferralRouteParams }),
   authenticate,
-  approveReferralHandler
+  asyncHandler(approveReferralHandler)
 );
 
 // Delete a referral (admin only)
@@ -172,7 +176,9 @@ fundraiserRouter.delete(
   "/:fundraiserId/referrals/:referralId/delete",
   validate({ params: ApproveReferralRouteParams }),
   authenticate,
-  deleteReferralHandler
+  asyncHandler(deleteReferralHandler)
 );
+
+fundraiserRouter.use(handlePrismaErrors);
 
 export default fundraiserRouter;

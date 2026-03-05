@@ -1,6 +1,5 @@
 "use client";
 
-import { redirect } from "next/navigation";
 import { CreateOrganizationBody } from "common";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -10,8 +9,11 @@ import { mutationFetch } from "@/lib/fetcher";
 import { OrganizationBasicInfoForm } from "./OrganizationBasicInfoForm";
 import { OrganizationAddAdminsForm } from "./OrganizationAddAdminsForm";
 import { ReviewOrganizationForm } from "./ReviewOrganizationForm";
+import { useRouter } from "next/navigation";
 
 export function CreateOrganizationForm({ token }: { token: string }) {
+  const router = useRouter();
+
   const [adminEmails, setAdminEmails] = useState<string[]>([]);
 
   const [formData, setFormData] = useState<
@@ -37,9 +39,11 @@ export function CreateOrganizationForm({ token }: { token: string }) {
         body: dataToSubmit,
       });
       toast.success(result.message);
-      redirect("/seller/org/" + (result.data as { id: string }).id);
+      router.push("/seller/org/" + (result.data as { id: string }).id);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Something went wrong");
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong",
+      );
       return;
     }
   }
