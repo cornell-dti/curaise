@@ -162,6 +162,14 @@ export function ItemDialog({
 		form.reset(DEFAULT_ITEM_VALUES);
 	};
 
+	const currentItem = editingIndex !== null ? items[editingIndex] : null;
+	const isRealPublishedItem =
+		isPublished && currentItem && !currentItem.id.startsWith("temp-");
+	// For published items with no existing limit, the limit field is locked
+	const limitLocked = isRealPublishedItem && currentItem.limit == null;
+	// For published items with an existing limit, can only increase
+	const limitIncreaseOnly = isRealPublishedItem && currentItem.limit != null;
+
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogContent className="max-w-2xl">
@@ -269,8 +277,13 @@ export function ItemDialog({
 											<Input
 												type="number"
 												step="1"
-												min="1"
-												placeholder="Leave blank for unlimited"
+												min={limitIncreaseOnly ? currentItem.limit! : 1}
+												placeholder={
+													limitLocked
+														? "Unlimited (cannot be changed)"
+														: "Leave blank for unlimited"
+												}
+												disabled={!!limitLocked}
 												value={field.value ?? ""}
 												onChange={(e) => {
 													const val =
@@ -282,8 +295,11 @@ export function ItemDialog({
 											/>
 										</FormControl>
 										<p className="text-sm text-muted-foreground">
-											Maximum number that can be sold. Can be increased
-											or removed, but not decreased.
+											{limitLocked
+												? "This item has no cap and cannot have one added after publishing."
+												: limitIncreaseOnly
+													? `Cap can only be increased (current: ${currentItem.limit}).`
+													: "Maximum number that can be sold. Can be set or increased, but not decreased."}
 										</p>
 										<FormMessage />
 									</FormItem>

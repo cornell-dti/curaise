@@ -452,14 +452,14 @@ export const getFundraiserItemsWithAvailability = async (
 
 /**
  * Get confirmed quantity sold for a specific item
- * Only counts orders with paymentStatus === "CONFIRMED"
+ * Counts orders that are CONFIRMED or have been picked up
  */
 export const getItemConfirmedCount = async (itemId: string): Promise<number> => {
   const result = await prisma.orderItems.aggregate({
     where: {
       itemId,
       order: {
-        paymentStatus: "CONFIRMED",
+        OR: [{ paymentStatus: "CONFIRMED" }, { pickedUp: true }],
       },
     },
     _sum: {
@@ -485,7 +485,7 @@ export const getItemsConfirmedCounts = async (
     where: {
       itemId: { in: itemIds },
       order: {
-        paymentStatus: "CONFIRMED",
+        OR: [{ paymentStatus: "CONFIRMED" }, { pickedUp: true }],
       },
     },
     _sum: {
@@ -512,22 +512,6 @@ export const validateCapUpdate = async (
 ): Promise<{ valid: boolean; reason?: string; confirmedCount?: number }> => {
   if (newLimit === null) {
     return { valid: true };
-  }
-
-  const item = await prisma.item.findUnique({
-    where: { id: itemId },
-    select: { limit: true },
-  });
-
-  if (!item) {
-    return { valid: false, reason: "Item not found" };
-  }
-
-  if (item.limit !== null && newLimit < item.limit) {
-    return {
-      valid: false,
-      reason: `Limit cannot decrease from ${item.limit} to ${newLimit}`,
-    };
   }
 
   const confirmedCount = await getItemConfirmedCount(itemId);

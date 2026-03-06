@@ -4,7 +4,6 @@ import { z } from "zod";
 import {
   updateCacheForNewOrder,
   updateCacheForOrderPickup,
-  getItemsConfirmedCounts,
 } from "../fundraiser/fundraiser.services";
 import { Decimal } from "decimal.js";
 
@@ -81,7 +80,24 @@ export const createOrder = async (
         select: { id: true, limit: true, name: true },
       });
 
-      const confirmedCounts = await getItemsConfirmedCounts(itemIds);
+      // Query confirmed counts inside the transaction so the Serializable
+      // isolation level actually covers both the read and the write.
+      // Count orders that are either CONFIRMED or have been picked up.
+      const confirmedResults = await tx.orderItems.groupBy({
+        by: ["itemId"],
+        where: {
+          itemId: { in: itemIds },
+          order: {
+            OR: [{ paymentStatus: "CONFIRMED" }, { pickedUp: true }],
+          },
+        },
+        _sum: { quantity: true },
+      });
+      const confirmedCounts = new Map<string, number>();
+      itemIds.forEach((id) => confirmedCounts.set(id, 0));
+      confirmedResults.forEach((r) => {
+        confirmedCounts.set(r.itemId, r._sum.quantity ?? 0);
+      });
 
       for (const orderItem of orderBody.items) {
         const item = items.find((i) => i.id === orderItem.itemId);
