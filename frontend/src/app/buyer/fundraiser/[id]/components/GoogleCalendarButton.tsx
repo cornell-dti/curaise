@@ -9,7 +9,7 @@ const createGoogleCalendarLink = (
   location: string,
   start: Date,
   end: Date,
-  description?: string
+  description?: string,
 ) => {
   const startStr = start.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
   const endStr = end.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
@@ -27,19 +27,21 @@ const createGoogleCalendarLink = (
 export function GoogleCalendarButton({
   fundraiser,
   pickupEvent,
+  isPast,
 }: {
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
   pickupEvent: z.infer<typeof PickupEventSchema>;
+  isPast: boolean;
 }) {
   const handleAddToCalendar = (
-    pickupEvent: z.infer<typeof PickupEventSchema>
+    pickupEvent: z.infer<typeof PickupEventSchema>,
   ) => {
     const title = `[${fundraiser.organization.name}] ${fundraiser.name} Pick Up`;
     const customURL = createGoogleCalendarLink(
       title,
       pickupEvent.location,
       pickupEvent.startsAt,
-      pickupEvent.endsAt
+      pickupEvent.endsAt,
     );
     const newTab = window.open(customURL, "_blank");
     if (newTab) newTab.focus();
@@ -47,6 +49,7 @@ export function GoogleCalendarButton({
 
   return (
     <Button
+      disabled={isPast}
       onClick={() => handleAddToCalendar(pickupEvent)}
       variant="default"
       className="flex g-2 max-w-[120px] rounded-xl md:rounded-md"

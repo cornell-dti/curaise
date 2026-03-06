@@ -11,9 +11,11 @@ import { useMemo } from "react";
 export function FundraiserCartSidebar({
   fundraiserId,
   referralId,
+  isPast,
 }: {
   fundraiserId: string;
   referralId: string;
+  isPast: boolean;
 }) {
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -100,6 +102,7 @@ export function FundraiserCartSidebar({
                   </span>
                 </div>
                 <Button
+                  disabled={isPast}
                   onClick={handleCheckout}
                   className="w-full h-[50px] rounded-lg"
                 >

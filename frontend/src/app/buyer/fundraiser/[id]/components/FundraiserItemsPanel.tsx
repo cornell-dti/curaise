@@ -1,6 +1,6 @@
 "use client";
 
-import { CompleteItemSchema } from "common";
+import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
 import { z } from "zod";
 import { FundraiserItemModal } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemModal";
 import { FundraiserItemCard } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemCard";
@@ -9,9 +9,11 @@ import useStore from "@/lib/store/useStore";
 import Link from "next/link";
 
 export function FundraiserItemsPanel({
+  isPast,
   fundraiserId,
   items,
 }: {
+  isPast: boolean;
   fundraiserId: string;
   items: z.infer<typeof CompleteItemSchema>[];
 }) {
@@ -49,8 +51,8 @@ export function FundraiserItemsPanel({
         <div className="grid grid-cols-2 gap-6">
           {items.map((item) => {
             const amount =
-              cart?.find((cartItem) => cartItem.item.id === item.id)?.quantity ||
-              0;
+              cart?.find((cartItem) => cartItem.item.id === item.id)
+                ?.quantity || 0;
 
             return (
               <div key={item.id}>
@@ -61,7 +63,7 @@ export function FundraiserItemsPanel({
                     amount={amount}
                     increment={() => handleIncrement(item)}
                     decrement={() => handleDecrement(item)}
-                    fundraiserId={fundraiserId}
+                    isPast={isPast}
                   />
                 </div>
 
@@ -75,6 +77,7 @@ export function FundraiserItemsPanel({
                     amount={amount}
                     increment={() => handleIncrement(item)}
                     decrement={() => handleDecrement(item)}
+                    isPast={isPast}
                   />
                 </Link>
               </div>
