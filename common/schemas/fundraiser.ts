@@ -121,7 +121,7 @@ export const UpdateFundraiserItemBody = z.object({
   price: MoneySchema,
   imageUrl: z.string().url().optional(),
   offsale: z.boolean(),
-  limit: z.number().int().positive().optional(),
+  limit: z.number().int().positive().nullable().optional(),
 });
 
 export const CreateAnnouncementBody = z.object({

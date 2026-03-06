@@ -156,20 +156,27 @@ export function FundraiserEditItemsForm({
 									<p className="text-sm text-gray-500 mt-1">
 										{item.description}
 									</p>
-									<p className="text-sm font-medium mt-2">
-										${Number(item.price).toFixed(2)}
-									</p>
+									<div className="flex items-center gap-3 mt-2">
+										<p className="text-sm font-medium">
+											${Number(item.price).toFixed(2)}
+										</p>
+										{item.limit != null && (
+											<p className="text-sm text-gray-500">
+												Cap: {item.limit}
+											</p>
+										)}
+									</div>
 								</div>
-								{/* Only show X icon if this item is not published or a temporary object */}
-								{(!isPublished || item.id.startsWith("temp-")) && (
-									<div className="flex items-center gap-1">
-										<Button
-											variant="ghost"
-											size="icon"
-											onClick={() => openEditDialog(index)}
-											aria-label="Edit item">
-											<Pencil className="h-4 w-4" />
-										</Button>
+								<div className="flex items-center gap-1">
+									<Button
+										variant="ghost"
+										size="icon"
+										onClick={() => openEditDialog(index)}
+										aria-label="Edit item">
+										<Pencil className="h-4 w-4" />
+									</Button>
+									{/* Only allow removal if unpublished or temp item */}
+									{(!isPublished || item.id.startsWith("temp-")) && (
 										<Button
 											variant="ghost"
 											size="icon"
@@ -177,8 +184,8 @@ export function FundraiserEditItemsForm({
 											aria-label="Remove item">
 											<X className="h-4 w-4" />
 										</Button>
-									</div>
-								)}
+									)}
+								</div>
 							</div>
 						))}
 					</div>

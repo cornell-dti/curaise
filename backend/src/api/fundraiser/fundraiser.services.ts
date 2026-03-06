@@ -318,7 +318,7 @@ export const updateFundraiserItem = async (
       price: itemBody.price,
       imageUrl: itemBody.imageUrl ?? null,
       offsale: itemBody.offsale,
-      limit: itemBody.limit ?? undefined,
+      limit: itemBody.limit !== undefined ? itemBody.limit : undefined,
     },
   });
 

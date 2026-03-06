@@ -1,6 +1,6 @@
 "use client";
 
-import { CompleteItemSchema } from "common";
+import { ItemWithAvailabilitySchema } from "common";
 import { useState, useEffect } from "react";
 import { ChevronLeft, Plus, Minus, ShoppingCart, Trash } from "lucide-react";
 import Link from "next/link";
@@ -9,10 +9,11 @@ import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import { useShallow } from "zustand/react/shallow";
 import { serverFetch } from "@/lib/fetcher";
+import { toast } from "sonner";
 
 const getItem = async (fundraiserId: string, itemId: string) => {
-  const items = await serverFetch(`/fundraiser/${fundraiserId}/items`, {
-    schema: CompleteItemSchema.array(),
+  const items = await serverFetch(`/fundraiser/${fundraiserId}/items/availability`, {
+    schema: ItemWithAvailabilitySchema.array(),
   });
   const item = items.find((i) => i.id === itemId);
   if (!item) {
@@ -27,7 +28,7 @@ export default function ItemPage() {
   const fundraiserId = params.id as string;
   const itemId = params.itemId as string;
 
-  const [item, setItem] = useState<typeof CompleteItemSchema._type | null>(
+  const [item, setItem] = useState<typeof ItemWithAvailabilitySchema._type | null>(
     null
   );
   const [loading, setLoading] = useState(true);
@@ -67,20 +68,27 @@ export default function ItemPage() {
   const handleUpdateCart = () => {
     if (item) {
       if (quantity === 0) {
-        // Remove from cart if quantity is 0
         removeItem(fundraiserId, item);
-      } else if (cartItem) {
-        // Update existing cart item
-        updateQuantity(fundraiserId, item, quantity);
       } else {
-        // Add new item to cart
-        addItem(fundraiserId, item, quantity);
+        if (item.available !== null && quantity > item.available) {
+          toast.error(`Only ${item.available} available for ${item.name}`);
+          return;
+        }
+        if (cartItem) {
+          updateQuantity(fundraiserId, item, quantity);
+        } else {
+          addItem(fundraiserId, item, quantity);
+        }
       }
       router.back();
     }
   };
 
   const handleIncrement = () => {
+    if (item && item.available !== null && quantity + 1 > item.available) {
+      toast.error(`Only ${item.available} available for ${item.name}`);
+      return;
+    }
     setQuantity((prev) => prev + 1);
   };
 
@@ -88,6 +96,7 @@ export default function ItemPage() {
     setQuantity((prev) => Math.max(0, prev - 1));
   };
 
+  const isOutOfStock = item !== null && item.available !== null && item.available <= 0;
   // Button text: "Add to Cart" only if item is not in cart at all, otherwise always "Update Cart"
   const buttonText = cartQuantity === 0 ? "Add to Cart" : "Update Cart";
 
@@ -178,7 +187,8 @@ export default function ItemPage() {
               </p>
               <button
                 onClick={handleIncrement}
-                className="p-0.5 rounded-lg hover:bg-gray-100 transition-colors"
+                className="p-0.5 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled={isOutOfStock}
               >
                 <Plus className="h-[18px] w-[18px] text-black" />
               </button>
@@ -189,10 +199,11 @@ export default function ItemPage() {
         {/* Add/Update Cart Button */}
         <button
           onClick={handleUpdateCart}
-          className="bg-black text-white rounded-lg h-[50px] flex items-center justify-center gap-2 px-12 py-3"
+          disabled={isOutOfStock}
+          className="bg-black text-white rounded-lg h-[50px] flex items-center justify-center gap-2 px-12 py-3 disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
           <span className="text-lg font-normal leading-[27px]">
-            {buttonText}
+            {isOutOfStock ? "Out of Stock" : buttonText}
           </span>
           <ShoppingCart className="h-5 w-5" />
         </button>

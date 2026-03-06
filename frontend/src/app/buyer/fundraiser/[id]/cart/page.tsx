@@ -10,7 +10,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { useFundraiserItems } from "@/hooks/useFundraiserItems";
+import { useItemsAvailability } from "@/hooks/useItemsAvailability";
 import useSWR from "swr";
 import { noAuthFetcher } from "@/lib/fetcher";
 import Decimal from "decimal.js";
@@ -27,7 +27,7 @@ export default function CartPage() {
     fundraiserId ? `/fundraiser/${fundraiserId}` : null,
     noAuthFetcher(CompleteFundraiserSchema)
   );
-  const { items, isLoading: itemsLoading } = useFundraiserItems(fundraiserId);
+  const { items, isLoading: itemsLoading } = useItemsAvailability(fundraiserId);
 
   const loading = fundraiserLoading || itemsLoading;
 
@@ -69,6 +69,11 @@ export default function CartPage() {
   const handleIncrement = (item: typeof CompleteItemSchema._type) => {
     const cartItem = cartWithImages.find((ci) => ci.item.id === item.id);
     if (cartItem) {
+      const availabilityItem = items?.find((i) => i.id === item.id);
+      if (availabilityItem?.available !== null && availabilityItem?.available !== undefined && cartItem.quantity + 1 > availabilityItem.available) {
+        toast.error(`Only ${availabilityItem.available} available for ${item.name}`);
+        return;
+      }
       updateQuantity(fundraiserId, item, cartItem.quantity + 1);
     }
   };

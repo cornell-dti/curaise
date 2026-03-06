@@ -1,9 +1,9 @@
 import useSWR from "swr";
 import { noAuthFetcher } from "@/lib/fetcher";
-import { ItemWithAvailabilitySchema } from "@/lib/schemas/itemAvailability";
+import { ItemWithAvailabilitySchema } from "common";
 
-export { ItemWithAvailabilitySchema } from "@/lib/schemas/itemAvailability";
-export type { ItemWithAvailability } from "@/lib/schemas/itemAvailability";
+export { ItemWithAvailabilitySchema } from "common";
+export type { ItemWithAvailability } from "common";
 
 export function useItemsAvailability(fundraiserId: string | null | undefined) {
   const { data, error, isLoading, mutate } = useSWR(

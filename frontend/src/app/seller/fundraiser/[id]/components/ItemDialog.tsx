@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { SetStateAction } from "react";
 import { Input } from "@/components/ui/input";
 import { Decimal } from "decimal.js";
+import { mutationFetch } from "@/lib/fetcher";
 
 // Type for tracking pending new items
 export type PendingItemChanges = {
@@ -43,6 +44,8 @@ export type OnUpdatePendingItem = (
 ) => void;
 
 export function ItemDialog({
+	token,
+	fundraiserId,
 	open,
 	setOpen,
 	form,
@@ -50,6 +53,7 @@ export function ItemDialog({
 	items,
 	setItems,
 	editingIndex,
+	isPublished,
 	onAddPendingItem,
 	onUpdatePendingItem,
 }: {
@@ -87,6 +91,7 @@ export function ItemDialog({
 				price: new Decimal(item.price),
 				imageUrl: item.imageUrl,
 				offsale: false,
+				limit: item.limit ?? null,
 			};
 			setItems((prev) => [...prev, tempItem]);
 
@@ -103,6 +108,31 @@ export function ItemDialog({
 				return;
 			}
 
+			// If editing a real (non-temp) item on a published fundraiser, call the API directly
+			if (isPublished && !editingItem.id.startsWith("temp-")) {
+				try {
+					await mutationFetch(
+						`/fundraiser/${fundraiserId}/items/${editingItem.id}/update`,
+						{
+							token,
+							body: {
+								name: item.name,
+								description: item.description,
+								price: item.price,
+								imageUrl: item.imageUrl,
+								offsale: editingItem.offsale,
+								limit: item.limit !== undefined ? item.limit : null,
+							},
+						}
+					);
+				} catch (error) {
+					toast.error(
+						`Failed to update item: ${error instanceof Error ? error.message : "Unknown error"}`
+					);
+					return;
+				}
+			}
+
 			// Update item in local state
 			const updatedItem: z.infer<typeof CompleteItemSchema> = {
 				...editingItem,
@@ -110,6 +140,7 @@ export function ItemDialog({
 				description: item.description,
 				price: new Decimal(item.price),
 				imageUrl: item.imageUrl,
+				limit: item.limit !== undefined ? item.limit : null,
 			};
 			setItems((prev) =>
 				prev.map((it, idx) => (idx === editingIndex ? updatedItem : it))
@@ -120,7 +151,11 @@ export function ItemDialog({
 				onUpdatePendingItem(editingItem.id, item);
 			}
 
-			toast.success("Item updated (will be saved when you finalize)");
+			toast.success(
+				isPublished && !editingItem.id.startsWith("temp-")
+					? "Item updated successfully"
+					: "Item updated (will be saved when you finalize)"
+			);
 		}
 
 		setOpen(false);
@@ -247,8 +282,8 @@ export function ItemDialog({
 											/>
 										</FormControl>
 										<p className="text-sm text-muted-foreground">
-											Maximum number that can be sold. Can only be
-											increased once set.
+											Maximum number that can be sold. Can be increased
+											or removed, but not decreased.
 										</p>
 										<FormMessage />
 									</FormItem>

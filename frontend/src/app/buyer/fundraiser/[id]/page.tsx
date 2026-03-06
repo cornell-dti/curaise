@@ -1,6 +1,6 @@
 import { connection } from "next/server";
 import { CompleteFundraiserSchema } from "common";
-import { ItemWithAvailabilitySchema } from "@/lib/schemas/itemAvailability";
+import { ItemWithAvailabilitySchema } from "common";
 import { format } from "date-fns";
 import { MapPin, Calendar, ChevronLeft } from "lucide-react";
 import { FundraiserItemsPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemsPanel";
