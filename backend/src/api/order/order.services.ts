@@ -1,3 +1,4 @@
+import { Prisma } from "../../generated/client";
 import { prisma } from "../../utils/prisma";
 import { CreateOrderBody } from "common";
 import { z } from "zod";
@@ -6,6 +7,77 @@ import {
   updateCacheForOrderPickup,
 } from "../fundraiser/fundraiser.services";
 import { Decimal } from "decimal.js";
+
+const getConfirmedCountsByItem = async (
+  tx: Prisma.TransactionClient,
+  itemIds: string[],
+  excludeOrderId?: string
+) => {
+  if (itemIds.length === 0) {
+    return new Map<string, number>();
+  }
+
+  const results = await tx.orderItems.groupBy({
+    by: ["itemId"],
+    where: {
+      itemId: { in: itemIds },
+      ...(excludeOrderId
+        ? {
+            orderId: { not: excludeOrderId },
+          }
+        : {}),
+      order: {
+        OR: [{ paymentStatus: "CONFIRMED" }, { pickedUp: true }],
+      },
+    },
+    _sum: { quantity: true },
+  });
+
+  const counts = new Map<string, number>();
+  itemIds.forEach((id) => counts.set(id, 0));
+  results.forEach((result) => {
+    counts.set(result.itemId, result._sum.quantity ?? 0);
+  });
+
+  return counts;
+};
+
+const assertInventoryAvailable = async (
+  tx: Prisma.TransactionClient,
+  requestedItems: { itemId: string; quantity: number }[],
+  excludeOrderId?: string
+) => {
+  const itemIds = requestedItems.map((item) => item.itemId);
+  const items = await tx.item.findMany({
+    where: { id: { in: itemIds } },
+    select: { id: true, limit: true, name: true },
+  });
+  const confirmedCounts = await getConfirmedCountsByItem(
+    tx,
+    itemIds,
+    excludeOrderId
+  );
+
+  for (const orderItem of requestedItems) {
+    const item = items.find((i) => i.id === orderItem.itemId);
+    if (!item) {
+      throw new Error(`Item ${orderItem.itemId} not found`);
+    }
+
+    if (item.limit === null) {
+      continue;
+    }
+
+    const confirmedCount = confirmedCounts.get(orderItem.itemId) ?? 0;
+    const newTotal = confirmedCount + orderItem.quantity;
+    if (newTotal > item.limit) {
+      const available = Math.max(0, item.limit - confirmedCount);
+      throw new Error(
+        `Insufficient stock for ${item.name}. Available: ${available}, Requested: ${orderItem.quantity}`
+      );
+    }
+  }
+};
 
 export const getOrder = async (orderId: string) => {
   const order = await prisma.order.findUnique({
@@ -72,51 +144,7 @@ export const createOrder = async (
 ) => {
   const order = await prisma.$transaction(
     async (tx) => {
-      // Validate stock availability inside transaction
-      const itemIds = orderBody.items.map((oi) => oi.itemId);
-
-      const items = await tx.item.findMany({
-        where: { id: { in: itemIds } },
-        select: { id: true, limit: true, name: true },
-      });
-
-      // Query confirmed counts inside the transaction so the Serializable
-      // isolation level actually covers both the read and the write.
-      // Count orders that are either CONFIRMED or have been picked up.
-      const confirmedResults = await tx.orderItems.groupBy({
-        by: ["itemId"],
-        where: {
-          itemId: { in: itemIds },
-          order: {
-            OR: [{ paymentStatus: "CONFIRMED" }, { pickedUp: true }],
-          },
-        },
-        _sum: { quantity: true },
-      });
-      const confirmedCounts = new Map<string, number>();
-      itemIds.forEach((id) => confirmedCounts.set(id, 0));
-      confirmedResults.forEach((r) => {
-        confirmedCounts.set(r.itemId, r._sum.quantity ?? 0);
-      });
-
-      for (const orderItem of orderBody.items) {
-        const item = items.find((i) => i.id === orderItem.itemId);
-        if (!item) {
-          throw new Error(`Item ${orderItem.itemId} not found`);
-        }
-
-        if (item.limit !== null) {
-          const confirmedCount = confirmedCounts.get(orderItem.itemId) ?? 0;
-          const newTotal = confirmedCount + orderItem.quantity;
-
-          if (newTotal > item.limit) {
-            const available = item.limit - confirmedCount;
-            throw new Error(
-              `Insufficient stock for ${item.name}. Available: ${available}, Requested: ${orderItem.quantity}`
-            );
-          }
-        }
-      }
+      await assertInventoryAvailable(tx, orderBody.items);
 
       return tx.order.create({
         data: {
@@ -244,46 +272,76 @@ export const completeOrderPickup = async (orderId: string) => {
 };
 
 export const confirmOrderPayment = async (orderId: string) => {
-  const order = await prisma.order.update({
-    where: { id: orderId },
-    data: {
-      paymentStatus: "CONFIRMED",
-    },
-    include: {
-      buyer: true,
-      fundraiser: {
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          published: true,
-          goalAmount: true,
-          imageUrls: true,
-          buyingStartsAt: true,
-          buyingEndsAt: true,
-          organization: {
+  const order = await prisma.$transaction(
+    async (tx) => {
+      const existingOrder = await tx.order.findUnique({
+        where: { id: orderId },
+        include: {
+          items: {
+            select: {
+              quantity: true,
+              itemId: true,
+            },
+          },
+        },
+      });
+
+      if (!existingOrder) {
+        throw new Error("Order not found");
+      }
+
+      await assertInventoryAvailable(
+        tx,
+        existingOrder.items.map((item) => ({
+          itemId: item.itemId,
+          quantity: item.quantity,
+        })),
+        orderId
+      );
+
+      return tx.order.update({
+        where: { id: orderId },
+        data: {
+          paymentStatus: "CONFIRMED",
+        },
+        include: {
+          buyer: true,
+          fundraiser: {
             select: {
               id: true,
               name: true,
               description: true,
-              authorized: true,
-              logoUrl: true,
+              published: true,
+              goalAmount: true,
+              imageUrls: true,
+              buyingStartsAt: true,
+              buyingEndsAt: true,
+              organization: {
+                select: {
+                  id: true,
+                  name: true,
+                  description: true,
+                  authorized: true,
+                  logoUrl: true,
+                },
+              },
+              pickupEvents: {
+                orderBy: {
+                  startsAt: "asc",
+                },
+              },
             },
           },
-          pickupEvents: {
-            orderBy: {
-              startsAt: "asc",
+          referral: {
+            include: {
+              referrer: true,
             },
           },
         },
-      },
-      referral: {
-        include: {
-          referrer: true,
-        },
-      },
+      });
     },
-  });
+    { isolationLevel: "Serializable" }
+  );
 
   return order;
 };
