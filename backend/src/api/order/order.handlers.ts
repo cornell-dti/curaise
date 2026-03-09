@@ -64,10 +64,18 @@ export const createOrderHandler = async (
     return;
   }
 
-  const order = await createOrder({
-    ...req.body,
-    buyerId: res.locals.user!.id,
-  });
+  let order;
+  try {
+    order = await createOrder({
+      ...req.body,
+      buyerId: res.locals.user!.id,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: error instanceof Error ? error.message : "Failed to create order",
+    });
+    return;
+  }
   if (!order) {
     res.status(500).json({ message: "Failed to create order" });
     return;
@@ -152,7 +160,16 @@ export const confirmOrderPaymentHandler = async (
     return;
   }
 
-  const confirmedOrder = await confirmOrderPayment(req.params.id);
+  let confirmedOrder;
+  try {
+    confirmedOrder = await confirmOrderPayment(req.params.id);
+  } catch (error) {
+    res.status(400).json({
+      message:
+        error instanceof Error ? error.message : "Failed to confirm order payment",
+    });
+    return;
+  }
   if (!confirmedOrder) {
     res.status(500).json({ message: "Failed to confirm order payment" });
     return;
