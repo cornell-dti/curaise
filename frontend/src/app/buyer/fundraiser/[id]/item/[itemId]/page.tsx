@@ -70,7 +70,13 @@ export default function ItemPage() {
       if (quantity === 0) {
         removeItem(fundraiserId, item);
       } else {
-        if (item.available !== null && quantity > item.available) {
+        const isReduction =
+          cartItem !== undefined && quantity < cartItem.quantity;
+        if (
+          item.available !== null &&
+          quantity > item.available &&
+          !isReduction
+        ) {
           toast.error(`Only ${item.available} available for ${item.name}`);
           return;
         }
@@ -97,6 +103,7 @@ export default function ItemPage() {
   };
 
   const isOutOfStock = item !== null && item.available !== null && item.available <= 0;
+  const canSubmitCartUpdate = !isOutOfStock || cartQuantity > 0;
   // Button text: "Add to Cart" only if item is not in cart at all, otherwise always "Update Cart"
   const buttonText = cartQuantity === 0 ? "Add to Cart" : "Update Cart";
 
@@ -199,11 +206,11 @@ export default function ItemPage() {
         {/* Add/Update Cart Button */}
         <button
           onClick={handleUpdateCart}
-          disabled={isOutOfStock}
+          disabled={!canSubmitCartUpdate}
           className="bg-black text-white rounded-lg h-[50px] flex items-center justify-center gap-2 px-12 py-3 disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
           <span className="text-lg font-normal leading-[27px]">
-            {isOutOfStock ? "Out of Stock" : buttonText}
+            {!canSubmitCartUpdate ? "Out of Stock" : buttonText}
           </span>
           <ShoppingCart className="h-5 w-5" />
         </button>
