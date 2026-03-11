@@ -13,9 +13,7 @@ import { format } from "date-fns";
 type Order = z.infer<typeof BasicOrderSchema>;
 
 // Configuration
-const MAILGUN_DOMAIN =
-  process.env.MAILGUN_DOMAIN ||
-  "sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org";
+const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN || "curaise.app";
 const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY || "";
 
 // Initialize Mailgun client
@@ -323,7 +321,7 @@ export const sendVenmoSetupEmail = async (options: {
 
     1. In the top right corner, click on Settings > See all settings, then click on the Forwarding and POP/IMAP tab.
     2. Click on the Add a forwarding address button.
-    3. Enter sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org.
+    3. Enter payments@curaise.app.
     4. Please wait a minute, then refresh this page. CURaise will have auto-confirmed you have permission to forward to this address.
 
     Now follow the steps below to create a forwarding filter just for the Venmo emails:
@@ -331,10 +329,10 @@ export const sendVenmoSetupEmail = async (options: {
     1. Navigate to the Search bar, click on the filter icon on the right-hand side.
     2. Enter venmo@venmo.com in the From field.
     3. Near the bottom of that window, click on the Create filter button.
-    4. Enable the Forward it to option and select sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org.
+    4. Enable the Forward it to option and select payments@curaise.app.
     5. Click Create filter and you're done. All future emails will be automatically processed and turned into transactions by CURaise.
 
-    If you need to add your historical data, you can manually forward old receipt emails to sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org.
+    If you need to add your historical data, you can manually forward old receipt emails to payments@curaise.app.
 
     Questions? Contact our support team.
 
@@ -354,7 +352,7 @@ export const sendVenmoSetupEmail = async (options: {
     <ol>
       <li>In the top right corner, click on <strong>Settings &gt; See all settings</strong>, then click on the <strong>Forwarding and POP/IMAP</strong> tab.</li>
       <li>Click on the <strong>Add a forwarding address</strong> button.</li>
-      <li>Enter <strong>sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org</strong>.</li>
+      <li>Enter <strong>payments@curaise.app</strong>.</li>
     </ol>
 
     <p>Now follow the steps below to create a forwarding filter just for the Venmo emails:</p>
@@ -363,11 +361,11 @@ export const sendVenmoSetupEmail = async (options: {
       <li>Navigate to the <strong>Search bar</strong>, click on the filter icon on the right-hand side.</li>
       <li>Enter <strong>venmo@venmo.com</strong> in the From field.</li>
       <li>Near the bottom of that window, click on the <strong>Create filter</strong> button.</li>
-      <li>Enable the <strong>Forward it to</strong> option and select <strong>sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org</strong>.</li>
+      <li>Enable the <strong>Forward it to</strong> option and select <strong>payments@curaise.app</strong>.</li>
       <li>Click <strong>Create filter</strong> and you're done. All future emails will be automatically processed and turned into transactions by CURaise.</li>
     </ol>
 
-    <p>If you need to add your historical data, you can manually forward old receipt emails to <strong>sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org</strong>.</p>
+    <p>If you need to add your historical data, you can manually forward old receipt emails to <strong>payments@curaise.app</strong>.</p>
 
     <p>Questions? Contact our support team.</p>
 
