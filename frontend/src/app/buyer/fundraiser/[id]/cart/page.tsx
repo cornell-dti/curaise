@@ -1,7 +1,7 @@
 "use client";
 
 import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, Plus, Trash } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
@@ -48,6 +48,60 @@ export default function CartPage() {
   );
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
+
+  // Track if we've validated the cart to prevent infinite loops
+  const hasValidatedCart = useRef(false);
+
+  // Validate cart items against current availability when items first load
+  useEffect(() => {
+    if (!items || cart.length === 0 || hasValidatedCart.current) return;
+
+    hasValidatedCart.current = true;
+
+    const adjustments: string[] = [];
+    const removals: string[] = [];
+
+    cart.forEach((cartItem) => {
+      const availabilityItem = items.find((i) => i.id === cartItem.item.id);
+
+      // Item no longer exists or is offsale
+      if (!availabilityItem || availabilityItem.offsale) {
+        removeItem(fundraiserId, cartItem.item);
+        removals.push(cartItem.item.name);
+        return;
+      }
+
+      // Item is sold out
+      if (availabilityItem.available !== null && availabilityItem.available <= 0) {
+        removeItem(fundraiserId, cartItem.item);
+        removals.push(cartItem.item.name);
+        return;
+      }
+
+      // Cart quantity exceeds available stock
+      if (
+        availabilityItem.available !== null &&
+        cartItem.quantity > availabilityItem.available
+      ) {
+        updateQuantity(fundraiserId, cartItem.item, availabilityItem.available);
+        adjustments.push(
+          `${cartItem.item.name} reduced to ${availabilityItem.available}`
+        );
+      }
+    });
+
+    // Show notifications for changes
+    if (removals.length > 0) {
+      toast.error(
+        `Removed from cart (sold out): ${removals.join(", ")}`
+      );
+    }
+    if (adjustments.length > 0) {
+      toast.warning(
+        `Quantity adjusted: ${adjustments.join(", ")}`
+      );
+    }
+  }, [items, cart, fundraiserId, removeItem, updateQuantity]);
 
   // Merge cart items with fetched items to get latest imageUrl
   const cartWithImages = cart.map((cartItem) => {
