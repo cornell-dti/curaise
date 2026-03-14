@@ -100,7 +100,7 @@ export function OrganizationBasicInfoForm({
               name="instagramUsername"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Instagram Username (Optional)</FormLabel>
+                  <FormLabel>Instagram Handle (Optional)</FormLabel>
                   <FormControl>
                     <Input placeholder="example_ig_username" {...field} />
                   </FormControl>
