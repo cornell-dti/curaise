@@ -12,6 +12,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  DropdownMenu,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 import { CompleteOrganizationSchema } from "common";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -201,6 +209,23 @@ export function EditOrgInfoDialog({
               {/* Add Admins Section */}
               <div className="border-t pt-4 mt-2">
                 <FormLabel className="block mb-2">
+                  Current Admins
+                </FormLabel>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant={"outline"}>
+                      View {data.admins.length} Admin{data.admins.length !== 1 ? "s" : ""}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuLabel>Admins</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {data.admins.map((admin) => (
+                      <DropdownMenuItem key={admin.id}>{admin.name} ({admin.email})</DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <FormLabel className="block mb-2 mt-4">
                   Add Additional Admins (Optional)
                 </FormLabel>
                 <div className="flex gap-2">
