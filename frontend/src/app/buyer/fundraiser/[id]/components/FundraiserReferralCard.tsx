@@ -26,17 +26,19 @@ export function FundraiserReferralCard({
   fundraiser,
   token,
   userId,
+  isPast,
 }: {
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
   token: string;
   userId: string;
+  isPast: boolean;
 }) {
   const pathname = usePathname();
   const [referralOpen, setReferralOpen] = useState(false);
   const [referralId, setReferralId] = useState<string>(
     fundraiser.referrals.find((r) => r.referrer.id === userId)?.id || "",
   );
-  const link = `${window.location.origin}${pathname}?code=${referralId}`;
+  const [link, setLink] = useState("");
 
   const addReferrer = async () => {
     try {
@@ -59,6 +61,12 @@ export function FundraiserReferralCard({
     }
   };
 
+  useEffect(() => {
+    if (referralId) {
+      setLink(`${window.location.origin}${pathname}?code=${referralId}`);
+    }
+  }, [pathname, referralId]);
+
   return (
     <div className="w-full">
       <Card className="w-full">
@@ -76,7 +84,8 @@ export function FundraiserReferralCard({
             </span>
             {!referralId ? (
               <Button
-                className="font-light mt-1 lg:mt-0 w-full lg:w-auto"
+                disabled={isPast}
+                className="font-light mt-1 md:mt-0 w-full md:w-auto"
                 onClick={async () => {
                   await addReferrer();
                 }}
@@ -85,6 +94,7 @@ export function FundraiserReferralCard({
               </Button>
             ) : (
               <Button
+                disabled={isPast}
                 className="cursor-pointer font-light text-sm lg:text-md lg:mt-0 w-full lg:w-auto"
                 onClick={() => copyToClipboard(link)}
               >

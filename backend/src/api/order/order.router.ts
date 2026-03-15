@@ -4,6 +4,7 @@ import {
   confirmOrderPaymentHandler,
   createOrderHandler,
   getOrderHandler,
+  sendPaymentRemindersHandler,
   undoOrderPickupHandler,
 } from "./order.handlers";
 import validate from "../../middleware/validate";
@@ -21,14 +22,14 @@ orderRouter.get(
   "/:id",
   validate({ params: OrderRouteParams }),
   authenticate,
-  asyncHandler(getOrderHandler)
+  asyncHandler(getOrderHandler),
 );
 
 orderRouter.post(
   "/create",
   validate({ body: CreateOrderBody }),
   authenticate,
-  asyncHandler(createOrderHandler)
+  asyncHandler(createOrderHandler),
 );
 
 orderRouter.post(
@@ -49,7 +50,20 @@ orderRouter.post(
   "/:id/confirm-payment",
   validate({ params: OrderRouteParams }),
   authenticate,
-  asyncHandler(confirmOrderPaymentHandler)
+  asyncHandler(confirmOrderPaymentHandler),
+);
+
+orderRouter.post(
+  "/cron/payment-reminders",
+  (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader !== `Bearer ${process.env.SUPABASE_SERVICE_KEY}`) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+    next();
+  },
+  asyncHandler(sendPaymentRemindersHandler),
 );
 
 orderRouter.use(handlePrismaErrors);

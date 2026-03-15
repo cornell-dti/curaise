@@ -9,8 +9,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 export function FundraiserCartSidebar({
   fundraiserId,
+  isPast,
 }: {
   fundraiserId: string;
+  isPast: boolean;
 }) {
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -75,7 +77,10 @@ export function FundraiserCartSidebar({
                       </span>
                     </div>
                     <span className="font-medium">
-                      ${(Number(cartItem.item.price) * cartItem.quantity).toFixed(2)}
+                      $
+                      {(
+                        Number(cartItem.item.price) * cartItem.quantity
+                      ).toFixed(2)}
                     </span>
                   </div>
                 ))}
@@ -88,10 +93,13 @@ export function FundraiserCartSidebar({
                   </span>
                 </div>
                 <Button
+                  disabled={isPast}
                   onClick={handleCheckout}
                   className="w-full h-[50px] rounded-lg"
                 >
-                  {isMobile ? `View Cart (${totalItems})` : "Proceed to Checkout"}
+                  {isMobile
+                    ? `View Cart (${totalItems})`
+                    : "Proceed to Checkout"}
                 </Button>
               </div>
             </div>

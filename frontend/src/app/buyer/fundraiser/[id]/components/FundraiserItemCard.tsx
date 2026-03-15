@@ -14,11 +14,13 @@ export function FundraiserItemCard({
   amount,
   increment,
   decrement,
+  isPast,
 }: {
   item: z.infer<typeof CompleteItemSchema>;
   amount: number;
   increment: () => void;
   decrement: () => void;
+  isPast: boolean;
 }) {
   const [showAmount, setShowAmount] = useState(false);
   const selectorRef = useRef<HTMLDivElement>(null);
@@ -92,7 +94,7 @@ export function FundraiserItemCard({
               alt={item.name}
               fill
               className="object-cover"
-              style={{ objectFit: 'cover' }}
+              style={{ objectFit: "cover" }}
             />
           ) : (
             <div className="w-full h-full bg-gray-200" />
@@ -119,7 +121,7 @@ export function FundraiserItemCard({
               alt={item.name}
               fill
               className="object-cover"
-              style={{ objectFit: 'cover' }}
+              style={{ objectFit: "cover" }}
             />
           ) : (
             <div className="w-full h-full bg-gray-200" />
@@ -130,66 +132,68 @@ export function FundraiserItemCard({
           <h3 className="font-semibold text-[20px]">{item.name}</h3>
           <div className="flex items-center justify-between mt-1">
             <p className="font-[400] text-muted-foreground">{`$${Number(
-              item.price
+              item.price,
             ).toFixed(2)}`}</p>
 
             {/* add item component */}
-            <div className="relative">
-              <div
-                ref={selectorRef}
-                className={cn(
-                  "quantity-selector flex items-center justify-center bg-[#404040] rounded-full h-8 shadow-sm",
-                  showAmount ? "w-24" : "w-8",
-                  "origin-right overflow-hidden whitespace-nowrap transition-all duration-300 ease-out"
-                )}
-              >
-                {showAmount ? (
-                  <>
-                    {amount > 1 ? (
+            {!isPast && (
+              <div className="relative">
+                <div
+                  ref={selectorRef}
+                  className={cn(
+                    "quantity-selector flex items-center justify-center bg-[#404040] rounded-full h-8 shadow-sm",
+                    showAmount ? "w-24" : "w-8",
+                    "origin-right overflow-hidden whitespace-nowrap transition-all duration-300 ease-out",
+                  )}
+                >
+                  {showAmount ? (
+                    <>
+                      {amount > 1 ? (
+                        <button
+                          onClick={handleMinusClick}
+                          className="p-2 mx-1 hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
+                        >
+                          <Minus className="w-4 h-4 text-white" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handleRemove}
+                          className="p-2 mx-1 hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
+                        >
+                          <Trash className="w-4 h-4 text-white" />
+                        </button>
+                      )}
+                      <span className="px-2 font-medium text-white text-center flex-shrink-0">
+                        {amount}
+                      </span>
                       <button
-                        onClick={handleMinusClick}
+                        onClick={handlePlusClick}
                         className="p-2 mx-1 hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
                       >
-                        <Minus className="w-4 h-4 text-white" />
+                        <Plus className="w-4 h-4 text-white" />
                       </button>
-                    ) : (
-                      <button
-                        onClick={handleRemove}
-                        className="p-2 mx-1 hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
-                      >
-                        <Trash className="w-4 h-4 text-white" />
-                      </button>
-                    )}
-                    <span className="px-2 font-medium text-white text-center flex-shrink-0">
+                    </>
+                  ) : amount > 0 ? (
+                    <span
+                      className="px-2 font-medium text-white text-center flex-shrink-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpen(e);
+                      }}
+                    >
                       {amount}
                     </span>
+                  ) : (
                     <button
-                      onClick={handlePlusClick}
-                      className="p-2 mx-1 hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
+                      onClick={handleOpen}
+                      className="p-2 mx-auto hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
                     >
                       <Plus className="w-4 h-4 text-white" />
                     </button>
-                  </>
-                ) : amount > 0 ? (
-                  <span
-                    className="px-2 font-medium text-white text-center flex-shrink-0"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpen(e);
-                    }}
-                  >
-                    {amount}
-                  </span>
-                ) : (
-                  <button
-                    onClick={handleOpen}
-                    className="p-2 mx-auto hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
-                  >
-                    <Plus className="w-4 h-4 text-white" />
-                  </button>
-                )}
+                  )}{" "}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
