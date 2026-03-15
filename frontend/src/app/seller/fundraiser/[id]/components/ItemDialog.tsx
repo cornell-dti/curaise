@@ -281,16 +281,29 @@ export function ItemDialog({
 												placeholder={
 													limitLocked
 														? "Unlimited (cannot be changed)"
-														: "Leave blank for unlimited"
+														: limitIncreaseOnly
+															? `Min: ${currentItem.limit}`
+															: "Leave blank for unlimited"
 												}
 												disabled={!!limitLocked}
 												value={field.value ?? ""}
 												onChange={(e) => {
-													const val =
-														e.target.value === ""
-															? undefined
-															: parseInt(e.target.value);
-													field.onChange(val);
+													if (e.target.value === "") {
+														// For items that must keep a limit, don't allow clearing
+														if (limitIncreaseOnly) {
+															field.onChange(currentItem.limit);
+														} else {
+															field.onChange(undefined);
+														}
+													} else {
+														const parsed = parseInt(e.target.value);
+														// For items that must keep a limit, enforce minimum
+														if (limitIncreaseOnly && parsed < currentItem.limit!) {
+															field.onChange(currentItem.limit);
+														} else {
+															field.onChange(parsed);
+														}
+													}
 												}}
 											/>
 										</FormControl>
