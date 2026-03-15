@@ -137,19 +137,22 @@ export function CheckoutForm({
         selectedReferralId !== "none" && { referralId: selectedReferralId }),
     };
 
+    let orderId: string | null = null;
     try {
       const result = await mutationFetch("/order/create", {
         token,
         body: dataToSubmit,
       });
-      router.push(
-        "/buyer/order/" + (result.data as { id: string }).id + "/submitted?fromCheckout=true"
-      );
+      orderId = (result.data as { id: string }).id;
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to create order",
       );
       setIsSubmitting(false);
+    }
+
+    if (orderId) {
+      router.push("/buyer/order/" + orderId + "/submitted?fromCheckout=true");
     }
   }
 
