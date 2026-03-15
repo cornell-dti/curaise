@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { mutationFetch } from "@/lib/fetcher";
 import { format } from "date-fns";
 import Decimal from "decimal.js";
-import { useFundraiserItems } from "@/hooks/useFundraiserItems";
+import { useItemsAvailability } from "@/hooks/useItemsAvailability";
 import {
   Calendar,
   MapPin,
@@ -70,7 +70,7 @@ export function CheckoutForm({
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
 
-  const { items } = useFundraiserItems(fundraiser.id);
+  const { items } = useItemsAvailability(fundraiser.id);
   const [selectedReferralId, setSelectedReferralId] = useState<string>("none");
   const [paymentMethod, setPaymentMethod] = useState<"VENMO" | "OTHER">(
     "VENMO",
@@ -160,6 +160,19 @@ export function CheckoutForm({
     const currentQuantity =
       cart.find((ci) => ci.item.id === item.id)?.quantity || 0;
     const newQuantity = Math.max(0, currentQuantity + delta);
+
+    // Check stock limit when increasing
+    if (delta > 0) {
+      const availabilityItem = items?.find((i) => i.id === item.id);
+      if (
+        availabilityItem?.available !== null &&
+        availabilityItem?.available !== undefined &&
+        newQuantity > availabilityItem.available
+      ) {
+        toast.error(`Only ${availabilityItem.available} available for ${item.name}`);
+        return;
+      }
+    }
 
     if (newQuantity === 0) {
       removeItem(fundraiser.id, item);

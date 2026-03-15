@@ -9,7 +9,7 @@ import {
 import type { CompleteItemSchema } from "common";
 import type { z } from "zod";
 import { FundraiserItemCard } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemCard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Minus, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 
@@ -31,31 +31,44 @@ export function FundraiserItemModal({
   isPast: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(amount || 1);
+
+  // Sync quantity with cart amount when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setQuantity(amount || 1);
+    }
+  }, [isOpen, amount]);
 
   const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      increment();
+    // Calculate how many to add (difference between desired and current)
+    const delta = quantity - amount;
+    if (delta > 0) {
+      for (let i = 0; i < delta; i++) {
+        increment();
+      }
+    } else if (delta < 0) {
+      for (let i = 0; i < Math.abs(delta); i++) {
+        decrement();
+      }
     }
     setIsOpen(false);
-    setQuantity(1);
   };
 
   const handleIncrement = () => {
     // Check if incrementing would exceed available stock
-    if (available !== null && amount + quantity + 1 > available) {
+    if (available !== null && quantity + 1 > available) {
       return;
     }
     setQuantity((prev) => prev + 1);
   };
 
   const handleDecrement = () => {
-    setQuantity((prev) => Math.max(1, prev - 1));
+    setQuantity((prev) => Math.max(0, prev - 1));
   };
 
   const isDisabled = isPast || isOutOfStock;
-  const isAtStockLimit =
-    available !== null && amount + quantity >= available;
+  const isAtStockLimit = available !== null && quantity >= available;
 
   return (
     <Dialog open={isDisabled ? false : isOpen} onOpenChange={setIsOpen}>
@@ -120,8 +133,8 @@ export function FundraiserItemModal({
               <div className="flex items-center gap-[10px] p-2">
                 <button
                   onClick={handleDecrement}
-                  className="p-0.5 rounded-lg hover:bg-gray-100 transition-colors"
-                  disabled={quantity <= 1}
+                  className="p-0.5 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+                  disabled={quantity <= 0}
                 >
                   <Minus className="h-[18px] w-[18px] text-black" />
                 </button>
@@ -142,11 +155,17 @@ export function FundraiserItemModal({
           {/* Add to Cart Button */}
           <button
             onClick={handleAddToCart}
-            disabled={isOutOfStock}
+            disabled={isOutOfStock && quantity === 0}
             className="bg-black text-white rounded-lg h-[50px] flex items-center justify-center gap-2 px-12 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="text-lg font-normal leading-[27px]">
-              {isOutOfStock ? "Out of Stock" : "Add to Cart"}
+              {isOutOfStock
+                ? "Out of Stock"
+                : quantity === 0
+                  ? "Remove from Cart"
+                  : amount === 0
+                    ? "Add to Cart"
+                    : "Update Cart"}
             </span>
             <ShoppingCart className="h-5 w-5" />
           </button>
