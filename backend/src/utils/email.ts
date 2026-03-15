@@ -332,8 +332,6 @@ export const sendVenmoSetupEmail = async (options: {
     4. Enable the Forward it to option and select postmaster@curaise.app
     5. Click Create filter and you're done. All future emails will be automatically processed and turned into transactions by CURaise.
 
-    If you need to add your historical data, you can manually forward old receipt emails to postmaster@curaise.app
-
     Questions? Contact our support team.
 
     Thank you,
@@ -364,8 +362,6 @@ export const sendVenmoSetupEmail = async (options: {
       <li>Enable the <strong>Forward it to</strong> option and select <strong>postmaster@curaise.app</li>
       <li>Click <strong>Create filter</strong> and you're done. All future emails will be automatically processed and turned into transactions by CURaise.</li>
     </ol>
-
-    <p>If you need to add your historical data, you can manually forward old receipt emails to <strong>postmaster@curaise.app</strong></p>
 
     <p>Questions? Contact our support team.</p>
 
