@@ -69,6 +69,7 @@ export function CheckoutForm({
     useStore(useCartStore, (state) => state.carts[fundraiser.id]) || [];
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
+  const clearCart = useCartStore((state) => state.clearCart);
 
   const { items } = useItemsAvailability(fundraiser.id);
   const [selectedReferralId, setSelectedReferralId] = useState<string>("none");
@@ -152,6 +153,7 @@ export function CheckoutForm({
     }
 
     if (orderId) {
+      clearCart(fundraiser.id);
       router.push("/buyer/order/" + orderId + "/submitted?fromCheckout=true");
     }
   }

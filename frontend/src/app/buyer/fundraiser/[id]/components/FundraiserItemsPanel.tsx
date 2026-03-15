@@ -49,6 +49,25 @@ export function FundraiserItemsPanel({
     }
   };
 
+  const handleSetQuantity = (item: z.infer<typeof ItemWithAvailabilitySchema>, quantity: number) => {
+    if (quantity <= 0) {
+      removeItem(fundraiserId, item);
+      return;
+    }
+
+    if (item.available !== null && quantity > item.available) {
+      toast.error(`Only ${item.available} available for ${item.name}`);
+      return;
+    }
+
+    const cartItem = cart?.find((cartItem) => cartItem.item.id === item.id);
+    if (cartItem) {
+      updateQuantity(fundraiserId, item, quantity);
+    } else {
+      addItem(fundraiserId, item, quantity);
+    }
+  };
+
   return (
     <div className="bg-white rounded-md">
       {items.length === 0 ? (
@@ -72,6 +91,7 @@ export function FundraiserItemsPanel({
                     amount={amount}
                     increment={() => handleIncrement(item)}
                     decrement={() => handleDecrement(item)}
+                    setCartQuantity={(quantity) => handleSetQuantity(item, quantity)}
                     available={item.available}
                     isOutOfStock={isOutOfStock}
                     isPast={isPast}

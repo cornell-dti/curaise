@@ -18,6 +18,7 @@ export function FundraiserItemModal({
   amount,
   increment,
   decrement,
+  setCartQuantity,
   available,
   isOutOfStock = false,
   isPast,
@@ -26,6 +27,7 @@ export function FundraiserItemModal({
   amount: number;
   increment: () => void;
   decrement: () => void;
+  setCartQuantity: (quantity: number) => void;
   available: number | null;
   isOutOfStock?: boolean;
   isPast: boolean;
@@ -41,17 +43,7 @@ export function FundraiserItemModal({
   }, [isOpen, amount]);
 
   const handleAddToCart = () => {
-    // Calculate how many to add (difference between desired and current)
-    const delta = quantity - amount;
-    if (delta > 0) {
-      for (let i = 0; i < delta; i++) {
-        increment();
-      }
-    } else if (delta < 0) {
-      for (let i = 0; i < Math.abs(delta); i++) {
-        decrement();
-      }
-    }
+    setCartQuantity(quantity);
     setIsOpen(false);
   };
 
