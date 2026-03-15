@@ -13,9 +13,7 @@ import { format } from "date-fns";
 type Order = z.infer<typeof BasicOrderSchema>;
 
 // Configuration
-const MAILGUN_DOMAIN =
-  process.env.MAILGUN_DOMAIN ||
-  "sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org";
+const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN || "curaise.app";
 const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY || "";
 
 // Initialize Mailgun client
@@ -48,7 +46,7 @@ export const sendEmail = async (options: {
     const mg = await initMailgun();
 
     const messageData = {
-      from: from || `Mailgun Sandbox <postmaster@${MAILGUN_DOMAIN}>`,
+      from: from || `CURaise Team <postmaster@${MAILGUN_DOMAIN}>`,
       to,
       subject,
       text: text || "",
@@ -134,7 +132,7 @@ export const sendOrganizationInviteEmail = async (options: {
     } catch (error) {
       console.error(
         `Failed to send invitation email to ${admin.email}:`,
-        error
+        error,
       );
       // Continue sending to other admins even if one fails
     }
@@ -218,7 +216,7 @@ export const sendPendingAdminInviteEmail = async (options: {
     } catch (error) {
       console.error(
         `Failed to send pending admin invitation email to ${email}:`,
-        error
+        error,
       );
       // Continue sending to other emails even if one fails
     }
@@ -245,7 +243,7 @@ export const sendAnnouncementEmail = async (options: {
             (event, index) =>
               `Event ${index + 1}: ${
                 event.location
-              } (${event.startsAt.toLocaleDateString()} to ${event.endsAt.toLocaleDateString()})`
+              } (${event.startsAt.toLocaleDateString()} to ${event.endsAt.toLocaleDateString()})`,
           )
           .join("\n    ")
       : "No pickup events scheduled";
@@ -256,7 +254,7 @@ export const sendAnnouncementEmail = async (options: {
           .map(
             (event, index) =>
               `<p><strong>Event ${index + 1}:</strong> ${event.location}<br/>
-        <strong>Time:</strong> ${event.startsAt.toLocaleDateString()} to ${event.endsAt.toLocaleDateString()}</p>`
+        <strong>Time:</strong> ${event.startsAt.toLocaleDateString()} to ${event.endsAt.toLocaleDateString()}</p>`,
           )
           .join("")
       : "<p>No pickup events scheduled</p>";
@@ -323,7 +321,7 @@ export const sendVenmoSetupEmail = async (options: {
 
     1. In the top right corner, click on Settings > See all settings, then click on the Forwarding and POP/IMAP tab.
     2. Click on the Add a forwarding address button.
-    3. Enter sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org.
+    3. Enter postmaster@curaise.app
     4. Please wait a minute, then refresh this page. CURaise will have auto-confirmed you have permission to forward to this address.
 
     Now follow the steps below to create a forwarding filter just for the Venmo emails:
@@ -331,10 +329,8 @@ export const sendVenmoSetupEmail = async (options: {
     1. Navigate to the Search bar, click on the filter icon on the right-hand side.
     2. Enter venmo@venmo.com in the From field.
     3. Near the bottom of that window, click on the Create filter button.
-    4. Enable the Forward it to option and select sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org.
+    4. Enable the Forward it to option and select postmaster@curaise.app
     5. Click Create filter and you're done. All future emails will be automatically processed and turned into transactions by CURaise.
-
-    If you need to add your historical data, you can manually forward old receipt emails to sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org.
 
     Questions? Contact our support team.
 
@@ -354,7 +350,7 @@ export const sendVenmoSetupEmail = async (options: {
     <ol>
       <li>In the top right corner, click on <strong>Settings &gt; See all settings</strong>, then click on the <strong>Forwarding and POP/IMAP</strong> tab.</li>
       <li>Click on the <strong>Add a forwarding address</strong> button.</li>
-      <li>Enter <strong>sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org</strong>.</li>
+      <li>Enter <strong>postmaster@curaise.app</strong></li>
     </ol>
 
     <p>Now follow the steps below to create a forwarding filter just for the Venmo emails:</p>
@@ -363,11 +359,9 @@ export const sendVenmoSetupEmail = async (options: {
       <li>Navigate to the <strong>Search bar</strong>, click on the filter icon on the right-hand side.</li>
       <li>Enter <strong>venmo@venmo.com</strong> in the From field.</li>
       <li>Near the bottom of that window, click on the <strong>Create filter</strong> button.</li>
-      <li>Enable the <strong>Forward it to</strong> option and select <strong>sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org</strong>.</li>
+      <li>Enable the <strong>Forward it to</strong> option and select <strong>postmaster@curaise.app</li>
       <li>Click <strong>Create filter</strong> and you're done. All future emails will be automatically processed and turned into transactions by CURaise.</li>
     </ol>
-
-    <p>If you need to add your historical data, you can manually forward old receipt emails to <strong>sandbox082eab5ac11d4c279f63018b4b3d8419.mailgun.org</strong>.</p>
 
     <p>Questions? Contact our support team.</p>
 
@@ -388,6 +382,52 @@ export const sendVenmoSetupEmail = async (options: {
     console.error(`Failed to send Venmo setup email to ${venmoEmail}:`, error);
     throw error;
   }
+};
+
+/**
+ * Send payment reminder email to a buyer with an unpaid order
+ */
+export const sendPaymentReminderEmail = async (order: Order): Promise<any> => {
+  const { buyer, fundraiser } = order;
+
+  const subject = `Payment Reminder - ${fundraiser.name}`;
+
+  const orderDateFormatted = format(order.createdAt, "MMMM d, yyyy");
+
+  const text = `
+    Hi ${buyer.name},
+
+    This is a friendly reminder that your order #${order.id} for ${fundraiser.name} placed on ${orderDateFormatted} has not been paid yet.
+
+    Please complete your payment via Venmo to finalize your order.
+
+    If you have already paid, please disregard this email — it may take some time for us to verify your payment.
+
+    Thank you,
+    The CURaise Team
+  `;
+
+  const html = `
+    <h1>Payment Reminder</h1>
+
+    <p>Hi ${buyer.name},</p>
+
+    <p>This is a friendly reminder that your order <strong>#${order.id}</strong> for <strong>${fundraiser.name}</strong> placed on ${orderDateFormatted} has not been paid yet.</p>
+
+    <p>Please complete your payment via Venmo to finalize your order.</p>
+
+    <p>If you have already paid, please disregard this email — it may take some time for us to verify your payment.</p>
+
+    <p>Thank you,<br>
+    The CURaise Team</p>
+  `;
+
+  return sendEmail({
+    to: buyer.email,
+    subject,
+    text,
+    html,
+  });
 };
 
 /**
@@ -417,11 +457,11 @@ export const sendOrderConfirmation = async (order: Order): Promise<any> => {
           .map((event, index) => {
             const startsFormatted = format(
               event.startsAt,
-              "EEEE, MMMM d, yyyy, h:mm a"
+              "EEEE, MMMM d, yyyy, h:mm a",
             );
             const endsFormatted = format(
               event.endsAt,
-              "EEEE, MMMM d, yyyy, h:mm a"
+              "EEEE, MMMM d, yyyy, h:mm a",
             );
             return `Event ${index + 1}: ${
               event.location
@@ -436,11 +476,11 @@ export const sendOrderConfirmation = async (order: Order): Promise<any> => {
           .map((event, index) => {
             const startsFormatted = format(
               event.startsAt,
-              "EEEE, MMMM d, yyyy, h:mm a"
+              "EEEE, MMMM d, yyyy, h:mm a",
             );
             const endsFormatted = format(
               event.endsAt,
-              "EEEE, MMMM d, yyyy, h:mm a"
+              "EEEE, MMMM d, yyyy, h:mm a",
             );
             return `<p><strong>Event ${index + 1}:</strong> ${
               event.location

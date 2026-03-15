@@ -10,9 +10,11 @@ import { ItemWithAvailabilitySchema } from "common";
 import { toast } from "sonner";
 
 export function FundraiserItemsPanel({
+  isPast,
   fundraiserId,
   items,
 }: {
+  isPast: boolean;
   fundraiserId: string;
   items: z.infer<typeof ItemWithAvailabilitySchema>[];
 }) {
@@ -72,6 +74,7 @@ export function FundraiserItemsPanel({
                     decrement={() => handleDecrement(item)}
                     fundraiserId={fundraiserId}
                     isOutOfStock={isOutOfStock}
+                    isPast={isPast}
                   />
                 </div>
 
@@ -86,6 +89,7 @@ export function FundraiserItemsPanel({
                     increment={() => handleIncrement(item)}
                     decrement={() => handleDecrement(item)}
                     isOutOfStock={isOutOfStock}
+                    isPast={isPast}
                   />
                 </Link>
               </div>

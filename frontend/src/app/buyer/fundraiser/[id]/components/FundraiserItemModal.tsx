@@ -20,6 +20,7 @@ export function FundraiserItemModal({
   decrement,
   fundraiserId,
   isOutOfStock = false,
+  isPast,
 }: {
   item: z.infer<typeof CompleteItemSchema>;
   amount: number;
@@ -27,6 +28,7 @@ export function FundraiserItemModal({
   decrement: () => void;
   fundraiserId: string;
   isOutOfStock?: boolean;
+  isPast: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -47,8 +49,10 @@ export function FundraiserItemModal({
     setQuantity((prev) => Math.max(1, prev - 1));
   };
 
+  const isDisabled = isPast || isOutOfStock;
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isDisabled ? false : isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <div className="cursor-pointer">
           <FundraiserItemCard
@@ -57,6 +61,7 @@ export function FundraiserItemModal({
             increment={increment}
             decrement={decrement}
             isOutOfStock={isOutOfStock}
+            isPast={isPast}
           />
         </div>
       </DialogTrigger>
@@ -72,7 +77,7 @@ export function FundraiserItemModal({
                 alt={item.name}
                 fill
                 className="object-cover rounded-md"
-                style={{ objectFit: 'cover' }}
+                style={{ objectFit: "cover" }}
               />
             </div>
           </div>
@@ -120,6 +125,7 @@ export function FundraiserItemModal({
                 <button
                   onClick={handleIncrement}
                   className="p-0.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  disabled={isDisabled}
                 >
                   <Plus className="h-[18px] w-[18px] text-black" />
                 </button>
