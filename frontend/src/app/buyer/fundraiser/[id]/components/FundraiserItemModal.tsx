@@ -18,7 +18,7 @@ export function FundraiserItemModal({
   amount,
   increment,
   decrement,
-  fundraiserId,
+  available,
   isOutOfStock = false,
   isPast,
 }: {
@@ -26,7 +26,7 @@ export function FundraiserItemModal({
   amount: number;
   increment: () => void;
   decrement: () => void;
-  fundraiserId: string;
+  available: number | null;
   isOutOfStock?: boolean;
   isPast: boolean;
 }) {
@@ -42,6 +42,10 @@ export function FundraiserItemModal({
   };
 
   const handleIncrement = () => {
+    // Check if incrementing would exceed available stock
+    if (available !== null && amount + quantity + 1 > available) {
+      return;
+    }
     setQuantity((prev) => prev + 1);
   };
 
@@ -50,6 +54,8 @@ export function FundraiserItemModal({
   };
 
   const isDisabled = isPast || isOutOfStock;
+  const isAtStockLimit =
+    available !== null && amount + quantity >= available;
 
   return (
     <Dialog open={isDisabled ? false : isOpen} onOpenChange={setIsOpen}>
@@ -124,8 +130,8 @@ export function FundraiserItemModal({
                 </p>
                 <button
                   onClick={handleIncrement}
-                  className="p-0.5 rounded-lg hover:bg-gray-100 transition-colors"
-                  disabled={isDisabled}
+                  className="p-0.5 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isDisabled || isAtStockLimit}
                 >
                   <Plus className="h-[18px] w-[18px] text-black" />
                 </button>
