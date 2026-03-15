@@ -72,7 +72,7 @@ export function FundraiserItemsPanel({
                     amount={amount}
                     increment={() => handleIncrement(item)}
                     decrement={() => handleDecrement(item)}
-                    fundraiserId={fundraiserId}
+                    available={item.available}
                     isOutOfStock={isOutOfStock}
                     isPast={isPast}
                   />
