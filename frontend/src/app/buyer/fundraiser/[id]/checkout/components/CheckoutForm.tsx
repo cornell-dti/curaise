@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { mutationFetch } from "@/lib/fetcher";
 import { format } from "date-fns";
 import Decimal from "decimal.js";
-import { useFundraiserItems } from "@/hooks/useFundraiserItems";
+import { useItemsAvailability } from "@/hooks/useItemsAvailability";
 import {
   Calendar,
   MapPin,
@@ -53,6 +53,10 @@ import {
 } from "@/components/ui/sheet";
 import Image from "next/image";
 import { ReferrersModal } from "./ReferrersModal";
+import {
+  formatCapacityIssueMessage,
+  getCapacityIssues,
+} from "@/lib/capacity";
 
 export function CheckoutForm({
   token,
@@ -69,8 +73,13 @@ export function CheckoutForm({
     useStore(useCartStore, (state) => state.carts[fundraiser.id]) || [];
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
+  const clearCart = useCartStore((state) => state.clearCart);
 
-  const { items } = useFundraiserItems(fundraiser.id);
+  const {
+    items,
+    isLoading: isAvailabilityLoading,
+    mutate: refreshAvailability,
+  } = useItemsAvailability(fundraiser.id);
   const [selectedReferralId, setSelectedReferralId] = useState<string>("none");
   const [paymentMethod, setPaymentMethod] = useState<"VENMO" | "OTHER">(
     "VENMO",
@@ -108,6 +117,19 @@ export function CheckoutForm({
     )
     .toFixed(2);
 
+  const cartCapacityIssues = items
+    ? getCapacityIssues(
+        cart.map((cartItem) => ({
+          itemId: cartItem.item.id,
+          itemName: cartItem.item.name,
+          quantity: cartItem.quantity,
+        })),
+        items,
+      )
+    : [];
+  const hasCapacityIssues = cartCapacityIssues.length > 0;
+  const isAvailabilityPending = isAvailabilityLoading || !items;
+
   const copyToClipboard = async (text: string, label: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -119,6 +141,25 @@ export function CheckoutForm({
 
   async function handleSubmit() {
     if (isSubmitting) {
+      return;
+    }
+
+    const latestItems = (await refreshAvailability()) ?? items;
+    if (!latestItems) {
+      toast.error("Unable to verify item availability. Please try again.");
+      return;
+    }
+
+    const latestCapacityIssues = getCapacityIssues(
+      cart.map((cartItem) => ({
+        itemId: cartItem.item.id,
+        itemName: cartItem.item.name,
+        quantity: cartItem.quantity,
+      })),
+      latestItems,
+    );
+    if (latestCapacityIssues.length > 0) {
+      toast.error(formatCapacityIssueMessage(latestCapacityIssues[0]));
       return;
     }
 
@@ -152,6 +193,7 @@ export function CheckoutForm({
     }
 
     if (orderId) {
+      clearCart(fundraiser.id);
       router.push("/buyer/order/" + orderId + "/submitted?fromCheckout=true");
     }
   }
@@ -160,6 +202,19 @@ export function CheckoutForm({
     const currentQuantity =
       cart.find((ci) => ci.item.id === item.id)?.quantity || 0;
     const newQuantity = Math.max(0, currentQuantity + delta);
+
+    // Check stock limit when increasing
+    if (delta > 0) {
+      const availabilityItem = items?.find((i) => i.id === item.id);
+      if (
+        availabilityItem?.available !== null &&
+        availabilityItem?.available !== undefined &&
+        newQuantity > availabilityItem.available
+      ) {
+        toast.error(`Only ${availabilityItem.available} available for ${item.name}`);
+        return;
+      }
+    }
 
     if (newQuantity === 0) {
       removeItem(fundraiser.id, item);
@@ -408,9 +463,36 @@ export function CheckoutForm({
             </Select>
 
             {/* Pay Button */}
+            {isAvailabilityPending && cart.length > 0 && (
+              <p className="text-[13px] leading-[20px] text-[#5f5f5f]">
+                Checking live item availability...
+              </p>
+            )}
+            {hasCapacityIssues && (
+              <div className="rounded-[8px] border border-[#f5c2c7] bg-[#fdf2f2] px-3 py-2">
+                <p className="text-[14px] font-semibold leading-[21px] text-[#9f1239]">
+                  You can&apos;t place this order right now:
+                </p>
+                <div className="mt-1 space-y-1">
+                  {cartCapacityIssues.map((issue) => (
+                    <p
+                      key={`${issue.itemId}-${issue.reason}`}
+                      className="text-[13px] leading-[20px] text-[#9f1239]"
+                    >
+                      • {formatCapacityIssueMessage(issue)}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
             <Button
               onClick={handleSubmit}
-              disabled={isSubmitting || cart.length === 0}
+              disabled={
+                isSubmitting ||
+                cart.length === 0 ||
+                isAvailabilityPending ||
+                hasCapacityIssues
+              }
               className="w-full h-[50px] rounded-[8px] bg-black hover:bg-black/90 text-[#fefdfd] text-[18px] font-normal"
               aria-busy={isSubmitting}
               aria-label={
@@ -742,10 +824,37 @@ export function CheckoutForm({
                     </Select>
 
                     {/* Pay Button */}
+                    {isAvailabilityPending && cart.length > 0 && (
+                      <p className="text-sm text-[#5f5f5f]">
+                        Checking live item availability...
+                      </p>
+                    )}
+                    {hasCapacityIssues && (
+                      <div className="rounded-[8px] border border-[#f5c2c7] bg-[#fdf2f2] px-3 py-2">
+                        <p className="text-sm font-semibold text-[#9f1239]">
+                          You can&apos;t place this order right now:
+                        </p>
+                        <div className="mt-1 space-y-1">
+                          {cartCapacityIssues.map((issue) => (
+                            <p
+                              key={`${issue.itemId}-${issue.reason}`}
+                              className="text-sm text-[#9f1239]"
+                            >
+                              • {formatCapacityIssueMessage(issue)}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <Button
                       size="lg"
                       onClick={handleSubmit}
-                      disabled={isSubmitting || cart.length === 0}
+                      disabled={
+                        isSubmitting ||
+                        cart.length === 0 ||
+                        isAvailabilityPending ||
+                        hasCapacityIssues
+                      }
                       className="flex items-center gap-2 font-normal text-[18px] leading-[27px] px-8 py-3 text-md h-[50px] rounded-[8px] bg-black hover:bg-black/90 text-white"
                       aria-busy={isSubmitting}
                       aria-label={

@@ -9,7 +9,7 @@ import {
 import type { CompleteItemSchema } from "common";
 import type { z } from "zod";
 import { FundraiserItemCard } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemCard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Minus, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 
@@ -18,35 +18,52 @@ export function FundraiserItemModal({
   amount,
   increment,
   decrement,
+  setCartQuantity,
+  available,
+  isOutOfStock = false,
   isPast,
 }: {
   item: z.infer<typeof CompleteItemSchema>;
   amount: number;
   increment: () => void;
   decrement: () => void;
+  setCartQuantity: (quantity: number) => void;
+  available: number | null;
+  isOutOfStock?: boolean;
   isPast: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(amount || 1);
+
+  // Sync quantity with cart amount when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setQuantity(amount || 1);
+    }
+  }, [isOpen, amount]);
 
   const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      increment();
-    }
+    setCartQuantity(quantity);
     setIsOpen(false);
-    setQuantity(1);
   };
 
   const handleIncrement = () => {
+    // Check if incrementing would exceed available stock
+    if (available !== null && quantity + 1 > available) {
+      return;
+    }
     setQuantity((prev) => prev + 1);
   };
 
   const handleDecrement = () => {
-    setQuantity((prev) => Math.max(1, prev - 1));
+    setQuantity((prev) => Math.max(0, prev - 1));
   };
 
+  const isDisabled = isPast || isOutOfStock;
+  const isAtStockLimit = available !== null && quantity >= available;
+
   return (
-    <Dialog open={isPast ? false : isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isDisabled ? false : isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <div className="cursor-pointer">
           <FundraiserItemCard
@@ -54,6 +71,7 @@ export function FundraiserItemModal({
             amount={amount}
             increment={increment}
             decrement={decrement}
+            isOutOfStock={isOutOfStock}
             isPast={isPast}
           />
         </div>
@@ -107,8 +125,8 @@ export function FundraiserItemModal({
               <div className="flex items-center gap-[10px] p-2">
                 <button
                   onClick={handleDecrement}
-                  className="p-0.5 rounded-lg hover:bg-gray-100 transition-colors"
-                  disabled={quantity <= 1}
+                  className="p-0.5 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+                  disabled={quantity <= 0}
                 >
                   <Minus className="h-[18px] w-[18px] text-black" />
                 </button>
@@ -117,8 +135,8 @@ export function FundraiserItemModal({
                 </p>
                 <button
                   onClick={handleIncrement}
-                  className="p-0.5 rounded-lg hover:bg-gray-100 transition-colors"
-                  disabled={isPast}
+                  className="p-0.5 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isDisabled || isAtStockLimit}
                 >
                   <Plus className="h-[18px] w-[18px] text-black" />
                 </button>
@@ -129,10 +147,17 @@ export function FundraiserItemModal({
           {/* Add to Cart Button */}
           <button
             onClick={handleAddToCart}
-            className="bg-black text-white rounded-lg h-[50px] flex items-center justify-center gap-2 px-12 py-3"
+            disabled={isOutOfStock && quantity === 0}
+            className="bg-black text-white rounded-lg h-[50px] flex items-center justify-center gap-2 px-12 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="text-lg font-normal leading-[27px]">
-              Add to Cart
+              {isOutOfStock
+                ? "Out of Stock"
+                : quantity === 0
+                  ? "Remove from Cart"
+                  : amount === 0
+                    ? "Add to Cart"
+                    : "Update Cart"}
             </span>
             <ShoppingCart className="h-5 w-5" />
           </button>

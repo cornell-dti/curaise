@@ -36,6 +36,7 @@ import {
   createReferralHandler,
   approveReferralHandler,
   deleteReferralHandler,
+  getFundraiserItemsAvailabilityHandler,
 } from "./fundraiser.handlers";
 import { authenticate } from "../../middleware/authenticate";
 import {
@@ -57,6 +58,12 @@ fundraiserRouter.get(
   "/:id/items",
   validate({ params: FundraiserRouteParams }),
   asyncHandler(getFundraiserItemsHandler)
+);
+
+fundraiserRouter.get(
+  "/:id/items/availability",
+  validate({ params: FundraiserRouteParams }),
+  asyncHandler(getFundraiserItemsAvailabilityHandler)
 );
 
 fundraiserRouter.get(

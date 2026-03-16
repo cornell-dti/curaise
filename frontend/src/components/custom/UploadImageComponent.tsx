@@ -26,7 +26,7 @@ function UploadImageComponent({
 	allowMultiple,
 }: UploadImageComponentProps) {
 	const imageInputRef = useRef<HTMLInputElement>(null);
-	const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
+	const [uploadedUrls, setUploadedUrls] = useState<string[]>(imageUrls);
 	const [isPending, startTransition] = useTransition();
 
 	const processFiles = async (files: File[]) => {
