@@ -842,6 +842,7 @@ export const updateCacheForOrderPickup = async (
 export const updateCacheForOrderConfirmation = async (
   fundraiserId: string,
   order: {
+    pickedUp: boolean;
     createdAt: Date;
     items: Array<{
       quantity: number;
@@ -858,6 +859,15 @@ export const updateCacheForOrderConfirmation = async (
     const analytics = await peekCachedAnalytics(cacheKey);
     if (!analytics) {
       console.log("No cache found for order confirmation - skipping update");
+      return;
+    }
+
+    // If order was already picked up, items/revenue were already counted
+    // Only decrement pending_orders in that case
+    if (order.pickedUp) {
+      analytics.pending_orders--;
+      await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 300 });
+      console.log("Cached value updated for confirmed order (already picked up)");
       return;
     }
 
