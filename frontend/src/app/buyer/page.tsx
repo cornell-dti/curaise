@@ -3,9 +3,14 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Clock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BasicOrderSchema } from "common";
+import {
+	BasicOrderSchema,
+	CompleteOrderSchema,
+	ItemWithAvailabilitySchema,
+} from "common";
 import { OrderCard } from "@/components/custom/OrderCard";
 import { serverFetch } from "@/lib/fetcher";
+import { getCapacityIssues } from "@/lib/capacity";
 
 export default async function BuyerHome() {
 	await connection(); // ensures server component is dynamically rendered at runtime, not statically rendered at build time
@@ -35,6 +40,54 @@ export default async function BuyerHome() {
 		schema: BasicOrderSchema.array(),
 	});
 
+	const pendingVenmoOrderIds = orders
+		.filter(
+			(order) =>
+				order.paymentStatus === "PENDING" &&
+				order.paymentMethod === "VENMO" &&
+				!order.pickedUp,
+		)
+		.map((order) => order.id);
+
+	const pendingVenmoOrders = await Promise.all(
+		pendingVenmoOrderIds.map((orderId) =>
+			serverFetch(`/order/${orderId}`, {
+				token: session.access_token,
+				schema: CompleteOrderSchema,
+			}),
+		),
+	);
+
+	const fundraiserAvailabilityEntries = await Promise.all(
+		Array.from(new Set(pendingVenmoOrders.map((order) => order.fundraiser.id))).map(
+			async (fundraiserId) => [
+				fundraiserId,
+				await serverFetch(`/fundraiser/${fundraiserId}/items/availability`, {
+					schema: ItemWithAvailabilitySchema.array(),
+				}),
+			],
+		),
+	);
+	const availabilityByFundraiser = new Map(fundraiserAvailabilityEntries);
+
+	const capacityBlockedPendingOrderIds = new Set(
+		pendingVenmoOrders
+			.filter((order) => {
+				const fundraiserItems =
+					availabilityByFundraiser.get(order.fundraiser.id) ?? [];
+				const orderCapacityIssues = getCapacityIssues(
+					order.items.map((orderItem) => ({
+						itemId: orderItem.item.id,
+						itemName: orderItem.item.name,
+						quantity: orderItem.quantity,
+					})),
+					fundraiserItems,
+				);
+				return orderCapacityIssues.length > 0;
+			})
+			.map((order) => order.id),
+	);
+
 	const inProgressOrders = orders.filter((order) => !order.pickedUp);
 
 	return (
@@ -59,7 +112,13 @@ export default async function BuyerHome() {
 					<TabsContent value="active" className="space-y-4 mt-6">
 						{inProgressOrders.length > 0 ? (
 							inProgressOrders.map((order) => (
-								<OrderCard key={order.id} order={order} />
+								<OrderCard
+									key={order.id}
+									order={order}
+									isCapacityBlockedPayment={capacityBlockedPendingOrderIds.has(
+										order.id,
+									)}
+								/>
 							))
 						) : (
 							<div className="text-center py-12">
@@ -76,7 +135,15 @@ export default async function BuyerHome() {
 						{orders.filter((order) => order.pickedUp).length > 0 ? (
 							orders
 								.filter((order) => order.pickedUp)
-								.map((order) => <OrderCard key={order.id} order={order} />)
+								.map((order) => (
+									<OrderCard
+										key={order.id}
+										order={order}
+										isCapacityBlockedPayment={capacityBlockedPendingOrderIds.has(
+											order.id,
+										)}
+									/>
+								))
 						) : (
 							<div className="text-center py-12">
 								<Clock className="mx-auto h-12 w-12 text-muted-foreground" />

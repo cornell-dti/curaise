@@ -42,12 +42,34 @@ const getConfirmedCountsByItem = async (
   return counts;
 };
 
+const mergeRequestedItemsByItemId = <
+  T extends { itemId: string; quantity: number },
+>(
+  requestedItems: T[]
+): T[] => {
+  const requestedItemsById = new Map<string, number>();
+
+  requestedItems.forEach((requestedItem) => {
+    requestedItemsById.set(
+      requestedItem.itemId,
+      (requestedItemsById.get(requestedItem.itemId) ?? 0) +
+        requestedItem.quantity
+    );
+  });
+
+  return Array.from(requestedItemsById.entries()).map(([itemId, quantity]) => ({
+    itemId,
+    quantity,
+  })) as T[];
+};
+
 const assertInventoryAvailable = async (
   tx: Prisma.TransactionClient,
   requestedItems: { itemId: string; quantity: number }[],
   excludeOrderId?: string
 ) => {
-  const itemIds = requestedItems.map((item) => item.itemId);
+  const mergedRequestedItems = mergeRequestedItemsByItemId(requestedItems);
+  const itemIds = mergedRequestedItems.map((item) => item.itemId);
   const items = await tx.item.findMany({
     where: { id: { in: itemIds } },
     select: { id: true, limit: true, name: true },
@@ -58,7 +80,7 @@ const assertInventoryAvailable = async (
     excludeOrderId
   );
 
-  for (const orderItem of requestedItems) {
+  for (const orderItem of mergedRequestedItems) {
     const item = items.find((i) => i.id === orderItem.itemId);
     if (!item) {
       throw new Error(`Item ${orderItem.itemId} not found`);
@@ -142,9 +164,11 @@ export const getOrder = async (orderId: string) => {
 export const createOrder = async (
   orderBody: z.infer<typeof CreateOrderBody> & { buyerId: string },
 ) => {
+  const mergedOrderItems = mergeRequestedItemsByItemId(orderBody.items);
+
   const order = await prisma.$transaction(
     async (tx) => {
-      await assertInventoryAvailable(tx, orderBody.items);
+      await assertInventoryAvailable(tx, mergedOrderItems);
 
       return tx.order.create({
         data: {
@@ -154,7 +178,7 @@ export const createOrder = async (
           buyer: { connect: { id: orderBody.buyerId } },
           fundraiser: { connect: { id: orderBody.fundraiserId } },
           items: {
-            create: orderBody.items.map((item) => ({
+            create: mergedOrderItems.map((item) => ({
               quantity: item.quantity,
               item: { connect: { id: item.itemId } },
             })),
@@ -209,61 +233,99 @@ export const createOrder = async (
 };
 
 export const completeOrderPickup = async (orderId: string) => {
-  const order = await prisma.order.update({
-    where: { id: orderId },
-    data: {
-      pickedUp: true,
-    },
-    include: {
-      buyer: true,
-      fundraiser: {
+  const order = await prisma.$transaction(
+    async (tx) => {
+      const existingOrder = await tx.order.findUnique({
+        where: { id: orderId },
         select: {
           id: true,
-          name: true,
-          description: true,
-          published: true,
-          goalAmount: true,
-          imageUrls: true,
-          buyingStartsAt: true,
-          buyingEndsAt: true,
-          organization: {
+          paymentStatus: true,
+          pickedUp: true,
+          items: {
             select: {
-              id: true,
-              name: true,
-              description: true,
-              authorized: true,
-              logoUrl: true,
-            },
-          },
-          pickupEvents: {
-            orderBy: {
-              startsAt: "asc",
+              quantity: true,
+              itemId: true,
             },
           },
         },
-      },
-      items: {
-        select: {
-          quantity: true,
-          item: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-              price: true,
-              imageUrl: true,
-              offsale: true,
-            },
-          },
+      });
+
+      if (!existingOrder) {
+        throw new Error("Order not found");
+      }
+
+      const isAlreadyCountedAgainstCap =
+        existingOrder.paymentStatus === "CONFIRMED" || existingOrder.pickedUp;
+
+      if (!isAlreadyCountedAgainstCap) {
+        await assertInventoryAvailable(
+          tx,
+          existingOrder.items.map((item) => ({
+            itemId: item.itemId,
+            quantity: item.quantity,
+          })),
+          orderId
+        );
+      }
+
+      return tx.order.update({
+        where: { id: orderId },
+        data: {
+          pickedUp: true,
         },
-      },
-      referral: {
         include: {
-          referrer: true,
+          buyer: true,
+          fundraiser: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              published: true,
+              goalAmount: true,
+              imageUrls: true,
+              buyingStartsAt: true,
+              buyingEndsAt: true,
+              organization: {
+                select: {
+                  id: true,
+                  name: true,
+                  description: true,
+                  authorized: true,
+                  logoUrl: true,
+                },
+              },
+              pickupEvents: {
+                orderBy: {
+                  startsAt: "asc",
+                },
+              },
+            },
+          },
+          items: {
+            select: {
+              quantity: true,
+              item: {
+                select: {
+                  id: true,
+                  name: true,
+                  description: true,
+                  price: true,
+                  imageUrl: true,
+                  offsale: true,
+                },
+              },
+            },
+          },
+          referral: {
+            include: {
+              referrer: true,
+            },
+          },
         },
-      },
+      });
     },
-  });
+    { isolationLevel: "Serializable" }
+  );
 
   // Update analytics cache for the fundraiser when an order is picked up, so pending order and picked up order counts are not stale
   await updateCacheForOrderPickup(

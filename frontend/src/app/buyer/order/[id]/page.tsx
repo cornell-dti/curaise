@@ -1,7 +1,11 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { CompleteOrderSchema, BasicFundraiserSchema } from "common";
+import {
+  CompleteOrderSchema,
+  BasicFundraiserSchema,
+  ItemWithAvailabilitySchema,
+} from "common";
 import Decimal from "decimal.js";
 import Link from "next/link";
 import {
@@ -17,6 +21,7 @@ import {
   DollarSign,
   Mail,
   MapPin,
+  TriangleAlert,
   User,
 } from "lucide-react";
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
@@ -27,6 +32,7 @@ import { format } from "date-fns";
 import { ConfettiWrapper } from "@/components/custom/ConfettiWrapper";
 import { OrderQRCodeDisplay } from "@/components/custom/OrderQRCodeDisplay";
 import { serverFetch } from "@/lib/fetcher";
+import { formatCapacityIssueMessage, getCapacityIssues } from "@/lib/capacity";
 
 export default async function OrderPage({
   params,
@@ -64,6 +70,24 @@ export default async function OrderPage({
     token: session.access_token,
     schema: BasicFundraiserSchema,
   });
+  const fundraiserItemAvailability = await serverFetch(
+    `/fundraiser/${order.fundraiser.id}/items/availability`,
+    {
+      schema: ItemWithAvailabilitySchema.array(),
+    },
+  );
+  const orderCapacityIssues = getCapacityIssues(
+    order.items.map((orderItem) => ({
+      itemId: orderItem.item.id,
+      itemName: orderItem.item.name,
+      quantity: orderItem.quantity,
+    })),
+    fundraiserItemAvailability,
+  );
+  const isCapacityBlockedPayment =
+    order.paymentStatus === "PENDING" &&
+    order.paymentMethod === "VENMO" &&
+    orderCapacityIssues.length > 0;
 
   const orderTotal = order.items
     .reduce(
@@ -86,6 +110,16 @@ export default async function OrderPage({
         title: "Payment Confirmed",
         message:
           "Your payment has been verified. No further action is required.",
+      };
+    }
+
+    if (isCapacityBlockedPayment) {
+      return {
+        borderColor: "border-red-500",
+        textColor: "text-red-800 dark:text-red-200",
+        title: "Payment Unavailable",
+        message:
+          "This order can no longer be confirmed because one or more items will be out of stock.",
       };
     }
 
@@ -131,7 +165,21 @@ export default async function OrderPage({
       <div className="flex flex-col gap-2 mb-6">
         <div className="flex items-center gap-10 mb-2">
           <h1 className="text-2xl font-bold">Order Details</h1>
-          <PaymentStatusBadge order={order} />
+          <PaymentStatusBadge
+            order={order}
+            override={
+              isCapacityBlockedPayment
+                ? {
+                    text: "Payment Unavailable",
+                    tooltipText:
+                      "This order can no longer be confirmed because one or more items will be out of stock.",
+                    colorClassName:
+                      "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+                    icon: <TriangleAlert className="mr-1 h-4 w-4" />,
+                  }
+                : undefined
+            }
+          />
         </div>
         <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-sm text-gray-800">
           <span>
@@ -160,88 +208,106 @@ export default async function OrderPage({
             order.paymentMethod === "VENMO" &&
             fundraiser.venmoUsername && (
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-center">
-                    <Button
-                      size="lg"
-                      asChild
-                      className="flex items-center gap-2 bg-[#008CFF] hover:bg-[#2E7BB8] text-white font-semibold px-4 py-3 text-md"
-                    >
-                      <a
-                        href={`https://venmo.com/${
-                          fundraiser.venmoUsername
-                        }?txn=pay&note=${encodeURIComponent(
-                          orderIdForPayment,
-                        )}&amount=${encodeURIComponent(orderTotal)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <span className="flex items-center gap-2">
-                          <svg
-                            width="48"
-                            height="48"
-                            style={{ width: "2rem", height: "2rem" }}
-                            xmlns="http://www.w3.org/2000/svg"
-                            aria-label="Venmo"
-                            role="img"
-                            viewBox="0 0 512 512"
-                          >
-                            <rect
-                              width="512"
-                              height="512"
-                              rx="15%"
-                              fill="transparent"
-                            />
-                            <path
-                              d="m381.4 105.3c11 18.1 15.9 36.7 15.9 60.3 0 75.1-64.1 172.7-116.2 241.2h-118.8l-47.6-285 104.1-9.9 25.3 202.8c23.5-38.4 52.6-98.7 52.6-139.7 0-22.5-3.9-37.8-9.9-50.4z"
-                              fill="#ffffff"
-                            />
-                          </svg>
-                          <span>Pay with Venmo</span>
-                        </span>
-                      </a>
-                    </Button>
-                  </div>
-
-                  {/* Show payment details */}
-                  <details className="text-sm text-muted-foreground">
-                    <summary className="cursor-pointer hover:text-foreground">
-                      Link not working?
-                    </summary>
-                    <div className="mt-2 pl-4 border-l-2 border-muted space-y-2">
-                      <p className="mb-1 text-sm">
-                        Manual entry details (enter exactly as shown, or the
-                        order may not be processed correctly):
-                      </p>
-
-                      <p className="text-sm">Send to Venmo username:</p>
-                      <div className="flex items-center gap-2">
-                        <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
-                          @{fundraiser.venmoUsername}
-                        </code>
-                        <CopyButton text={`${fundraiser.venmoUsername}`} />
-                      </div>
-
-                      <p className="text-sm">Amount to send:</p>
-                      <div className="flex items-center gap-2">
-                        <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
-                          ${orderTotal}
-                        </code>
-                        <CopyButton text={orderTotal} />
-                      </div>
-
-                      <p className="text-sm">
-                        Send this exact order ID as your Venmo message:
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
-                          {orderIdForPayment}
-                        </code>
-                        <CopyButton text={orderIdForPayment} />
-                      </div>
+                {isCapacityBlockedPayment ? (
+                  <div className="rounded-md border border-red-200 bg-red-50 px-3 py-3">
+                    <p className="text-sm font-semibold text-red-800">
+                      Payment is blocked for this order:
+                    </p>
+                    <div className="mt-2 space-y-1">
+                      {orderCapacityIssues.map((issue) => (
+                        <p
+                          key={`${issue.itemId}-${issue.reason}`}
+                          className="text-sm text-red-700"
+                        >
+                          • {formatCapacityIssueMessage(issue)}
+                        </p>
+                      ))}
                     </div>
-                  </details>
-                </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex justify-center">
+                      <Button
+                        size="lg"
+                        asChild
+                        className="flex items-center gap-2 bg-[#008CFF] hover:bg-[#2E7BB8] text-white font-semibold px-4 py-3 text-md"
+                      >
+                        <a
+                          href={`https://venmo.com/${
+                            fundraiser.venmoUsername
+                          }?txn=pay&note=${encodeURIComponent(
+                            orderIdForPayment,
+                          )}&amount=${encodeURIComponent(orderTotal)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <span className="flex items-center gap-2">
+                            <svg
+                              width="48"
+                              height="48"
+                              style={{ width: "2rem", height: "2rem" }}
+                              xmlns="http://www.w3.org/2000/svg"
+                              aria-label="Venmo"
+                              role="img"
+                              viewBox="0 0 512 512"
+                            >
+                              <rect
+                                width="512"
+                                height="512"
+                                rx="15%"
+                                fill="transparent"
+                              />
+                              <path
+                                d="m381.4 105.3c11 18.1 15.9 36.7 15.9 60.3 0 75.1-64.1 172.7-116.2 241.2h-118.8l-47.6-285 104.1-9.9 25.3 202.8c23.5-38.4 52.6-98.7 52.6-139.7 0-22.5-3.9-37.8-9.9-50.4z"
+                                fill="#ffffff"
+                              />
+                            </svg>
+                            <span>Pay with Venmo</span>
+                          </span>
+                        </a>
+                      </Button>
+                    </div>
+
+                    {/* Show payment details */}
+                    <details className="text-sm text-muted-foreground">
+                      <summary className="cursor-pointer hover:text-foreground">
+                        Link not working?
+                      </summary>
+                      <div className="mt-2 pl-4 border-l-2 border-muted space-y-2">
+                        <p className="mb-1 text-sm">
+                          Manual entry details (enter exactly as shown, or the
+                          order may not be processed correctly):
+                        </p>
+
+                        <p className="text-sm">Send to Venmo username:</p>
+                        <div className="flex items-center gap-2">
+                          <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
+                            @{fundraiser.venmoUsername}
+                          </code>
+                          <CopyButton text={`${fundraiser.venmoUsername}`} />
+                        </div>
+
+                        <p className="text-sm">Amount to send:</p>
+                        <div className="flex items-center gap-2">
+                          <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
+                            ${orderTotal}
+                          </code>
+                          <CopyButton text={orderTotal} />
+                        </div>
+
+                        <p className="text-sm">
+                          Send this exact order ID as your Venmo message:
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
+                            {orderIdForPayment}
+                          </code>
+                          <CopyButton text={orderIdForPayment} />
+                        </div>
+                      </div>
+                    </details>
+                  </div>
+                )}
               </CardContent>
             )}
         </Card>

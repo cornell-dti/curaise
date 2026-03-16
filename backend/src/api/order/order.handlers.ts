@@ -126,7 +126,16 @@ export const completeOrderPickupHandler = async (
     return;
   }
 
-  const completedOrder = await completeOrderPickup(req.params.id);
+  let completedOrder;
+  try {
+    completedOrder = await completeOrderPickup(req.params.id);
+  } catch (error) {
+    res.status(400).json({
+      message:
+        error instanceof Error ? error.message : "Failed to complete order pickup",
+    });
+    return;
+  }
   if (!completedOrder) {
     res.status(500).json({ message: "Failed to complete order pickup" });
     return;

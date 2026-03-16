@@ -1,4 +1,4 @@
-import { CalendarIcon, MapPin } from "lucide-react";
+import { CalendarIcon, MapPin, TriangleAlert } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -14,7 +14,13 @@ import { Button } from "../ui/button";
 import Link from "next/link";
 import { format } from "date-fns";
 
-const OrderCard = ({ order }: { order: z.infer<typeof BasicOrderSchema> }) => {
+const OrderCard = ({
+  order,
+  isCapacityBlockedPayment = false,
+}: {
+  order: z.infer<typeof BasicOrderSchema>;
+  isCapacityBlockedPayment?: boolean;
+}) => {
   const pickupEvents = order.fundraiser.pickupEvents;
 
   return (
@@ -24,7 +30,21 @@ const OrderCard = ({ order }: { order: z.infer<typeof BasicOrderSchema> }) => {
             Desktop: text left, badge right (same as before) */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="self-start sm:order-2">
-            <PaymentStatusBadge order={order} />
+            <PaymentStatusBadge
+              order={order}
+              override={
+                isCapacityBlockedPayment
+                  ? {
+                      text: "Payment Unavailable",
+                      tooltipText:
+                        "This order can no longer be confirmed because one or more items will be out of stock.",
+                      colorClassName:
+                        "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+                      icon: <TriangleAlert className="mr-1 h-4 w-4" />,
+                    }
+                  : undefined
+              }
+            />
           </div>
           <div className="sm:order-1">
             <CardTitle className="text-xl font-semibold">
