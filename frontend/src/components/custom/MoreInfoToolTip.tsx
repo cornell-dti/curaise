@@ -8,7 +8,7 @@ import { HelpCircle } from "lucide-react";
 
 interface InfoTooltipProps {
   /** The informational text shown on hover */
-  content: string;
+  content: React.ReactNode;
   /** Optional size of the ? icon in pixels (default 18) */
   size?: number;
   className?: string;
@@ -41,7 +41,7 @@ export function InfoTooltip({
       <TooltipContent
         side="top"
         sideOffset={6}
-        className="max-w-64 text-xs leading-relaxed"
+        className="max-w-64 text-xs leading-relaxed whitespace-pre-line"
       >
         {content}
       </TooltipContent>
