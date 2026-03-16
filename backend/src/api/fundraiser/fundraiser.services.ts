@@ -1,5 +1,5 @@
 import { prisma } from "../../utils/prisma";
-import { Item } from "@prisma/client";
+import { Item } from "../../generated/client";
 import {
   CreateFundraiserBody,
   UpdateFundraiserBody,
