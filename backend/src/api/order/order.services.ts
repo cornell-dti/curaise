@@ -189,7 +189,10 @@ export const getOrder = async (orderId: string) => {
 };
 
 export const createOrder = async (
-  orderBody: z.infer<typeof CreateOrderBody> & { buyerId: string },
+  orderBody: z.infer<typeof CreateOrderBody> & {
+    buyerId: string;
+    markAsPickedUp?: boolean;
+  },
 ) => {
   const mergedOrderItems = mergeRequestedItemsByItemId(orderBody.items);
 
@@ -207,6 +210,7 @@ export const createOrder = async (
           paymentMethod: orderBody.payment_method,
           paymentStatus:
             orderBody.payment_method === "VENMO" ? "PENDING" : "UNVERIFIABLE",
+          pickedUp: orderBody.markAsPickedUp === true,
           buyer: { connect: { id: orderBody.buyerId } },
           fundraiser: { connect: { id: orderBody.fundraiserId } },
           items: {
