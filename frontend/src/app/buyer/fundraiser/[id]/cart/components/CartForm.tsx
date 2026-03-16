@@ -1,7 +1,7 @@
 "use client";
 
 import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { ChevronLeft, Plus, Trash } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
@@ -9,7 +9,8 @@ import { useCartStore } from "@/lib/store/useCartStore";
 import { useShallow } from "zustand/react/shallow";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { createClient } from "@/utils/supabase/client";
-import { useFundraiserItems } from "@/hooks/useFundraiserItems";
+import { toast } from "sonner";
+import { useItemsAvailability } from "@/hooks/useItemsAvailability";
 import useSWR from "swr";
 import { noAuthFetcher } from "@/lib/fetcher";
 import Decimal from "decimal.js";
@@ -26,7 +27,7 @@ export function CartForm({ code }: { code: string }) {
     fundraiserId ? `/fundraiser/${fundraiserId}` : null,
     noAuthFetcher(CompleteFundraiserSchema),
   );
-  const { items, isLoading: itemsLoading } = useFundraiserItems(fundraiserId);
+  const { items, isLoading: itemsLoading } = useItemsAvailability(fundraiserId);
 
   const loading = fundraiserLoading || itemsLoading;
 
@@ -47,6 +48,52 @@ export function CartForm({ code }: { code: string }) {
   );
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
+  const hasValidatedCart = useRef(false);
+
+  useEffect(() => {
+    if (!items || cart.length === 0 || hasValidatedCart.current) return;
+
+    hasValidatedCart.current = true;
+
+    const adjustments: string[] = [];
+    const removals: string[] = [];
+
+    cart.forEach((cartItem) => {
+      const availabilityItem = items.find((item) => item.id === cartItem.item.id);
+
+      if (!availabilityItem || availabilityItem.offsale) {
+        removeItem(fundraiserId, cartItem.item);
+        removals.push(cartItem.item.name);
+        return;
+      }
+
+      if (
+        availabilityItem.available !== null &&
+        availabilityItem.available <= 0
+      ) {
+        removeItem(fundraiserId, cartItem.item);
+        removals.push(cartItem.item.name);
+        return;
+      }
+
+      if (
+        availabilityItem.available !== null &&
+        cartItem.quantity > availabilityItem.available
+      ) {
+        updateQuantity(fundraiserId, cartItem.item, availabilityItem.available);
+        adjustments.push(
+          `${cartItem.item.name} reduced to ${availabilityItem.available}`,
+        );
+      }
+    });
+
+    if (removals.length > 0) {
+      toast.error(`Removed from cart (sold out): ${removals.join(", ")}`);
+    }
+    if (adjustments.length > 0) {
+      toast.warning(`Quantity adjusted: ${adjustments.join(", ")}`);
+    }
+  }, [items, cart, fundraiserId, removeItem, updateQuantity]);
 
   // Merge cart items with fetched items to get latest imageUrl
   const cartWithImages = cart.map((cartItem) => {
@@ -70,6 +117,15 @@ export function CartForm({ code }: { code: string }) {
   const handleIncrement = (item: typeof CompleteItemSchema._type) => {
     const cartItem = cartWithImages.find((ci) => ci.item.id === item.id);
     if (cartItem) {
+      const availabilityItem = items?.find((availability) => availability.id === item.id);
+      if (
+        availabilityItem?.available !== null &&
+        availabilityItem?.available !== undefined &&
+        cartItem.quantity + 1 > availabilityItem.available
+      ) {
+        toast.error(`Only ${availabilityItem.available} available for ${item.name}`);
+        return;
+      }
       updateQuantity(fundraiserId, item, cartItem.quantity + 1);
     }
   };

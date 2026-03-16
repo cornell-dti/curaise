@@ -24,6 +24,8 @@ generated
 .DS_Store
 *.pem
 .vscode
+docs/plans
+docs/testing
 
 # debug
 npm-debug.log*

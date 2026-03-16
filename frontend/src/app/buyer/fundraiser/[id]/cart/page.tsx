@@ -2,7 +2,6 @@ import { connection } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { CartForm } from "./components/CartForm";
-
 export default async function CartPage({
   params,
   searchParams,
@@ -13,7 +12,6 @@ export default async function CartPage({
   await connection();
 
   const supabase = await createClient();
-
   const id = (await params).id;
 
   // protect page (must use supabase.auth.getUser() according to docs)

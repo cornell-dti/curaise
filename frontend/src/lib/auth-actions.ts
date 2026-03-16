@@ -8,7 +8,7 @@ export async function signInWithGoogle(nextPath?: string) {
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
-  let next = nextPath && nextPath.startsWith("/") ? nextPath : undefined;
+  const next = nextPath && nextPath.startsWith("/") ? nextPath : undefined;
 
   const redirectToBase = origin ? `${origin}/auth/callback` : "/auth/callback";
   const redirectTo = next
