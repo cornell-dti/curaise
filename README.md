@@ -6,6 +6,7 @@
 
 ### Spring 2026
 - Frank Dai (Developer)
+- Eddie Hu (Developer)
 - Olivia Lee (Designer)
 - Chelsea She (Developer)
 - Arsh Singh (TPM)
