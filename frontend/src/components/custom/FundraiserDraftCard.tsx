@@ -2,8 +2,8 @@ import { CalendarIcon, MapPinIcon } from "lucide-react";
 import { z } from "zod";
 import { BasicFundraiserSchema } from "common";
 import Link from "next/link";
-import { format } from "date-fns";
 import { Button } from "../ui/button";
+import { LocalDate } from "@/components/ui/LocalDate";
 
 export function FundraiserDraftCard({
 	fundraiser,
@@ -40,7 +40,7 @@ export function FundraiserDraftCard({
 						{/* Show buying date */}
 						<div className="flex items-center gap-2">
 							<CalendarIcon className="h-4 w-4 text-gray-400" />
-							<span>{format(fundraiser.buyingStartsAt, "EEEE, M/d/yyyy")}</span>
+							<span><LocalDate date={fundraiser.buyingStartsAt} formatStr="EEEE, M/d/yyyy" /></span>
 						</div>
 
 						{/* Show pickup events */}
@@ -48,8 +48,8 @@ export function FundraiserDraftCard({
 							<div key={event.id} className="flex items-center gap-2">
 								<MapPinIcon className="h-4 w-4 text-gray-400" />
 								<span>
-									{event.location}, {format(event.startsAt, "h:mm a")} to{" "}
-									{format(event.endsAt, "h:mm a")}
+									{event.location}, <LocalDate date={event.startsAt} formatStr="h:mm a" /> to{" "}
+									<LocalDate date={event.endsAt} formatStr="h:mm a" />
 								</span>
 							</div>
 						))}

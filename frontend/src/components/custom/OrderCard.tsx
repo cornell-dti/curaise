@@ -12,7 +12,7 @@ import { z } from "zod";
 import { BasicOrderSchema } from "common";
 import { Button } from "../ui/button";
 import Link from "next/link";
-import { format } from "date-fns";
+import { LocalDate } from "@/components/ui/LocalDate";
 
 const OrderCard = ({
   order,
@@ -62,7 +62,7 @@ const OrderCard = ({
           <div className="flex items-center gap-2">
             <CalendarIcon className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium">
-              {format(pickupEvents[0].startsAt, "EEEE, M/d/yyyy")}
+              <LocalDate date={pickupEvents[0].startsAt} formatStr="EEEE, M/d/yyyy" />
             </span>
           </div>
         )}
@@ -73,8 +73,8 @@ const OrderCard = ({
               <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
               <span>
                 <span className="font-medium">{event.location}</span>,{" "}
-                {format(event.startsAt, "h:mm a")} to{" "}
-                {format(event.endsAt, "h:mm a")}
+                <LocalDate date={event.startsAt} formatStr="h:mm a" /> to{" "}
+                <LocalDate date={event.endsAt} formatStr="h:mm a" />
               </span>
             </div>
           ))}

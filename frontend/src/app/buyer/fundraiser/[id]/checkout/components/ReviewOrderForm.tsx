@@ -10,7 +10,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { CartItem } from "@/lib/store/useCartStore";
 import { CompleteFundraiserSchema, CreateOrderBody } from "common";
-import { format } from "date-fns";
+import { LocalDate } from "@/components/ui/LocalDate";
 import Decimal from "decimal.js";
 import { CalendarIcon, MapPin } from "lucide-react";
 import { z } from "zod";
@@ -64,8 +64,8 @@ export function ReviewOrderForm({
 										/>
 										<span className="text-sm">
 											<b>
-												{format(event.startsAt, "MMM d, yyyy 'at' h:mm a")} -{" "}
-												{format(event.endsAt, "MMM d, yyyy 'at' h:mm a")}
+												<LocalDate date={event.startsAt} formatStr="MMM d, yyyy 'at' h:mm a" /> -{" "}
+												<LocalDate date={event.endsAt} formatStr="MMM d, yyyy 'at' h:mm a" />
 											</b>
 										</span>
 									</div>

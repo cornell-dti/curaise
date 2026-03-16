@@ -10,9 +10,9 @@ import {
 import { z } from "zod";
 import { BasicFundraiserSchema } from "common";
 import Link from "next/link";
-import { format } from "date-fns";
 import { Button } from "../ui/button";
 import Image from "next/image";
+import { LocalDate } from "@/components/ui/LocalDate";
 
 /**
  * Shared fundraiser card used in both buyer and seller pages.
@@ -28,9 +28,10 @@ export function FundraiserCard({
   seller?: boolean;
 }) {
   const now = new Date();
-  const isBuyingActive =
-    now >= fundraiser.buyingStartsAt && now <= fundraiser.buyingEndsAt;
-  const isUpcoming = now < fundraiser.buyingStartsAt;
+  const buyingStart = new Date(fundraiser.buyingStartsAt);
+  const buyingEnd = new Date(fundraiser.buyingEndsAt);
+  const isBuyingActive = now >= buyingStart && now <= buyingEnd;
+  const isUpcoming = now < buyingStart;
 
   return (
     <Card className="overflow-hidden border shadow-sm h-full flex flex-col hover:shadow-md hover:translate-y-[-2px] transition-all duration-200">
@@ -87,8 +88,8 @@ export function FundraiserCard({
             <span>
               Buying Window:{" "}
               <b>
-                {format(fundraiser.buyingStartsAt, "MMM d 'at' h:mm a")} -{" "}
-                {format(fundraiser.buyingEndsAt, "MMM d 'at' h:mm a")}
+                <LocalDate date={fundraiser.buyingStartsAt} formatStr="MMM d 'at' h:mm a" /> -{" "}
+                <LocalDate date={fundraiser.buyingEndsAt} formatStr="MMM d 'at' h:mm a" />
               </b>
             </span>
           </div>
@@ -114,8 +115,8 @@ export function FundraiserCard({
                   <CalendarIcon className="h-3 w-3 text-muted-foreground" />
                   <span>
                     <b>
-                      {format(event.startsAt, "MMM d 'at' h:mm a")} -{" "}
-                      {format(event.endsAt, "MMM d 'at' h:mm a")}
+                      <LocalDate date={event.startsAt} formatStr="MMM d 'at' h:mm a" /> -{" "}
+                      <LocalDate date={event.endsAt} formatStr="MMM d 'at' h:mm a" />
                     </b>
                   </span>
                 </div>

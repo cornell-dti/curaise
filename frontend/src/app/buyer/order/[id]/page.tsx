@@ -28,7 +28,7 @@ import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/custom/CopyButton";
 import { Separator } from "@/components/ui/separator";
-import { format } from "date-fns";
+import { LocalDate } from "@/components/ui/LocalDate";
 import { ConfettiWrapper } from "@/components/custom/ConfettiWrapper";
 import { OrderQRCodeDisplay } from "@/components/custom/OrderQRCodeDisplay";
 import { serverFetch } from "@/lib/fetcher";
@@ -183,7 +183,7 @@ export default async function OrderPage({
         </div>
         <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-sm text-gray-800">
           <span>
-            Ordered on {format(order.createdAt, "MMM d, yyyy 'at' h:mm a")}
+            Ordered on <LocalDate date={order.createdAt} formatStr="MMM d, yyyy 'at' h:mm a" />
           </span>
           <span className="hidden md:inline">|</span>
           <span>Order Id: {order.id}</span>
@@ -326,10 +326,10 @@ export default async function OrderPage({
                   <div className="flex items-center gap-2">
                     <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm font-medium">
-                      {format(
-                        order.fundraiser.pickupEvents[0].startsAt,
-                        "EEEE, M/d/yyyy",
-                      )}
+                      <LocalDate
+                        date={order.fundraiser.pickupEvents[0].startsAt}
+                        formatStr="EEEE, M/d/yyyy"
+                      />
                     </span>
                   </div>
                 )}
@@ -340,8 +340,8 @@ export default async function OrderPage({
                       <span className="text-sm">
                         <span className="font-medium">{event.location}</span>
                         <br />
-                        {format(event.startsAt, "h:mm a")} to{" "}
-                        {format(event.endsAt, "h:mm a")}
+                        <LocalDate date={event.startsAt} formatStr="h:mm a" /> to{" "}
+                        <LocalDate date={event.endsAt} formatStr="h:mm a" />
                       </span>
                     </div>
                   ))}
