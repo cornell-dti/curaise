@@ -619,24 +619,20 @@ export const calculateAndCacheFundraiserAnalytics = async (
  * @returns Promise<FundraiserAnalytics> - Analytics data from cache or freshly calculated
  */
 export const getFundraiserAnalytics = async (fundraiserId: string) => {
-  // TEMPORARY: Disable cache to test realtime
-  console.log("Cache DISABLED - calculating fresh analytics");
-  return await calculateAndCacheFundraiserAnalytics(fundraiserId);
-
   // Fundraiser specific id to access the cache
-  // const cacheKey = `fundraiser_analytics_${fundraiserId}`;
+  const cacheKey = `fundraiser_analytics_${fundraiserId}`;
 
-  // try {
-  //   const cached = await memclient.get(cacheKey);
-  //   if (cached.value) {
-  //     console.log("Found in cache");
-  //     return JSON.parse(cached.value.toString());
-  //   }
-  // } catch (error) {
-  //   console.error("Failed to get cached analytics:", error);
-  // }
-  // console.log("Cache miss - calculating fresh analytics");
-  // return await calculateAndCacheFundraiserAnalytics(fundraiserId);
+  try {
+    const cached = await memclient.get(cacheKey);
+    if (cached.value) {
+      console.log("Found in cache");
+      return JSON.parse(cached.value.toString());
+    }
+  } catch (error) {
+    console.error("Failed to get cached analytics:", error);
+  }
+  console.log("Cache miss - calculating fresh analytics");
+  return await calculateAndCacheFundraiserAnalytics(fundraiserId);
 };
 
 /**

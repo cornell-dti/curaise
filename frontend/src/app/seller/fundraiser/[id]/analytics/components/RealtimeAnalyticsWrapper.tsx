@@ -45,10 +45,13 @@ export function RealtimeAnalyticsWrapper({
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
-    const refetchAnalytics = async () => {
+    const refetchAnalytics = async (forceRefresh = false) => {
       try {
+        const url = forceRefresh
+          ? `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/analytics?refresh=true`
+          : `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/analytics`;
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/analytics`,
+          url,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -68,6 +71,10 @@ export function RealtimeAnalyticsWrapper({
       }
     };
 
+    const belongsToFundraiser = (
+      row: { fundraiser_id?: string } | null | undefined
+    ) => row?.fundraiser_id === fundraiserId;
+
     let isCancelled = false;
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
@@ -86,18 +93,57 @@ export function RealtimeAnalyticsWrapper({
         .on(
           "postgres_changes",
           {
-            event: "*",
+            event: "INSERT",
             schema: "public",
             table: "orders",
             filter: `fundraiser_id=eq.${fundraiserId}`,
           },
           () => {
-            refetchAnalytics();
+            refetchAnalytics(true);
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "orders",
+          },
+          (payload) => {
+            if (
+              !belongsToFundraiser(
+                payload.new as { fundraiser_id?: string } | null | undefined
+              ) &&
+              !belongsToFundraiser(
+                payload.old as { fundraiser_id?: string } | null | undefined
+              )
+            ) {
+              return;
+            }
+            refetchAnalytics(true);
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "DELETE",
+            schema: "public",
+            table: "orders",
+          },
+          (payload) => {
+            if (
+              !belongsToFundraiser(
+                payload.old as { fundraiser_id?: string } | null | undefined
+              )
+            ) {
+              return;
+            }
+            refetchAnalytics(true);
           }
         )
         .subscribe();
 
-      refetchAnalytics();
+      refetchAnalytics(true);
     };
 
     void setupRealtime();

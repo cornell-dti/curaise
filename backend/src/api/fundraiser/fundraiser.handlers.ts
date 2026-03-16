@@ -5,6 +5,7 @@ import {
   DeleteAnnouncementRouteParams,
   PickupEventRouteParams,
   ApproveReferralRouteParams,
+  AnalyticsQueryParams,
 } from "./fundraiser.types";
 import {
   createFundraiser,
@@ -20,6 +21,7 @@ import {
   createAnnouncement,
   deleteAnnouncement,
   getFundraiserAnalytics,
+  invalidateFundraiserAnalyticsCache,
   publishFundraiser,
   createPickupEvent,
   updatePickupEvent,
@@ -718,7 +720,7 @@ export const deleteAnnouncementHandler = async (
 };
 
 export const getFundraiserAnalyticsHandler = async (
-  req: Request<FundraiserRouteParams, any, {}, {}>,
+  req: Request<FundraiserRouteParams, any, {}, AnalyticsQueryParams>,
   res: Response
 ) => {
   const fundraiser = await getFundraiser(req.params.id);
@@ -740,6 +742,10 @@ export const getFundraiserAnalyticsHandler = async (
   }
 
   try {
+    if (req.query.refresh === "true") {
+      await invalidateFundraiserAnalyticsCache(req.params.id);
+    }
+
     const analytics = await getFundraiserAnalytics(req.params.id);
     if (!analytics) {
       res.status(500).json({ message: "Failed to retrieve analytics" });
