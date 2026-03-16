@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 // The client you created from the Server-Side Auth instructions
+import { sanitizeNextPath } from "@/lib/auth-redirect";
 import { createClient } from "@/utils/supabase/server";
 
 // Route Handler to handle the callback from the OAuth provider
@@ -8,7 +9,7 @@ import { createClient } from "@/utils/supabase/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  const next = sanitizeNextPath(searchParams.get("next"));
 
   const supabase = await createClient();
   const {
@@ -20,20 +21,13 @@ export async function GET(request: Request) {
     if (!error) {
       const forwardedHost = request.headers.get("x-forwarded-host");
       const isLocalEnv = process.env.NODE_ENV === "development";
-      let decodedNext = next;
-      try {
-        decodedNext = decodeURIComponent(next);
-      } catch {
-        // already decoded or malformed; keep as-is
-      }
-
       const base = isLocalEnv
         ? origin
         : forwardedHost
           ? `https://${forwardedHost}`
           : origin;
 
-      return NextResponse.redirect(new URL(decodedNext, base));
+      return NextResponse.redirect(new URL(next, base));
     } else {
       console.log("[auth/callback] exchangeCodeForSession error:", error);
     }
@@ -41,12 +35,6 @@ export async function GET(request: Request) {
 
   // If user is already logged in, redirect to 'next' instead of error page
   if (existingUser) {
-    let decodedNext = next;
-    try {
-      decodedNext = decodeURIComponent(next);
-    } catch {
-      // already decoded or malformed; keep as-is
-    }
     const forwardedHost = request.headers.get("x-forwarded-host");
     const isLocalEnv = process.env.NODE_ENV === "development";
     const base = isLocalEnv
@@ -54,7 +42,7 @@ export async function GET(request: Request) {
       : forwardedHost
         ? `https://${forwardedHost}`
         : origin;
-    return NextResponse.redirect(new URL(decodedNext, base));
+    return NextResponse.redirect(new URL(next, base));
   }
   // Otherwise, return the user to an error page with instructions
   return NextResponse.redirect(`${origin}/auth/auth-code-error`);

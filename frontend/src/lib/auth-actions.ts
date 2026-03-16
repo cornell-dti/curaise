@@ -1,5 +1,6 @@
 "use server";
 
+import { sanitizeNextPath } from "@/lib/auth-redirect";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -8,7 +9,7 @@ export async function signInWithGoogle(nextPath?: string) {
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
-  const next = nextPath && nextPath.startsWith("/") ? nextPath : undefined;
+  const next = sanitizeNextPath(nextPath, undefined);
 
   const redirectToBase = origin ? `${origin}/auth/callback` : "/auth/callback";
   const redirectTo = next
