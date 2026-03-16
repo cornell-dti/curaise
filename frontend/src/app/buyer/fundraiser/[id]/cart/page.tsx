@@ -1,8 +1,6 @@
 import { connection } from "next/server";
-import { CompleteFundraiserSchema, UserSchema } from "common";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import { serverFetch } from "@/lib/fetcher";
 import { CartForm } from "./components/CartForm";
 
 export default async function CartPage({
@@ -24,7 +22,7 @@ export default async function CartPage({
     error: error1,
   } = await supabase.auth.getUser();
   if (error1 || !user) {
-    redirect(`/login?next=/buyer/fundraiser/${id}/client`);
+    redirect(`/login?next=/buyer/fundraiser/${id}/cart`);
   }
 
   // get auth jwt token
