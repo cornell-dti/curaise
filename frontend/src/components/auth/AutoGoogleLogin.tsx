@@ -8,7 +8,6 @@ async function autoGoogleLoginAction(formData: FormData) {
 }
 
 export function AutoGoogleLogin({ next }: { next?: string }) {
-  console.log(next);
   return (
     <form id="auto-google-login-form" action={autoGoogleLoginAction}>
       <input type="hidden" name="next" value={next ?? "/buyer"} />
