@@ -101,6 +101,32 @@ const assertInventoryAvailable = async (
   }
 };
 
+const assertReferralValidForFundraiser = async (
+  tx: Prisma.TransactionClient,
+  fundraiserId: string,
+  referralId?: string,
+) => {
+  if (!referralId) {
+    return;
+  }
+
+  const referral = await tx.referral.findUnique({
+    where: { id: referralId },
+    select: {
+      id: true,
+      fundraiserId: true,
+    },
+  });
+
+  if (!referral) {
+    throw new Error("Invalid referral ID");
+  }
+
+  if (referral.fundraiserId !== fundraiserId) {
+    throw new Error("Referral ID does not belong to this fundraiser");
+  }
+};
+
 export const getOrder = async (orderId: string) => {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -169,6 +195,11 @@ export const createOrder = async (
   const order = await prisma.$transaction(
     async (tx) => {
       await assertInventoryAvailable(tx, mergedOrderItems);
+      await assertReferralValidForFundraiser(
+        tx,
+        orderBody.fundraiserId,
+        orderBody.referralId,
+      );
 
       return tx.order.create({
         data: {

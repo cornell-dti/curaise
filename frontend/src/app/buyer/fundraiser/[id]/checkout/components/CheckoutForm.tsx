@@ -82,8 +82,11 @@ export function CheckoutForm({
     isLoading: isAvailabilityLoading,
     mutate: refreshAvailability,
   } = useItemsAvailability(fundraiser.id);
+  const initialReferralId = fundraiser.referrals.some((r) => r.id === code)
+    ? code
+    : "none";
   const [selectedReferralId, setSelectedReferralId] = useState<string>(
-    code ? code : "none",
+    initialReferralId,
   );
   const [paymentMethod, setPaymentMethod] = useState<"VENMO" | "OTHER">(
     "VENMO",
