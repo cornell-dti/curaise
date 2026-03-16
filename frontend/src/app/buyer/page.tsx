@@ -60,12 +60,12 @@ export default async function BuyerHome() {
 
 	const fundraiserAvailabilityEntries = await Promise.all(
 		Array.from(new Set(pendingVenmoOrders.map((order) => order.fundraiser.id))).map(
-			async (fundraiserId) => [
-				fundraiserId,
-				await serverFetch(`/fundraiser/${fundraiserId}/items/availability`, {
+			async (fundraiserId) => {
+				const items = await serverFetch(`/fundraiser/${fundraiserId}/items/availability`, {
 					schema: ItemWithAvailabilitySchema.array(),
-				}),
-			],
+				});
+				return [fundraiserId, items] as const;
+			},
 		),
 	);
 	const availabilityByFundraiser = new Map(fundraiserAvailabilityEntries);
