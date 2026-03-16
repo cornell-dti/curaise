@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CompleteFundraiserSchema } from "common";
-import { Star, AlarmClock, Share2, Link, UserStar } from "lucide-react";
+import { AlarmClock, Share2, Link, UserStar } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
