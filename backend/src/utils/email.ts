@@ -359,7 +359,7 @@ export const sendVenmoSetupEmail = async (options: {
       <li>Navigate to the <strong>Search bar</strong>, click on the filter icon on the right-hand side.</li>
       <li>Enter <strong>venmo@venmo.com</strong> in the From field.</li>
       <li>Near the bottom of that window, click on the <strong>Create filter</strong> button.</li>
-      <li>Enable the <strong>Forward it to</strong> option and select <strong>postmaster@curaise.app</li>
+      <li>Enable the <strong>Forward it to</strong> option and select <strong>postmaster@curaise.app</strong></li>
       <li>Click <strong>Create filter</strong> and you're done. All future emails will be automatically processed and turned into transactions by CURaise.</li>
     </ol>
 
