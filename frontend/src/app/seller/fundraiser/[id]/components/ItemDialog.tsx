@@ -14,6 +14,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import UploadImageComponent from "@/components/custom/UploadImageComponent";
+import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
 import { UseFormReturn } from "react-hook-form";
 import { CompleteItemSchema, CreateFundraiserItemBody } from "common";
 import { z } from "zod";
@@ -72,6 +73,28 @@ export function ItemDialog({
 	onAddPendingItem?: OnAddPendingItem;
 	onUpdatePendingItem?: OnUpdatePendingItem;
 }) {
+	const getPublishedLimitValidationError = (
+		existingLimit: number | null,
+		nextLimit: number | undefined
+	) => {
+		if (existingLimit === null) {
+			if (nextLimit !== undefined) {
+				return "Cannot add an inventory cap to a published item.";
+			}
+			return null;
+		}
+
+		if (nextLimit === undefined) {
+			return "Cannot remove an inventory cap from a published item.";
+		}
+
+		if (nextLimit < existingLimit) {
+			return `Cannot decrease inventory cap. Current cap is ${existingLimit}.`;
+		}
+
+		return null;
+	};
+
 	const handleSubmitItem = async (
 		data: z.infer<typeof CreateFundraiserItemBody>
 	) => {
@@ -108,8 +131,21 @@ export function ItemDialog({
 				return;
 			}
 
+			const isPublishedExistingItem =
+				!!isPublished && !editingItem.id.startsWith("temp-");
+			if (isPublishedExistingItem) {
+				const limitError = getPublishedLimitValidationError(
+					editingItem.limit ?? null,
+					item.limit
+				);
+				if (limitError) {
+					toast.error(limitError);
+					return;
+				}
+			}
+
 			// If editing a real (non-temp) item on a published fundraiser, call the API directly
-			if (isPublished && !editingItem.id.startsWith("temp-")) {
+			if (isPublishedExistingItem) {
 				try {
 					await mutationFetch(
 						`/fundraiser/${fundraiserId}/items/${editingItem.id}/update`,
@@ -225,7 +261,11 @@ export function ItemDialog({
 									<FormItem>
 										<FormLabel>Image</FormLabel>
 										<UploadImageComponent
-											imageUrls={[form.getValues("imageUrl") || ""]}
+											imageUrls={
+												form.getValues("imageUrl")
+													? [form.getValues("imageUrl")!]
+													: []
+											}
 											setImageUrls={(imageUrls: string[]) => {
 												if (imageUrls.length > 0) {
 													form.setValue("imageUrl", imageUrls[0]);
@@ -272,7 +312,13 @@ export function ItemDialog({
 								name="limit"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Inventory Cap (Optional)</FormLabel>
+										<div className="flex items-center gap-2">
+											<FormLabel className="mb-0">Inventory Cap (Optional)</FormLabel>
+											<InfoTooltip
+												content="Only set a cap if necessary. Leave blank for unlimited. After publishing, an item with no cap cannot get one later, and an existing cap can only increase. Caps are enforced based on real confirmed or picked-up orders, not carts or unpaid pending orders."
+												size={18}
+											/>
+										</div>
 										<FormControl>
 											<Input
 												type="number"
@@ -307,13 +353,13 @@ export function ItemDialog({
 												}}
 											/>
 										</FormControl>
-										<p className="text-sm text-muted-foreground">
-											{limitLocked
-												? "This item has no cap and cannot have one added after publishing."
-												: limitIncreaseOnly
-													? `Cap can only be increased (current: ${currentItem.limit}).`
-													: "Maximum number that can be sold. Can be set or increased, but not decreased."}
-										</p>
+											<p className="text-sm text-muted-foreground">
+												{limitLocked
+													? "This item has no cap and cannot have one added after publishing."
+													: limitIncreaseOnly
+														? `Cap can only be increased (current: ${currentItem.limit}).`
+														: "After publishing, existing item caps can only increase."}
+											</p>
 										<FormMessage />
 									</FormItem>
 								)}

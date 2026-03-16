@@ -1,4 +1,5 @@
 import { prisma } from "../../utils/prisma";
+import { Item } from "@prisma/client";
 import {
   CreateFundraiserBody,
   UpdateFundraiserBody,
@@ -290,9 +291,15 @@ export const createFundraiserItem = async (
   return item;
 };
 
-export const getFundraiserItem = async (itemId: string) => {
-  const item = await prisma.item.findUnique({
-    where: { id: itemId },
+export const getFundraiserItemForFundraiser = async (
+  fundraiserId: string,
+  itemId: string
+) => {
+  const item = await prisma.item.findFirst({
+    where: {
+      id: itemId,
+      fundraiserId,
+    },
   });
 
   return item;
@@ -333,6 +340,49 @@ export const deleteFundraiserItem = async (itemId: string) => {
   });
 
   return item;
+};
+
+export const validatePublishedFundraiserItemUpdate = (
+  existingItem: Item,
+  updates: z.infer<typeof UpdateFundraiserItemBody>
+): { valid: boolean; reason?: string } => {
+  if (!existingItem.price.equals(updates.price)) {
+    return {
+      valid: false,
+      reason: "Cannot change price of an item in a published fundraiser",
+    };
+  }
+
+  if (updates.limit === undefined) {
+    return { valid: true };
+  }
+
+  if (existingItem.limit === null && updates.limit !== null) {
+    return {
+      valid: false,
+      reason: "Cannot add an inventory cap to a published item",
+    };
+  }
+
+  if (existingItem.limit !== null && updates.limit === null) {
+    return {
+      valid: false,
+      reason: "Cannot remove an inventory cap from a published item",
+    };
+  }
+
+  if (
+    existingItem.limit !== null &&
+    updates.limit !== null &&
+    updates.limit < existingItem.limit
+  ) {
+    return {
+      valid: false,
+      reason: `Cannot decrease inventory cap. Current cap is ${existingItem.limit}`,
+    };
+  }
+
+  return { valid: true };
 };
 
 export const createAnnouncement = async (
@@ -503,8 +553,8 @@ export const getItemsConfirmedCounts = async (
 };
 
 /**
- * Validate that a cap update is allowed
- * Rules: can always remove cap, can increase, cannot decrease, new cap >= confirmed count
+ * Validate that a proposed cap is not below confirmed orders.
+ * Published fundraiser cap transition rules are enforced separately.
  */
 export const validateCapUpdate = async (
   itemId: string,
