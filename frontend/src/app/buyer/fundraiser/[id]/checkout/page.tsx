@@ -17,6 +17,12 @@ export default async function CheckoutPage({
   const supabase = await createClient();
 
   const id = (await params).id;
+  const { code } = await searchParams;
+
+  const nextPath =
+    typeof code === "string" && code.length > 0
+      ? `/buyer/fundraiser/${id}/checkout?code=${encodeURIComponent(code)}`
+      : `/buyer/fundraiser/${id}/checkout`;
 
   // protect page (must use supabase.auth.getUser() according to docs)
   const {
@@ -24,7 +30,7 @@ export default async function CheckoutPage({
     error: error1,
   } = await supabase.auth.getUser();
   if (error1 || !user) {
-    redirect(`/login?next=/buyer/fundraiser/${id}/checkout`);
+    redirect(`/login?next=${encodeURIComponent(nextPath)}`);
   }
 
   // get auth jwt token
@@ -47,8 +53,6 @@ export default async function CheckoutPage({
   if (!fundraiser.published) {
     throw new Error("Fundraiser is not published");
   }
-
-  const { code } = await searchParams;
 
   return (
     <div className=" md:overflow-y-clip">

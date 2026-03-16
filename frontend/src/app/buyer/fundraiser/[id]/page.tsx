@@ -42,6 +42,7 @@ export default async function FundraiserPage({
   const fundraiserItems = await serverFetch(`/fundraiser/${id}/items/availability`, {
     schema: ItemWithAvailabilitySchema.array(),
   });
+  const matchedReferral = fundraiser.referrals.find((r) => r.id === codeValue);
 
   if (
     (!fundraiser.organization.authorized || !fundraiser.published) &&
@@ -108,9 +109,10 @@ export default async function FundraiserPage({
                 <CardContent className="py-3">
                   <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                     <span className="flex gap-2 items-start text-md font-semibold">
-                      <UserStar /> This order will be referring{" "}
-                      {fundraiser.referrals.find((r) => r.id === codeValue)
-                        ?.referrer.name || "No Referral"}
+                      <UserStar />{" "}
+                      {matchedReferral
+                        ? `This order will be referring ${matchedReferral.referrer.name}`
+                        : "Invalid referral ID"}
                     </span>
                   </div>
                 </CardContent>

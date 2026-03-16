@@ -13,6 +13,12 @@ export default async function CartPage({
 
   const supabase = await createClient();
   const id = (await params).id;
+  const { code } = await searchParams;
+
+  const nextPath =
+    typeof code === "string" && code.length > 0
+      ? `/buyer/fundraiser/${id}/cart?code=${encodeURIComponent(code)}`
+      : `/buyer/fundraiser/${id}/cart`;
 
   // protect page (must use supabase.auth.getUser() according to docs)
   const {
@@ -20,7 +26,7 @@ export default async function CartPage({
     error: error1,
   } = await supabase.auth.getUser();
   if (error1 || !user) {
-    redirect(`/login?next=/buyer/fundraiser/${id}/cart`);
+    redirect(`/login?next=${encodeURIComponent(nextPath)}`);
   }
 
   // get auth jwt token
@@ -31,8 +37,6 @@ export default async function CartPage({
   if (error2 || !session?.access_token) {
     throw new Error("Session invalid");
   }
-
-  const { code } = await searchParams;
 
   return (
     <div className=" md:overflow-y-clip">
