@@ -8,9 +8,10 @@ import { ProfitGoalChart } from "./ProfitGoalChart";
 import { RevenueBreakdownChart } from "./RevenueBreakdownChart";
 import { ItemsSoldCard } from "./ItemsSoldCard";
 import { z } from "zod";
-import { CompleteItemSchema } from "common";
+import { CompleteItemSchema, CompleteOrderSchema } from "common";
 
 type Item = z.infer<typeof CompleteItemSchema>;
+type Order = z.infer<typeof CompleteOrderSchema>;
 
 interface FundraiserAnalytics {
   total_revenue: number;
@@ -28,6 +29,7 @@ interface FundraiserAnalytics {
 
 interface RealtimeAnalyticsWrapperProps {
   initialAnalytics: FundraiserAnalytics;
+  initialOrders: Order[];
   fundraiserId: string;
   token: string;
   goalAmount: number;
@@ -36,38 +38,59 @@ interface RealtimeAnalyticsWrapperProps {
 
 export function RealtimeAnalyticsWrapper({
   initialAnalytics,
+  initialOrders,
   fundraiserId,
   token,
   goalAmount,
   items,
 }: RealtimeAnalyticsWrapperProps) {
   const [analytics, setAnalytics] = useState<FundraiserAnalytics>(initialAnalytics);
+  const [orders, setOrders] = useState<Order[]>(initialOrders);
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
-    const refetchAnalytics = async (forceRefresh = false) => {
+    const refetchData = async (forceRefresh = false) => {
       try {
-        const url = forceRefresh
+        const analyticsUrl = forceRefresh
           ? `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/analytics?refresh=true`
           : `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/analytics`;
-        const response = await fetch(
-          url,
-          {
+
+        const [analyticsResponse, ordersResponse] = await Promise.all([
+          fetch(analyticsUrl, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
-        );
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/orders`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+        ]);
 
-        const result = await response.json();
+        const [analyticsResult, ordersResult] = await Promise.all([
+          analyticsResponse.json(),
+          ordersResponse.json(),
+        ]);
 
-        if (response.ok) {
-          setAnalytics(result.data);
+        if (analyticsResponse.ok) {
+          setAnalytics(analyticsResult.data);
         } else {
-          console.error("Failed to refetch analytics:", result.message);
+          console.error("Failed to refetch analytics:", analyticsResult.message);
+        }
+
+        if (ordersResponse.ok) {
+          const parsedOrders = z.array(CompleteOrderSchema).safeParse(ordersResult.data);
+          if (parsedOrders.success) {
+            setOrders(parsedOrders.data);
+          } else {
+            console.error("Failed to parse refreshed orders:", parsedOrders.error);
+          }
+        } else {
+          console.error("Failed to refetch orders:", ordersResult.message);
         }
       } catch (error) {
-        console.error("Error refetching analytics:", error);
+        console.error("Error refetching analytics data:", error);
       }
     };
 
@@ -99,7 +122,7 @@ export function RealtimeAnalyticsWrapper({
             filter: `fundraiser_id=eq.${fundraiserId}`,
           },
           () => {
-            refetchAnalytics(true);
+            refetchData(true);
           }
         )
         .on(
@@ -120,7 +143,7 @@ export function RealtimeAnalyticsWrapper({
             ) {
               return;
             }
-            refetchAnalytics(true);
+            refetchData(true);
           }
         )
         .on(
@@ -138,12 +161,12 @@ export function RealtimeAnalyticsWrapper({
             ) {
               return;
             }
-            refetchAnalytics(true);
+            refetchData(true);
           }
         )
         .subscribe();
 
-      refetchAnalytics(true);
+      refetchData(true);
     };
 
     void setupRealtime();
@@ -192,8 +215,24 @@ export function RealtimeAnalyticsWrapper({
               <Receipt />
               Total Orders
             </div>
-            <div className="text-3xl font-semibold">
-              {analytics.total_orders}
+            <div className="flex items-end gap-5">
+              <div className="text-4xl font-semibold leading-none">
+                {analytics.total_orders}
+              </div>
+              <div className="space-y-1.5 pb-0.5 text-sm leading-none text-muted-foreground">
+                <div>
+                  <span className="font-semibold text-foreground">
+                    {analytics.total_orders - analytics.pending_orders}
+                  </span>{" "}
+                  Confirmed
+                </div>
+                <div>
+                  <span className="font-semibold text-foreground">
+                    {analytics.pending_orders}
+                  </span>{" "}
+                  Pending
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -230,13 +269,15 @@ export function RealtimeAnalyticsWrapper({
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center gap-2 mb-4 font-semibold">
             <Receipt />
-            Items Sold
+            Item Performance
+            <InfoTooltip
+              content="Sorted by confirmed units sold. Inventory caps are affected only by confirmed or picked-up orders, not carts or unpaid pending orders."
+              size={18}
+            />
           </div>
           <ItemsSoldCard
-            items={analytics.items}
-            itemLimits={Object.fromEntries(
-              items.map((item) => [item.name, item.limit ?? null])
-            )}
+            items={items}
+            orders={orders}
           />
         </div>
       </div>

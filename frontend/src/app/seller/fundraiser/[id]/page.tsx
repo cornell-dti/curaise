@@ -97,6 +97,7 @@ export default async function FundraiserAnalyticsPage({
         {/* Key Insights - Realtime */}
         <RealtimeAnalyticsWrapper
           initialAnalytics={analytics}
+          initialOrders={orders}
           fundraiserId={fundraiserId}
           token={session.access_token}
           goalAmount={Number(fundraiser.goalAmount)}
