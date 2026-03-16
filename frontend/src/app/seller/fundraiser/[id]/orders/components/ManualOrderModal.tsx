@@ -14,6 +14,11 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { FundraiserItemCard } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemCard";
 import { mutationFetch } from "@/lib/fetcher";
+import { useItemsAvailability } from "@/hooks/useItemsAvailability";
+import {
+  formatCapacityIssueMessage,
+  getCapacityIssues,
+} from "@/lib/capacity";
 
 type Item = z.infer<typeof CompleteItemSchema>;
 
@@ -39,10 +44,32 @@ export function ManualOrderModal({
   const [open, setOpen] = useState(false);
   const [quantities, setQuantities] = useState<ItemQuantity>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    items: availabilityItems,
+    isLoading: isAvailabilityLoading,
+    mutate: refreshAvailability,
+  } = useItemsAvailability(fundraiserId);
 
   // Updates the quantity for a specific item
   // delta is how many quantities are beign changes (e.g +1, -1)
   const handleQuantityChange = (itemId: string, delta: number) => {
+    if (delta > 0) {
+      const currentQty = quantities[itemId] || 0;
+      const newQty = currentQty + delta;
+      const availabilityItem = availabilityItems?.find((item) => item.id === itemId);
+
+      if (
+        availabilityItem?.available !== null &&
+        availabilityItem?.available !== undefined &&
+        newQty > availabilityItem.available
+      ) {
+        toast.error(
+          `Only ${availabilityItem.available} available for ${availabilityItem.name}`,
+        );
+        return;
+      }
+    }
+
     setQuantities((prev) => {
       const currentQty = prev[itemId] || 0;
 
@@ -68,10 +95,40 @@ export function ManualOrderModal({
     }, 0);
   };
 
+  const requestedItems = Object.entries(quantities).flatMap(([itemId, quantity]) => {
+    const item = items.find((candidate) => candidate.id === itemId);
+    if (!item) {
+      return [];
+    }
+
+    return {
+      itemId,
+      itemName: item.name,
+      quantity,
+    };
+  });
+  const capacityIssues = availabilityItems
+    ? getCapacityIssues(requestedItems, availabilityItems)
+    : [];
+  const hasCapacityIssues = capacityIssues.length > 0;
+  const isAvailabilityPending = isAvailabilityLoading || !availabilityItems;
+
   const handleSaveOrder = async () => {
     // Check that at least one item is selected to place the manual order
     if (Object.keys(quantities).length === 0) {
       toast.error("Please select at least one item");
+      return;
+    }
+
+    const latestItems = (await refreshAvailability()) ?? availabilityItems;
+    if (!latestItems) {
+      toast.error("Unable to verify item availability. Please try again.");
+      return;
+    }
+
+    const latestCapacityIssues = getCapacityIssues(requestedItems, latestItems);
+    if (latestCapacityIssues.length > 0) {
+      toast.error(formatCapacityIssueMessage(latestCapacityIssues[0]));
       return;
     }
 
@@ -91,6 +148,7 @@ export function ManualOrderModal({
           fundraiserId,
           items: orderItems,
           payment_method: "OTHER",
+          markAsPickedUp: true,
         },
       });
 
@@ -139,6 +197,14 @@ export function ManualOrderModal({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {items.map((item) => {
                 const quantity = quantities[item.id] || 0;
+                const availabilityItem = availabilityItems?.find(
+                  (candidate) => candidate.id === item.id,
+                );
+                const isOutOfStock =
+                  !availabilityItem ||
+                  availabilityItem.offsale ||
+                  (availabilityItem.available !== null &&
+                    availabilityItem.available <= 0);
 
                 return (
                   <FundraiserItemCard
@@ -147,6 +213,8 @@ export function ManualOrderModal({
                     amount={quantity}
                     increment={() => handleQuantityChange(item.id, 1)}
                     decrement={() => handleQuantityChange(item.id, -1)}
+                    isOutOfStock={isOutOfStock}
+                    disableIncrement={isOutOfStock}
                     isPast={isPast}
                   />
                 );
@@ -160,9 +228,42 @@ export function ManualOrderModal({
               <span>${total.toFixed(2)}</span>
             </div>
 
+            {isAvailabilityPending && hasItems && (
+              <p className="text-sm text-[#5f5f5f] mb-3">
+                Checking live item availability...
+              </p>
+            )}
+            {hasCapacityIssues && (
+              <div className="rounded-[8px] border border-[#f5c2c7] bg-[#fdf2f2] px-3 py-2 mb-3">
+                <p className="text-sm font-semibold text-[#9f1239]">
+                  You can&apos;t place this order right now:
+                </p>
+                <div className="mt-1 space-y-1">
+                  {capacityIssues.map((issue) => (
+                    <p
+                      key={`${issue.itemId}-${issue.reason}`}
+                      className="text-sm text-[#9f1239]"
+                    >
+                      • {formatCapacityIssueMessage(issue)}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <p className="text-sm text-[#5f5f5f] mb-3">
+              This manual order will be automatically marked as picked up when
+              placed.
+            </p>
+
             <Button
               onClick={handleSaveOrder}
-              disabled={!hasItems || isSubmitting}
+              disabled={
+                !hasItems ||
+                isSubmitting ||
+                isAvailabilityPending ||
+                hasCapacityIssues
+              }
               className="w-full bg-black hover:bg-gray-800 text-white h-12 text-base"
             >
               {isSubmitting ? "Saving..." : "Save order"}

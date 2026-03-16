@@ -1,4 +1,5 @@
 import { prisma } from "../../utils/prisma";
+import { Item } from "@prisma/client";
 import {
   CreateFundraiserBody,
   UpdateFundraiserBody,
@@ -290,9 +291,15 @@ export const createFundraiserItem = async (
   return item;
 };
 
-export const getFundraiserItem = async (itemId: string) => {
-  const item = await prisma.item.findUnique({
-    where: { id: itemId },
+export const getFundraiserItemForFundraiser = async (
+  fundraiserId: string,
+  itemId: string
+) => {
+  const item = await prisma.item.findFirst({
+    where: {
+      id: itemId,
+      fundraiserId,
+    },
   });
 
   return item;
@@ -333,6 +340,49 @@ export const deleteFundraiserItem = async (itemId: string) => {
   });
 
   return item;
+};
+
+export const validatePublishedFundraiserItemUpdate = (
+  existingItem: Item,
+  updates: z.infer<typeof UpdateFundraiserItemBody>
+): { valid: boolean; reason?: string } => {
+  if (!existingItem.price.equals(updates.price)) {
+    return {
+      valid: false,
+      reason: "Cannot change price of an item in a published fundraiser",
+    };
+  }
+
+  if (updates.limit === undefined) {
+    return { valid: true };
+  }
+
+  if (existingItem.limit === null && updates.limit !== null) {
+    return {
+      valid: false,
+      reason: "Cannot add an inventory cap to a published item",
+    };
+  }
+
+  if (existingItem.limit !== null && updates.limit === null) {
+    return {
+      valid: false,
+      reason: "Cannot remove an inventory cap from a published item",
+    };
+  }
+
+  if (
+    existingItem.limit !== null &&
+    updates.limit !== null &&
+    updates.limit < existingItem.limit
+  ) {
+    return {
+      valid: false,
+      reason: `Cannot decrease inventory cap. Current cap is ${existingItem.limit}`,
+    };
+  }
+
+  return { valid: true };
 };
 
 export const createAnnouncement = async (
@@ -503,8 +553,8 @@ export const getItemsConfirmedCounts = async (
 };
 
 /**
- * Validate that a cap update is allowed
- * Rules: can always remove cap, can increase, cannot decrease, new cap >= confirmed count
+ * Validate that a proposed cap is not below confirmed orders.
+ * Published fundraiser cap transition rules are enforced separately.
  */
 export const validateCapUpdate = async (
   itemId: string,
@@ -606,7 +656,7 @@ export const calculateAndCacheFundraiserAnalytics = async (
 
   const cacheKey = `fundraiser_analytics_${fundraiserId}`;
   try {
-    await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 7200 }); // Tentative expiration of 2 hrs
+    await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 300 }); // Cache expires after 5 minutes
   } catch (error) {
     console.error("Failed to cache analytics:", error);
   }
@@ -646,7 +696,9 @@ export const invalidateFundraiserAnalyticsCache = async (
 ) => {
   const cacheKey = `fundraiser_analytics_${fundraiserId}`;
   try {
-    await memclient.delete(cacheKey);
+    console.log("Invalidating cache for key:", cacheKey);
+    const result = await memclient.delete(cacheKey);
+    console.log("Cache invalidation result:", result);
   } catch (error) {
     console.error("Failed to invalidate analytics cache:", error);
   }
@@ -707,7 +759,7 @@ export const updateCacheForNewOrder = async (
     analytics.sale_data[dateKey] = (analytics.sale_data[dateKey] || 0) + 1;
 
     // Save updated analytics back to cache
-    await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 7200 });
+    await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 300 });
     console.log("Cached value updated for new added order");
   } catch (error) {
     console.error("Failed to update cache for new order:", error);
@@ -772,9 +824,77 @@ export const updateCacheForOrderPickup = async (
     }
 
     // Save updated analytics back to cache
-    await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 7200 });
+    await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 300 });
     console.log("Cached value updated for pickedup order");
   } catch (error) {
     console.error("Failed to update cache for order pickup:", error);
+  }
+};
+
+/**
+ * Updates cached analytics when an order payment is confirmed
+ * Decrements pending orders, adds revenue, items, and profit
+ * Only updates if cache already exists - does not create new cache
+ * @param fundraiserId - The ID of the fundraiser
+ * @param order - The order object with items included
+ * @returns Promise<void>
+ */
+export const updateCacheForOrderConfirmation = async (
+  fundraiserId: string,
+  order: {
+    pickedUp: boolean;
+    createdAt: Date;
+    items: Array<{
+      quantity: number;
+      item: {
+        name: string;
+        price: number | any;
+      };
+    }>;
+  }
+) => {
+  const cacheKey = `fundraiser_analytics_${fundraiserId}`;
+  try {
+    // Peek at cache - only update if it exists
+    const analytics = await peekCachedAnalytics(cacheKey);
+    if (!analytics) {
+      console.log("No cache found for order confirmation - skipping update");
+      return;
+    }
+
+    // If order was already picked up, items/revenue were already counted
+    // Only decrement pending_orders in that case
+    if (order.pickedUp) {
+      analytics.pending_orders--;
+      await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 300 });
+      console.log("Cached value updated for confirmed order (already picked up)");
+      return;
+    }
+
+    // Calculate order total and update items
+    let orderTotal = 0;
+    order.items.forEach((orderItem) => {
+      const itemTotal = orderItem.quantity * Number(orderItem.item.price);
+      orderTotal += itemTotal;
+      analytics.items[orderItem.item.name] =
+        (analytics.items[orderItem.item.name] || 0) + orderItem.quantity;
+    });
+
+    // Update counters and revenue
+    analytics.pending_orders--;
+    analytics.total_revenue += orderTotal;
+    analytics.profit =
+      Math.round(analytics.total_revenue * PROFIT_MARGIN * 100) / 100;
+
+    // Update revenue data by date
+    const dateKey = order.createdAt.toISOString().split("T")[0];
+    analytics.revenue_data[dateKey] =
+      (analytics.revenue_data[dateKey] || 0) + orderTotal;
+
+    // Save updated analytics back to cache
+    await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 300 });
+    console.log("Cached value updated for confirmed order");
+  } catch (error) {
+    console.error("Failed to update cache for order confirmation:", error);
   }
 };

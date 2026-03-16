@@ -69,11 +69,21 @@ export const createOrderHandler = async (
     return;
   }
 
+  const isFundraiserAdmin = fundraiser.organization.admins.some(
+    (admin) => admin.id === res.locals.user!.id,
+  );
+
+  if (req.body.markAsPickedUp && !isFundraiserAdmin) {
+    res.status(403).json({ message: "Unauthorized to mark order as picked up" });
+    return;
+  }
+
   let order;
   try {
     order = await createOrder({
       ...req.body,
       buyerId: res.locals.user!.id,
+      markAsPickedUp: req.body.markAsPickedUp === true && isFundraiserAdmin,
     });
   } catch (error) {
     res.status(400).json({

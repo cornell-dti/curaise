@@ -5,6 +5,7 @@ import {
   DeleteAnnouncementRouteParams,
   PickupEventRouteParams,
   ApproveReferralRouteParams,
+  AnalyticsQueryParams,
 } from "./fundraiser.types";
 import {
   createFundraiser,
@@ -14,12 +15,14 @@ import {
   getFundraiserOrders,
   updateFundraiser,
   createFundraiserItem,
-  getFundraiserItem,
+  getFundraiserItemForFundraiser,
   updateFundraiserItem,
   deleteFundraiserItem,
+  validatePublishedFundraiserItemUpdate,
   createAnnouncement,
   deleteAnnouncement,
   getFundraiserAnalytics,
+  invalidateFundraiserAnalyticsCache,
   publishFundraiser,
   createPickupEvent,
   updatePickupEvent,
@@ -505,48 +508,28 @@ export const updateFundraiserItemHandler = async (
     return;
   }
 
+  const existingItem = await getFundraiserItemForFundraiser(
+    req.params.fundraiserId,
+    req.params.itemId
+  );
+
+  if (!existingItem) {
+    res.status(404).json({ message: "Item not found" });
+    return;
+  }
+
   // If fundraiser is published, enforce immutability constraints
   if (fundraiser.published) {
-    const existingItem = await getFundraiserItem(req.params.itemId);
+    const validation = validatePublishedFundraiserItemUpdate(
+      existingItem,
+      req.body
+    );
 
-    if (!existingItem) {
-      res.status(404).json({ message: "Item not found" });
-      return;
-    }
-
-    if (!existingItem.price.equals(req.body.price)) {
+    if (!validation.valid) {
       res.status(400).json({
-        message: "Cannot change price of an item in a published fundraiser",
+        message: validation.reason,
       });
       return;
-    }
-
-    // Limit rules for published items:
-    // - If item has no limit, cannot add one
-    // - If item has a limit, cannot remove or decrease it
-    if (req.body.limit !== undefined) {
-      if (existingItem.limit === null && req.body.limit !== null) {
-        res.status(400).json({
-          message: "Cannot add an inventory cap to a published item",
-        });
-        return;
-      }
-      if (existingItem.limit !== null && req.body.limit === null) {
-        res.status(400).json({
-          message: "Cannot remove an inventory cap from a published item",
-        });
-        return;
-      }
-      if (
-        existingItem.limit !== null &&
-        req.body.limit !== null &&
-        req.body.limit < existingItem.limit
-      ) {
-        res.status(400).json({
-          message: `Cannot decrease inventory cap. Current cap is ${existingItem.limit}`,
-        });
-        return;
-      }
     }
   }
 
@@ -598,6 +581,16 @@ export const deleteFundraiserItemHandler = async (
     )
   ) {
     res.status(403).json({ message: "Unauthorized to delete fundraiser item" });
+    return;
+  }
+
+  const existingItem = await getFundraiserItemForFundraiser(
+    req.params.fundraiserId,
+    req.params.itemId
+  );
+
+  if (!existingItem) {
+    res.status(404).json({ message: "Item not found" });
     return;
   }
 
@@ -718,7 +711,7 @@ export const deleteAnnouncementHandler = async (
 };
 
 export const getFundraiserAnalyticsHandler = async (
-  req: Request<FundraiserRouteParams, any, {}, {}>,
+  req: Request<FundraiserRouteParams, any, {}, AnalyticsQueryParams>,
   res: Response
 ) => {
   const fundraiser = await getFundraiser(req.params.id);
@@ -740,6 +733,10 @@ export const getFundraiserAnalyticsHandler = async (
   }
 
   try {
+    if (req.query.refresh === "true") {
+      await invalidateFundraiserAnalyticsCache(req.params.id);
+    }
+
     const analytics = await getFundraiserAnalytics(req.params.id);
     if (!analytics) {
       res.status(500).json({ message: "Failed to retrieve analytics" });

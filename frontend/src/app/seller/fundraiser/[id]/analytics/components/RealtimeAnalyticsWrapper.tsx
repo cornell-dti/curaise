@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Banknote, Goal, Receipt } from "lucide-react";
+import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
 import { ProfitGoalChart } from "./ProfitGoalChart";
 import { RevenueBreakdownChart } from "./RevenueBreakdownChart";
 import { ItemsSoldCard } from "./ItemsSoldCard";
 import { z } from "zod";
-import { CompleteItemSchema } from "common";
+import { CompleteItemSchema, CompleteOrderSchema } from "common";
 
 type Item = z.infer<typeof CompleteItemSchema>;
+type Order = z.infer<typeof CompleteOrderSchema>;
 
 interface FundraiserAnalytics {
   total_revenue: number;
@@ -27,6 +29,7 @@ interface FundraiserAnalytics {
 
 interface RealtimeAnalyticsWrapperProps {
   initialAnalytics: FundraiserAnalytics;
+  initialOrders: Order[];
   fundraiserId: string;
   token: string;
   goalAmount: number;
@@ -35,60 +38,144 @@ interface RealtimeAnalyticsWrapperProps {
 
 export function RealtimeAnalyticsWrapper({
   initialAnalytics,
+  initialOrders,
   fundraiserId,
   token,
   goalAmount,
   items,
 }: RealtimeAnalyticsWrapperProps) {
   const [analytics, setAnalytics] = useState<FundraiserAnalytics>(initialAnalytics);
-  const supabase = createClient();
+  const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
-    // Refetch analytics from API
-    const refetchAnalytics = async () => {
+    const refetchData = async (forceRefresh = false) => {
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/analytics`,
-          {
+        const analyticsUrl = forceRefresh
+          ? `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/analytics?refresh=true`
+          : `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/analytics`;
+
+        const [analyticsResponse, ordersResponse] = await Promise.all([
+          fetch(analyticsUrl, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
-        );
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/orders`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+        ]);
 
-        const result = await response.json();
+        const [analyticsResult, ordersResult] = await Promise.all([
+          analyticsResponse.json(),
+          ordersResponse.json(),
+        ]);
 
-        if (response.ok) {
-          setAnalytics(result.data);
+        if (analyticsResponse.ok) {
+          setAnalytics(analyticsResult.data);
         } else {
-          console.error("Failed to refetch analytics:", result.message);
+          console.error("Failed to refetch analytics:", analyticsResult.message);
+        }
+
+        if (ordersResponse.ok) {
+          const parsedOrders = z.array(CompleteOrderSchema).safeParse(ordersResult.data);
+          if (parsedOrders.success) {
+            setOrders(parsedOrders.data);
+          } else {
+            console.error("Failed to parse refreshed orders:", parsedOrders.error);
+          }
+        } else {
+          console.error("Failed to refetch orders:", ordersResult.message);
         }
       } catch (error) {
-        console.error("Error refetching analytics:", error);
-        // Keep existing data on error (graceful degradation)
+        console.error("Error refetching analytics data:", error);
       }
     };
 
-    // Set up realtime subscription - listen to order changes
-    const channel = supabase
-      .channel(`analytics-${fundraiserId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*", // Listen to INSERT, UPDATE, DELETE
-          schema: "public",
-          table: "orders",
-        },
-        () => {
-          // On any order change event, refetch analytics
-          refetchAnalytics();
-        }
-      )
-      .subscribe();
+    const belongsToFundraiser = (
+      row: { fundraiser_id?: string } | null | undefined
+    ) => row?.fundraiser_id === fundraiserId;
 
-    // Cleanup subscription on unmount
+    let isCancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const setupRealtime = async () => {
+      const { data } = await supabase.auth.getSession();
+      const realtimeToken = data.session?.access_token ?? token;
+      if (!realtimeToken) {
+        return;
+      }
+
+      supabase.realtime.setAuth(realtimeToken);
+      if (isCancelled) return;
+
+      channel = supabase
+        .channel(`analytics-${fundraiserId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "orders",
+            filter: `fundraiser_id=eq.${fundraiserId}`,
+          },
+          () => {
+            refetchData(true);
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "orders",
+          },
+          (payload) => {
+            if (
+              !belongsToFundraiser(
+                payload.new as { fundraiser_id?: string } | null | undefined
+              ) &&
+              !belongsToFundraiser(
+                payload.old as { fundraiser_id?: string } | null | undefined
+              )
+            ) {
+              return;
+            }
+            refetchData(true);
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "DELETE",
+            schema: "public",
+            table: "orders",
+          },
+          (payload) => {
+            if (
+              !belongsToFundraiser(
+                payload.old as { fundraiser_id?: string } | null | undefined
+              )
+            ) {
+              return;
+            }
+            refetchData(true);
+          }
+        )
+        .subscribe();
+
+      refetchData(true);
+    };
+
+    void setupRealtime();
+
     return () => {
-      supabase.removeChannel(channel);
+      isCancelled = true;
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [fundraiserId, token, supabase]);
 
@@ -108,7 +195,7 @@ export function RealtimeAnalyticsWrapper({
   return (
     <div className="mb-6">
       <h2 className="text-xl font-bold mb-6">Key Insights</h2>
-      <div className="grid grid-cols-[0.6fr_0.8fr_1fr_1.5fr] gap-6">
+      <div className="grid grid-cols-[0.6fr_1fr_1fr_1.5fr] gap-6">
         {/* First Column - Revenue and Total Orders stacked */}
         <div className="flex flex-col gap-6 h-full">
           {/* Revenue Card */}
@@ -128,26 +215,46 @@ export function RealtimeAnalyticsWrapper({
               <Receipt />
               Total Orders
             </div>
-            <div className="text-3xl font-semibold">
-              {analytics.total_orders}
+            <div className="flex items-end gap-5">
+              <div className="text-4xl font-semibold leading-none">
+                {analytics.total_orders}
+              </div>
+              <div className="space-y-1.5 pb-0.5 text-sm leading-none text-muted-foreground">
+                <div>
+                  <span className="font-semibold text-foreground">
+                    {analytics.total_orders - analytics.pending_orders}
+                  </span>{" "}
+                  Confirmed
+                </div>
+                <div>
+                  <span className="font-semibold text-foreground">
+                    {analytics.pending_orders}
+                  </span>{" "}
+                  Pending
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Profit Goal Card */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-6 overflow-hidden">
           <div className="flex items-center gap-2 mb-4 font-semibold">
             <Goal />
             Profit Goal
+            <InfoTooltip
+              content="Profit is estimated using a 20% profit margin."
+              size={18}
+            />
           </div>
           <ProfitGoalChart
-            profit={0}
+            profit={analytics.profit}
             goalAmount={goalAmount}
           />
         </div>
 
         {/* Revenue Breakdown Card */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-6 overflow-hidden">
           <div className="flex items-center gap-2 mb-4 font-semibold">
             <Receipt />
             Revenue Breakdown
@@ -162,13 +269,15 @@ export function RealtimeAnalyticsWrapper({
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center gap-2 mb-4 font-semibold">
             <Receipt />
-            Items Sold
+            Item Performance
+            <InfoTooltip
+              content="Sorted by confirmed units sold. Inventory caps are affected only by confirmed or picked-up orders, not carts or unpaid pending orders."
+              size={18}
+            />
           </div>
           <ItemsSoldCard
-            items={analytics.items}
-            itemLimits={Object.fromEntries(
-              items.map((item) => [item.name, item.limit ?? null])
-            )}
+            items={items}
+            orders={orders}
           />
         </div>
       </div>

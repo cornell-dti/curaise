@@ -1,7 +1,8 @@
 import { connection } from "next/server";
 import { CompleteFundraiserSchema, ItemWithAvailabilitySchema } from "common";
 import { MapPin, Calendar, ChevronLeft, UserStar } from "lucide-react";
-import { format, isPast } from "date-fns";
+import { isPast } from "date-fns";
+import { LocalDate } from "@/components/ui/LocalDate";
 import { FundraiserItemsPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemsPanel";
 import { FundraiserGallerySlider } from "@/app/buyer/fundraiser/[id]/components/FundraiserGallerySlider";
 import { FundraiserAnnouncementPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserAnnouncementPanel";
@@ -143,14 +144,14 @@ export default async function FundraiserPage({
                         <div className="flex items-start gap-3">
                           <Calendar className="h-[23px] w-[23px] flex-shrink-0 text-muted-foreground mt-0.5" />
                           <span className="text-base">
-                            {format(event.startsAt, "EEEE, M/d/yyyy")}
+                            <LocalDate date={event.startsAt} formatStr="EEEE, M/d/yyyy" />
                           </span>
                         </div>
                         <div className="flex items-start gap-3">
                           <MapPin className="h-[23px] w-[23px] flex-shrink-0 text-muted-foreground mt-0.5" />
                           <span className="text-base">
-                            {event.location}, {format(event.startsAt, "h:mm a")}{" "}
-                            to {format(event.endsAt, "h:mm a")}
+                            {event.location}, <LocalDate date={event.startsAt} formatStr="h:mm a" />{" "}
+                            to <LocalDate date={event.endsAt} formatStr="h:mm a" />
                           </span>
                         </div>
                       </div>

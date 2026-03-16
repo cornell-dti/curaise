@@ -5,6 +5,7 @@ import { z } from "zod";
 import {
   updateCacheForNewOrder,
   updateCacheForOrderPickup,
+  updateCacheForOrderConfirmation,
 } from "../fundraiser/fundraiser.services";
 import { Decimal } from "decimal.js";
 
@@ -188,7 +189,10 @@ export const getOrder = async (orderId: string) => {
 };
 
 export const createOrder = async (
-  orderBody: z.infer<typeof CreateOrderBody> & { buyerId: string },
+  orderBody: z.infer<typeof CreateOrderBody> & {
+    buyerId: string;
+    markAsPickedUp?: boolean;
+  },
 ) => {
   const mergedOrderItems = mergeRequestedItemsByItemId(orderBody.items);
 
@@ -206,6 +210,7 @@ export const createOrder = async (
           paymentMethod: orderBody.payment_method,
           paymentStatus:
             orderBody.payment_method === "VENMO" ? "PENDING" : "UNVERIFIABLE",
+          pickedUp: orderBody.markAsPickedUp === true,
           buyer: { connect: { id: orderBody.buyerId } },
           fundraiser: { connect: { id: orderBody.fundraiserId } },
           items: {
@@ -490,6 +495,16 @@ export const confirmOrderPayment = async (orderId: string) => {
         },
         include: {
           buyer: true,
+          items: {
+            include: {
+              item: {
+                select: {
+                  name: true,
+                  price: true,
+                },
+              },
+            },
+          },
           fundraiser: {
             select: {
               id: true,
@@ -526,6 +541,9 @@ export const confirmOrderPayment = async (orderId: string) => {
     },
     { isolationLevel: "Serializable" }
   );
+
+  // Update analytics cache for the fundraiser when payment is confirmed
+  await updateCacheForOrderConfirmation(order.fundraiser.id, order);
 
   return order;
 };

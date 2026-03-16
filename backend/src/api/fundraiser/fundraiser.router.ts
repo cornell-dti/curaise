@@ -5,6 +5,7 @@ import {
   DeleteAnnouncementRouteParams,
   PickupEventRouteParams,
   ApproveReferralRouteParams,
+  AnalyticsQueryParams,
 } from "./fundraiser.types";
 import {
   CreateFundraiserBody,
@@ -157,7 +158,7 @@ fundraiserRouter.delete(
 
 fundraiserRouter.get(
   "/:id/analytics",
-  validate({ params: FundraiserRouteParams }),
+  validate({ params: FundraiserRouteParams, query: AnalyticsQueryParams }),
   authenticate,
   asyncHandler(getFundraiserAnalyticsHandler)
 );

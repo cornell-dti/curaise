@@ -15,6 +15,7 @@ export function FundraiserItemCard({
   increment,
   decrement,
   isOutOfStock = false,
+  disableIncrement = false,
   isPast,
 }: {
   item: z.infer<typeof CompleteItemSchema>;
@@ -22,6 +23,7 @@ export function FundraiserItemCard({
   increment: () => void;
   decrement: () => void;
   isOutOfStock?: boolean;
+  disableIncrement?: boolean;
   isPast: boolean;
 }) {
   const [showAmount, setShowAmount] = useState(false);
@@ -180,7 +182,11 @@ export function FundraiserItemCard({
                       </span>
                       <button
                         onClick={handlePlusClick}
-                        className="p-2 mx-1 hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
+                        disabled={disableIncrement}
+                        className={cn(
+                          "p-2 mx-1 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed",
+                          !disableIncrement && "hover:bg-gray-600",
+                        )}
                       >
                         <Plus className="w-4 h-4 text-white" />
                       </button>
@@ -198,12 +204,10 @@ export function FundraiserItemCard({
                   ) : (
                     <button
                       onClick={handleOpen}
-                      disabled={isOutOfStock}
+                      disabled={isOutOfStock || disableIncrement}
                       className={cn(
-                        "p-2 mx-auto rounded-full transition-colors flex-shrink-0",
-                        isOutOfStock
-                          ? "opacity-50 cursor-not-allowed"
-                          : "hover:bg-gray-600"
+                        "p-2 mx-auto rounded-full transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed",
+                        !(isOutOfStock || disableIncrement) && "hover:bg-gray-600",
                       )}
                     >
                       <Plus className="w-4 h-4 text-white" />
