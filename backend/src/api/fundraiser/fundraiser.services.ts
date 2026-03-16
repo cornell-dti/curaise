@@ -278,6 +278,7 @@ export const createFundraiserItem = async (
       description: itemBody.description,
       price: itemBody.price,
       imageUrl: itemBody.imageUrl,
+      limit: itemBody.limit ?? null,
       fundraiser: {
         connect: {
           id: itemBody.fundraiserId,
@@ -300,6 +301,13 @@ export const getFundraiserItem = async (itemId: string) => {
 export const updateFundraiserItem = async (
   itemBody: z.infer<typeof UpdateFundraiserItemBody> & { itemId: string }
 ) => {
+  if (itemBody.limit !== undefined) {
+    const validation = await validateCapUpdate(itemBody.itemId, itemBody.limit ?? null);
+    if (!validation.valid) {
+      throw new Error(validation.reason);
+    }
+  }
+
   const item = await prisma.item.update({
     where: {
       id: itemBody.itemId,
@@ -310,6 +318,7 @@ export const updateFundraiserItem = async (
       price: itemBody.price,
       imageUrl: itemBody.imageUrl ?? null,
       offsale: itemBody.offsale,
+      limit: itemBody.limit !== undefined ? itemBody.limit : undefined,
     },
   });
 
@@ -422,6 +431,99 @@ export const deleteReferral = async (referralId: string) => {
   });
 
   return referral;
+};
+
+export const getFundraiserItemsWithAvailability = async (
+  fundraiserId: string
+) => {
+  const items = await getFundraiserItems(fundraiserId);
+  const itemIds = items.map((i) => i.id);
+  const confirmedCounts = await getItemsConfirmedCounts(itemIds);
+
+  return items.map((item) => ({
+    ...item,
+    confirmedCount: confirmedCounts.get(item.id) ?? 0,
+    available:
+      item.limit !== null
+        ? item.limit - (confirmedCounts.get(item.id) ?? 0)
+        : null,
+  }));
+};
+
+/**
+ * Get confirmed quantity sold for a specific item
+ * Counts orders that are CONFIRMED or have been picked up
+ */
+export const getItemConfirmedCount = async (itemId: string): Promise<number> => {
+  const result = await prisma.orderItems.aggregate({
+    where: {
+      itemId,
+      order: {
+        OR: [{ paymentStatus: "CONFIRMED" }, { pickedUp: true }],
+      },
+    },
+    _sum: {
+      quantity: true,
+    },
+  });
+
+  return result._sum.quantity ?? 0;
+};
+
+/**
+ * Get confirmed counts for multiple items (bulk operation)
+ */
+export const getItemsConfirmedCounts = async (
+  itemIds: string[]
+): Promise<Map<string, number>> => {
+  if (itemIds.length === 0) {
+    return new Map();
+  }
+
+  const results = await prisma.orderItems.groupBy({
+    by: ["itemId"],
+    where: {
+      itemId: { in: itemIds },
+      order: {
+        OR: [{ paymentStatus: "CONFIRMED" }, { pickedUp: true }],
+      },
+    },
+    _sum: {
+      quantity: true,
+    },
+  });
+
+  const countsMap = new Map<string, number>();
+  itemIds.forEach((id) => countsMap.set(id, 0));
+  results.forEach((result) => {
+    countsMap.set(result.itemId, result._sum.quantity ?? 0);
+  });
+
+  return countsMap;
+};
+
+/**
+ * Validate that a cap update is allowed
+ * Rules: can always remove cap, can increase, cannot decrease, new cap >= confirmed count
+ */
+export const validateCapUpdate = async (
+  itemId: string,
+  newLimit: number | null
+): Promise<{ valid: boolean; reason?: string; confirmedCount?: number }> => {
+  if (newLimit === null) {
+    return { valid: true };
+  }
+
+  const confirmedCount = await getItemConfirmedCount(itemId);
+  if (newLimit < confirmedCount) {
+    return {
+      valid: false,
+      reason: `Limit cannot be set below confirmed count. Already sold: ${confirmedCount}`,
+      confirmedCount,
+    };
+  }
+
+  return { valid: true };
 };
 
 export interface FundraiserAnalytics {

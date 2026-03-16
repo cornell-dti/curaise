@@ -28,6 +28,7 @@ import {
   getReferral,
   approveReferral,
   deleteReferral,
+  getFundraiserItemsWithAvailability,
 } from "./fundraiser.services";
 import {
   AnnouncementSchema,
@@ -43,6 +44,7 @@ import {
   CreatePickupEventBody,
   UpdatePickupEventBody,
   ReferralSchema,
+  ItemWithAvailabilitySchema,
 } from "common";
 import { getOrganization } from "../organization/organization.services";
 import { z } from "zod";
@@ -503,9 +505,8 @@ export const updateFundraiserItemHandler = async (
     return;
   }
 
-  // If fundraiser is published, check if price is being changed
+  // If fundraiser is published, enforce immutability constraints
   if (fundraiser.published) {
-    // Get the existing item to compare prices
     const existingItem = await getFundraiserItem(req.params.itemId);
 
     if (!existingItem) {
@@ -519,12 +520,48 @@ export const updateFundraiserItemHandler = async (
       });
       return;
     }
+
+    // Limit rules for published items:
+    // - If item has no limit, cannot add one
+    // - If item has a limit, cannot remove or decrease it
+    if (req.body.limit !== undefined) {
+      if (existingItem.limit === null && req.body.limit !== null) {
+        res.status(400).json({
+          message: "Cannot add an inventory cap to a published item",
+        });
+        return;
+      }
+      if (existingItem.limit !== null && req.body.limit === null) {
+        res.status(400).json({
+          message: "Cannot remove an inventory cap from a published item",
+        });
+        return;
+      }
+      if (
+        existingItem.limit !== null &&
+        req.body.limit !== null &&
+        req.body.limit < existingItem.limit
+      ) {
+        res.status(400).json({
+          message: `Cannot decrease inventory cap. Current cap is ${existingItem.limit}`,
+        });
+        return;
+      }
+    }
   }
 
-  const item = await updateFundraiserItem({
-    itemId: req.params.itemId,
-    ...req.body,
-  });
+  let item;
+  try {
+    item = await updateFundraiserItem({
+      itemId: req.params.itemId,
+      ...req.body,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: error instanceof Error ? error.message : "Failed to update fundraiser item",
+    });
+    return;
+  }
   if (!item) {
     res.status(500).json({ message: "Failed to update fundraiser item" });
     return;
@@ -850,4 +887,22 @@ export const deleteReferralHandler = async (
   }
 
   res.status(200).json({ message: "Referral deleted successfully" });
+};
+
+export const getFundraiserItemsAvailabilityHandler = async (
+  req: Request<FundraiserRouteParams, any, {}, {}>,
+  res: Response
+) => {
+  const items = await getFundraiserItemsWithAvailability(req.params.id);
+
+  const parsed = ItemWithAvailabilitySchema.array().safeParse(items);
+  if (!parsed.success) {
+    res.status(500).json({ message: "Invalid item availability data" });
+    return;
+  }
+
+  res.status(200).json({
+    message: "Items with availability fetched successfully",
+    data: parsed.data,
+  });
 };

@@ -13,11 +13,21 @@ import {
 import { Badge } from "../ui/badge";
 import { BasicOrderSchema } from "common";
 import { z } from "zod";
+import { ReactNode } from "react";
+
+type BadgeOverride = {
+  text: string;
+  tooltipText: string;
+  colorClassName: string;
+  icon: ReactNode;
+};
 
 const PaymentStatusBadge = ({
   order,
+  override,
 }: {
   order: z.infer<typeof BasicOrderSchema>;
+  override?: BadgeOverride;
 }) => {
   let text = "";
   let color = "";
@@ -52,6 +62,11 @@ const PaymentStatusBadge = ({
     color = "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
     icon = <Package2 className="mr-1 h-4 w-4" />;
     tooltipText = "Order has been picked up";
+  } else if (override) {
+    text = override.text;
+    color = override.colorClassName;
+    icon = override.icon;
+    tooltipText = override.tooltipText;
   }
 
   return (

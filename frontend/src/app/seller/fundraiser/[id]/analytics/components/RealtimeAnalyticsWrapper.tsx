@@ -164,7 +164,12 @@ export function RealtimeAnalyticsWrapper({
             <Receipt />
             Items Sold
           </div>
-          <ItemsSoldCard items={analytics.items} />
+          <ItemsSoldCard
+            items={analytics.items}
+            itemLimits={Object.fromEntries(
+              items.map((item) => [item.name, item.limit ?? null])
+            )}
+          />
         </div>
       </div>
     </div>

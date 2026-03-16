@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ItemsSoldCardProps {
 	items: Record<string, number>;
+	itemLimits?: Record<string, number | null>;
 }
 
-export function ItemsSoldCard({ items }: ItemsSoldCardProps) {
+export function ItemsSoldCard({ items, itemLimits = {} }: ItemsSoldCardProps) {
 	const [currentPage, setCurrentPage] = useState(1);
 	const itemsPerPage = 3;
 
@@ -40,6 +40,9 @@ export function ItemsSoldCard({ items }: ItemsSoldCardProps) {
 			<div className="space-y-6 min-h-[200px]">
 				{currentItems.map((item, index) => {
 					const percentage = total > 0 ? (item.quantity / total) * 100 : 0;
+					const limit = itemLimits[item.name] ?? null;
+					const isOutOfStock = limit !== null && item.quantity >= limit;
+					const isLowStock = limit !== null && !isOutOfStock && item.quantity >= limit * 0.8;
 					return (
 						<div key={index} className="flex items-start gap-4">
 							<div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
@@ -53,9 +56,23 @@ export function ItemsSoldCard({ items }: ItemsSoldCardProps) {
 									<span className="text-base font-medium text-foreground">
 										{item.name}
 									</span>
-									<span className="text-base font-semibold">
-										{item.quantity}/{total}
-									</span>
+									<div className="flex items-center gap-2">
+										<span className="text-base font-semibold">
+											{limit !== null
+												? `${item.quantity} / ${limit} sold`
+												: `${item.quantity}/${total}`}
+										</span>
+										{isOutOfStock && (
+											<span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">
+												Out of Stock
+											</span>
+										)}
+										{isLowStock && (
+											<span className="text-xs font-medium px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
+												Low Stock
+											</span>
+										)}
+									</div>
 								</div>
 								<Progress
 									value={percentage}
