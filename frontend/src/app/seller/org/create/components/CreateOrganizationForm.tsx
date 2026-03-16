@@ -33,18 +33,22 @@ export function CreateOrganizationForm({ token }: { token: string }) {
       addedAdminsEmails: adminEmails,
     };
 
+    let orgId: string | null = null;
     try {
       const result = await mutationFetch("/organization/create", {
         token,
         body: dataToSubmit,
       });
       toast.success(result.message);
-      router.push("/seller/org/" + (result.data as { id: string }).id);
+      orgId = (result.data as { id: string }).id;
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Something went wrong",
       );
-      return;
+    }
+
+    if (orgId) {
+      router.push("/seller/org/" + orgId);
     }
   }
 

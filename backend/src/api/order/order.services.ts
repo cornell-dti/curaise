@@ -329,6 +329,55 @@ export const confirmOrderPayment = async (orderId: string) => {
 };
 
 /**
+ * Find unpaid orders created 1-2 hours ago
+ */
+export const getUnremindedUnpaidOrders = async () => {
+  const now = new Date();
+  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+  const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+
+  return prisma.order.findMany({
+    where: {
+      paymentStatus: "PENDING",
+      paymentMethod: "VENMO",
+      createdAt: {
+        gte: twoHoursAgo,
+        lte: oneHourAgo,
+      },
+    },
+    include: {
+      buyer: true,
+      fundraiser: {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          published: true,
+          goalAmount: true,
+          imageUrls: true,
+          buyingStartsAt: true,
+          buyingEndsAt: true,
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              authorized: true,
+              logoUrl: true,
+            },
+          },
+          pickupEvents: {
+            orderBy: {
+              startsAt: "asc",
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
+/**
  * Calculate the total amount for an order based on its items and quantities
  */
 export const calculateOrderTotal = async (

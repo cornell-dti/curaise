@@ -8,32 +8,35 @@ import { useRouter } from "next/navigation";
 type Item = z.infer<typeof CompleteItemSchema>;
 
 interface OrdersSectionHeaderProps {
-	fundraiserId: string;
-	items: Item[];
-	token: string;
+  fundraiserId: string;
+  items: Item[];
+  token: string;
+  isPast: boolean;
 }
 
 export function OrdersSectionHeader({
-	fundraiserId,
-	items,
-	token,
+  fundraiserId,
+  items,
+  token,
+  isPast,
 }: OrdersSectionHeaderProps) {
-	const router = useRouter();
+  const router = useRouter();
 
-	// When new order is created, resfresh as the orders list will be updated
-	const handleOrderCreated = () => {
-		router.refresh();
-	};
+  // When new order is created, resfresh as the orders list will be updated
+  const handleOrderCreated = () => {
+    router.refresh();
+  };
 
-	return (
-		<div className="flex items-center justify-between mb-6">
-			<h2 className="text-xl font-bold">Orders</h2>
-			<ManualOrderModal
-				fundraiserId={fundraiserId}
-				items={items}
-				token={token}
-				onOrderCreated={handleOrderCreated}
-			/>
-		</div>
-	);
+  return (
+    <div className="flex items-center justify-between mb-6">
+      <h2 className="text-xl font-bold">Orders</h2>
+      <ManualOrderModal
+        fundraiserId={fundraiserId}
+        items={items}
+        token={token}
+        onOrderCreated={handleOrderCreated}
+        isPast={isPast}
+      />
+    </div>
+  );
 }
