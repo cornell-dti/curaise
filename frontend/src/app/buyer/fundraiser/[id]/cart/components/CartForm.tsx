@@ -9,7 +9,6 @@ import { useCartStore } from "@/lib/store/useCartStore";
 import { useShallow } from "zustand/react/shallow";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { createClient } from "@/utils/supabase/client";
-import { toast } from "sonner";
 import { useFundraiserItems } from "@/hooks/useFundraiserItems";
 import useSWR from "swr";
 import { noAuthFetcher } from "@/lib/fetcher";
