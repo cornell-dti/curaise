@@ -7,14 +7,22 @@ import { serverFetch } from "@/lib/fetcher";
 
 export default async function CheckoutPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ code?: string }>;
 }) {
   await connection();
 
   const supabase = await createClient();
 
   const id = (await params).id;
+  const { code } = await searchParams;
+
+  const nextPath =
+    typeof code === "string" && code.length > 0
+      ? `/buyer/fundraiser/${id}/checkout?code=${encodeURIComponent(code)}`
+      : `/buyer/fundraiser/${id}/checkout`;
 
   // protect page (must use supabase.auth.getUser() according to docs)
   const {
@@ -22,7 +30,7 @@ export default async function CheckoutPage({
     error: error1,
   } = await supabase.auth.getUser();
   if (error1 || !user) {
-    redirect(`/login?next=/buyer/fundraiser/${id}/checkout`);
+    redirect(`/login?next=${encodeURIComponent(nextPath)}`);
   }
 
   // get auth jwt token
@@ -52,6 +60,7 @@ export default async function CheckoutPage({
         fundraiser={fundraiser}
         token={session.access_token}
         userProfile={userProfile}
+        code={code ? code : ""}
       />
     </div>
   );

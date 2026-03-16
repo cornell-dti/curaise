@@ -62,10 +62,12 @@ export function CheckoutForm({
   token,
   fundraiser,
   userProfile,
+  code,
 }: {
   token: string;
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
   userProfile: z.infer<typeof UserSchema>;
+  code: string;
 }) {
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -80,7 +82,12 @@ export function CheckoutForm({
     isLoading: isAvailabilityLoading,
     mutate: refreshAvailability,
   } = useItemsAvailability(fundraiser.id);
-  const [selectedReferralId, setSelectedReferralId] = useState<string>("none");
+  const initialReferralId = fundraiser.referrals.some((r) => r.id === code)
+    ? code
+    : "none";
+  const [selectedReferralId, setSelectedReferralId] = useState<string>(
+    initialReferralId,
+  );
   const [paymentMethod, setPaymentMethod] = useState<"VENMO" | "OTHER">(
     "VENMO",
   );
@@ -129,16 +136,6 @@ export function CheckoutForm({
     : [];
   const hasCapacityIssues = cartCapacityIssues.length > 0;
   const isAvailabilityPending = isAvailabilityLoading || !items;
-
-  const copyToClipboard = async (text: string, label: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success(`${label} copied to clipboard`);
-    } catch {
-      toast.error(`Failed to copy ${label}`);
-    }
-  };
-
   async function handleSubmit() {
     if (isSubmitting) {
       return;
@@ -298,7 +295,12 @@ export function CheckoutForm({
               >
                 <div className="flex gap-3 items-center text-left">
                   <User className="h-5 w-5 text-black" aria-hidden="true" />
-                  <p className="text-base leading-6">{selectedReferralName}</p>
+                  <p className="text-base leading-6">
+                    {selectedReferralName != "No Referral" && (
+                      <span>Referrer: </span>
+                    )}
+                    {selectedReferralName}
+                  </p>
                 </div>
                 {approvedReferrals.length > 0 && (
                   <ChevronRight className="h-5 w-5 text-black" />
@@ -747,6 +749,9 @@ export function CheckoutForm({
                             aria-hidden="true"
                           />
                           <p className="text-base leading-6">
+                            {selectedReferralName != "No Referral" && (
+                              <span>Referrer: </span>
+                            )}
                             {selectedReferralName}
                           </p>
                         </div>

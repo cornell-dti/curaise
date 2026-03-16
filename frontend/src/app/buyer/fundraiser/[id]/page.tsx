@@ -1,7 +1,7 @@
 import { connection } from "next/server";
 import { CompleteFundraiserSchema, ItemWithAvailabilitySchema } from "common";
+import { MapPin, Calendar, ChevronLeft, UserStar } from "lucide-react";
 import { format, isPast } from "date-fns";
-import { MapPin, Calendar, ChevronLeft } from "lucide-react";
 import { FundraiserItemsPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemsPanel";
 import { FundraiserGallerySlider } from "@/app/buyer/fundraiser/[id]/components/FundraiserGallerySlider";
 import { FundraiserAnnouncementPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserAnnouncementPanel";
@@ -19,7 +19,7 @@ export default async function FundraiserPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ preview?: string }>;
+  searchParams: Promise<{ preview?: string; code?: string }>;
 }) {
   await connection();
 
@@ -33,13 +33,16 @@ export default async function FundraiserPage({
   } = await supabase.auth.getSession();
 
   const id = (await params).id;
-  const { preview } = await searchParams;
+  const { code, preview } = await searchParams;
+  const codeValue = typeof code === "string" ? code : "";
+
   const fundraiser = await serverFetch(`/fundraiser/${id}`, {
     schema: CompleteFundraiserSchema,
   });
   const fundraiserItems = await serverFetch(`/fundraiser/${id}/items/availability`, {
     schema: ItemWithAvailabilitySchema.array(),
   });
+  const matchedReferral = fundraiser.referrals.find((r) => r.id === codeValue);
 
   if (
     (!fundraiser.organization.authorized || !fundraiser.published) &&
@@ -93,13 +96,27 @@ export default async function FundraiserPage({
             </p>
           </div>
           <div className="w-full">
-            {user && session?.access_token && (
+            {codeValue == "" && user && session?.access_token && (
               <FundraiserReferralCard
                 token={session.access_token}
                 fundraiser={fundraiser}
                 userId={user.id}
                 isPast={past}
               />
+            )}
+            {codeValue != "" && (
+              <Card className="w-full">
+                <CardContent className="py-3">
+                  <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                    <span className="flex gap-2 items-start text-md font-semibold">
+                      <UserStar />{" "}
+                      {matchedReferral
+                        ? `This order will be referring ${matchedReferral.referrer.name}`
+                        : "Invalid referral ID"}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </div>
 
@@ -165,6 +182,7 @@ export default async function FundraiserPage({
             <div className="lg:col-span-1">
               <FundraiserCartSidebar
                 fundraiserId={fundraiser.id}
+                referralId={codeValue}
                 isPast={past}
               />
             </div>

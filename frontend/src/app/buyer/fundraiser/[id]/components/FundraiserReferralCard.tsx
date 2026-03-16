@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CompleteFundraiserSchema } from "common";
-import { Star, AlarmClock, Share2, Link } from "lucide-react";
+import { AlarmClock, Share2, Link, UserStar } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -38,6 +38,12 @@ export function FundraiserReferralCard({
   const [referralId, setReferralId] = useState<string>(
     fundraiser.referrals.find((r) => r.referrer.id === userId)?.id || "",
   );
+
+  const [href, setHref] = useState("#");
+
+  useEffect(() => {
+    setHref(`${window.location.origin}${pathname}?code=${referralId}`);
+  }, [pathname, referralId]);
   const [link, setLink] = useState("");
 
   const addReferrer = async () => {
@@ -73,7 +79,7 @@ export function FundraiserReferralCard({
         <CardContent className="py-3">
           <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
             <span className="flex gap-2 items-start">
-              <Star />
+              <UserStar />
               <span className="text-md font-semibold">
                 <span className="flex items-center ">
                   [{fundraiser.organization.name} Members Only] Become a
@@ -105,7 +111,7 @@ export function FundraiserReferralCard({
         </CardContent>
       </Card>
       <ReferralModal
-        link={link}
+        link={href}
         open={referralOpen}
         setOpen={setReferralOpen}
       />
