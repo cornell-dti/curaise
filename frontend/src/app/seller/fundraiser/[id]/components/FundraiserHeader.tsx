@@ -71,7 +71,6 @@ export function FundraiserHeader({
         open={openEdit}
         setOpen={setOpenEdit}
         step={step}
-        setStep={setStep}
       />
       <ReferralApprovalModal
         fundraiser={fundraiser}

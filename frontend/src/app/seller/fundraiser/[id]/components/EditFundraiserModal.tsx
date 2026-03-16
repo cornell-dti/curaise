@@ -39,7 +39,6 @@ export function EditFundraiserModal({
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   step: number;
-  setStep: React.Dispatch<React.SetStateAction<number>>;
 }) {
   const [formData, setFormData] = useState<
     z.infer<typeof CreateFundraiserBody>

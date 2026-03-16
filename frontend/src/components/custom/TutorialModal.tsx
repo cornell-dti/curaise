@@ -305,7 +305,7 @@ export default function TutorialModal({
           </div>
 
           {/* Video placeholder */}
-          {slide.url == "" ? (
+          {slide.url === "" ? (
             <div className="w-full h-64 rounded-lg bg-muted flex flex-col items-center justify-center gap-2 border border-dashed border-muted-foreground/30">
               <div className="h-10 w-10 rounded-full bg-background flex items-center justify-center shadow-sm border">
                 <Play className="h-4 w-4 text-muted-foreground ml-0.5" />
