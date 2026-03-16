@@ -8,7 +8,7 @@
     "switch:dev": "cp .env.dev .env",
     "switch:prod": "cp .env.prod .env",
     "start": "node ./dist/src/server.js",
-    "dev": "cp .env.dev .env && nodemon --exec node --env-file='.env' -r ts-node/register ./src/server.ts",
+    "dev": "nodemon --exec node --env-file='.env' -r ts-node/register ./src/server.ts",
     "prisma:generate": "prisma generate",
     "migrate:dev": "cp .env.dev .env && prisma migrate dev",
     "migrate:prod": "cp .env.prod .env && prisma migrate deploy",
