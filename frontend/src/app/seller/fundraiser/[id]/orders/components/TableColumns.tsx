@@ -24,6 +24,7 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { ArrowUpDown } from "lucide-react";
+import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
 import { z } from "zod";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { toast } from "sonner";
@@ -433,9 +434,37 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
   },
   {
     accessorKey: "paymentStatus",
-    header: () => {
+    // Return the displayed status for sorting (matches what user sees)
+    accessorFn: (row) => {
+      if (row.pickedUp) return "Picked Up";
+      if (row.paymentStatus === "UNVERIFIABLE") return "Unverifiable";
+      if (row.paymentStatus === "PENDING") return "Pending";
+      if (row.paymentStatus === "CONFIRMED") return "Not Picked Up";
+      return "Unknown";
+    },
+    header: ({ column }) => {
       return (
-        <div className="flex justify-center w-full px-2">Order Status</div>
+        <div className="flex items-center justify-center w-full px-2 gap-1">
+          <Button
+            variant="ghost"
+            className="px-2"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Order Status
+            <ArrowUpDown className="ml-1 h-3 w-3" />
+          </Button>
+          <InfoTooltip
+            content={
+              <>
+                • <strong>Pending:</strong> Payment not yet verified
+                <br />• <strong>Not Picked Up:</strong> Payment confirmed, awaiting pickup
+                <br />• <strong>Picked Up:</strong> Order complete
+                <br />• <strong>Unverifiable:</strong> Payment can&apos;t be verified (cash/manual order), but can be picked up
+              </>
+            }
+            size={18}
+          />
+        </div>
       );
     },
     filterFn: "arrIncludesSome",
