@@ -5,6 +5,7 @@ import { z } from "zod";
 import {
   updateCacheForNewOrder,
   updateCacheForOrderPickup,
+  updateCacheForOrderConfirmation,
 } from "../fundraiser/fundraiser.services";
 import { Decimal } from "decimal.js";
 
@@ -490,6 +491,16 @@ export const confirmOrderPayment = async (orderId: string) => {
         },
         include: {
           buyer: true,
+          items: {
+            include: {
+              item: {
+                select: {
+                  name: true,
+                  price: true,
+                },
+              },
+            },
+          },
           fundraiser: {
             select: {
               id: true,
@@ -526,6 +537,9 @@ export const confirmOrderPayment = async (orderId: string) => {
     },
     { isolationLevel: "Serializable" }
   );
+
+  // Update analytics cache for the fundraiser when payment is confirmed
+  await updateCacheForOrderConfirmation(order.fundraiser.id, order);
 
   return order;
 };

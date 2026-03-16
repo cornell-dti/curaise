@@ -606,7 +606,7 @@ export const calculateAndCacheFundraiserAnalytics = async (
 
   const cacheKey = `fundraiser_analytics_${fundraiserId}`;
   try {
-    await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 7200 }); // Tentative expiration of 2 hrs
+    await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 300 }); // Cache expires after 5 minutes
   } catch (error) {
     console.error("Failed to cache analytics:", error);
   }
@@ -619,20 +619,24 @@ export const calculateAndCacheFundraiserAnalytics = async (
  * @returns Promise<FundraiserAnalytics> - Analytics data from cache or freshly calculated
  */
 export const getFundraiserAnalytics = async (fundraiserId: string) => {
-  // Fundraiser specific id to access the cache
-  const cacheKey = `fundraiser_analytics_${fundraiserId}`;
-
-  try {
-    const cached = await memclient.get(cacheKey);
-    if (cached.value) {
-      console.log("Found in cache");
-      return JSON.parse(cached.value.toString());
-    }
-  } catch (error) {
-    console.error("Failed to get cached analytics:", error);
-  }
-  console.log("Cache miss - calculating fresh analytics");
+  // TEMPORARY: Disable cache to test realtime
+  console.log("Cache DISABLED - calculating fresh analytics");
   return await calculateAndCacheFundraiserAnalytics(fundraiserId);
+
+  // Fundraiser specific id to access the cache
+  // const cacheKey = `fundraiser_analytics_${fundraiserId}`;
+
+  // try {
+  //   const cached = await memclient.get(cacheKey);
+  //   if (cached.value) {
+  //     console.log("Found in cache");
+  //     return JSON.parse(cached.value.toString());
+  //   }
+  // } catch (error) {
+  //   console.error("Failed to get cached analytics:", error);
+  // }
+  // console.log("Cache miss - calculating fresh analytics");
+  // return await calculateAndCacheFundraiserAnalytics(fundraiserId);
 };
 
 /**
@@ -646,7 +650,9 @@ export const invalidateFundraiserAnalyticsCache = async (
 ) => {
   const cacheKey = `fundraiser_analytics_${fundraiserId}`;
   try {
-    await memclient.delete(cacheKey);
+    console.log("Invalidating cache for key:", cacheKey);
+    const result = await memclient.delete(cacheKey);
+    console.log("Cache invalidation result:", result);
   } catch (error) {
     console.error("Failed to invalidate analytics cache:", error);
   }
@@ -707,7 +713,7 @@ export const updateCacheForNewOrder = async (
     analytics.sale_data[dateKey] = (analytics.sale_data[dateKey] || 0) + 1;
 
     // Save updated analytics back to cache
-    await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 7200 });
+    await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 300 });
     console.log("Cached value updated for new added order");
   } catch (error) {
     console.error("Failed to update cache for new order:", error);
@@ -772,9 +778,67 @@ export const updateCacheForOrderPickup = async (
     }
 
     // Save updated analytics back to cache
-    await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 7200 });
+    await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 300 });
     console.log("Cached value updated for pickedup order");
   } catch (error) {
     console.error("Failed to update cache for order pickup:", error);
+  }
+};
+
+/**
+ * Updates cached analytics when an order payment is confirmed
+ * Decrements pending orders, adds revenue, items, and profit
+ * Only updates if cache already exists - does not create new cache
+ * @param fundraiserId - The ID of the fundraiser
+ * @param order - The order object with items included
+ * @returns Promise<void>
+ */
+export const updateCacheForOrderConfirmation = async (
+  fundraiserId: string,
+  order: {
+    createdAt: Date;
+    items: Array<{
+      quantity: number;
+      item: {
+        name: string;
+        price: number | any;
+      };
+    }>;
+  }
+) => {
+  const cacheKey = `fundraiser_analytics_${fundraiserId}`;
+  try {
+    // Peek at cache - only update if it exists
+    const analytics = await peekCachedAnalytics(cacheKey);
+    if (!analytics) {
+      console.log("No cache found for order confirmation - skipping update");
+      return;
+    }
+
+    // Calculate order total and update items
+    let orderTotal = 0;
+    order.items.forEach((orderItem) => {
+      const itemTotal = orderItem.quantity * Number(orderItem.item.price);
+      orderTotal += itemTotal;
+      analytics.items[orderItem.item.name] =
+        (analytics.items[orderItem.item.name] || 0) + orderItem.quantity;
+    });
+
+    // Update counters and revenue
+    analytics.pending_orders--;
+    analytics.total_revenue += orderTotal;
+    analytics.profit =
+      Math.round(analytics.total_revenue * PROFIT_MARGIN * 100) / 100;
+
+    // Update revenue data by date
+    const dateKey = order.createdAt.toISOString().split("T")[0];
+    analytics.revenue_data[dateKey] =
+      (analytics.revenue_data[dateKey] || 0) + orderTotal;
+
+    // Save updated analytics back to cache
+    await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 300 });
+    console.log("Cached value updated for confirmed order");
+  } catch (error) {
+    console.error("Failed to update cache for order confirmation:", error);
   }
 };
