@@ -24,9 +24,11 @@ export function ReferralsTableWrapper({
 	// Calculate order count for each referral
 	const referralsWithQuantities: ReferralWithQuantities[] = referrals.map(
 		(referral) => {
-			// Count how many orders have this referral ID
+			// Count how many orders have this referral ID and are confirmed (paid or picked up)
 			const orderCount = orders.filter(
-				(order) => order.referral?.id === referral.id
+				(order) =>
+					order.referral?.id === referral.id &&
+					(order.paymentStatus === "CONFIRMED" || order.pickedUp)
 			).length;
 
 			return {
