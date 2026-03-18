@@ -69,10 +69,28 @@ export const createOrderHandler = async (
     return;
   }
 
-  const order = await createOrder({
-    ...req.body,
-    buyerId: res.locals.user!.id,
-  });
+  const isFundraiserAdmin = fundraiser.organization.admins.some(
+    (admin) => admin.id === res.locals.user!.id,
+  );
+
+  if (req.body.markAsPickedUp && !isFundraiserAdmin) {
+    res.status(403).json({ message: "Unauthorized to mark order as picked up" });
+    return;
+  }
+
+  let order;
+  try {
+    order = await createOrder({
+      ...req.body,
+      buyerId: res.locals.user!.id,
+      markAsPickedUp: req.body.markAsPickedUp === true && isFundraiserAdmin,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: error instanceof Error ? error.message : "Failed to create order",
+    });
+    return;
+  }
   if (!order) {
     res.status(500).json({ message: "Failed to create order" });
     return;
@@ -118,7 +136,16 @@ export const completeOrderPickupHandler = async (
     return;
   }
 
-  const completedOrder = await completeOrderPickup(req.params.id);
+  let completedOrder;
+  try {
+    completedOrder = await completeOrderPickup(req.params.id);
+  } catch (error) {
+    res.status(400).json({
+      message:
+        error instanceof Error ? error.message : "Failed to complete order pickup",
+    });
+    return;
+  }
   if (!completedOrder) {
     res.status(500).json({ message: "Failed to complete order pickup" });
     return;
@@ -209,7 +236,16 @@ export const confirmOrderPaymentHandler = async (
     return;
   }
 
-  const confirmedOrder = await confirmOrderPayment(req.params.id);
+  let confirmedOrder;
+  try {
+    confirmedOrder = await confirmOrderPayment(req.params.id);
+  } catch (error) {
+    res.status(400).json({
+      message:
+        error instanceof Error ? error.message : "Failed to confirm order payment",
+    });
+    return;
+  }
   if (!confirmedOrder) {
     res.status(500).json({ message: "Failed to confirm order payment" });
     return;

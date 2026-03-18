@@ -21,7 +21,12 @@ export const authFetcher =
         Authorization: "Bearer " + session.access_token,
       },
     });
-    const result = await response.json();
+    let result;
+    try {
+      result = await response.json();
+    } catch {
+      throw new Error(`Server error (${response.status})`);
+    }
     if (!response.ok) {
       throw new Error(result.message);
     }
@@ -37,7 +42,12 @@ export const noAuthFetcher =
   <T extends z.ZodTypeAny>(schema: T) =>
   async (url: string): Promise<z.infer<T>> => {
     const response = await fetch(process.env.NEXT_PUBLIC_API_URL! + url);
-    const result = await response.json();
+    let result;
+    try {
+      result = await response.json();
+    } catch {
+      throw new Error(`Server error (${response.status})`);
+    }
     if (!response.ok) {
       throw new Error(result.message);
     }
@@ -67,7 +77,12 @@ export async function serverFetch<T extends z.ZodTypeAny>(
   const response = await fetch(process.env.NEXT_PUBLIC_API_URL! + url, {
     headers,
   });
-  const result = await response.json();
+  let result;
+  try {
+    result = await response.json();
+  } catch {
+    throw new Error(`Server error (${response.status})`);
+  }
   if (!response.ok) {
     throw new Error(result.message);
   }
@@ -102,7 +117,12 @@ export async function mutationFetch(
     },
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
   });
-  const result = await response.json();
+  let result;
+  try {
+    result = await response.json();
+  } catch {
+    throw new Error(`Server error (${response.status})`);
+  }
   if (!response.ok) {
     throw new Error(result.message);
   }

@@ -2,6 +2,7 @@
 
 import {
 	type ChangeEvent,
+	useEffect,
 	useRef,
 	useState,
 	useTransition,
@@ -26,8 +27,14 @@ function UploadImageComponent({
 	allowMultiple,
 }: UploadImageComponentProps) {
 	const imageInputRef = useRef<HTMLInputElement>(null);
-	const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
+	const [uploadedUrls, setUploadedUrls] = useState<string[]>(
+		imageUrls.filter(Boolean)
+	);
 	const [isPending, startTransition] = useTransition();
+
+	useEffect(() => {
+		setUploadedUrls(imageUrls.filter(Boolean));
+	}, [imageUrls]);
 
 	const processFiles = async (files: File[]) => {
 		if (imageInputRef.current) {
@@ -85,7 +92,7 @@ function UploadImageComponent({
 				);
 				// Set the image URLs in the parent component (this is for the form field values)
 				if (allowMultiple) {
-					setImageUrls([...imageUrls, ...urls]);
+					setImageUrls([...imageUrls.filter(Boolean), ...urls]);
 				} else {
 					// For single item image
 					setImageUrls([urls[0]]);
@@ -126,26 +133,30 @@ function UploadImageComponent({
 	};
 
 	const removeUploadedImage = async (indexToRemove: number) => {
-		// Get the URL that's being removed
-		let removedUrl = uploadedUrls[indexToRemove];
-		const folderPos = removedUrl.indexOf(`${folder}/`);
+		// Get the full URL that's being removed (for filtering parent state)
+		const fullUrl = uploadedUrls[indexToRemove];
+
+		// Extract just the path for Supabase deletion
+		let pathToDelete = fullUrl;
+		const folderPos = fullUrl.indexOf(`${folder}/`);
 		if (folderPos !== -1) {
 			// Return everything from "fundraisers/" to the end of the string
-			removedUrl = removedUrl.substring(folderPos);
+			pathToDelete = fullUrl.substring(folderPos);
 		}
 
 		// Update local state first (update the preview image urls by filtering out the removed image)
 		const newUrls = uploadedUrls.filter((_, index) => index !== indexToRemove);
 		setUploadedUrls(newUrls);
 
-		// Or to delete an image using its full URL
+		// Delete the image from Supabase storage using the path
 		const _ = await deleteImage({
 			bucket: "images",
-			path: removedUrl,
+			path: pathToDelete,
 		});
 
 		// Then update parent component states (update form field values)
-		setImageUrls(imageUrls.filter((url) => url !== removedUrl));
+		// Use the full URL for comparison since imageUrls contains full URLs
+		setImageUrls(imageUrls.filter(Boolean).filter((url) => url !== fullUrl));
 
 		// When an image is uploaded, the value of imageInputRef is set to the image path
 		// When we remove an image from the input, the value of the ref does not get reset thus

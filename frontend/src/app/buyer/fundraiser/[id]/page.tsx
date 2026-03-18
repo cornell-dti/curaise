@@ -1,7 +1,8 @@
 import { connection } from "next/server";
-import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
-import { format, isPast } from "date-fns";
-import { MapPin, Calendar, ChevronLeft } from "lucide-react";
+import { CompleteFundraiserSchema, ItemWithAvailabilitySchema } from "common";
+import { MapPin, Calendar, ChevronLeft, UserStar } from "lucide-react";
+import { isPast } from "date-fns";
+import { LocalDate } from "@/components/ui/LocalDate";
 import { FundraiserItemsPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemsPanel";
 import { FundraiserGallerySlider } from "@/app/buyer/fundraiser/[id]/components/FundraiserGallerySlider";
 import { FundraiserAnnouncementPanel } from "@/app/buyer/fundraiser/[id]/components/FundraiserAnnouncementPanel";
@@ -19,7 +20,7 @@ export default async function FundraiserPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ preview?: string }>;
+  searchParams: Promise<{ preview?: string; code?: string }>;
 }) {
   await connection();
 
@@ -33,13 +34,16 @@ export default async function FundraiserPage({
   } = await supabase.auth.getSession();
 
   const id = (await params).id;
-  const { preview } = await searchParams;
+  const { code, preview } = await searchParams;
+  const codeValue = typeof code === "string" ? code : "";
+
   const fundraiser = await serverFetch(`/fundraiser/${id}`, {
     schema: CompleteFundraiserSchema,
   });
-  const fundraiserItems = await serverFetch(`/fundraiser/${id}/items`, {
-    schema: CompleteItemSchema.array(),
+  const fundraiserItems = await serverFetch(`/fundraiser/${id}/items/availability`, {
+    schema: ItemWithAvailabilitySchema.array(),
   });
+  const matchedReferral = fundraiser.referrals.find((r) => r.id === codeValue);
 
   if (
     (!fundraiser.organization.authorized || !fundraiser.published) &&
@@ -93,13 +97,27 @@ export default async function FundraiserPage({
             </p>
           </div>
           <div className="w-full">
-            {user && session?.access_token && (
+            {codeValue == "" && user && session?.access_token && (
               <FundraiserReferralCard
                 token={session.access_token}
                 fundraiser={fundraiser}
                 userId={user.id}
                 isPast={past}
               />
+            )}
+            {codeValue != "" && (
+              <Card className="w-full">
+                <CardContent className="py-3">
+                  <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                    <span className="flex gap-2 items-start text-md font-semibold">
+                      <UserStar />{" "}
+                      {matchedReferral
+                        ? `This order will be referring ${matchedReferral.referrer.name}`
+                        : "Invalid referral ID"}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </div>
 
@@ -126,14 +144,14 @@ export default async function FundraiserPage({
                         <div className="flex items-start gap-3">
                           <Calendar className="h-[23px] w-[23px] flex-shrink-0 text-muted-foreground mt-0.5" />
                           <span className="text-base">
-                            {format(event.startsAt, "EEEE, M/d/yyyy")}
+                            <LocalDate date={event.startsAt} formatStr="EEEE, M/d/yyyy" />
                           </span>
                         </div>
                         <div className="flex items-start gap-3">
                           <MapPin className="h-[23px] w-[23px] flex-shrink-0 text-muted-foreground mt-0.5" />
                           <span className="text-base">
-                            {event.location}, {format(event.startsAt, "h:mm a")}{" "}
-                            to {format(event.endsAt, "h:mm a")}
+                            {event.location}, <LocalDate date={event.startsAt} formatStr="h:mm a" />{" "}
+                            to <LocalDate date={event.endsAt} formatStr="h:mm a" />
                           </span>
                         </div>
                       </div>
@@ -165,6 +183,7 @@ export default async function FundraiserPage({
             <div className="lg:col-span-1">
               <FundraiserCartSidebar
                 fundraiserId={fundraiser.id}
+                referralId={codeValue}
                 isPast={past}
               />
             </div>

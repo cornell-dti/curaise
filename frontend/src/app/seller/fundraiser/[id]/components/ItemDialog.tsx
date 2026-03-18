@@ -14,6 +14,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import UploadImageComponent from "@/components/custom/UploadImageComponent";
+import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
 import { UseFormReturn } from "react-hook-form";
 import { CompleteItemSchema, CreateFundraiserItemBody } from "common";
 import { z } from "zod";
@@ -24,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { SetStateAction } from "react";
 import { Input } from "@/components/ui/input";
 import { Decimal } from "decimal.js";
+import { mutationFetch } from "@/lib/fetcher";
 
 // Type for tracking pending new items
 export type PendingItemChanges = {
@@ -43,6 +45,8 @@ export type OnUpdatePendingItem = (
 ) => void;
 
 export function ItemDialog({
+	token,
+	fundraiserId,
 	open,
 	setOpen,
 	form,
@@ -50,6 +54,7 @@ export function ItemDialog({
 	items,
 	setItems,
 	editingIndex,
+	isPublished,
 	onAddPendingItem,
 	onUpdatePendingItem,
 }: {
@@ -68,6 +73,28 @@ export function ItemDialog({
 	onAddPendingItem?: OnAddPendingItem;
 	onUpdatePendingItem?: OnUpdatePendingItem;
 }) {
+	const getPublishedLimitValidationError = (
+		existingLimit: number | null,
+		nextLimit: number | undefined
+	) => {
+		if (existingLimit === null) {
+			if (nextLimit !== undefined) {
+				return "Cannot add an inventory cap to a published item.";
+			}
+			return null;
+		}
+
+		if (nextLimit === undefined) {
+			return "Cannot remove an inventory cap from a published item.";
+		}
+
+		if (nextLimit < existingLimit) {
+			return `Cannot decrease inventory cap. Current cap is ${existingLimit}.`;
+		}
+
+		return null;
+	};
+
 	const handleSubmitItem = async (
 		data: z.infer<typeof CreateFundraiserItemBody>
 	) => {
@@ -87,6 +114,7 @@ export function ItemDialog({
 				price: new Decimal(item.price),
 				imageUrl: item.imageUrl,
 				offsale: false,
+				limit: item.limit ?? null,
 			};
 			setItems((prev) => [...prev, tempItem]);
 
@@ -103,6 +131,44 @@ export function ItemDialog({
 				return;
 			}
 
+			const isPublishedExistingItem =
+				!!isPublished && !editingItem.id.startsWith("temp-");
+			if (isPublishedExistingItem) {
+				const limitError = getPublishedLimitValidationError(
+					editingItem.limit ?? null,
+					item.limit
+				);
+				if (limitError) {
+					toast.error(limitError);
+					return;
+				}
+			}
+
+			// If editing a real (non-temp) item on a published fundraiser, call the API directly
+			if (isPublishedExistingItem) {
+				try {
+					await mutationFetch(
+						`/fundraiser/${fundraiserId}/items/${editingItem.id}/update`,
+						{
+							token,
+							body: {
+								name: item.name,
+								description: item.description,
+								price: item.price,
+								imageUrl: item.imageUrl,
+								offsale: editingItem.offsale,
+								limit: item.limit !== undefined ? item.limit : null,
+							},
+						}
+					);
+				} catch (error) {
+					toast.error(
+						`Failed to update item: ${error instanceof Error ? error.message : "Unknown error"}`
+					);
+					return;
+				}
+			}
+
 			// Update item in local state
 			const updatedItem: z.infer<typeof CompleteItemSchema> = {
 				...editingItem,
@@ -110,6 +176,7 @@ export function ItemDialog({
 				description: item.description,
 				price: new Decimal(item.price),
 				imageUrl: item.imageUrl,
+				limit: item.limit !== undefined ? item.limit : null,
 			};
 			setItems((prev) =>
 				prev.map((it, idx) => (idx === editingIndex ? updatedItem : it))
@@ -120,12 +187,24 @@ export function ItemDialog({
 				onUpdatePendingItem(editingItem.id, item);
 			}
 
-			toast.success("Item updated (will be saved when you finalize)");
+			toast.success(
+				isPublished && !editingItem.id.startsWith("temp-")
+					? "Item updated successfully"
+					: "Item updated (will be saved when you finalize)"
+			);
 		}
 
 		setOpen(false);
 		form.reset(DEFAULT_ITEM_VALUES);
 	};
+
+	const currentItem = editingIndex !== null ? items[editingIndex] : null;
+	const isRealPublishedItem =
+		isPublished && currentItem && !currentItem.id.startsWith("temp-");
+	// For published items with no existing limit, the limit field is locked
+	const limitLocked = isRealPublishedItem && currentItem.limit == null;
+	// For published items with an existing limit, can only increase
+	const limitIncreaseOnly = isRealPublishedItem && currentItem.limit != null;
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -182,7 +261,11 @@ export function ItemDialog({
 									<FormItem>
 										<FormLabel>Image</FormLabel>
 										<UploadImageComponent
-											imageUrls={[form.getValues("imageUrl") || ""]}
+											imageUrls={
+												form.getValues("imageUrl")
+													? [form.getValues("imageUrl")!]
+													: []
+											}
 											setImageUrls={(imageUrls: string[]) => {
 												if (imageUrls.length > 0) {
 													form.setValue("imageUrl", imageUrls[0]);
@@ -219,6 +302,64 @@ export function ItemDialog({
 												}}
 											/>
 										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={form.control}
+								name="limit"
+								render={({ field }) => (
+									<FormItem>
+										<div className="flex items-center gap-2">
+											<FormLabel className="mb-0">Inventory Cap (Optional)</FormLabel>
+											<InfoTooltip
+												content="Only set a cap if necessary. Leave blank for unlimited. After publishing, an item with no cap cannot get one later, and an existing cap can only increase. Caps are enforced based on real confirmed or picked-up orders, not carts or unpaid pending orders."
+												size={18}
+											/>
+										</div>
+										<FormControl>
+											<Input
+												type="number"
+												step="1"
+												min={limitIncreaseOnly ? currentItem.limit! : 1}
+												placeholder={
+													limitLocked
+														? "Unlimited (cannot be changed)"
+														: limitIncreaseOnly
+															? `Min: ${currentItem.limit}`
+															: "Leave blank for unlimited"
+												}
+												disabled={!!limitLocked}
+												value={field.value ?? ""}
+												onChange={(e) => {
+													if (e.target.value === "") {
+														// For items that must keep a limit, don't allow clearing
+														if (limitIncreaseOnly) {
+															field.onChange(currentItem.limit);
+														} else {
+															field.onChange(undefined);
+														}
+													} else {
+														const parsed = parseInt(e.target.value);
+														// For items that must keep a limit, enforce minimum
+														if (limitIncreaseOnly && parsed < currentItem.limit!) {
+															field.onChange(currentItem.limit);
+														} else {
+															field.onChange(parsed);
+														}
+													}
+												}}
+											/>
+										</FormControl>
+											<p className="text-sm text-muted-foreground">
+												{limitLocked
+													? "This item has no cap and cannot have one added after publishing."
+													: limitIncreaseOnly
+														? `Cap can only be increased (current: ${currentItem.limit}).`
+														: "After publishing, existing item caps can only increase."}
+											</p>
 										<FormMessage />
 									</FormItem>
 								)}

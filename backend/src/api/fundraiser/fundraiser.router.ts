@@ -5,6 +5,7 @@ import {
   DeleteAnnouncementRouteParams,
   PickupEventRouteParams,
   ApproveReferralRouteParams,
+  AnalyticsQueryParams,
 } from "./fundraiser.types";
 import {
   CreateFundraiserBody,
@@ -36,6 +37,7 @@ import {
   createReferralHandler,
   approveReferralHandler,
   deleteReferralHandler,
+  getFundraiserItemsAvailabilityHandler,
 } from "./fundraiser.handlers";
 import { authenticate } from "../../middleware/authenticate";
 import {
@@ -57,6 +59,12 @@ fundraiserRouter.get(
   "/:id/items",
   validate({ params: FundraiserRouteParams }),
   asyncHandler(getFundraiserItemsHandler)
+);
+
+fundraiserRouter.get(
+  "/:id/items/availability",
+  validate({ params: FundraiserRouteParams }),
+  asyncHandler(getFundraiserItemsAvailabilityHandler)
 );
 
 fundraiserRouter.get(
@@ -150,7 +158,7 @@ fundraiserRouter.delete(
 
 fundraiserRouter.get(
   "/:id/analytics",
-  validate({ params: FundraiserRouteParams }),
+  validate({ params: FundraiserRouteParams, query: AnalyticsQueryParams }),
   authenticate,
   asyncHandler(getFundraiserAnalyticsHandler)
 );

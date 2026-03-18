@@ -39,4 +39,20 @@ export const CreateOrderBody = z.object({
     .min(1),
   payment_method: z.enum(["VENMO", "OTHER"]),
   referralId: z.string().uuid().optional(),
+  markAsPickedUp: z.boolean().optional(),
+}).superRefine((body, ctx) => {
+  const seenItemIds = new Set<string>();
+
+  body.items.forEach((item, index) => {
+    if (seenItemIds.has(item.itemId)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Duplicate items are not allowed in a single order",
+        path: ["items", index, "itemId"],
+      });
+      return;
+    }
+
+    seenItemIds.add(item.itemId);
+  });
 });

@@ -5,6 +5,7 @@ import {
   DeleteAnnouncementRouteParams,
   PickupEventRouteParams,
   ApproveReferralRouteParams,
+  AnalyticsQueryParams,
 } from "./fundraiser.types";
 import {
   createFundraiser,
@@ -14,12 +15,14 @@ import {
   getFundraiserOrders,
   updateFundraiser,
   createFundraiserItem,
-  getFundraiserItem,
+  getFundraiserItemForFundraiser,
   updateFundraiserItem,
   deleteFundraiserItem,
+  validatePublishedFundraiserItemUpdate,
   createAnnouncement,
   deleteAnnouncement,
   getFundraiserAnalytics,
+  invalidateFundraiserAnalyticsCache,
   publishFundraiser,
   createPickupEvent,
   updatePickupEvent,
@@ -28,6 +31,7 @@ import {
   getReferral,
   approveReferral,
   deleteReferral,
+  getFundraiserItemsWithAvailability,
 } from "./fundraiser.services";
 import {
   AnnouncementSchema,
@@ -43,6 +47,7 @@ import {
   CreatePickupEventBody,
   UpdatePickupEventBody,
   ReferralSchema,
+  ItemWithAvailabilitySchema,
 } from "common";
 import { getOrganization } from "../organization/organization.services";
 import { z } from "zod";
@@ -503,28 +508,43 @@ export const updateFundraiserItemHandler = async (
     return;
   }
 
-  // If fundraiser is published, check if price is being changed
+  const existingItem = await getFundraiserItemForFundraiser(
+    req.params.fundraiserId,
+    req.params.itemId
+  );
+
+  if (!existingItem) {
+    res.status(404).json({ message: "Item not found" });
+    return;
+  }
+
+  // If fundraiser is published, enforce immutability constraints
   if (fundraiser.published) {
-    // Get the existing item to compare prices
-    const existingItem = await getFundraiserItem(req.params.itemId);
+    const validation = validatePublishedFundraiserItemUpdate(
+      existingItem,
+      req.body
+    );
 
-    if (!existingItem) {
-      res.status(404).json({ message: "Item not found" });
-      return;
-    }
-
-    if (!existingItem.price.equals(req.body.price)) {
+    if (!validation.valid) {
       res.status(400).json({
-        message: "Cannot change price of an item in a published fundraiser",
+        message: validation.reason,
       });
       return;
     }
   }
 
-  const item = await updateFundraiserItem({
-    itemId: req.params.itemId,
-    ...req.body,
-  });
+  let item;
+  try {
+    item = await updateFundraiserItem({
+      itemId: req.params.itemId,
+      ...req.body,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: error instanceof Error ? error.message : "Failed to update fundraiser item",
+    });
+    return;
+  }
   if (!item) {
     res.status(500).json({ message: "Failed to update fundraiser item" });
     return;
@@ -561,6 +581,16 @@ export const deleteFundraiserItemHandler = async (
     )
   ) {
     res.status(403).json({ message: "Unauthorized to delete fundraiser item" });
+    return;
+  }
+
+  const existingItem = await getFundraiserItemForFundraiser(
+    req.params.fundraiserId,
+    req.params.itemId
+  );
+
+  if (!existingItem) {
+    res.status(404).json({ message: "Item not found" });
     return;
   }
 
@@ -681,7 +711,7 @@ export const deleteAnnouncementHandler = async (
 };
 
 export const getFundraiserAnalyticsHandler = async (
-  req: Request<FundraiserRouteParams, any, {}, {}>,
+  req: Request<FundraiserRouteParams, any, {}, AnalyticsQueryParams>,
   res: Response
 ) => {
   const fundraiser = await getFundraiser(req.params.id);
@@ -703,6 +733,10 @@ export const getFundraiserAnalyticsHandler = async (
   }
 
   try {
+    if (req.query.refresh === "true") {
+      await invalidateFundraiserAnalyticsCache(req.params.id);
+    }
+
     const analytics = await getFundraiserAnalytics(req.params.id);
     if (!analytics) {
       res.status(500).json({ message: "Failed to retrieve analytics" });
@@ -850,4 +884,22 @@ export const deleteReferralHandler = async (
   }
 
   res.status(200).json({ message: "Referral deleted successfully" });
+};
+
+export const getFundraiserItemsAvailabilityHandler = async (
+  req: Request<FundraiserRouteParams, any, {}, {}>,
+  res: Response
+) => {
+  const items = await getFundraiserItemsWithAvailability(req.params.id);
+
+  const parsed = ItemWithAvailabilitySchema.array().safeParse(items);
+  if (!parsed.success) {
+    res.status(500).json({ message: "Invalid item availability data" });
+    return;
+  }
+
+  res.status(200).json({
+    message: "Items with availability fetched successfully",
+    data: parsed.data,
+  });
 };

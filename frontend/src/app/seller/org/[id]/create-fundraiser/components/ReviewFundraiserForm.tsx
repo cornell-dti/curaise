@@ -7,8 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { LocalDate } from "@/components/ui/LocalDate";
 import { CreateFundraiserBody, CreateFundraiserItemBody } from "common";
-import { format } from "date-fns";
 import { z } from "zod";
 
 export function ReviewFundraiserForm({
@@ -96,8 +96,8 @@ export function ReviewFundraiserForm({
             <div>
               <p className="text-sm font-medium text-gray-500">Buying Period</p>
               <p>
-                {format(formData.buyingStartsAt, "MMM d, yyyy h:mm a")} -{" "}
-                {format(formData.buyingEndsAt, "MMM d, yyyy h:mm a")}
+                <LocalDate date={formData.buyingStartsAt} formatStr="MMM d, yyyy h:mm a" /> -{" "}
+                <LocalDate date={formData.buyingEndsAt} formatStr="MMM d, yyyy h:mm a" />
               </p>
             </div>
           </div>
@@ -120,8 +120,8 @@ export function ReviewFundraiserForm({
                       Time Window
                     </p>
                     <p>
-                      {format(event.startsAt, "MMM d, yyyy h:mm a")} -{" "}
-                      {format(event.endsAt, "MMM d, yyyy h:mm a")}
+                      <LocalDate date={event.startsAt} formatStr="MMM d, yyyy h:mm a" /> -{" "}
+                      <LocalDate date={event.endsAt} formatStr="MMM d, yyyy h:mm a" />
                     </p>
                   </div>
                 </div>

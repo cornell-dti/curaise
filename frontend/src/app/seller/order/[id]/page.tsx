@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { CompleteOrderSchema } from "common";
 import Decimal from "decimal.js";
-import { format, isPast } from "date-fns";
+import { isPast } from "date-fns";
+import { LocalDate } from "@/components/ui/LocalDate";
 import {
   Card,
   CardContent,
@@ -261,7 +262,7 @@ export default async function OrderPage({
               <div>
                 <p className="font-medium">Order ID: {order.id}</p>
                 <p className="text-sm text-muted-foreground">
-                  Placed {format(order.createdAt, "MMM d, yyyy")}
+                  Placed <LocalDate date={order.createdAt} formatStr="MMM d, yyyy" />
                 </p>
               </div>
             </CardContent>
