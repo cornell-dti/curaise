@@ -109,7 +109,7 @@ export default function PrivacyPolicyPage() {
               <strong>Service providers:</strong> We use trusted third-party
               services including Supabase (authentication and database
               infrastructure), Mailgun (email delivery), Heroku (backend
-              hosting), and Netlify (frontend hosting). These providers process
+              hosting), and Vercel (frontend hosting). These providers process
               data only as necessary to provide their services.
             </li>
             <li>
