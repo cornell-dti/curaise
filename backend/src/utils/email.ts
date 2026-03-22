@@ -114,7 +114,7 @@ export const sendOrganizationInviteEmail = async (options: {
       }
     </ul>
     
-    <p>To manage this organization, please <a href="https://curaise.app">log in to your Curaise account</a>.</p>
+    <p>To manage this organization, please <a href="https://www.curaise.app">log in to your Curaise account</a>.</p>
     
     <p>Thank you,<br>
     The Curaise Team</p>
@@ -164,7 +164,7 @@ export const sendPendingAdminInviteEmail = async (options: {
     Description: ${organization.description}
     ${organization.websiteUrl ? `Website: ${organization.websiteUrl}` : ""}
 
-    To accept this invitation and manage this organization, please sign up for a Curaise account at https://curaise.app
+    To accept this invitation and manage this organization, please sign up for a Curaise account at https://www.curaise.app
 
     Once you register with this email address (${email}), you'll automatically be granted administrator access to ${
       organization.name
@@ -194,7 +194,7 @@ export const sendPendingAdminInviteEmail = async (options: {
       }
     </ul>
 
-    <p>To accept this invitation and manage this organization, please <a href="https://curaise.app">sign up for a Curaise account</a>.</p>
+    <p>To accept this invitation and manage this organization, please <a href="https://www.curaise.app">sign up for a Curaise account</a>.</p>
 
     <p>Once you register with this email address (<strong>${email}</strong>), you'll automatically be granted administrator access to ${
       organization.name
