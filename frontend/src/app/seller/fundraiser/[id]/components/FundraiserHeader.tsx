@@ -27,6 +27,7 @@ export function FundraiserHeader({
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
   fundraiserItems: z.infer<typeof CompleteItemSchema>[];
 }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [openReferral, setOpenReferral] = useState(false);
   const [step, setStep] = useState(0);
@@ -52,6 +53,9 @@ export function FundraiserHeader({
   }, {});
 
   async function onPublish() {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     try {
       await mutationFetch(`/fundraiser/${fundraiser.id}/publish`, { token });
       toast.success("Fundraiser published successfully");
@@ -59,6 +63,7 @@ export function FundraiserHeader({
       toast.error(
         `Failed to publish fundraiser: ${error instanceof Error ? error.message : "Unknown error"}`
       );
+      setIsSubmitting(false);
     }
   }
 
@@ -168,6 +173,7 @@ export function FundraiserHeader({
               fundraiserItems={fundraiserItems}
               onAction={openStepAt}
               publish={onPublish}
+              isSubmitting={isSubmitting}
             />
           </div>
         )}

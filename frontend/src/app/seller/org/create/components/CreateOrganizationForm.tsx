@@ -15,7 +15,7 @@ export function CreateOrganizationForm({ token }: { token: string }) {
   const router = useRouter();
 
   const [adminEmails, setAdminEmails] = useState<string[]>([]);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<
     z.infer<typeof CreateOrganizationBody>
   >({
@@ -28,6 +28,9 @@ export function CreateOrganizationForm({ token }: { token: string }) {
   });
 
   async function onSubmit() {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     const dataToSubmit = {
       ...formData,
       addedAdminsEmails: adminEmails,
@@ -44,7 +47,7 @@ export function CreateOrganizationForm({ token }: { token: string }) {
       toast.error(
         error instanceof Error ? error.message : "Something went wrong",
       );
-      return;
+      setIsSubmitting(false);
     }
   }
 
@@ -77,6 +80,7 @@ export function CreateOrganizationForm({ token }: { token: string }) {
         <ReviewOrganizationForm
           adminEmails={adminEmails}
           formData={formData}
+          isSubmitting={isSubmitting}
           onSubmit={onSubmit}
           onBack={() => setCurrentStep(1)}
         />
