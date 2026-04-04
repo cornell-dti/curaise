@@ -226,7 +226,7 @@ export default async function OrderPage({
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="flex justify-center">
+                    <div className="flex flex-col items-center gap-2">
                       <Button
                         size="lg"
                         asChild
@@ -266,6 +266,11 @@ export default async function OrderPage({
                           </span>
                         </a>
                       </Button>
+                      <CopyButton
+                        text={`https://venmo.com/${fundraiser.venmoUsername}?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`}
+                        label="Copy Link"
+                        variant="outline"
+                      />
                     </div>
 
                     {/* Show payment details */}
