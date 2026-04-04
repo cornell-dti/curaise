@@ -51,7 +51,7 @@ export function ProfitGoalChart({ profit, goalAmount }: ProfitGoalChartProps) {
 	return (
 		<ChartContainer
 			config={chartConfig}
-			className="mx-auto aspect-square max-h-[250px] max-w-[250px]">
+			className="mx-auto aspect-square w-full max-w-[250px]">
 			<PieChart>
 				<ChartTooltip
 					cursor={false}
