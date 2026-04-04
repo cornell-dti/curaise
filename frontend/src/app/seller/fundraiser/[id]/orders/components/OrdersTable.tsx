@@ -151,7 +151,7 @@ export function OrdersTable<TValue>({
 			</div>
 
 			<div className="rounded-md border">
-				<Table className="min-w-[1300px]">
+				<Table className="min-w-[1200px]">
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
