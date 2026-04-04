@@ -20,7 +20,7 @@ export default async function FundraiserPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ preview?: string; code?: string }>;
+  searchParams: Promise<{ preview?: string; referrer?: string }>;
 }) {
   await connection();
 
@@ -34,16 +34,21 @@ export default async function FundraiserPage({
   } = await supabase.auth.getSession();
 
   const id = (await params).id;
-  const { code, preview } = await searchParams;
-  const codeValue = typeof code === "string" ? code : "";
+  const { referrer, preview } = await searchParams;
+  const referrerValue = typeof referrer === "string" ? referrer : "";
 
   const fundraiser = await serverFetch(`/fundraiser/${id}`, {
     schema: CompleteFundraiserSchema,
   });
-  const fundraiserItems = await serverFetch(`/fundraiser/${id}/items/availability`, {
-    schema: ItemWithAvailabilitySchema.array(),
-  });
-  const matchedReferral = fundraiser.referrals.find((r) => r.id === codeValue);
+  const fundraiserItems = await serverFetch(
+    `/fundraiser/${id}/items/availability`,
+    {
+      schema: ItemWithAvailabilitySchema.array(),
+    },
+  );
+  const matchedReferral = fundraiser.referrals.find(
+    (r) => r.id === referrerValue,
+  );
 
   if (
     (!fundraiser.organization.authorized || !fundraiser.published) &&
@@ -97,7 +102,7 @@ export default async function FundraiserPage({
             </p>
           </div>
           <div className="w-full">
-            {codeValue == "" && user && session?.access_token && (
+            {referrerValue == "" && user && session?.access_token && (
               <FundraiserReferralCard
                 token={session.access_token}
                 fundraiser={fundraiser}
@@ -105,7 +110,7 @@ export default async function FundraiserPage({
                 isPast={past}
               />
             )}
-            {codeValue != "" && (
+            {referrerValue != "" && (
               <Card className="w-full">
                 <CardContent className="py-3">
                   <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -144,14 +149,22 @@ export default async function FundraiserPage({
                         <div className="flex items-start gap-3">
                           <Calendar className="h-[23px] w-[23px] flex-shrink-0 text-muted-foreground mt-0.5" />
                           <span className="text-base">
-                            <LocalDate date={event.startsAt} formatStr="EEEE, M/d/yyyy" />
+                            <LocalDate
+                              date={event.startsAt}
+                              formatStr="EEEE, M/d/yyyy"
+                            />
                           </span>
                         </div>
                         <div className="flex items-start gap-3">
                           <MapPin className="h-[23px] w-[23px] flex-shrink-0 text-muted-foreground mt-0.5" />
                           <span className="text-base">
-                            {event.location}, <LocalDate date={event.startsAt} formatStr="h:mm a" />{" "}
-                            to <LocalDate date={event.endsAt} formatStr="h:mm a" />
+                            {event.location},{" "}
+                            <LocalDate
+                              date={event.startsAt}
+                              formatStr="h:mm a"
+                            />{" "}
+                            to{" "}
+                            <LocalDate date={event.endsAt} formatStr="h:mm a" />
                           </span>
                         </div>
                       </div>
@@ -183,7 +196,7 @@ export default async function FundraiserPage({
             <div className="lg:col-span-1">
               <FundraiserCartSidebar
                 fundraiserId={fundraiser.id}
-                referralId={codeValue}
+                referralId={referrerValue}
                 isPast={past}
               />
             </div>

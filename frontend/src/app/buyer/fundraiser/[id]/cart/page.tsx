@@ -7,17 +7,17 @@ export default async function CartPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ code?: string }>;
+  searchParams: Promise<{ referrer?: string }>;
 }) {
   await connection();
 
   const supabase = await createClient();
   const id = (await params).id;
-  const { code } = await searchParams;
+  const { referrer } = await searchParams;
 
   const nextPath =
-    typeof code === "string" && code.length > 0
-      ? `/buyer/fundraiser/${id}/cart?code=${encodeURIComponent(code)}`
+    typeof referrer === "string" && referrer.length > 0
+      ? `/buyer/fundraiser/${id}/cart?referrer=${encodeURIComponent(referrer)}`
       : `/buyer/fundraiser/${id}/cart`;
 
   // protect page (must use supabase.auth.getUser() according to docs)
@@ -40,7 +40,7 @@ export default async function CartPage({
 
   return (
     <div className=" md:overflow-y-clip">
-      <CartForm code={code ? code : ""} />
+      <CartForm referrer={referrer ? referrer : ""} />
     </div>
   );
 }
