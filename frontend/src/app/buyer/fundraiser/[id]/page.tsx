@@ -190,6 +190,7 @@ export default async function FundraiserPage({
               <FundraiserItemsPanel
                 isPast={past}
                 fundraiserId={fundraiser.id}
+                fundraiserName={fundraiser.name}
                 items={fundraiserItems}
               />
             </div>

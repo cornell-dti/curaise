@@ -1,6 +1,6 @@
 "use client";
 
-import { ItemWithAvailabilitySchema } from "common";
+import { CompleteFundraiserSchema, ItemWithAvailabilitySchema } from "common";
 import { useState, useEffect } from "react";
 import { ChevronLeft, Plus, Minus, ShoppingCart, Trash } from "lucide-react";
 import Link from "next/link";
@@ -10,16 +10,31 @@ import Image from "next/image";
 import { useShallow } from "zustand/react/shallow";
 import { serverFetch } from "@/lib/fetcher";
 import { toast } from "sonner";
+import { createClient } from "@/utils/supabase/client";
 
 const getItem = async (fundraiserId: string, itemId: string) => {
-  const items = await serverFetch(`/fundraiser/${fundraiserId}/items/availability`, {
-    schema: ItemWithAvailabilitySchema.array(),
-  });
+  const supabase = await createClient();
+  const {
+    data: { session },
+    error: error2,
+  } = await supabase.auth.getSession();
+  if (error2 || !session?.access_token) {
+    throw new Error("Session invalid");
+  }
+  const [fundraiser, items] = await Promise.all([
+    serverFetch(`/fundraiser/${fundraiserId}`, {
+      token: session.access_token,
+      schema: CompleteFundraiserSchema,
+    }),
+    serverFetch(`/fundraiser/${fundraiserId}/items/availability`, {
+      schema: ItemWithAvailabilitySchema.array(),
+    }),
+  ]);
   const item = items.find((i) => i.id === itemId);
   if (!item) {
     throw new Error("Item not found");
   }
-  return item;
+  return { item, fundraiserName: fundraiser.name };
 };
 
 export default function ItemPage() {
@@ -28,13 +43,13 @@ export default function ItemPage() {
   const fundraiserId = params.id as string;
   const itemId = params.itemId as string;
 
-  const [item, setItem] = useState<typeof ItemWithAvailabilitySchema._type | null>(
-    null
-  );
+  const [item, setItem] = useState<
+    typeof ItemWithAvailabilitySchema._type | null
+  >(null);
   const [loading, setLoading] = useState(true);
 
   const cart = useCartStore(
-    useShallow((state) => state.carts[fundraiserId] || [])
+    useShallow((state) => state.carts[fundraiserId] || []),
   );
   const addItem = useCartStore((state) => state.addItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
@@ -46,11 +61,14 @@ export default function ItemPage() {
   // Local quantity state - defaults to 1 or current cart quantity
   const [quantity, setQuantity] = useState(1);
 
+  const [fundraiserName, setFundraiserName] = useState<string>("");
+
   useEffect(() => {
     if (fundraiserId && itemId) {
       getItem(fundraiserId, itemId)
-        .then((itemData) => {
-          setItem(itemData);
+        .then(({ item, fundraiserName }) => {
+          setItem(item);
+          setFundraiserName(fundraiserName);
           setLoading(false);
         })
         .catch((error) => {
@@ -83,7 +101,7 @@ export default function ItemPage() {
         if (cartItem) {
           updateQuantity(fundraiserId, item, quantity);
         } else {
-          addItem(fundraiserId, item, quantity);
+          addItem(fundraiserId, item, quantity, fundraiserName);
         }
       }
       router.back();
@@ -102,7 +120,8 @@ export default function ItemPage() {
     setQuantity((prev) => Math.max(0, prev - 1));
   };
 
-  const isOutOfStock = item !== null && item.available !== null && item.available <= 0;
+  const isOutOfStock =
+    item !== null && item.available !== null && item.available <= 0;
   const canSubmitCartUpdate = !isOutOfStock || cartQuantity > 0;
   // Button text: "Add to Cart" only if item is not in cart at all, otherwise always "Update Cart"
   const buttonText = cartQuantity === 0 ? "Add to Cart" : "Update Cart";

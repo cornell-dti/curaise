@@ -12,17 +12,21 @@ import { toast } from "sonner";
 export function FundraiserItemsPanel({
   isPast,
   fundraiserId,
+  fundraiserName,
   items,
 }: {
   isPast: boolean;
   fundraiserId: string;
+  fundraiserName: string;
   items: z.infer<typeof ItemWithAvailabilitySchema>[];
 }) {
   const { addItem, removeItem, updateQuantity } = useCartStore();
   // fixes nextjs hydration issue: https://github.com/pmndrs/zustand/issues/938#issuecomment-1481801942
   const cart = useStore(useCartStore, (state) => state.carts[fundraiserId]);
 
-  const handleIncrement = (item: z.infer<typeof ItemWithAvailabilitySchema>) => {
+  const handleIncrement = (
+    item: z.infer<typeof ItemWithAvailabilitySchema>,
+  ) => {
     const cartItem = cart?.find((cartItem) => cartItem.item.id === item.id);
     const currentQty = cartItem?.quantity ?? 0;
 
@@ -34,11 +38,13 @@ export function FundraiserItemsPanel({
     if (cartItem) {
       updateQuantity(fundraiserId, item, currentQty + 1);
     } else {
-      addItem(fundraiserId, item, 1);
+      addItem(fundraiserId, item, 1, fundraiserName);
     }
   };
 
-  const handleDecrement = (item: z.infer<typeof ItemWithAvailabilitySchema>) => {
+  const handleDecrement = (
+    item: z.infer<typeof ItemWithAvailabilitySchema>,
+  ) => {
     const cartItem = cart?.find((cartItem) => cartItem.item.id === item.id);
     if (cartItem) {
       if (cartItem.quantity > 1) {
@@ -49,7 +55,10 @@ export function FundraiserItemsPanel({
     }
   };
 
-  const handleSetQuantity = (item: z.infer<typeof ItemWithAvailabilitySchema>, quantity: number) => {
+  const handleSetQuantity = (
+    item: z.infer<typeof ItemWithAvailabilitySchema>,
+    quantity: number,
+  ) => {
     if (quantity <= 0) {
       removeItem(fundraiserId, item);
       return;
@@ -64,7 +73,7 @@ export function FundraiserItemsPanel({
     if (cartItem) {
       updateQuantity(fundraiserId, item, quantity);
     } else {
-      addItem(fundraiserId, item, quantity);
+      addItem(fundraiserId, item, quantity, fundraiserName);
     }
   };
 
@@ -78,8 +87,8 @@ export function FundraiserItemsPanel({
         <div className="grid grid-cols-2 gap-6">
           {items.map((item) => {
             const amount =
-              cart?.find((cartItem) => cartItem.item.id === item.id)?.quantity ||
-              0;
+              cart?.find((cartItem) => cartItem.item.id === item.id)
+                ?.quantity || 0;
             const isOutOfStock = item.available !== null && item.available <= 0;
 
             return (
@@ -91,7 +100,9 @@ export function FundraiserItemsPanel({
                     amount={amount}
                     increment={() => handleIncrement(item)}
                     decrement={() => handleDecrement(item)}
-                    setCartQuantity={(quantity) => handleSetQuantity(item, quantity)}
+                    setCartQuantity={(quantity) =>
+                      handleSetQuantity(item, quantity)
+                    }
                     available={item.available}
                     isOutOfStock={isOutOfStock}
                     isPast={isPast}
