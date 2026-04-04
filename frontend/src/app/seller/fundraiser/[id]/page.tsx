@@ -14,6 +14,7 @@ import { RealtimeAnalyticsWrapper } from "@/app/seller/fundraiser/[id]/analytics
 import { FundraiserHeader } from "./components/FundraiserHeader";
 import { serverFetch } from "@/lib/fetcher";
 import { isPast } from "date-fns";
+import { ReferralsTableWrapper } from "./referrals/components/ReferralsTableWrapper";
 
 interface FundraiserAnalytics {
   total_revenue: number;
@@ -86,11 +87,18 @@ export default async function FundraiserAnalyticsPage({
             <ArrowLeft className="w-4 h-4" />
             CURaise
           </Link>
-
-          <FundraiserHeader
+          <RealtimeReferralsWrapper
+            initialReferrals={fundraiser.referrals}
+            fundraiserId={fundraiserId}
             token={session.access_token}
-            fundraiser={fundraiser}
-            fundraiserItems={items}
+            Component={FundraiserHeader}
+            componentProps={{
+              token: session.access_token,
+              fundraiser,
+              fundraiserId,
+              fundraiserItems: items,
+            }}
+            channelSuffix="header"
           />
         </div>
 
@@ -136,6 +144,8 @@ export default async function FundraiserAnalyticsPage({
                 fundraiserId={fundraiserId}
                 orders={orders}
                 token={session.access_token}
+                Component={ReferralsTableWrapper}
+                channelSuffix="table"
               />
             </div>
           </div>
