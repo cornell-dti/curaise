@@ -27,7 +27,7 @@ export default async function LoginPage() {
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-[700] mb-0 text-black text-center md:text-left">
               Welcome to
             </h1>
-            <Image src="/images/curaise-logo.svg" alt="CURaise" width={347} height={117} className="h-20 sm:h-24 md:h-28 w-auto" />
+            <Image src="/images/curaise-logo.svg" alt="CURaise" width={347} height={117} className="h-16 sm:h-20 md:h-24 w-auto" />
             <p className="text-base sm:text-xl md:text-2xl text-black mb-0 font-[400] text-center md:text-left">
               Your one stop platform for fundraising, organization, discovery
               and impact.
