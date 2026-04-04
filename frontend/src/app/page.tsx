@@ -23,10 +23,11 @@ export default async function LoginPage() {
       <div className="container mx-auto px-4 sm:px-6 md:px-10 flex flex-col-reverse md:flex-row items-center justify-center relative z-10 gap-8 md:gap-12 py-8 md:py-12 h-full">
         {/* Left side content - vertically centered */}
         <div className="w-full md:w-2/5 lg:w-2/5 font-[dm_sans] flex items-center justify-center">
-          <div className="max-w-lg mx-auto md:mx-0 w-full flex flex-col gap-6">
+          <div className="max-w-lg mx-auto md:mx-0 w-full flex flex-col items-center md:items-start gap-6">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-[700] mb-0 text-black text-center md:text-left">
-              Welcome to CURaise
+              Welcome to
             </h1>
+            <Image src="/images/curaise-logo.svg" alt="CURaise" width={347} height={117} className="h-20 sm:h-24 md:h-28 w-auto" />
             <p className="text-base sm:text-xl md:text-2xl text-black mb-0 font-[400] text-center md:text-left">
               Your one stop platform for fundraising, organization, discovery
               and impact.
