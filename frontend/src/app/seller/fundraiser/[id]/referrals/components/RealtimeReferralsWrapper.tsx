@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { ReferralsTableWrapper } from "./ReferralsTableWrapper";
 import { CompleteFundraiserSchema } from "common/schemas/fundraiser";
 import { z } from "zod";
 import { CompleteOrderSchema } from "common/schemas/order";
@@ -13,15 +12,21 @@ type Order = z.infer<typeof CompleteOrderSchema>;
 interface RealtimeReferralsWrapperProps {
   initialReferrals: Referral[];
   fundraiserId: string;
-  orders: Order[];
+  orders?: Order[];
   token: string;
+  Component: React.ComponentType<any>;
+  componentProps?: Record<string, any>;
+  channelSuffix?: string;
 }
 
 export function RealtimeReferralsWrapper({
   initialReferrals,
   fundraiserId,
-  orders,
+  orders = [],
   token,
+  Component,
+  componentProps = {},
+  channelSuffix = "default",
 }: RealtimeReferralsWrapperProps) {
   const [referrals, setReferrals] = useState<Referral[]>(initialReferrals);
   const supabase = useMemo(() => createClient(), []);
@@ -35,7 +40,7 @@ export function RealtimeReferralsWrapper({
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         const result = await response.json();
@@ -45,7 +50,10 @@ export function RealtimeReferralsWrapper({
           if (validatedData.success) {
             setReferrals(validatedData.data.referrals);
           } else {
-            console.error("Invalid fundraiser data format:", validatedData.error);
+            console.error(
+              "Invalid fundraiser data format:",
+              validatedData.error,
+            );
           }
         } else {
           console.error("Failed to refetch referrals:", result.message);
@@ -70,7 +78,7 @@ export function RealtimeReferralsWrapper({
       if (isCancelled) return;
 
       channel = supabase
-        .channel(`referrals-${fundraiserId}`)
+        .channel(`referrals-${fundraiserId}-${channelSuffix}`)
         .on(
           "postgres_changes",
           {
@@ -78,9 +86,9 @@ export function RealtimeReferralsWrapper({
             schema: "public",
             table: "referrals",
           },
-          () => {
+          (payload) => {
             refetchReferrals();
-          }
+          },
         )
         .subscribe();
     };
@@ -95,5 +103,7 @@ export function RealtimeReferralsWrapper({
     };
   }, [fundraiserId, token, supabase]);
 
-  return <ReferralsTableWrapper referrals={referrals} orders={orders} />;
+  return (
+    <Component referrals={referrals} orders={orders} {...componentProps} />
+  );
 }

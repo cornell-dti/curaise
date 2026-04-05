@@ -8,8 +8,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { CompleteFundraiserSchema, ReferralSchema } from "common";
-import { useState } from "react";
+import {
+  CompleteFundraiserSchema,
+  CompleteOrderSchema,
+  ReferralSchema,
+} from "common";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { mutationFetch } from "@/lib/fetcher";
@@ -17,7 +21,7 @@ import { mutationFetch } from "@/lib/fetcher";
 const approveReferrer = async (
   fundraiserId: string,
   referralId: string,
-  token: string
+  token: string,
 ) => {
   try {
     await mutationFetch(
@@ -26,14 +30,16 @@ const approveReferrer = async (
     );
     toast.success("Referrer approved!");
   } catch (err) {
-    toast.error(err instanceof Error ? err.message : "Failed to approve referrer");
+    toast.error(
+      err instanceof Error ? err.message : "Failed to approve referrer",
+    );
   }
 };
 
 const deleteReferrer = async (
   fundraiserId: string,
   referralId: string,
-  token: string
+  token: string,
 ) => {
   try {
     await mutationFetch(
@@ -42,24 +48,32 @@ const deleteReferrer = async (
     );
     toast.success("Referrer deleted!");
   } catch (err) {
-    toast.error(err instanceof Error ? err.message : "Failed to delete referrer");
+    toast.error(
+      err instanceof Error ? err.message : "Failed to delete referrer",
+    );
   }
 };
 
 export function ReferralApprovalModal({
   fundraiser,
   token,
+  referrals,
   open,
   setOpen,
 }: {
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
   token: string;
+  referrals: z.infer<typeof ReferralSchema>[];
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
   const [unapprovedReferrers, setUnapprovedReferrers] = useState<
     z.infer<typeof ReferralSchema>[]
-  >(fundraiser.referrals.filter((ref) => !ref.approved));
+  >(referrals.filter((ref) => !ref.approved));
+
+  useEffect(() => {
+    setUnapprovedReferrers(referrals.filter((ref) => !ref.approved));
+  }, [referrals]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -88,10 +102,10 @@ export function ReferralApprovalModal({
                             await approveReferrer(
                               fundraiser.id,
                               referral.id,
-                              token
+                              token,
                             );
                             setUnapprovedReferrers((prev) =>
-                              prev.filter((ref) => ref.id !== referral.id)
+                              prev.filter((ref) => ref.id !== referral.id),
                             );
                           }}
                           className="text-[#265B34] border border-current bg-transparent hover:bg-[#e6f0ea]"
@@ -104,10 +118,10 @@ export function ReferralApprovalModal({
                             await deleteReferrer(
                               fundraiser.id,
                               referral.id,
-                              token
+                              token,
                             );
                             setUnapprovedReferrers((prev) =>
-                              prev.filter((ref) => ref.id !== referral.id)
+                              prev.filter((ref) => ref.id !== referral.id),
                             );
                           }}
                           className="text-[#f74545] bg-transparent hover:bg-[#fdeaea] hover:text-[#f74545]"
@@ -133,13 +147,18 @@ export function ReferralApprovalModal({
 }
 
 export function ReferralButton({
-  fundraiser,
+  referrals,
   onClick,
 }: {
-  fundraiser: z.infer<typeof CompleteFundraiserSchema>;
+  referrals: z.infer<typeof ReferralSchema>[];
   onClick: () => void;
 }) {
-  const pending = fundraiser.referrals.filter((ref) => !ref.approved).length;
+  const [pending, setPending] = useState(
+    referrals.filter((ref) => !ref.approved).length,
+  );
+  useEffect(() => {
+    setPending(referrals.filter((ref) => !ref.approved).length);
+  }, [referrals]);
 
   return (
     <div className="relative inline-flex">
@@ -153,6 +172,7 @@ export function ReferralButton({
 
       {pending > 0 && (
         <Badge
+          key={pending}
           variant="destructive"
           className="bg-[#f74545] absolute -top-2 -right-2 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] leading-none"
         >

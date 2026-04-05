@@ -53,21 +53,19 @@ import {
 } from "@/components/ui/sheet";
 import Image from "next/image";
 import { ReferrersModal } from "./ReferrersModal";
-import {
-  formatCapacityIssueMessage,
-  getCapacityIssues,
-} from "@/lib/capacity";
+import { formatCapacityIssueMessage, getCapacityIssues } from "@/lib/capacity";
+import { cn } from "@/lib/utils";
 
 export function CheckoutForm({
   token,
   fundraiser,
   userProfile,
-  code,
+  referrer,
 }: {
   token: string;
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
   userProfile: z.infer<typeof UserSchema>;
-  code: string;
+  referrer: string;
 }) {
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -82,12 +80,11 @@ export function CheckoutForm({
     isLoading: isAvailabilityLoading,
     mutate: refreshAvailability,
   } = useItemsAvailability(fundraiser.id);
-  const initialReferralId = fundraiser.referrals.some((r) => r.id === code)
-    ? code
+  const initialReferralId = fundraiser.referrals.some((r) => r.id === referrer)
+    ? referrer
     : "none";
-  const [selectedReferralId, setSelectedReferralId] = useState<string>(
-    initialReferralId,
-  );
+  const [selectedReferralId, setSelectedReferralId] =
+    useState<string>(initialReferralId);
   const [paymentMethod, setPaymentMethod] = useState<"VENMO" | "OTHER">(
     "VENMO",
   );
@@ -113,8 +110,9 @@ export function CheckoutForm({
   const selectedReferralName =
     selectedReferralId && selectedReferralId !== "none"
       ? fundraiser.referrals.find((r) => r.id === selectedReferralId)?.referrer
-          .name || "No Referral"
-      : "No Referral";
+          .name || "Refer a club member"
+      : "Refer a club member";
+  const selectedReferral = selectedReferralName != "Refer a club member";
 
   const orderTotal = cartWithImages
     .reduce(
@@ -208,7 +206,9 @@ export function CheckoutForm({
         availabilityItem?.available !== undefined &&
         newQuantity > availabilityItem.available
       ) {
-        toast.error(`Only ${availabilityItem.available} available for ${item.name}`);
+        toast.error(
+          `Only ${availabilityItem.available} available for ${item.name}`,
+        );
         return;
       }
     }
@@ -285,7 +285,12 @@ export function CheckoutForm({
               {/* Referral */}
               <button
                 type="button"
-                className="flex items-center justify-between py-1 w-full"
+                className={cn(
+                  "flex items-center justify-between w-full rounded-xl py-3 transition-all",
+                  !selectedReferral
+                    ? "px-4 bg-green-50 border border-green-200 shadow-sm hover:bg-green-100"
+                    : "bg-white",
+                )}
                 onClick={() => {
                   setPendingReferralId(null);
                   setReferralSearch("");
@@ -294,16 +299,30 @@ export function CheckoutForm({
                 aria-label={`Select referral. Currently: ${selectedReferralName}`}
               >
                 <div className="flex gap-3 items-center text-left">
-                  <User className="h-5 w-5 text-black" aria-hidden="true" />
-                  <p className="text-base leading-6">
-                    {selectedReferralName != "No Referral" && (
-                      <span>Referrer: </span>
+                  <User
+                    className={cn(
+                      "h-5 w-5",
+                      !selectedReferral ? "text-green-600" : "text-black",
                     )}
+                    aria-hidden="true"
+                  />
+                  <p
+                    className={cn(
+                      "leading-6",
+                      !selectedReferral ? "text-green-600" : "text-base",
+                    )}
+                  >
+                    {selectedReferral && <span>Referrer: </span>}
                     {selectedReferralName}
                   </p>
                 </div>
                 {approvedReferrals.length > 0 && (
-                  <ChevronRight className="h-5 w-5 text-black" />
+                  <ChevronRight
+                    className={cn(
+                      "h-5 w-5",
+                      !selectedReferral ? "text-green-600" : "text-black",
+                    )}
+                  />
                 )}
               </button>
             </div>
@@ -735,7 +754,12 @@ export function CheckoutForm({
                       {/* Referral Button */}
                       <button
                         type="button"
-                        className="flex items-center justify-between w-full mt-2"
+                        className={cn(
+                          "flex items-center justify-between w-full rounded-xl py-3 transition-all",
+                          !selectedReferral
+                            ? "px-4 bg-green-50 border border-green-200 shadow-sm hover:bg-green-100"
+                            : "bg-white",
+                        )}
                         onClick={() => {
                           setPendingReferralId(null);
                           setReferralSearch("");
@@ -745,18 +769,35 @@ export function CheckoutForm({
                       >
                         <div className="flex gap-3 items-center text-left">
                           <User
-                            className="h-5 w-5 text-black"
+                            className={cn(
+                              "h-5 w-5",
+                              !selectedReferral
+                                ? "text-green-600"
+                                : "text-black",
+                            )}
                             aria-hidden="true"
                           />
-                          <p className="text-base leading-6">
-                            {selectedReferralName != "No Referral" && (
-                              <span>Referrer: </span>
+                          <p
+                            className={cn(
+                              "leading-6",
+                              !selectedReferral
+                                ? "text-green-600"
+                                : "text-base",
                             )}
+                          >
+                            {selectedReferral && <span>Referrer: </span>}
                             {selectedReferralName}
                           </p>
                         </div>
                         {approvedReferrals.length > 0 && (
-                          <ChevronRight className="h-5 w-5 text-black" />
+                          <ChevronRight
+                            className={cn(
+                              "h-5 w-5",
+                              !selectedReferral
+                                ? "text-green-600"
+                                : "text-black",
+                            )}
+                          />
                         )}
                       </button>
 

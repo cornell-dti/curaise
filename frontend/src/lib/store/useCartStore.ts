@@ -6,6 +6,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 export const CartItem = z.object({
   item: CompleteItemSchema,
   quantity: z.number().int().nonnegative(),
+  fundraiserName: z.string(),
 });
 
 export type CartItem = z.infer<typeof CartItem>;
@@ -18,23 +19,25 @@ interface CartState {
   addItem: (
     fundraiserId: string,
     item: z.infer<typeof CompleteItemSchema>,
-    quantity: number
+    quantity: number,
+    fundraiserName: string,
   ) => void;
   removeItem: (
     fundraiserId: string,
-    item: z.infer<typeof CompleteItemSchema>
+    item: z.infer<typeof CompleteItemSchema>,
   ) => void;
   updateQuantity: (
     fundraiserId: string,
     item: z.infer<typeof CompleteItemSchema>,
-    quantity: number
+    quantity: number,
   ) => void;
   clearCart: (fundraiserId: string) => void;
   clearAllCarts: () => void;
   getCartItems: (fundraiserId: string) => CartItem[];
   prepareOrderItems: (
-    fundraiserId: string
+    fundraiserId: string,
   ) => { itemId: string; quantity: number }[];
+  cleanStaleCarts: (validFundraiserIds: string[]) => void;
 }
 
 export const useCartStore = create<CartState>()(
@@ -42,14 +45,14 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       carts: {},
 
-      addItem: (fundraiserId, item, quantity) => {
+      addItem: (fundraiserId, item, quantity, fundraiserName) => {
         set((state) => {
           // Get the current cart for this fundraiser
           const currentCart = state.carts[fundraiserId] || [];
 
           // Check if item already exists
           const existingItemIndex = currentCart.findIndex(
-            (cartItem) => cartItem.item.id === item.id
+            (cartItem) => cartItem.item.id === item.id,
           );
 
           if (existingItemIndex >= 0) {
@@ -58,6 +61,7 @@ export const useCartStore = create<CartState>()(
             updatedCart[existingItemIndex] = {
               ...updatedCart[existingItemIndex],
               quantity: updatedCart[existingItemIndex].quantity + quantity,
+              fundraiserName: fundraiserName,
             };
 
             return {
@@ -71,7 +75,10 @@ export const useCartStore = create<CartState>()(
             return {
               carts: {
                 ...state.carts,
-                [fundraiserId]: [...currentCart, { item, quantity }],
+                [fundraiserId]: [
+                  ...currentCart,
+                  { item, quantity, fundraiserName },
+                ],
               },
             };
           }
@@ -84,7 +91,7 @@ export const useCartStore = create<CartState>()(
 
           // Filter out the item
           const updatedCart = currentCart.filter(
-            (cartItem) => cartItem.item.id !== item.id
+            (cartItem) => cartItem.item.id !== item.id,
           );
 
           return {
@@ -149,10 +156,21 @@ export const useCartStore = create<CartState>()(
           quantity,
         }));
       },
+
+      cleanStaleCarts: (validFundraiserIds: string[]) => {
+        set((state) => {
+          const cleaned = Object.fromEntries(
+            Object.entries(state.carts).filter(([id]) =>
+              validFundraiserIds.includes(id),
+            ),
+          );
+          return { carts: cleaned };
+        });
+      },
     }),
     {
       name: "fundraiser-cart-storage",
       storage: createJSONStorage(() => localStorage),
-    }
-  )
+    },
+  ),
 );
