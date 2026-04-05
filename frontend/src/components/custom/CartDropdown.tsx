@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ShoppingCart, X } from "lucide-react";
+import { Plus, ShoppingCart, Trash, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,6 +14,7 @@ import { useCartStore } from "@/lib/store/useCartStore";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useEffect } from "react";
 import useStore from "@/lib/store/useStore";
+import { CompleteItemSchema } from "common";
 
 export function CartDropdown() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export function CartDropdown() {
   const cleanStaleCarts = useCartStore((state) => state.cleanStaleCarts);
   const carts = useStore(useCartStore, (state) => state.carts) ?? {};
   const removeItem = useCartStore((state) => state.removeItem);
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
 
   // Flatten all carts into per-fundraiser summaries, skip empty ones
   const fundraiserCarts = Object.entries(carts).filter(
@@ -131,7 +133,7 @@ export function CartDropdown() {
                         className="flex items-center justify-between gap-2"
                       >
                         <div className="flex flex-col min-w-0">
-                          <span className="text-sm font-medium truncate">
+                          <span className="text-xs font-medium truncate">
                             {cartItem.item.name}
                           </span>
                           <span className="text-xs text-muted-foreground">
@@ -139,7 +141,27 @@ export function CartDropdown() {
                             {cartItem.quantity}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-[10px] p-2">
+                          <button
+                            onClick={() => {
+                              if (cartItem.quantity === 1) {
+                                removeItem(fundraiserId, cartItem.item);
+                              } else {
+                                updateQuantity(
+                                  fundraiserId,
+                                  cartItem.item,
+                                  cartItem.quantity - 1,
+                                );
+                              }
+                            }}
+                            aria-label={
+                              cartItem.quantity === 1
+                                ? `Remove ${cartItem.item.name} from cart`
+                                : `Decrease quantity of ${cartItem.item.name}`
+                            }
+                          >
+                            <Trash className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive transition-colors" />
+                          </button>
                           <span className="text-sm font-medium">
                             $
                             {(
@@ -148,11 +170,15 @@ export function CartDropdown() {
                           </span>
                           <button
                             onClick={() =>
-                              removeItem(fundraiserId, cartItem.item)
+                              updateQuantity(
+                                fundraiserId,
+                                cartItem.item,
+                                cartItem.quantity + 1,
+                              )
                             }
-                            className="text-muted-foreground hover:text-destructive transition-colors"
+                            aria-label={`Increase quantity of ${cartItem.item.name}`}
                           >
-                            <X className="h-3.5 w-3.5" />
+                            <Plus className="h-3.5 w-3.5 text-muted-foreground hover:text-green-600 transition-colors" />
                           </button>
                         </div>
                       </div>
