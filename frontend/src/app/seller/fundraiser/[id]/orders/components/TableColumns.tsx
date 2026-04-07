@@ -313,7 +313,7 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
       ).padStart(2, "0")}`;
 
       return (
-        <div className="flex items-center justify-center">{createdAtStr}</div>
+        <div className="flex items-center justify-center whitespace-nowrap">{createdAtStr}</div>
       );
     },
   },
@@ -349,7 +349,7 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
           {items.map((item) => (
             <div
               key={`${item.item.id}-name`}
-              className="py-1 w-full text-center"
+              className="h-[2.5rem] flex items-center justify-center w-full text-center leading-tight"
             >
               {item.item.name}
             </div>
@@ -368,7 +368,7 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
           {items.map((item) => (
             <div
               key={`${item.item.id}-name`}
-              className="py-1 w-full text-center"
+              className="h-[2.5rem] flex items-center justify-center w-full text-center"
             >
               {item.quantity}
             </div>
