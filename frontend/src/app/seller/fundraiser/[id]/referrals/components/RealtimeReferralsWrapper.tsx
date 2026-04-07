@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { ReferralsTableWrapper } from "./ReferralsTableWrapper";
 import { CompleteFundraiserSchema } from "common/schemas/fundraiser";
@@ -24,10 +24,9 @@ export function RealtimeReferralsWrapper({
   token,
 }: RealtimeReferralsWrapperProps) {
   const [referrals, setReferrals] = useState<Referral[]>(initialReferrals);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
-    // Refetch referrals from fundraiser endpoint (referrals are nested)
     const refetchReferrals = async () => {
       try {
         const response = await fetch(
@@ -57,26 +56,42 @@ export function RealtimeReferralsWrapper({
       }
     };
 
-    // Set up realtime subscription
-    const channel = supabase
-      .channel(`referrals-${fundraiserId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*", // Listen to INSERT, UPDATE, DELETE
-          schema: "public",
-          table: "referrals",
-        },
-        () => {
-          // On any change event, refetch the full dataset
-          refetchReferrals();
-        }
-      )
-      .subscribe();
+    let isCancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    // Cleanup subscription on unmount
+    const setupRealtime = async () => {
+      const { data } = await supabase.auth.getSession();
+      const realtimeToken = data.session?.access_token ?? token;
+      if (!realtimeToken) {
+        return;
+      }
+
+      supabase.realtime.setAuth(realtimeToken);
+      if (isCancelled) return;
+
+      channel = supabase
+        .channel(`referrals-${fundraiserId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "referrals",
+          },
+          () => {
+            refetchReferrals();
+          }
+        )
+        .subscribe();
+    };
+
+    void setupRealtime();
+
     return () => {
-      supabase.removeChannel(channel);
+      isCancelled = true;
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [fundraiserId, token, supabase]);
 

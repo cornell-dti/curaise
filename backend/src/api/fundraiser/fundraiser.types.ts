@@ -34,3 +34,8 @@ export const ApproveReferralRouteParams = z.object({
 export type ApproveReferralRouteParams = z.infer<
   typeof ApproveReferralRouteParams
 >;
+
+export const AnalyticsQueryParams = z.object({
+  refresh: z.string().optional(),
+});
+export type AnalyticsQueryParams = z.infer<typeof AnalyticsQueryParams>;

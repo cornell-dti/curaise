@@ -1,4 +1,4 @@
-import { CalendarIcon, MapPin } from "lucide-react";
+import { CalendarIcon, MapPin, TriangleAlert } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -12,9 +12,15 @@ import { z } from "zod";
 import { BasicOrderSchema } from "common";
 import { Button } from "../ui/button";
 import Link from "next/link";
-import { format } from "date-fns";
+import { LocalDate } from "@/components/ui/LocalDate";
 
-const OrderCard = ({ order }: { order: z.infer<typeof BasicOrderSchema> }) => {
+const OrderCard = ({
+  order,
+  isCapacityBlockedPayment = false,
+}: {
+  order: z.infer<typeof BasicOrderSchema>;
+  isCapacityBlockedPayment?: boolean;
+}) => {
   const pickupEvents = order.fundraiser.pickupEvents;
 
   return (
@@ -24,7 +30,21 @@ const OrderCard = ({ order }: { order: z.infer<typeof BasicOrderSchema> }) => {
             Desktop: text left, badge right (same as before) */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="self-start sm:order-2">
-            <PaymentStatusBadge order={order} />
+            <PaymentStatusBadge
+              order={order}
+              override={
+                isCapacityBlockedPayment
+                  ? {
+                      text: "Payment Unavailable",
+                      tooltipText:
+                        "This order can no longer be confirmed because one or more items will be out of stock.",
+                      colorClassName:
+                        "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+                      icon: <TriangleAlert className="mr-1 h-4 w-4" />,
+                    }
+                  : undefined
+              }
+            />
           </div>
           <div className="sm:order-1">
             <CardTitle className="text-xl font-semibold">
@@ -42,7 +62,7 @@ const OrderCard = ({ order }: { order: z.infer<typeof BasicOrderSchema> }) => {
           <div className="flex items-center gap-2">
             <CalendarIcon className="h-4 w-4 text-muted-foreground" />
             <span className="font-medium">
-              {format(pickupEvents[0].startsAt, "EEEE, M/d/yyyy")}
+              <LocalDate date={pickupEvents[0].startsAt} formatStr="EEEE, M/d/yyyy" />
             </span>
           </div>
         )}
@@ -53,8 +73,8 @@ const OrderCard = ({ order }: { order: z.infer<typeof BasicOrderSchema> }) => {
               <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
               <span>
                 <span className="font-medium">{event.location}</span>,{" "}
-                {format(event.startsAt, "h:mm a")} to{" "}
-                {format(event.endsAt, "h:mm a")}
+                <LocalDate date={event.startsAt} formatStr="h:mm a" /> to{" "}
+                <LocalDate date={event.endsAt} formatStr="h:mm a" />
               </span>
             </div>
           ))}

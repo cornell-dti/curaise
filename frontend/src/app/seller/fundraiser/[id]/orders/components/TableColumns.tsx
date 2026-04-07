@@ -24,6 +24,7 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { ArrowUpDown } from "lucide-react";
+import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
 import { z } from "zod";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { toast } from "sonner";
@@ -51,18 +52,22 @@ export function PickupStatusCell({
   const isPickedUp = data?.pickedUp === true;
 
   // Handle checkbox changes only if its not checked off yet
-  async function handleCheckboxChange() {
+  function handleCheckboxChange() {
     if (order.paymentStatus == "PENDING") {
       setShowWarning(true);
     } else {
-      await togglePickedUp();
+      void togglePickedUp();
     }
   }
 
   // Check off the box, ignoring the warning
-  async function handleIgnore() {
-    await togglePickedUp();
-    setShowWarning(false);
+  function handleIgnore() {
+    void (async () => {
+      const succeeded = await togglePickedUp();
+      if (succeeded) {
+        setShowWarning(false);
+      }
+    })();
   }
   function handleCancel() {
     setShowWarning(false);
@@ -81,9 +86,10 @@ export function PickupStatusCell({
         },
         false, // Without revalidation
       );
+      return true;
     } catch (error) {
-      console.error("Error updating pickup status:", error);
-      toast.error("Failed to update pickup status");
+      toast.error(getErrorMessage(error));
+      return false;
     }
   };
 
@@ -184,36 +190,40 @@ const PaymentStatusCell = ({ order }: { order: Order }) => {
 // API call to complete pickup
 // This function posts to the API to update the pickup status of an order
 const completePickup = async (orderId: string, token: string) => {
-  try {
-    await mutationFetch(`/order/${orderId}/complete-pickup`, { token });
-    const toastId = toast("Order marked as picked up", {
-      duration: 10000, // 10 seconds
-      action: (
-        <div className="ml-auto">
-          <button
-            onClick={async () => {
-              try {
-                await mutationFetch(`/order/${orderId}/undo-pickup`, { token });
-                toast.dismiss(toastId);
-                toast.success("Pickup undone");
-              } catch (err: any) {
-                toast.error(
-                  err?.response?.data?.message ||
-                    "Undo window expired or request failed.",
-                );
-              }
-            }}
-            className="text-green-600 hover:text-green-700 font-semibold flex flex-end"
-          >
-            Undo
-          </button>
-        </div>
-      ),
-    });
-  } catch (err) {
-    toast.error("Failed to complete pickup");
-  }
+  await mutationFetch(`/order/${orderId}/complete-pickup`, { token });
+  const toastId = toast("Order marked as picked up", {
+    duration: 10000, // 10 seconds
+    action: (
+      <div className="ml-auto">
+        <button
+          onClick={async () => {
+            try {
+              await mutationFetch(`/order/${orderId}/undo-pickup`, { token });
+              toast.dismiss(toastId);
+              toast.success("Pickup undone");
+            } catch (error) {
+              toast.error(
+                getErrorMessage(error) ||
+                  "Undo window expired or request failed.",
+              );
+            }
+          }}
+          className="text-green-600 hover:text-green-700 font-semibold flex flex-end"
+        >
+          Undo
+        </button>
+      </div>
+    ),
+  });
 };
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message;
+  }
+
+  return "Failed to update pickup status";
+}
 
 // Create a function that returns columns with the token (access token)
 export const getColumns = (token: string): ColumnDef<Order>[] => [
@@ -303,7 +313,7 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
       ).padStart(2, "0")}`;
 
       return (
-        <div className="flex items-center justify-center">{createdAtStr}</div>
+        <div className="flex items-center justify-center whitespace-nowrap">{createdAtStr}</div>
       );
     },
   },
@@ -339,7 +349,7 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
           {items.map((item) => (
             <div
               key={`${item.item.id}-name`}
-              className="py-1 w-full text-center"
+              className="h-[2.5rem] flex items-center justify-center w-full text-center leading-tight"
             >
               {item.item.name}
             </div>
@@ -358,7 +368,7 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
           {items.map((item) => (
             <div
               key={`${item.item.id}-name`}
-              className="py-1 w-full text-center"
+              className="h-[2.5rem] flex items-center justify-center w-full text-center"
             >
               {item.quantity}
             </div>
@@ -424,9 +434,37 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
   },
   {
     accessorKey: "paymentStatus",
-    header: () => {
+    // Return the displayed status for sorting (matches what user sees)
+    accessorFn: (row) => {
+      if (row.pickedUp) return "Picked Up";
+      if (row.paymentStatus === "UNVERIFIABLE") return "Unverifiable";
+      if (row.paymentStatus === "PENDING") return "Pending";
+      if (row.paymentStatus === "CONFIRMED") return "Not Picked Up";
+      return "Unknown";
+    },
+    header: ({ column }) => {
       return (
-        <div className="flex justify-center w-full px-2">Order Status</div>
+        <div className="flex items-center justify-center w-full px-2 gap-1">
+          <Button
+            variant="ghost"
+            className="px-2"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Order Status
+            <ArrowUpDown className="ml-1 h-3 w-3" />
+          </Button>
+          <InfoTooltip
+            content={
+              <>
+                • <strong>Pending:</strong> Payment not yet verified
+                <br />• <strong>Not Picked Up:</strong> Payment confirmed, awaiting pickup
+                <br />• <strong>Picked Up:</strong> Order complete
+                <br />• <strong>Unverifiable:</strong> Payment can&apos;t be verified (cash/manual order), but can be picked up
+              </>
+            }
+            size={18}
+          />
+        </div>
       );
     },
     filterFn: "arrIncludesSome",

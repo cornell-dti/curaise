@@ -13,6 +13,7 @@ import { RealtimeReferralsWrapper } from "@/app/seller/fundraiser/[id]/referrals
 import { RealtimeAnalyticsWrapper } from "@/app/seller/fundraiser/[id]/analytics/components/RealtimeAnalyticsWrapper";
 import { FundraiserHeader } from "./components/FundraiserHeader";
 import { serverFetch } from "@/lib/fetcher";
+import { isPast } from "date-fns";
 
 interface FundraiserAnalytics {
   total_revenue: number;
@@ -96,6 +97,7 @@ export default async function FundraiserAnalyticsPage({
         {/* Key Insights - Realtime */}
         <RealtimeAnalyticsWrapper
           initialAnalytics={analytics}
+          initialOrders={orders}
           fundraiserId={fundraiserId}
           token={session.access_token}
           goalAmount={Number(fundraiser.goalAmount)}
@@ -108,6 +110,9 @@ export default async function FundraiserAnalyticsPage({
             fundraiserId={fundraiserId}
             items={items}
             token={session.access_token}
+            isPast={fundraiser.pickupEvents.every((event) =>
+              isPast(event.endsAt),
+            )}
           />
           <div className="bg-white rounded-lg shadow-sm">
             <div className="p-6">

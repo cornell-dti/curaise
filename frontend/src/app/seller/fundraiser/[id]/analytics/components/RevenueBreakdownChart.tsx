@@ -37,6 +37,7 @@ export function RevenueBreakdownChart({
 		return Object.entries(itemRevenue).map(([itemName, revenue], index) => ({
 			name: itemName,
 			revenue: revenue,
+			displayValue: `$${revenue.toFixed(2)}`,
 			fill: greenShades[index % greenShades.length],
 		}));
 	}, [itemRevenue]);
@@ -61,17 +62,34 @@ export function RevenueBreakdownChart({
 	return (
 		<ChartContainer
 			config={chartConfig}
-			className="mx-auto aspect-square max-h-[250px]">
+			className="mx-auto aspect-square w-full max-w-[250px]">
 			<PieChart>
 				<ChartTooltip
 					cursor={false}
-					content={<ChartTooltipContent hideLabel className="min-w-[180px]" />}
+					content={
+						<ChartTooltipContent
+							hideLabel
+							className="min-w-[120px]"
+							formatter={(value, name, item) => (
+								<div className="flex items-center gap-2">
+									<div
+										className="h-2.5 w-2.5 rounded-[2px]"
+										style={{ backgroundColor: item.payload.fill }}
+									/>
+									<span>{item.payload.name}: {item.payload.displayValue}</span>
+								</div>
+							)}
+						/>
+					}
 				/>
 				<Pie
 					data={chartData}
 					dataKey="revenue"
 					nameKey="name"
-					innerRadius={60}
+					cx="50%"
+					cy="50%"
+					innerRadius="60%"
+					outerRadius="80%"
 					strokeWidth={5}>
 					<Label
 						content={({ viewBox }) => {

@@ -139,7 +139,11 @@ export function FundraiserAddItemsForm({
 												<FormItem>
 													<FormLabel>Image</FormLabel>
 													<UploadImageComponent
-														imageUrls={[form.getValues("imageUrl") || ""]}
+														imageUrls={
+															form.getValues("imageUrl")
+																? [form.getValues("imageUrl")!]
+																: []
+														}
 														setImageUrls={(imageUrls: string[]) => {
 															if (imageUrls.length > 0) {
 																form.setValue("imageUrl", imageUrls[0]);

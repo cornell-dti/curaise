@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { sanitizeNextPath } from "@/lib/auth-redirect";
 
 // middleware responsible for refreshing the supabase auth token and saving to cookies
 // source: https://supabase.com/docs/guides/auth/server-side/nextjs?queryGroups=router&router=app
@@ -54,10 +55,14 @@ export async function updateSession(request: NextRequest) {
 
   if (user && request.nextUrl.pathname.startsWith("/login")) {
     // user is logged in, redirect to the next parameter or home page
-    const next = request.nextUrl.searchParams.get("next");
+    const next = sanitizeNextPath(request.nextUrl.searchParams.get("next"), "");
+    if (next) {
+      return NextResponse.redirect(new URL(next, request.url));
+    }
+
     const url = request.nextUrl.clone();
-    url.pathname = next && next.startsWith("/") ? next : "/";
-    url.search = ""; // Clear the search params
+    url.pathname = "/";
+    url.search = "";
     return NextResponse.redirect(url);
   }
 

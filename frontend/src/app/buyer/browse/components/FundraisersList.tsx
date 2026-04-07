@@ -90,29 +90,29 @@ export function FundraisersList({
         </h1>
 
         <div className="flex flex-col gap-3 w-full">
-          {/* Category Filters - Horizontal scroll on mobile */}
-          <div className="flex gap-3 items-center overflow-x-auto md:overflow-x-visible -mt-8 md:mt-0 pb-4 pb-2 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
-            {/* {categories.map((cat) => {
-              const Icon = cat.icon;
-              const isActive = category === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => setCategory(cat.id)}
-                  className={`h-[38px] rounded-full px-4 py-2 flex items-center justify-center gap-2 border transition-colors flex-shrink-0 ${
-                    isActive
-                      ? "bg-black border-black text-[#FEFDFD]"
-                      : "bg-white border-[#dddddd] text-black"
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="text-base font-normal leading-6">
-                    {cat.label}
-                  </span>
-                </button>
-              );
-            })} */}
-          </div>
+          {/* TODO: Category Filters - Horizontal scroll on mobile
+          {categories.map((cat) => {
+            const Icon = cat.icon;
+            const isActive = category === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setCategory(cat.id)}
+                className={`h-[38px] rounded-full px-4 py-2 flex items-center justify-center gap-2 border transition-colors flex-shrink-0 ${
+                  isActive
+                    ? "bg-black border-black text-[#FEFDFD]"
+                    : "bg-white border-[#dddddd] text-black"
+                }`}
+              >
+                <Icon className="h-5 w-5" />
+                <span className="text-base font-normal leading-6">
+                  {cat.label}
+                </span>
+              </button>
+            );
+          })}
+          */}
+
           {/* Sort By Dropdown */}
           <div className="flex gap-3 items-center">
             <Popover open={sortOpen} onOpenChange={setSortOpen}>

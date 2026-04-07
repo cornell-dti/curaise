@@ -1,11 +1,132 @@
+import { Prisma } from "../../generated/client";
 import { prisma } from "../../utils/prisma";
 import { CreateOrderBody } from "common";
 import { z } from "zod";
 import {
   updateCacheForNewOrder,
   updateCacheForOrderPickup,
+  updateCacheForOrderConfirmation,
 } from "../fundraiser/fundraiser.services";
 import { Decimal } from "decimal.js";
+
+const getConfirmedCountsByItem = async (
+  tx: Prisma.TransactionClient,
+  itemIds: string[],
+  excludeOrderId?: string
+) => {
+  if (itemIds.length === 0) {
+    return new Map<string, number>();
+  }
+
+  const results = await tx.orderItems.groupBy({
+    by: ["itemId"],
+    where: {
+      itemId: { in: itemIds },
+      ...(excludeOrderId
+        ? {
+            orderId: { not: excludeOrderId },
+          }
+        : {}),
+      order: {
+        OR: [{ paymentStatus: "CONFIRMED" }, { pickedUp: true }],
+      },
+    },
+    _sum: { quantity: true },
+  });
+
+  const counts = new Map<string, number>();
+  itemIds.forEach((id) => counts.set(id, 0));
+  results.forEach((result) => {
+    counts.set(result.itemId, result._sum.quantity ?? 0);
+  });
+
+  return counts;
+};
+
+const mergeRequestedItemsByItemId = <
+  T extends { itemId: string; quantity: number },
+>(
+  requestedItems: T[]
+): T[] => {
+  const requestedItemsById = new Map<string, number>();
+
+  requestedItems.forEach((requestedItem) => {
+    requestedItemsById.set(
+      requestedItem.itemId,
+      (requestedItemsById.get(requestedItem.itemId) ?? 0) +
+        requestedItem.quantity
+    );
+  });
+
+  return Array.from(requestedItemsById.entries()).map(([itemId, quantity]) => ({
+    itemId,
+    quantity,
+  })) as T[];
+};
+
+const assertInventoryAvailable = async (
+  tx: Prisma.TransactionClient,
+  requestedItems: { itemId: string; quantity: number }[],
+  excludeOrderId?: string
+) => {
+  const mergedRequestedItems = mergeRequestedItemsByItemId(requestedItems);
+  const itemIds = mergedRequestedItems.map((item) => item.itemId);
+  const items = await tx.item.findMany({
+    where: { id: { in: itemIds } },
+    select: { id: true, limit: true, name: true },
+  });
+  const confirmedCounts = await getConfirmedCountsByItem(
+    tx,
+    itemIds,
+    excludeOrderId
+  );
+
+  for (const orderItem of mergedRequestedItems) {
+    const item = items.find((i) => i.id === orderItem.itemId);
+    if (!item) {
+      throw new Error(`Item ${orderItem.itemId} not found`);
+    }
+
+    if (item.limit === null) {
+      continue;
+    }
+
+    const confirmedCount = confirmedCounts.get(orderItem.itemId) ?? 0;
+    const newTotal = confirmedCount + orderItem.quantity;
+    if (newTotal > item.limit) {
+      const available = Math.max(0, item.limit - confirmedCount);
+      throw new Error(
+        `Insufficient stock for ${item.name}. Available: ${available}, Requested: ${orderItem.quantity}`
+      );
+    }
+  }
+};
+
+const assertReferralValidForFundraiser = async (
+  tx: Prisma.TransactionClient,
+  fundraiserId: string,
+  referralId?: string,
+) => {
+  if (!referralId) {
+    return;
+  }
+
+  const referral = await tx.referral.findUnique({
+    where: { id: referralId },
+    select: {
+      id: true,
+      fundraiserId: true,
+    },
+  });
+
+  if (!referral) {
+    throw new Error("Invalid referral ID");
+  }
+
+  if (referral.fundraiserId !== fundraiserId) {
+    throw new Error("Referral ID does not belong to this fundraiser");
+  }
+};
 
 export const getOrder = async (orderId: string) => {
   const order = await prisma.order.findUnique({
@@ -68,123 +189,179 @@ export const getOrder = async (orderId: string) => {
 };
 
 export const createOrder = async (
-  orderBody: z.infer<typeof CreateOrderBody> & { buyerId: string },
+  orderBody: z.infer<typeof CreateOrderBody> & {
+    buyerId: string;
+    markAsPickedUp?: boolean;
+  },
 ) => {
-  const order = await prisma.order.create({
-    data: {
-      paymentMethod: orderBody.payment_method,
-      paymentStatus:
-        orderBody.payment_method === "VENMO" ? "PENDING" : "UNVERIFIABLE",
-      buyer: { connect: { id: orderBody.buyerId } },
-      fundraiser: { connect: { id: orderBody.fundraiserId } },
-      items: {
-        create: orderBody.items.map((item) => ({
-          quantity: item.quantity,
-          item: { connect: { id: item.itemId } },
-        })),
-      },
-      ...(orderBody.referralId && {
-        referral: { connect: { id: orderBody.referralId } },
-      }),
-    },
-    include: {
-      buyer: true,
-      fundraiser: {
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          published: true,
-          goalAmount: true,
-          imageUrls: true,
-          buyingStartsAt: true,
-          buyingEndsAt: true,
-          organization: {
+  const mergedOrderItems = mergeRequestedItemsByItemId(orderBody.items);
+
+  const order = await prisma.$transaction(
+    async (tx) => {
+      await assertInventoryAvailable(tx, mergedOrderItems);
+      await assertReferralValidForFundraiser(
+        tx,
+        orderBody.fundraiserId,
+        orderBody.referralId,
+      );
+
+      return tx.order.create({
+        data: {
+          paymentMethod: orderBody.payment_method,
+          paymentStatus:
+            orderBody.payment_method === "VENMO" ? "PENDING" : "UNVERIFIABLE",
+          pickedUp: orderBody.markAsPickedUp === true,
+          buyer: { connect: { id: orderBody.buyerId } },
+          fundraiser: { connect: { id: orderBody.fundraiserId } },
+          items: {
+            create: mergedOrderItems.map((item) => ({
+              quantity: item.quantity,
+              item: { connect: { id: item.itemId } },
+            })),
+          },
+          ...(orderBody.referralId && {
+            referral: { connect: { id: orderBody.referralId } },
+          }),
+        },
+        include: {
+          buyer: true,
+          fundraiser: {
             select: {
               id: true,
               name: true,
               description: true,
-              authorized: true,
-              logoUrl: true,
+              published: true,
+              goalAmount: true,
+              imageUrls: true,
+              buyingStartsAt: true,
+              buyingEndsAt: true,
+              organization: {
+                select: {
+                  id: true,
+                  name: true,
+                  description: true,
+                  authorized: true,
+                  logoUrl: true,
+                },
+              },
+              pickupEvents: {
+                orderBy: {
+                  startsAt: "asc",
+                },
+              },
             },
           },
-          pickupEvents: {
-            orderBy: {
-              startsAt: "asc",
+          referral: {
+            include: {
+              referrer: true,
             },
           },
         },
-      },
-      referral: {
-        include: {
-          referrer: true,
-        },
-      },
+      });
     },
-  });
+    { isolationLevel: "Serializable" }
+  );
 
-  // Update analytics cache for the fundraiser when a new order is created
+  // Update analytics cache outside transaction
   await updateCacheForNewOrder(orderBody.fundraiserId, order.createdAt);
 
   return order;
 };
 
 export const completeOrderPickup = async (orderId: string) => {
-  const order = await prisma.order.update({
-    where: { id: orderId },
-    data: {
-      pickedUp: true,
-    },
-    include: {
-      buyer: true,
-      fundraiser: {
+  const order = await prisma.$transaction(
+    async (tx) => {
+      const existingOrder = await tx.order.findUnique({
+        where: { id: orderId },
         select: {
           id: true,
-          name: true,
-          description: true,
-          published: true,
-          goalAmount: true,
-          imageUrls: true,
-          buyingStartsAt: true,
-          buyingEndsAt: true,
-          organization: {
+          paymentStatus: true,
+          pickedUp: true,
+          items: {
             select: {
-              id: true,
-              name: true,
-              description: true,
-              authorized: true,
-              logoUrl: true,
-            },
-          },
-          pickupEvents: {
-            orderBy: {
-              startsAt: "asc",
+              quantity: true,
+              itemId: true,
             },
           },
         },
-      },
-      items: {
-        select: {
-          quantity: true,
-          item: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-              price: true,
-              imageUrl: true,
-              offsale: true,
-            },
-          },
+      });
+
+      if (!existingOrder) {
+        throw new Error("Order not found");
+      }
+
+      const isAlreadyCountedAgainstCap =
+        existingOrder.paymentStatus === "CONFIRMED" || existingOrder.pickedUp;
+
+      if (!isAlreadyCountedAgainstCap) {
+        await assertInventoryAvailable(
+          tx,
+          existingOrder.items.map((item) => ({
+            itemId: item.itemId,
+            quantity: item.quantity,
+          })),
+          orderId
+        );
+      }
+
+      return tx.order.update({
+        where: { id: orderId },
+        data: {
+          pickedUp: true,
         },
-      },
-      referral: {
         include: {
-          referrer: true,
+          buyer: true,
+          fundraiser: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              published: true,
+              goalAmount: true,
+              imageUrls: true,
+              buyingStartsAt: true,
+              buyingEndsAt: true,
+              organization: {
+                select: {
+                  id: true,
+                  name: true,
+                  description: true,
+                  authorized: true,
+                  logoUrl: true,
+                },
+              },
+              pickupEvents: {
+                orderBy: {
+                  startsAt: "asc",
+                },
+              },
+            },
+          },
+          items: {
+            select: {
+              quantity: true,
+              item: {
+                select: {
+                  id: true,
+                  name: true,
+                  description: true,
+                  price: true,
+                  imageUrl: true,
+                  offsale: true,
+                },
+              },
+            },
+          },
+          referral: {
+            include: {
+              referrer: true,
+            },
+          },
         },
-      },
+      });
     },
-  });
+    { isolationLevel: "Serializable" }
+  );
 
   // Update analytics cache for the fundraiser when an order is picked up, so pending order and picked up order counts are not stale
   await updateCacheForOrderPickup(
@@ -284,46 +461,89 @@ export const undoOrderPickup = async (orderId: string) => {
 };
 
 export const confirmOrderPayment = async (orderId: string) => {
-  const order = await prisma.order.update({
-    where: { id: orderId },
-    data: {
-      paymentStatus: "CONFIRMED",
-    },
-    include: {
-      buyer: true,
-      fundraiser: {
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          published: true,
-          goalAmount: true,
-          imageUrls: true,
-          buyingStartsAt: true,
-          buyingEndsAt: true,
-          organization: {
+  const order = await prisma.$transaction(
+    async (tx) => {
+      const existingOrder = await tx.order.findUnique({
+        where: { id: orderId },
+        include: {
+          items: {
+            select: {
+              quantity: true,
+              itemId: true,
+            },
+          },
+        },
+      });
+
+      if (!existingOrder) {
+        throw new Error("Order not found");
+      }
+
+      await assertInventoryAvailable(
+        tx,
+        existingOrder.items.map((item) => ({
+          itemId: item.itemId,
+          quantity: item.quantity,
+        })),
+        orderId
+      );
+
+      return tx.order.update({
+        where: { id: orderId },
+        data: {
+          paymentStatus: "CONFIRMED",
+        },
+        include: {
+          buyer: true,
+          items: {
+            include: {
+              item: {
+                select: {
+                  name: true,
+                  price: true,
+                },
+              },
+            },
+          },
+          fundraiser: {
             select: {
               id: true,
               name: true,
               description: true,
-              authorized: true,
-              logoUrl: true,
+              published: true,
+              goalAmount: true,
+              imageUrls: true,
+              buyingStartsAt: true,
+              buyingEndsAt: true,
+              organization: {
+                select: {
+                  id: true,
+                  name: true,
+                  description: true,
+                  authorized: true,
+                  logoUrl: true,
+                },
+              },
+              pickupEvents: {
+                orderBy: {
+                  startsAt: "asc",
+                },
+              },
             },
           },
-          pickupEvents: {
-            orderBy: {
-              startsAt: "asc",
+          referral: {
+            include: {
+              referrer: true,
             },
           },
         },
-      },
-      referral: {
-        include: {
-          referrer: true,
-        },
-      },
+      });
     },
-  });
+    { isolationLevel: "Serializable" }
+  );
+
+  // Update analytics cache for the fundraiser when payment is confirmed
+  await updateCacheForOrderConfirmation(order.fundraiser.id, order);
 
   return order;
 };

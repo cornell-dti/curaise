@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Store, Package, Menu } from "lucide-react";
+import { Store, Package, Menu, BookOpen } from "lucide-react";
 import DesktopUserMenu from "./DesktopUserMenu";
 import MobileUserMenu from "./MobileUserMenu";
 import useStore from "@/lib/store/useStore";
@@ -27,11 +27,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/auth-actions";
+import { useState } from "react";
+import Image from "next/image";
+import TutorialModal from "./TutorialModal";
 
 export default function Navbar() {
 	const pathname = usePathname();
 	const router = useRouter();
 	const searchParams = useSearchParams();
+	const [tutorialOpen, setTutorialOpen] = useState(false);
 
 	// Determine user role based on pathname
 	const isBuyer = pathname.startsWith("/buyer");
@@ -97,20 +101,16 @@ export default function Navbar() {
 					}`}>
 					{/* Logo - Desktop */}
 					<div className="hidden md:flex items-center flex-shrink-0">
-						<Link
-							href={isBuyer ? "/buyer" : "/seller"}
-							className="text-2xl font-bold">
-							CURaise
+						<Link href={isBuyer ? "/buyer" : "/seller"}>
+							<Image src="/images/curaise-logo.svg" alt="CURaise" width={347} height={117} className="h-12 w-auto" />
 						</Link>
 					</div>
 
 					{/* Logo - Mobile (centered) - Hidden on browse page and fundraiser pages */}
 					{!pathname.includes("/buyer/browse") && !isFundraiserPage && (
 						<div className="md:hidden flex items-center justify-center w-full">
-							<Link
-								href={isBuyer ? "/buyer" : "/seller"}
-								className="text-2xl font-bold">
-								CURaise
+							<Link href={isBuyer ? "/buyer" : "/seller"}>
+								<Image src="/images/curaise-logo.svg" alt="CURaise" width={347} height={117} className="h-10 w-auto" />
 							</Link>
 						</div>
 					)}
@@ -154,6 +154,12 @@ export default function Navbar() {
 													Orders
 												</Link>
 											</DropdownMenuItem>
+											<DropdownMenuItem
+												className="cursor-pointer gap-2"
+												onClick={() => setTutorialOpen(true)}>
+												<BookOpen className="h-4 w-4" />
+												Tutorial
+											</DropdownMenuItem>
 											<DropdownMenuSub>
 												<DropdownMenuSubTrigger>Account</DropdownMenuSubTrigger>
 												<DropdownMenuPortal>
@@ -180,7 +186,7 @@ export default function Navbar() {
 									</DropdownMenu>
 								</div>
 								{/* Full navigation for XL screens and up */}
-								<div className="hidden xl:flex">
+								<div className="hidden xl:flex items-center">
 									<NavigationMenu>
 										<NavigationMenuList>
 											<>
@@ -201,11 +207,16 @@ export default function Navbar() {
 											</>
 										</NavigationMenuList>
 									</NavigationMenu>
+									<button
+										className={navigationMenuTriggerStyle()}
+										onClick={() => setTutorialOpen(true)}>
+										Tutorial
+									</button>
 									<DesktopUserMenu userRole={userRole} />
 								</div>
 							</>
 						) : (
-							<div className="hidden xl:flex">
+							<div className="hidden xl:flex items-center">
 								<NavigationMenu>
 									<NavigationMenuList>
 										<>
@@ -245,6 +256,11 @@ export default function Navbar() {
 										</>
 									</NavigationMenuList>
 								</NavigationMenu>
+								<button
+									className={navigationMenuTriggerStyle()}
+									onClick={() => setTutorialOpen(true)}>
+									Tutorial
+								</button>
 								<DesktopUserMenu userRole={userRole} />
 							</div>
 						)}
@@ -274,11 +290,20 @@ export default function Navbar() {
 						<span className="text-xs">Orders</span>
 					</Link>
 
+					<button
+						onClick={() => setTutorialOpen(true)}
+						className="flex flex-col items-center justify-center flex-1 gap-1 text-muted-foreground">
+						<BookOpen className="h-5 w-5" />
+						<span className="text-xs">Tutorial</span>
+					</button>
+
 					<div className="flex flex-col items-center justify-center flex-1 gap-1">
 						<MobileUserMenu userRole={userRole} />
 					</div>
 				</div>
 			</nav>
+
+			<TutorialModal open={tutorialOpen} onOpenChange={setTutorialOpen} userRole={userRole} />
 		</>
 	);
 }

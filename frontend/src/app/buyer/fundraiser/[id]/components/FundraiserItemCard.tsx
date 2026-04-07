@@ -14,12 +14,16 @@ export function FundraiserItemCard({
   amount,
   increment,
   decrement,
+  isOutOfStock = false,
+  disableIncrement = false,
   isPast,
 }: {
   item: z.infer<typeof CompleteItemSchema>;
   amount: number;
   increment: () => void;
   decrement: () => void;
+  isOutOfStock?: boolean;
+  disableIncrement?: boolean;
   isPast: boolean;
 }) {
   const [showAmount, setShowAmount] = useState(false);
@@ -99,6 +103,11 @@ export function FundraiserItemCard({
           ) : (
             <div className="w-full h-full bg-gray-200" />
           )}
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+              <span className="text-white font-semibold text-lg">Out of Stock</span>
+            </div>
+          )}
         </div>
 
         {/* Title and Price */}
@@ -125,6 +134,11 @@ export function FundraiserItemCard({
             />
           ) : (
             <div className="w-full h-full bg-gray-200" />
+          )}
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+              <span className="text-white font-semibold text-lg">Out of Stock</span>
+            </div>
           )}
         </div>
 
@@ -168,7 +182,11 @@ export function FundraiserItemCard({
                       </span>
                       <button
                         onClick={handlePlusClick}
-                        className="p-2 mx-1 hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
+                        disabled={disableIncrement}
+                        className={cn(
+                          "p-2 mx-1 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed",
+                          !disableIncrement && "hover:bg-gray-600",
+                        )}
                       >
                         <Plus className="w-4 h-4 text-white" />
                       </button>
@@ -186,11 +204,15 @@ export function FundraiserItemCard({
                   ) : (
                     <button
                       onClick={handleOpen}
-                      className="p-2 mx-auto hover:bg-gray-600 rounded-full transition-colors flex-shrink-0"
+                      disabled={isOutOfStock || disableIncrement}
+                      className={cn(
+                        "p-2 mx-auto rounded-full transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed",
+                        !(isOutOfStock || disableIncrement) && "hover:bg-gray-600",
+                      )}
                     >
                       <Plus className="w-4 h-4 text-white" />
                     </button>
-                  )}{" "}
+                  )}
                 </div>
               </div>
             )}

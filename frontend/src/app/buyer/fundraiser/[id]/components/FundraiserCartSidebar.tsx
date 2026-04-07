@@ -6,12 +6,15 @@ import useStore from "@/lib/store/useStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useMemo } from "react";
 
 export function FundraiserCartSidebar({
   fundraiserId,
+  referralId,
   isPast,
 }: {
   fundraiserId: string;
+  referralId: string;
   isPast: boolean;
 }) {
   const router = useRouter();
@@ -22,26 +25,32 @@ export function FundraiserCartSidebar({
   const cartItems = cart || [];
   const isEmpty = cartItems.length === 0;
 
-  const totalItems = cartItems.reduce((sum, cartItem) => {
-    return sum + cartItem.quantity;
-  }, 0);
+  const totalItems = useMemo(() => {
+    return cartItems.reduce((sum, cartItem) => {
+      return sum + cartItem.quantity;
+    }, 0);
+  }, [cartItems]);
 
-  const totalPrice = cartItems.reduce((sum, cartItem) => {
-    return sum + Number(cartItem.item.price) * cartItem.quantity;
-  }, 0);
+  const totalPrice = useMemo(() => {
+    return cartItems.reduce((sum, cartItem) => {
+      return sum + Number(cartItem.item.price) * cartItem.quantity;
+    }, 0);
+  }, [cartItems]);
 
   const handleCheckout = () => {
     if (isEmpty) return;
 
-    const nextCheckoutPath = `/buyer/fundraiser/${fundraiserId}/checkout`;
-
     // On mobile, go to cart page first; on desktop, go directly to login which
     // will auto-start Google sign-in and return to the checkout page
-    if (isMobile) {
-      router.push(`/buyer/fundraiser/${fundraiserId}/cart`);
-    } else {
-      router.push(`/login?next=${encodeURIComponent(nextCheckoutPath)}`);
-    }
+    const nextPath = isMobile
+      ? referralId
+        ? `/buyer/fundraiser/${fundraiserId}/cart?code=${referralId}`
+        : `/buyer/fundraiser/${fundraiserId}/cart`
+      : referralId
+        ? `/buyer/fundraiser/${fundraiserId}/checkout?code=${referralId}`
+        : `/buyer/fundraiser/${fundraiserId}/checkout`;
+
+    router.push(`/login?next=${encodeURIComponent(nextPath)}`);
   };
 
   return (
