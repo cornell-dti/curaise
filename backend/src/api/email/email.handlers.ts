@@ -8,6 +8,39 @@ import {
   updateOrderPaymentStatus,
 } from "./email.services";
 
+async function autoConfirmForwarding(
+  bodyHtml: string | undefined,
+  bodyPlain: string | undefined
+): Promise<boolean> {
+  const confirmUrlPattern = /https:\/\/mail\.google\.com\/mail\/vf-[^\s"<>]+/;
+
+  // Try HTML first
+  if (bodyHtml) {
+    const $ = load(bodyHtml);
+    const links = $("a[href*='mail.google.com/mail/vf-']");
+    if (links.length > 0) {
+      const url = links.first().attr("href");
+      if (url) {
+        const response = await fetch(url, { method: "POST" });
+        console.log(`Forwarding confirmed via HTML link: ${url} (status: ${response.status})`);
+        return true;
+      }
+    }
+  }
+
+  // Fall back to plain text regex
+  const text = bodyPlain || bodyHtml || "";
+  const match = text.match(confirmUrlPattern);
+  if (match) {
+    const url = match[0];
+    const response = await fetch(url, { method: "POST" });
+    console.log(`Forwarding confirmed via text link: ${url} (status: ${response.status})`);
+    return true;
+  }
+
+  return false;
+}
+
 export const parseEmailHandler = async (
   req: Request<{}, any, MailgunInboundEmailBody, {}>,
   res: Response
@@ -24,6 +57,23 @@ export const parseEmailHandler = async (
     } = req.body;
 
     // TODO: Verify Mailgun signature
+
+    // Auto-confirm Gmail forwarding requests
+    if (from.includes("forwarding-noreply@google.com")) {
+      try {
+        const confirmed = await autoConfirmForwarding(bodyHtml, bodyPlain);
+        if (confirmed) {
+          res.status(200).json({ message: "forwarding confirmed" });
+        } else {
+          console.warn("Gmail forwarding email received but no confirmation URL found");
+          res.status(200).json({ message: "no confirmation url found" });
+        }
+      } catch (err) {
+        console.error("Failed to auto-confirm forwarding:", err);
+        res.status(200).json({ message: "forwarding confirmation failed" });
+      }
+      return;
+    }
 
     // Confirm sender is Venmo
     if (from !== "Venmo <venmo@venmo.com>") {
