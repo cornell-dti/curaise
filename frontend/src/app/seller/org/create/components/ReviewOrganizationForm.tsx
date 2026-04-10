@@ -9,15 +9,18 @@ import {
 } from "@/components/ui/card";
 import { CreateOrganizationBody } from "common";
 import { z } from "zod";
+import { useState } from "react";
 
 export function ReviewOrganizationForm({
   adminEmails,
   formData,
+  isSubmitting,
   onSubmit,
   onBack,
 }: {
   adminEmails: string[];
   formData: z.infer<typeof CreateOrganizationBody>;
+  isSubmitting: boolean;
   onSubmit: () => void;
   onBack: () => void;
 }) {
@@ -69,8 +72,12 @@ export function ReviewOrganizationForm({
         <Button variant="outline" onClick={onBack}>
           Back
         </Button>
-        <Button type="submit" onClick={onSubmit}>
-          Create
+        <Button 
+          type="submit" 
+          onClick={onSubmit}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Processing..." : "Create"}
         </Button>
       </CardFooter>
     </Card>

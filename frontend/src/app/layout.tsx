@@ -29,6 +29,10 @@ const dm_sans = DM_Sans({
 export const metadata: Metadata = {
   title: "CURaise",
   description: "Make fundraisers easy",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({

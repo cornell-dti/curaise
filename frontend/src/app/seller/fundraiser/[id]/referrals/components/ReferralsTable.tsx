@@ -71,7 +71,7 @@ export function ReferralsTable<TValue>({
 			</div>
 
 			<div className="rounded-md border">
-				<Table>
+				<Table className="min-w-[600px]">
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>

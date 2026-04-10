@@ -39,6 +39,7 @@ export function FundraiserAddItemsForm({
 	onNext,
 	onBack,
 	onSave,
+	isSubmitting,
 }: {
 	items: z.infer<typeof CreateFundraiserItemBody>[];
 	setItems: Dispatch<
@@ -47,6 +48,7 @@ export function FundraiserAddItemsForm({
 	onNext: () => void;
 	onBack: () => void;
 	onSave: () => void;
+	isSubmitting: boolean;
 }) {
 	const [open, setOpen] = useState(false);
 
@@ -233,8 +235,10 @@ export function FundraiserAddItemsForm({
 				<div className="flex gap-2">
 					<Button
 						onClick={onSave}
-						className="text-[#333F37] border border-current bg-transparent hover:bg-[#e6f0ea]">
-						Save
+						className="text-[#333F37] border border-current bg-transparent hover:bg-[#e6f0ea]"
+						disabled={isSubmitting}
+					>
+						{isSubmitting ? "Processing..." : "Save"}
 					</Button>
 					<Button type="button" onClick={onNext}>
 						Next

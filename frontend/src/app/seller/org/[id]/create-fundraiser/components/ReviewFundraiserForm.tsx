@@ -16,11 +16,13 @@ export function ReviewFundraiserForm({
   items,
   onSave,
   onBack,
+  isSubmitting,
 }: {
   formData: z.infer<typeof CreateFundraiserBody>;
   items: z.infer<typeof CreateFundraiserItemBody>[];
   onSave: () => void;
   onBack: () => void;
+  isSubmitting: boolean;
 }) {
   return (
     <Card>
@@ -166,8 +168,12 @@ export function ReviewFundraiserForm({
         <Button variant="outline" onClick={onBack}>
           Back
         </Button>
-        <Button type="submit" onClick={onSave}>
-          Save Fundraiser
+        <Button 
+          type="submit" 
+          onClick={onSave}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Processing..." : "Save Fundraiser"}
         </Button>
       </CardFooter>
     </Card>

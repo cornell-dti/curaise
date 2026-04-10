@@ -69,6 +69,7 @@ export function EditFundraiserModal({
       limit: limit ?? undefined,
     })),
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Track pending changes for published fundraisers
   // Batch API calls on these pending changes when fundraiser is saved
@@ -92,6 +93,10 @@ export function EditFundraiserModal({
     });
 
   async function onSubmit() {
+    // Guard against duplicated saved fundraisers
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     // Map empty-string venmo fields to null so backend will clear them
     const payload = {
       ...formData,
@@ -113,6 +118,7 @@ export function EditFundraiserModal({
       toast.error(
         `Failed to update fundraiser: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
+      setIsSubmitting(false);
       return;
     }
 
@@ -214,7 +220,10 @@ export function EditFundraiserModal({
   const [saveRequested, setSaveRequested] = useState(false);
 
   useEffect(() => {
-    if (open) setCurrentStep(step);
+    if (open) {
+      setCurrentStep(step);
+      setIsSubmitting(false);
+    }
   }, [open, step]);
 
   useEffect(() => {
@@ -269,6 +278,7 @@ export function EditFundraiserModal({
                 setSaveRequested(true);
                 setOpen(false);
               }}
+              isSubmitting={isSubmitting}
             />
 
             <EditPickupEventsForm
@@ -336,6 +346,7 @@ export function EditFundraiserModal({
                 setSaveRequested(true);
                 setOpen(false);
               }}
+              isSubmitting={isSubmitting}
             />
 
             <ReviewFundraiserForm
@@ -346,6 +357,7 @@ export function EditFundraiserModal({
                 setOpen(false);
               }}
               onBack={() => setCurrentStep(3)}
+              isSubmitting={isSubmitting}
             />
           </MultiStepForm>
         </div>

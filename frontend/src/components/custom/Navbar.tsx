@@ -28,6 +28,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/auth-actions";
 import { useState } from "react";
+import Image from "next/image";
 import TutorialModal from "./TutorialModal";
 
 export default function Navbar() {
@@ -100,20 +101,16 @@ export default function Navbar() {
 					}`}>
 					{/* Logo - Desktop */}
 					<div className="hidden md:flex items-center flex-shrink-0">
-						<Link
-							href={isBuyer ? "/buyer" : "/seller"}
-							className="text-2xl font-bold">
-							CURaise
+						<Link href={isBuyer ? "/buyer" : "/seller"}>
+							<Image src="/images/curaise-logo.svg" alt="CURaise" width={347} height={117} className="h-12 w-auto" />
 						</Link>
 					</div>
 
 					{/* Logo - Mobile (centered) - Hidden on browse page and fundraiser pages */}
 					{!pathname.includes("/buyer/browse") && !isFundraiserPage && (
 						<div className="md:hidden flex items-center justify-center w-full">
-							<Link
-								href={isBuyer ? "/buyer" : "/seller"}
-								className="text-2xl font-bold">
-								CURaise
+							<Link href={isBuyer ? "/buyer" : "/seller"}>
+								<Image src="/images/curaise-logo.svg" alt="CURaise" width={347} height={117} className="h-10 w-auto" />
 							</Link>
 						</div>
 					)}
