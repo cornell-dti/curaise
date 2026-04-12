@@ -226,4 +226,4 @@ cd backend && pnpm test
 ## Deployment
 
 **Backend**: Heroku (automatic via `heroku-postbuild` script in root `package.json`)
-**Frontend**: Netlify (status badge in README.md)
+**Frontend**: Vercel

@@ -48,6 +48,7 @@ export function CreateFundraiserForm({
 }) {
 	const defaultDates = getDefaultDates();
 	const [currentStep, setCurrentStep] = useState(0);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const [formData, setFormData] = useState<
 		z.infer<typeof CreateFundraiserBody>
@@ -75,6 +76,10 @@ export function CreateFundraiserForm({
 	>([]);
 
 	async function onSave() {
+		// Guard against duplicated saved fundraisers
+		if (isSubmitting) return;
+		setIsSubmitting(true);
+
 		// Add pickupEvents into formData before submission
 		const completeFormData = { ...formData, pickupEvents };
 
@@ -89,6 +94,7 @@ export function CreateFundraiserForm({
 			toast.error(
 				`Failed to create fundraiser: ${error instanceof Error ? error.message : "Unknown error"}`
 			);
+			setIsSubmitting(false);
 			return;
 		}
 
@@ -167,6 +173,7 @@ export function CreateFundraiserForm({
 						setFormData((prev) => ({ ...prev, ...data }));
 						onSave();
 					}}
+					isSubmitting={isSubmitting}
 				/>
 				<FundraiserPickupEventsForm
 					events={pickupEvents}
@@ -174,6 +181,7 @@ export function CreateFundraiserForm({
 					onNext={() => setCurrentStep(2)}
 					onBack={() => setCurrentStep(0)}
 					onSave={onSave}
+					isSubmitting={isSubmitting}
 				/>
 				<FundraiserAddItemsForm
 					items={fundraiserItems}
@@ -181,6 +189,7 @@ export function CreateFundraiserForm({
 					onNext={() => setCurrentStep(3)}
 					onBack={() => setCurrentStep(1)}
 					onSave={onSave}
+					isSubmitting={isSubmitting}
 				/>
 				<FundraiserVenmoInfoForm
 					defaultValues={formData}
@@ -193,12 +202,14 @@ export function CreateFundraiserForm({
 						setFormData((prev) => ({ ...prev, ...data }));
 						onSave();
 					}}
+					isSubmitting={isSubmitting}
 				/>
 				<ReviewFundraiserForm
 					formData={{ ...formData, pickupEvents }}
 					items={fundraiserItems}
 					onSave={onSave}
 					onBack={() => setCurrentStep(3)}
+					isSubmitting={isSubmitting}
 				/>
 			</MultiStepForm>
 		</div>

@@ -43,11 +43,13 @@ export function FundraiserVenmoInfoForm({
 	onNext,
 	onBack,
 	onSave,
+	isSubmitting,
 }: {
 	defaultValues: z.infer<typeof VenmoFormSchema>;
 	onNext: (data: z.infer<typeof VenmoFormSchema>) => void;
 	onBack: () => void;
 	onSave: (data: z.infer<typeof VenmoFormSchema>) => void;
+	isSubmitting: boolean;
 }) {
 	const form = useForm<z.infer<typeof VenmoFormSchema>>({
 		resolver: zodResolver(VenmoFormSchema),
@@ -120,8 +122,10 @@ export function FundraiserVenmoInfoForm({
 						<div className="flex gap-2">
 							<Button
 								onClick={form.handleSubmit(onSave)}
-								className="text-[#333F37] border border-current bg-transparent hover:bg-[#e6f0ea]">
-								Save
+								className="text-[#333F37] border border-current bg-transparent hover:bg-[#e6f0ea]"
+								disabled={isSubmitting}
+							>
+								{isSubmitting ? "Processing..." : "Save"}
 							</Button>
 							<Button type="submit">Next</Button>
 						</div>

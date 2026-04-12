@@ -195,7 +195,7 @@ export function RealtimeAnalyticsWrapper({
   return (
     <div className="mb-6">
       <h2 className="text-xl font-bold mb-6">Key Insights</h2>
-      <div className="grid grid-cols-[0.6fr_1fr_1fr_1.5fr] gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 min-[1400px]:grid-cols-[0.6fr_1fr_1fr_1.5fr] gap-6">
         {/* First Column - Revenue and Total Orders stacked */}
         <div className="flex flex-col gap-6 h-full">
           {/* Revenue Card */}
@@ -210,65 +210,67 @@ export function RealtimeAnalyticsWrapper({
           </div>
 
           {/* Total Orders Card */}
-          <div className="bg-white rounded-lg shadow p-6 flex-1">
+          <div className="bg-white rounded-lg shadow p-6 flex-1 flex flex-col">
             <div className="flex items-center gap-2 mb-2 font-semibold">
               <Receipt />
               Total Orders
             </div>
-            <div className="flex items-end gap-5">
-              <div className="text-4xl font-semibold leading-none">
-                {analytics.total_orders}
-              </div>
-              <div className="space-y-1.5 pb-0.5 text-sm leading-none text-muted-foreground">
-                <div>
-                  <span className="font-semibold text-foreground">
-                    {analytics.total_orders - analytics.pending_orders}
-                  </span>{" "}
-                  Confirmed
-                </div>
-                <div>
-                  <span className="font-semibold text-foreground">
-                    {analytics.pending_orders}
-                  </span>{" "}
-                  Pending
-                </div>
-              </div>
+            <div className="text-3xl font-semibold">
+              {analytics.total_orders}
+            </div>
+            <div className="flex gap-3 mt-2 text-sm text-muted-foreground">
+              <span className="whitespace-nowrap">
+                <span className="font-semibold text-foreground">
+                  {analytics.total_orders - analytics.pending_orders}
+                </span>{" "}
+                Confirmed
+              </span>
+              <span className="whitespace-nowrap">
+                <span className="font-semibold text-foreground">
+                  {analytics.pending_orders}
+                </span>{" "}
+                Pending
+              </span>
             </div>
           </div>
         </div>
 
         {/* Profit Goal Card */}
-        <div className="bg-white rounded-lg shadow p-6 overflow-hidden">
+        <div className="bg-white rounded-lg shadow p-6 overflow-hidden flex flex-col">
           <div className="flex items-center gap-2 mb-4 font-semibold">
-            <Goal />
+            <Goal className="shrink-0" />
             Profit Goal
             <InfoTooltip
               content="Profit is estimated using a 20% profit margin."
               size={18}
             />
           </div>
-          <ProfitGoalChart
-            profit={analytics.profit}
-            goalAmount={goalAmount}
-          />
+          <div className="flex-1 flex items-center justify-center">
+            <ProfitGoalChart
+              profit={analytics.profit}
+              goalAmount={goalAmount}
+            />
+          </div>
         </div>
 
         {/* Revenue Breakdown Card */}
-        <div className="bg-white rounded-lg shadow p-6 overflow-hidden">
-          <div className="flex items-center gap-2 mb-4 font-semibold">
-            <Receipt />
+        <div className="bg-white rounded-lg shadow p-6 overflow-hidden flex flex-col">
+          <div className="flex items-center gap-2 mb-4 font-semibold whitespace-nowrap">
+            <Receipt className="shrink-0" />
             Revenue Breakdown
           </div>
-          <RevenueBreakdownChart
-            itemRevenue={itemRevenue}
-            totalRevenue={analytics.total_revenue}
-          />
+          <div className="flex-1 flex items-center justify-center">
+            <RevenueBreakdownChart
+              itemRevenue={itemRevenue}
+              totalRevenue={analytics.total_revenue}
+            />
+          </div>
         </div>
 
         {/* Items Sold Card */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center gap-2 mb-4 font-semibold">
-            <Receipt />
+            <Receipt className="shrink-0" />
             Item Performance
             <InfoTooltip
               content="Sorted by confirmed units sold. Inventory caps are affected only by confirmed or picked-up orders, not carts or unpaid pending orders."
