@@ -241,7 +241,7 @@ export function RealtimeAnalyticsWrapper({
             <Goal className="shrink-0" />
             Profit Goal
             <InfoTooltip
-              content="Profit is estimated using a 20% profit margin."
+              content="Profit is based on each item's profit margin."
               size={18}
             />
           </div>
