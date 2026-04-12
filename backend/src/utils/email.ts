@@ -197,8 +197,8 @@ export const sendOrganizationInviteEmail = async (options: {
     `;
 
     const html = wrapInTemplate(content, {
-      ctaText: "Log In to CURaise",
-      ctaUrl: CURAISE_URL,
+      ctaText: "View Organization",
+      ctaUrl: `${CURAISE_URL}/seller/org/${organization.id}`,
     });
 
     try {
@@ -357,7 +357,7 @@ export const sendAnnouncementEmail = async (options: {
 
   const html = wrapInTemplate(content, {
     ctaText: "View Fundraiser",
-    ctaUrl: CURAISE_URL,
+    ctaUrl: `${CURAISE_URL}/buyer/fundraiser/${fundraiser.id}`,
   });
 
   // Extract unique email addresses to avoid duplicate emails
@@ -500,8 +500,8 @@ export const sendPaymentReminderEmail = async (order: Order): Promise<any> => {
   `;
 
   const html = wrapInTemplate(content, {
-    ctaText: "View Your Orders",
-    ctaUrl: `${CURAISE_URL}/buyer/order`,
+    ctaText: "View Your Order",
+    ctaUrl: `${CURAISE_URL}/buyer/order/${order.id}`,
   });
 
   return sendEmail({
@@ -600,8 +600,8 @@ export const sendOrderConfirmation = async (order: Order): Promise<any> => {
   `;
 
   const html = wrapInTemplate(content, {
-    ctaText: "View Your Orders",
-    ctaUrl: `${CURAISE_URL}/buyer/order`,
+    ctaText: "View Your Order",
+    ctaUrl: `${CURAISE_URL}/buyer/order/${order.id}`,
   });
 
   return sendEmail({
