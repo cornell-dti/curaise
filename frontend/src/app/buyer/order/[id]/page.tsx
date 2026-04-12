@@ -279,7 +279,7 @@ export default async function OrderPage({
 
                     <div className="rounded-md border bg-muted/50 px-3 py-2 text-md">
                       <span className="text-muted-foreground">
-                        Last 4 digits of seller's phone:{" "}
+                        Last 4 digits of seller&apos;s phone:{" "}
                       </span>
                       <span className="font-mono font-semibold">
                         {fundraiser.venmoLastFourDigits}
