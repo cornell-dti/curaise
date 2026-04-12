@@ -98,7 +98,7 @@ export default async function OrderPage({
     .toFixed(2);
 
   // Use full order ID for Venmo payment
-  const orderIdForPayment = order.id;
+  const orderTransactionNote = "[DO NOT EDIT] " + order.id;
 
   // Get banner styling based on payment status and method
   const getBannerStyling = () => {
@@ -240,7 +240,7 @@ export default async function OrderPage({
                           href={`https://venmo.com/${
                             fundraiser.venmoUsername
                           }?txn=pay&note=${encodeURIComponent(
-                            orderIdForPayment,
+                            orderTransactionNote,
                           )}&amount=${encodeURIComponent(orderTotal)}`}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -271,7 +271,7 @@ export default async function OrderPage({
                         </a>
                       </Button>
                       <CopyButton
-                        text={`https://venmo.com/${fundraiser.venmoUsername}?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`}
+                        text={`https://venmo.com/${fundraiser.venmoUsername}?txn=pay&note=${encodeURIComponent(orderTransactionNote)}&amount=${encodeURIComponent(orderTotal)}`}
                         label="Copy Link"
                         variant="outline"
                       />
@@ -318,9 +318,9 @@ export default async function OrderPage({
                         </p>
                         <div className="flex items-center gap-2">
                           <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
-                            {orderIdForPayment}
+                            {order.id}
                           </code>
-                          <CopyButton text={orderIdForPayment} />
+                          <CopyButton text={order.id} />
                         </div>
                       </div>
                     </details>
