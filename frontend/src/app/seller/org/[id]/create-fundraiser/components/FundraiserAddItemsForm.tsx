@@ -58,6 +58,7 @@ export function FundraiserAddItemsForm({
 			name: "",
 			description: "",
 			price: 0,
+			profit: undefined,
 			imageUrl: undefined,
 			offsale: false, // Always set to false
 		},
@@ -182,6 +183,33 @@ export function FundraiserAddItemsForm({
 												</FormItem>
 											)}
 										/>
+										<FormField
+											control={form.control}
+											name="profit"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Profit (Optional)</FormLabel>
+													<FormControl>
+														<Input
+															type="number"
+															step="0.01"
+															placeholder="0.00"
+															value={field.value?.toString() ?? ""}
+															onChange={(e) => {
+																if (e.target.value === "") {
+																	field.onChange(undefined);
+																} else {
+																	field.onChange(
+																		parseFloat(e.target.value) || 0
+																	);
+																}
+															}}
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
 									</div>
 									<DialogFooter>
 										<Button type="submit">Add Item</Button>
@@ -214,8 +242,13 @@ export function FundraiserAddItemsForm({
 										{item.description}
 									</p>
 									<p className="text-sm font-medium mt-2">
-										${Number(item.price).toFixed(2)}
+										Price: ${Number(item.price).toFixed(2)}
 									</p>
+									{item.profit !== undefined && (
+										<p className="text-sm text-gray-400 mt-1">
+											Profit: ${Number(item.profit).toFixed(2)}
+										</p>
+									)}
 								</div>
 								<Button
 									variant="ghost"

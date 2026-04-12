@@ -112,6 +112,7 @@ export function ItemDialog({
 				name: item.name,
 				description: item.description,
 				price: new Decimal(item.price),
+				profit: item.profit !== undefined ? new Decimal(item.profit) : null,
 				imageUrl: item.imageUrl,
 				offsale: false,
 				limit: item.limit ?? null,
@@ -155,6 +156,7 @@ export function ItemDialog({
 								name: item.name,
 								description: item.description,
 								price: item.price,
+								profit: item.profit,
 								imageUrl: item.imageUrl,
 								offsale: editingItem.offsale,
 								limit: item.limit !== undefined ? item.limit : null,
@@ -175,6 +177,7 @@ export function ItemDialog({
 				name: item.name,
 				description: item.description,
 				price: new Decimal(item.price),
+				profit: item.profit !== undefined ? new Decimal(item.profit) : null,
 				imageUrl: item.imageUrl,
 				limit: item.limit !== undefined ? item.limit : null,
 			};
@@ -299,6 +302,32 @@ export function ItemDialog({
 												onChange={(e) => {
 													const numericValue = parseFloat(e.target.value) || 0;
 													field.onChange(numericValue);
+												}}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={form.control}
+								name="profit"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Profit (Optional)</FormLabel>
+										<FormControl>
+											<Input
+												type="number"
+												step="0.01"
+												placeholder="0.00"
+												value={field.value?.toString() ?? ""}
+												onChange={(e) => {
+													if (e.target.value === "") {
+														field.onChange(undefined);
+													} else {
+														field.onChange(parseFloat(e.target.value) || 0);
+													}
 												}}
 											/>
 										</FormControl>
