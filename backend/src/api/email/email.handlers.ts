@@ -7,11 +7,38 @@ import {
   parseVerifiedVenmoEmail,
   updateOrderPaymentStatus,
 } from "./email.services";
+import { sendEmail } from "../../utils/email";
+
+const ON_CALL_EMAIL = process.env.ON_CALL_EMAIL;
+
+async function forwardToOnCall(options: {
+  reason: string;
+  subject: string | undefined;
+  bodyHtml: string | undefined;
+  bodyPlain: string | undefined;
+}) {
+  if (!ON_CALL_EMAIL) {
+    console.warn("ON_CALL_EMAIL not set; skipping on-call forward");
+    return;
+  }
+  try {
+    await sendEmail({
+      to: ON_CALL_EMAIL,
+      subject: `[CURaise] Gmail forwarding auto-confirm ${options.reason}: ${options.subject ?? "(no subject)"}`,
+      text: options.bodyPlain,
+      html: options.bodyHtml,
+    });
+  } catch (err) {
+    console.error("Failed to forward auto-confirm failure to on-call:", err);
+  }
+}
+
+type ConfirmResult = "confirmed" | "not-found" | "failed";
 
 async function autoConfirmForwarding(
   bodyHtml: string | undefined,
   bodyPlain: string | undefined
-): Promise<boolean> {
+): Promise<ConfirmResult> {
   const confirmUrlPattern = /https:\/\/mail\.google\.com\/mail\/vf-[^\s"<>]+/;
 
   // Try HTML first
@@ -22,8 +49,12 @@ async function autoConfirmForwarding(
       const url = links.first().attr("href");
       if (url) {
         const response = await fetch(url, { method: "POST" });
+        if (!response.ok) {
+          console.warn(`Forwarding confirmation POST failed: ${url} (status: ${response.status})`);
+          return "failed";
+        }
         console.log(`Forwarding confirmed via HTML link: ${url} (status: ${response.status})`);
-        return true;
+        return "confirmed";
       }
     }
   }
@@ -34,11 +65,15 @@ async function autoConfirmForwarding(
   if (match) {
     const url = match[0];
     const response = await fetch(url, { method: "POST" });
+    if (!response.ok) {
+      console.warn(`Forwarding confirmation POST failed: ${url} (status: ${response.status})`);
+      return "failed";
+    }
     console.log(`Forwarding confirmed via text link: ${url} (status: ${response.status})`);
-    return true;
+    return "confirmed";
   }
 
-  return false;
+  return "not-found";
 }
 
 export const parseEmailHandler = async (
@@ -61,15 +96,20 @@ export const parseEmailHandler = async (
     // Auto-confirm Gmail forwarding requests
     if (from.includes("forwarding-noreply@google.com")) {
       try {
-        const confirmed = await autoConfirmForwarding(bodyHtml, bodyPlain);
-        if (confirmed) {
+        const result = await autoConfirmForwarding(bodyHtml, bodyPlain);
+        if (result === "confirmed") {
           res.status(200).json({ message: "forwarding confirmed" });
+        } else if (result === "failed") {
+          await forwardToOnCall({ reason: "POST failed", subject, bodyHtml, bodyPlain });
+          res.status(200).json({ message: "forwarding confirmation failed" });
         } else {
           console.warn("Gmail forwarding email received but no confirmation URL found");
+          await forwardToOnCall({ reason: "no confirmation URL", subject, bodyHtml, bodyPlain });
           res.status(200).json({ message: "no confirmation url found" });
         }
       } catch (err) {
         console.error("Failed to auto-confirm forwarding:", err);
+        await forwardToOnCall({ reason: "exception", subject, bodyHtml, bodyPlain });
         res.status(200).json({ message: "forwarding confirmation failed" });
       }
       return;
