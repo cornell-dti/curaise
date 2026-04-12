@@ -28,14 +28,15 @@ const VenmoFormSchema = CreateFundraiserBody.pick({
   venmoLastFourDigits: true,
 }).refine(
   (data) => {
-    const hasVenmo = data.venmoUsername || data.venmoEmail;
-    const hasBoth = data.venmoUsername && data.venmoEmail;
-    return !hasVenmo || hasBoth;
+    const hasVenmo =
+      data.venmoUsername || data.venmoEmail || data.venmoLastFourDigits;
+    const hasAll =
+      data.venmoUsername && data.venmoEmail && data.venmoLastFourDigits;
+    return !hasVenmo || hasAll;
   },
   {
-    message:
-      "Both Venmo username and email must be provided together, or both must be empty",
-    path: ["venmoUsername", "venmoEmail"],
+    message: "All Venmo fields must be provided together, or all must be empty",
+    path: ["venmoUsername", "venmoEmail", "venmoLastFourDigits"],
   },
 );
 
@@ -61,8 +62,8 @@ export function FundraiserVenmoInfoForm({
       <CardHeader>
         <CardTitle>Venmo Information</CardTitle>
         <CardDescription>
-          Add the Venmo email and username of the organizer who the buyers will
-          be paying to.
+          Add the Venmo email, username, and last four digits of the organizer
+          who the buyers will be paying to.
         </CardDescription>
       </CardHeader>
 
@@ -122,7 +123,7 @@ export function FundraiserVenmoInfoForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Venmo Last Four Digits (For Verification)
+                    Venmo Phone Number Last Four Digits (For Verification)
                   </FormLabel>
                   <FormControl>
                     <Input
