@@ -183,7 +183,11 @@ export default async function OrderPage({
         </div>
         <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-sm text-gray-800">
           <span>
-            Ordered on <LocalDate date={order.createdAt} formatStr="MMM d, yyyy 'at' h:mm a" />
+            Ordered on{" "}
+            <LocalDate
+              date={order.createdAt}
+              formatStr="MMM d, yyyy 'at' h:mm a"
+            />
           </span>
           <span className="hidden md:inline">|</span>
           <span>Order Id: {order.id}</span>
@@ -226,7 +230,7 @@ export default async function OrderPage({
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="flex flex-col items-center gap-2">
+                    <div className="flex flex-row items-center gap-2">
                       <Button
                         size="lg"
                         asChild
@@ -271,6 +275,15 @@ export default async function OrderPage({
                         label="Copy Link"
                         variant="outline"
                       />
+                    </div>
+
+                    <div className="rounded-md border bg-muted/50 px-3 py-2 text-md">
+                      <span className="text-muted-foreground">
+                        Last 4 digits of seller's phone:{" "}
+                      </span>
+                      <span className="font-mono font-semibold">
+                        {fundraiser.venmoLastFourDigits}
+                      </span>
                     </div>
 
                     {/* Show payment details */}
@@ -345,8 +358,11 @@ export default async function OrderPage({
                       <span className="text-sm">
                         <span className="font-medium">{event.location}</span>
                         <br />
-                        <LocalDate date={event.startsAt} formatStr="h:mm a" /> to{" "}
-                        <LocalDate date={event.endsAt} formatStr="h:mm a" />
+                        <LocalDate
+                          date={event.startsAt}
+                          formatStr="h:mm a"
+                        />{" "}
+                        to <LocalDate date={event.endsAt} formatStr="h:mm a" />
                       </span>
                     </div>
                   ))}
