@@ -77,7 +77,7 @@ The backend follows a **modular router pattern** with consistent file organizati
   └── index.ts              # Module exports
 ```
 
-**Current modules**: email, fundraiser, order, organization, referral, user
+**Current modules**: admin, email, fundraiser, order, organization, referral, user
 
 **Request flow**:
 1. Route matched in router
