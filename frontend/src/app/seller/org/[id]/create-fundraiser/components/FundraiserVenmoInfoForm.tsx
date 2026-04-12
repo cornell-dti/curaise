@@ -104,8 +104,8 @@ export function FundraiserVenmoInfoForm({
                 <FormItem>
                   <FormLabel>Venmo Email</FormLabel>
                   <FormDescription>
-                    This is your Venmo account's email address, not necessarily
-                    your Cornell email address!
+                    This is your Venmo account&apos;s email address, not
+                    necessarily your Cornell email address!
                   </FormDescription>
                   <FormControl>
                     <Input
