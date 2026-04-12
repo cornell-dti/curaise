@@ -24,6 +24,7 @@ export const DEFAULT_ITEM_VALUES = {
 	name: "",
 	description: "",
 	price: 0,
+	profit: undefined,
 	imageUrl: undefined,
 	offsale: false,
 	limit: undefined,
@@ -78,6 +79,7 @@ export function FundraiserEditItemsForm({
 			name: item.name,
 			description: item.description,
 			price: item.price,
+			profit: item.profit ?? undefined,
 			imageUrl: item.imageUrl ?? undefined,
 			offsale: item.offsale,
 			limit: item.limit ?? undefined,
@@ -158,8 +160,13 @@ export function FundraiserEditItemsForm({
 									</p>
 									<div className="flex items-center gap-3 mt-2">
 										<p className="text-sm font-medium">
-											${Number(item.price).toFixed(2)}
+											Price: ${Number(item.price).toFixed(2)}
 										</p>
+										{item.profit != null && (
+											<p className="text-sm text-gray-400">
+												Profit: ${Number(item.profit).toFixed(2)}
+											</p>
+										)}
 										{item.limit != null && (
 											<p className="text-sm text-gray-500">
 												Cap: {item.limit}

@@ -44,7 +44,8 @@ export function RealtimeAnalyticsWrapper({
   goalAmount,
   items,
 }: RealtimeAnalyticsWrapperProps) {
-  const [analytics, setAnalytics] = useState<FundraiserAnalytics>(initialAnalytics);
+  const [analytics, setAnalytics] =
+    useState<FundraiserAnalytics>(initialAnalytics);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const supabase = useMemo(() => createClient(), []);
 
@@ -61,11 +62,14 @@ export function RealtimeAnalyticsWrapper({
               Authorization: `Bearer ${token}`,
             },
           }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/orders`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
+          fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/orders`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
             },
-          }),
+          ),
         ]);
 
         const [analyticsResult, ordersResult] = await Promise.all([
@@ -76,15 +80,23 @@ export function RealtimeAnalyticsWrapper({
         if (analyticsResponse.ok) {
           setAnalytics(analyticsResult.data);
         } else {
-          console.error("Failed to refetch analytics:", analyticsResult.message);
+          console.error(
+            "Failed to refetch analytics:",
+            analyticsResult.message,
+          );
         }
 
         if (ordersResponse.ok) {
-          const parsedOrders = z.array(CompleteOrderSchema).safeParse(ordersResult.data);
+          const parsedOrders = z
+            .array(CompleteOrderSchema)
+            .safeParse(ordersResult.data);
           if (parsedOrders.success) {
             setOrders(parsedOrders.data);
           } else {
-            console.error("Failed to parse refreshed orders:", parsedOrders.error);
+            console.error(
+              "Failed to parse refreshed orders:",
+              parsedOrders.error,
+            );
           }
         } else {
           console.error("Failed to refetch orders:", ordersResult.message);
@@ -95,7 +107,7 @@ export function RealtimeAnalyticsWrapper({
     };
 
     const belongsToFundraiser = (
-      row: { fundraiser_id?: string } | null | undefined
+      row: { fundraiser_id?: string } | null | undefined,
     ) => row?.fundraiser_id === fundraiserId;
 
     let isCancelled = false;
@@ -123,7 +135,7 @@ export function RealtimeAnalyticsWrapper({
           },
           () => {
             refetchData(true);
-          }
+          },
         )
         .on(
           "postgres_changes",
@@ -135,16 +147,16 @@ export function RealtimeAnalyticsWrapper({
           (payload) => {
             if (
               !belongsToFundraiser(
-                payload.new as { fundraiser_id?: string } | null | undefined
+                payload.new as { fundraiser_id?: string } | null | undefined,
               ) &&
               !belongsToFundraiser(
-                payload.old as { fundraiser_id?: string } | null | undefined
+                payload.old as { fundraiser_id?: string } | null | undefined,
               )
             ) {
               return;
             }
             refetchData(true);
-          }
+          },
         )
         .on(
           "postgres_changes",
@@ -156,13 +168,13 @@ export function RealtimeAnalyticsWrapper({
           (payload) => {
             if (
               !belongsToFundraiser(
-                payload.old as { fundraiser_id?: string } | null | undefined
+                payload.old as { fundraiser_id?: string } | null | undefined,
               )
             ) {
               return;
             }
             refetchData(true);
-          }
+          },
         )
         .subscribe();
 
@@ -241,7 +253,7 @@ export function RealtimeAnalyticsWrapper({
             <Goal className="shrink-0" />
             Profit Goal
             <InfoTooltip
-              content="Profit is estimated using a 20% profit margin."
+              content="Profit is based on each item's profit margin and only accounts for paid/picked-up orders."
               size={18}
             />
           </div>
@@ -277,10 +289,7 @@ export function RealtimeAnalyticsWrapper({
               size={18}
             />
           </div>
-          <ItemsSoldCard
-            items={items}
-            orders={orders}
-          />
+          <ItemsSoldCard items={items} orders={orders} />
         </div>
       </div>
     </div>

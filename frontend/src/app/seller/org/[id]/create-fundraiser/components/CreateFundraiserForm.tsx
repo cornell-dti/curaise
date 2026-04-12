@@ -63,6 +63,7 @@ export function CreateFundraiserForm({
 		organizationId: organizationId,
 		venmoEmail: "",
 		venmoUsername: "",
+		venmoLastFourDigits: "",
 	});
 
 	// State for pickup events list

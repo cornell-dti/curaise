@@ -5,7 +5,6 @@ import { calculateOrderTotal } from "../order/order.services";
 
 export const parseUnverifiedVenmoEmail = (raw: string) => {
   let parsedAmount: Decimal | null = null;
-  let orderId: string | null = null;
 
   const $ = load(raw);
   const amount = $('span[style="color:#148572;float:right;"]').text().trim();
@@ -17,12 +16,14 @@ export const parseUnverifiedVenmoEmail = (raw: string) => {
     parsedAmount = null;
     throw new Error("Failed to parse payment amount");
   }
-  orderId = $('table[role="presentation"] tbody tr div p').text().trim();
-  if (!orderId) {
+  const transactionNote = $('table[role="presentation"] tbody tr div p')
+    .text()
+    .trim();
+  if (!transactionNote) {
     throw new Error("Failed to parse venmo message for retreiving orderId");
   }
 
-  return { parsedAmount: parsedAmount, orderId: orderId };
+  return { parsedAmount, transactionNote };
 };
 
 export const parseVerifiedVenmoEmail = (raw: string) => {
@@ -34,7 +35,11 @@ export const parseVerifiedVenmoEmail = (raw: string) => {
     $("div.amount-container__amount-text").text().trim() || "0"; // "5"
   const centAmount =
     $("div.amount-container__text-high").eq(1).text().trim() || "00"; // "01"
-  const transactionNote = $("p.transaction-note").text().trim() || "NO NOTE"; // "4a1s"
+  const transactionNote = $("p.transaction-note").text().trim(); // "4a1s"
+
+  if (!transactionNote) {
+    throw new Error("Failed to parse venmo message for retreiving orderId");
+  }
 
   // Convert to integers
   const dollarAmountInt = parseInt(dollarAmount, 10);
@@ -42,7 +47,7 @@ export const parseVerifiedVenmoEmail = (raw: string) => {
 
   // Convert to Decimal.js value
   const parsedAmount = new Decimal(dollarAmountInt).plus(
-    new Decimal(centAmountInt).dividedBy(100)
+    new Decimal(centAmountInt).dividedBy(100),
   );
 
   // Validate parsed amount
@@ -50,12 +55,12 @@ export const parseVerifiedVenmoEmail = (raw: string) => {
     throw new Error("Failed to parse payment amount");
   }
 
-  return { parsedAmount, orderId: transactionNote };
+  return { parsedAmount, transactionNote };
 };
 
 export const updateOrderPaymentStatus = async (
   orderId: string,
-  paidAmount: Decimal
+  paidAmount: Decimal,
 ) => {
   try {
     // Calculate expected order total
@@ -70,8 +75,8 @@ export const updateOrderPaymentStatus = async (
 
       throw new Error(
         `Payment amount mismatch: expected $${expectedAmount.toFixed(
-          2
-        )}, received $${paidAmount.toFixed(2)}`
+          2,
+        )}, received $${paidAmount.toFixed(2)}`,
       );
     }
 
@@ -91,7 +96,7 @@ export const updateOrderPaymentStatus = async (
     throw new Error(
       `Failed to update order payment status: ${
         error instanceof Error ? error.message : "Unknown error"
-      }`
+      }`,
     );
   }
 };

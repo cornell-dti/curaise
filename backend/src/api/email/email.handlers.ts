@@ -10,7 +10,7 @@ import {
 
 export const parseEmailHandler = async (
   req: Request<{}, any, MailgunInboundEmailBody, {}>,
-  res: Response
+  res: Response,
 ) => {
   try {
     const {
@@ -54,20 +54,37 @@ export const parseEmailHandler = async (
     let parsedAmount: Decimal;
     let orderId: string;
     try {
+      let transactionNote: string;
+
       if (isVerifiedFormat) {
         const result = parseVerifiedVenmoEmail(emailContent);
         parsedAmount = result.parsedAmount;
-        orderId = result.orderId;
+        transactionNote = result.transactionNote;
       } else {
         const result = parseUnverifiedVenmoEmail(emailContent);
         parsedAmount = result.parsedAmount;
-        orderId = result.orderId;
+        transactionNote = result.transactionNote;
       }
-      if (!orderId || parsedAmount == null) {
+      if (!transactionNote || parsedAmount == null) {
         // Parse failed—do not retry
         res.status(200).json({ message: "parsed incomplete" });
         return;
       }
+
+      // Extract UUID from the parsed text (order ID may be a substring of the note)
+      const uuidMatch = transactionNote.match(
+        /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i,
+      );
+      if (!uuidMatch) {
+        console.error("No order ID found in parsed text:", {
+          transactionNote,
+          subject,
+        });
+        res.status(200).json({ message: "no order id found" });
+        return;
+      }
+
+      orderId = uuidMatch[0];
     } catch (err) {
       console.error("Failed to parse Venmo email:", err, { subject });
       res.status(200).json({ message: "parse error" });

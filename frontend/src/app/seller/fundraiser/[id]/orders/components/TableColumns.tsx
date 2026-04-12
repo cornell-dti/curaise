@@ -412,6 +412,40 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
     },
   },
   {
+    accessorKey: "orderProfit",
+    accessorFn: (row) => {
+      return row.items.reduce(
+        (total, item) =>
+          total + (item.item.profit ? Number(item.item.profit) * item.quantity : 0),
+        0,
+      );
+    },
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="flex justify-center w-full px-2"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Profit
+          <ArrowUpDown className="ml-1 h-3 w-3" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const profit = row.original.items.reduce(
+        (total, item) =>
+          total + (item.item.profit ? Number(item.item.profit) * item.quantity : 0),
+        0,
+      );
+      return (
+        <div className="flex items-center justify-center">
+          ${profit.toFixed(2)}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "paymentMethod",
     header: ({ column }) => {
       return (
