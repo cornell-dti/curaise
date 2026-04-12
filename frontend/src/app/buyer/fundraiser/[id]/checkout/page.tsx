@@ -10,18 +10,18 @@ export default async function CheckoutPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ code?: string }>;
+  searchParams: Promise<{ referrer?: string }>;
 }) {
   await connection();
 
   const supabase = await createClient();
 
   const id = (await params).id;
-  const { code } = await searchParams;
+  const { referrer } = await searchParams;
 
   const nextPath =
-    typeof code === "string" && code.length > 0
-      ? `/buyer/fundraiser/${id}/checkout?code=${encodeURIComponent(code)}`
+    typeof referrer === "string" && referrer.length > 0
+      ? `/buyer/fundraiser/${id}/checkout?referrer=${encodeURIComponent(referrer)}`
       : `/buyer/fundraiser/${id}/checkout`;
 
   // protect page (must use supabase.auth.getUser() according to docs)
@@ -60,7 +60,7 @@ export default async function CheckoutPage({
         fundraiser={fundraiser}
         token={session.access_token}
         userProfile={userProfile}
-        code={code ? code : ""}
+        referrer={referrer ? referrer : ""}
       />
     </div>
   );

@@ -16,7 +16,7 @@ import { noAuthFetcher } from "@/lib/fetcher";
 import Decimal from "decimal.js";
 import Image from "next/image";
 
-export function CartForm({ code }: { code: string }) {
+export function CartForm({ referrer }: { referrer: string }) {
   const router = useRouter();
   const params = useParams();
   const fundraiserId = params.id as string;
@@ -59,7 +59,9 @@ export function CartForm({ code }: { code: string }) {
     const removals: string[] = [];
 
     cart.forEach((cartItem) => {
-      const availabilityItem = items.find((item) => item.id === cartItem.item.id);
+      const availabilityItem = items.find(
+        (item) => item.id === cartItem.item.id,
+      );
 
       if (!availabilityItem || availabilityItem.offsale) {
         removeItem(fundraiserId, cartItem.item);
@@ -117,13 +119,17 @@ export function CartForm({ code }: { code: string }) {
   const handleIncrement = (item: typeof CompleteItemSchema._type) => {
     const cartItem = cartWithImages.find((ci) => ci.item.id === item.id);
     if (cartItem) {
-      const availabilityItem = items?.find((availability) => availability.id === item.id);
+      const availabilityItem = items?.find(
+        (availability) => availability.id === item.id,
+      );
       if (
         availabilityItem?.available !== null &&
         availabilityItem?.available !== undefined &&
         cartItem.quantity + 1 > availabilityItem.available
       ) {
-        toast.error(`Only ${availabilityItem.available} available for ${item.name}`);
+        toast.error(
+          `Only ${availabilityItem.available} available for ${item.name}`,
+        );
         return;
       }
       updateQuantity(fundraiserId, item, cartItem.quantity + 1);
@@ -142,8 +148,8 @@ export function CartForm({ code }: { code: string }) {
   };
 
   const handleCheckout = async () => {
-    const nextCheckoutPath = code
-      ? `/buyer/fundraiser/${fundraiserId}/checkout?code=${code}`
+    const nextCheckoutPath = referrer
+      ? `/buyer/fundraiser/${fundraiserId}/checkout?referrer=${referrer}`
       : `/buyer/fundraiser/${fundraiserId}/checkout`;
 
     // Check if user is already authenticated

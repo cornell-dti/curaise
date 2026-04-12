@@ -44,10 +44,10 @@ export function FundraiserCartSidebar({
     // will auto-start Google sign-in and return to the checkout page
     const nextPath = isMobile
       ? referralId
-        ? `/buyer/fundraiser/${fundraiserId}/cart?code=${referralId}`
+        ? `/buyer/fundraiser/${fundraiserId}/cart?referrer=${referralId}`
         : `/buyer/fundraiser/${fundraiserId}/cart`
       : referralId
-        ? `/buyer/fundraiser/${fundraiserId}/checkout?code=${referralId}`
+        ? `/buyer/fundraiser/${fundraiserId}/checkout?referrer=${referralId}`
         : `/buyer/fundraiser/${fundraiserId}/checkout`;
 
     router.push(`/login?next=${encodeURIComponent(nextPath)}`);

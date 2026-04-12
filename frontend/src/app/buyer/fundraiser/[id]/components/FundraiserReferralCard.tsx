@@ -42,7 +42,7 @@ export function FundraiserReferralCard({
   const [href, setHref] = useState("#");
 
   useEffect(() => {
-    setHref(`${window.location.origin}${pathname}?code=${referralId}`);
+    setHref(`${window.location.origin}${pathname}?referrer=${referralId}`);
   }, [pathname, referralId]);
   const [link, setLink] = useState("");
 
@@ -69,7 +69,7 @@ export function FundraiserReferralCard({
 
   useEffect(() => {
     if (referralId) {
-      setLink(`${window.location.origin}${pathname}?code=${referralId}`);
+      setLink(`${window.location.origin}${pathname}?referrer=${referralId}`);
     }
   }, [pathname, referralId]);
 
@@ -156,7 +156,7 @@ function ReferralModal({
         <div className="pb-3 flex items-center justify-between gap-2">
           <span className="p-1 pl-2 flex-1 flex flex-row gap-2 items-center border border-muted-foreground rounded-sm text-xs md:text-sm">
             <Link className="max-w-5 min-w-5" />
-            fundraiser/{link.match(/code=([^&]+)/)?.[1]}
+            fundraiser/{link.match(/referrer=([^&]+)/)?.[1]}
           </span>
           <Button
             className="cursor-pointer font-light text-xs md:text-md"

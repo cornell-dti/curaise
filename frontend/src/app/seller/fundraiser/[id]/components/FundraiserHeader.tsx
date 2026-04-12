@@ -5,6 +5,7 @@ import {
   CompleteFundraiserSchema,
   CompleteItemSchema,
   PickupEventSchema,
+  ReferralSchema,
 } from "common";
 import { Calendar, MapPin } from "lucide-react";
 import { format } from "date-fns";
@@ -22,10 +23,12 @@ export function FundraiserHeader({
   token,
   fundraiser,
   fundraiserItems,
+  referrals,
 }: {
   token: string;
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
   fundraiserItems: z.infer<typeof CompleteItemSchema>[];
+  referrals: z.infer<typeof ReferralSchema>[];
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
@@ -37,7 +40,7 @@ export function FundraiserHeader({
   };
   // Sort pickup events by start time and group by day
   const sortedEvents = [...fundraiser.pickupEvents].sort(
-    (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
+    (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
   );
 
   // Group events by their date (using formatted date string as key for grouping)
@@ -61,7 +64,7 @@ export function FundraiserHeader({
       toast.success("Fundraiser published successfully");
     } catch (error) {
       toast.error(
-        `Failed to publish fundraiser: ${error instanceof Error ? error.message : "Unknown error"}`
+        `Failed to publish fundraiser: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
       setIsSubmitting(false);
     }
@@ -80,6 +83,7 @@ export function FundraiserHeader({
       <ReferralApprovalModal
         fundraiser={fundraiser}
         token={token}
+        referrals={referrals}
         open={openReferral}
         setOpen={setOpenReferral}
       />
@@ -104,7 +108,7 @@ export function FundraiserHeader({
                 Edit
               </Button>
               <ReferralButton
-                fundraiser={fundraiser}
+                referrals={referrals}
                 onClick={() => setOpenReferral(true)}
               />
             </div>
@@ -150,7 +154,7 @@ export function FundraiserHeader({
                       </div>
                     </div>
                   </div>
-                )
+                ),
               )}
             </div>
           </CardContent>
