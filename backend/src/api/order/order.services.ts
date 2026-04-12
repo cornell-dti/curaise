@@ -12,7 +12,7 @@ import { Decimal } from "decimal.js";
 const getConfirmedCountsByItem = async (
   tx: Prisma.TransactionClient,
   itemIds: string[],
-  excludeOrderId?: string
+  excludeOrderId?: string,
 ) => {
   if (itemIds.length === 0) {
     return new Map<string, number>();
@@ -46,7 +46,7 @@ const getConfirmedCountsByItem = async (
 const mergeRequestedItemsByItemId = <
   T extends { itemId: string; quantity: number },
 >(
-  requestedItems: T[]
+  requestedItems: T[],
 ): T[] => {
   const requestedItemsById = new Map<string, number>();
 
@@ -54,7 +54,7 @@ const mergeRequestedItemsByItemId = <
     requestedItemsById.set(
       requestedItem.itemId,
       (requestedItemsById.get(requestedItem.itemId) ?? 0) +
-        requestedItem.quantity
+        requestedItem.quantity,
     );
   });
 
@@ -67,7 +67,7 @@ const mergeRequestedItemsByItemId = <
 const assertInventoryAvailable = async (
   tx: Prisma.TransactionClient,
   requestedItems: { itemId: string; quantity: number }[],
-  excludeOrderId?: string
+  excludeOrderId?: string,
 ) => {
   const mergedRequestedItems = mergeRequestedItemsByItemId(requestedItems);
   const itemIds = mergedRequestedItems.map((item) => item.itemId);
@@ -78,7 +78,7 @@ const assertInventoryAvailable = async (
   const confirmedCounts = await getConfirmedCountsByItem(
     tx,
     itemIds,
-    excludeOrderId
+    excludeOrderId,
   );
 
   for (const orderItem of mergedRequestedItems) {
@@ -96,7 +96,7 @@ const assertInventoryAvailable = async (
     if (newTotal > item.limit) {
       const available = Math.max(0, item.limit - confirmedCount);
       throw new Error(
-        `Insufficient stock for ${item.name}. Available: ${available}, Requested: ${orderItem.quantity}`
+        `Insufficient stock for ${item.name}. Available: ${available}, Requested: ${orderItem.quantity}`,
       );
     }
   }
@@ -173,6 +173,7 @@ export const getOrder = async (orderId: string) => {
               price: true,
               imageUrl: true,
               offsale: true,
+              profit: true,
             },
           },
         },
@@ -259,7 +260,7 @@ export const createOrder = async (
         },
       });
     },
-    { isolationLevel: "Serializable" }
+    { isolationLevel: "Serializable" },
   );
 
   // Update analytics cache outside transaction
@@ -300,7 +301,7 @@ export const completeOrderPickup = async (orderId: string) => {
             itemId: item.itemId,
             quantity: item.quantity,
           })),
-          orderId
+          orderId,
         );
       }
 
@@ -348,6 +349,7 @@ export const completeOrderPickup = async (orderId: string) => {
                   price: true,
                   imageUrl: true,
                   offsale: true,
+                  profit: true,
                 },
               },
             },
@@ -360,7 +362,7 @@ export const completeOrderPickup = async (orderId: string) => {
         },
       });
     },
-    { isolationLevel: "Serializable" }
+    { isolationLevel: "Serializable" },
   );
 
   // Update analytics cache for the fundraiser when an order is picked up, so pending order and picked up order counts are not stale
@@ -438,6 +440,7 @@ export const undoOrderPickup = async (orderId: string) => {
               price: true,
               imageUrl: true,
               offsale: true,
+              profit: true,
             },
           },
         },
@@ -485,7 +488,7 @@ export const confirmOrderPayment = async (orderId: string) => {
           itemId: item.itemId,
           quantity: item.quantity,
         })),
-        orderId
+        orderId,
       );
 
       return tx.order.update({
@@ -501,6 +504,7 @@ export const confirmOrderPayment = async (orderId: string) => {
                 select: {
                   name: true,
                   price: true,
+                  profit: true,
                 },
               },
             },
@@ -539,7 +543,7 @@ export const confirmOrderPayment = async (orderId: string) => {
         },
       });
     },
-    { isolationLevel: "Serializable" }
+    { isolationLevel: "Serializable" },
   );
 
   // Update analytics cache for the fundraiser when payment is confirmed
