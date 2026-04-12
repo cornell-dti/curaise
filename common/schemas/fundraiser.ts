@@ -2,6 +2,7 @@ import { z } from "zod";
 import { BasicOrganizationSchema } from "./organization";
 import { MoneySchema } from "./decimal";
 import { UserSchema } from "./user";
+import Decimal from "decimal.js";
 
 export const AnnouncementSchema = z.object({
   id: z.string().uuid(),
@@ -150,7 +151,7 @@ export const CreateFundraiserItemBody = z
       if (!data.profit) return true;
 
       // Using decimal.js comparison method
-      return data.profit.lessThanOrEqualTo(data.price);
+      return Decimal(data.profit).lessThanOrEqualTo(Decimal(data.price));
     },
     {
       message: "Profit cannot be greater than the total price",
@@ -174,7 +175,7 @@ export const UpdateFundraiserItemBody = z
       if (!data.profit) return true;
 
       // Using decimal.js comparison method
-      return data.profit.lessThanOrEqualTo(data.price);
+      return Decimal(data.profit).lessThanOrEqualTo(Decimal(data.price));
     },
     {
       message: "Profit cannot be greater than the total price",
