@@ -15,6 +15,7 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -102,6 +103,10 @@ export function FundraiserVenmoInfoForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Venmo Email</FormLabel>
+                  <FormDescription>
+                    This is your Venmo account's email address, not necessarily
+                    your Cornell email address!
+                  </FormDescription>
                   <FormControl>
                     <Input
                       placeholder="Venmo Email"
