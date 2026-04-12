@@ -28,6 +28,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/auth-actions";
 import { useState } from "react";
+import Image from "next/image";
 import TutorialModal from "./TutorialModal";
 import { CartDropdown } from "./CartDropdown";
 
@@ -85,43 +86,35 @@ export default function Navbar() {
     pathname.includes("/buyer/fundraiser/") && !pathname.includes("/checkout");
   const hideTopNavbarOnMobile = isFundraiserPage;
 
-  return (
-    <>
-      <header
-        className={`sticky top-0 z-50 w-full border-b bg-background ${
-          pathname.includes("/buyer/browse") && showSearchBar
-            ? "md:h-20"
-            : "h-16 md:h-20"
-        } ${hideTopNavbarOnMobile ? "hidden md:block" : ""}`}
-      >
-        <div
-          className={`relative flex items-center px-4 md:px-[157px] ${
-            pathname.includes("/buyer/browse") && showSearchBar
-              ? "h-0 md:h-20"
-              : "h-16 md:h-20"
-          }`}
-        >
-          {/* Logo - Desktop */}
-          <div className="hidden md:flex items-center flex-shrink-0">
-            <Link
-              href={isBuyer ? "/buyer" : "/seller"}
-              className="text-2xl font-bold"
-            >
-              CURaise
-            </Link>
-          </div>
+	return (
+		<>
+			<header
+				className={`sticky top-0 z-50 w-full border-b bg-background ${
+					pathname.includes("/buyer/browse") && showSearchBar
+						? "md:h-20"
+						: "h-16 md:h-20"
+				} ${hideTopNavbarOnMobile ? "hidden md:block" : ""}`}>
+				<div
+					className={`relative flex items-center px-4 md:px-[157px] ${
+						pathname.includes("/buyer/browse") && showSearchBar
+							? "h-0 md:h-20"
+							: "h-16 md:h-20"
+					}`}>
+					{/* Logo - Desktop */}
+					<div className="hidden md:flex items-center flex-shrink-0">
+						<Link href={isBuyer ? "/buyer" : "/seller"}>
+							<Image src="/images/curaise-logo.svg" alt="CURaise" width={347} height={117} className="h-12 w-auto" />
+						</Link>
+					</div>
 
-          {/* Logo - Mobile (centered) - Hidden on browse page and fundraiser pages */}
-          {!pathname.includes("/buyer/browse") && !isFundraiserPage && (
-            <div className="md:hidden flex items-center justify-center w-full">
-              <Link
-                href={isBuyer ? "/buyer" : "/seller"}
-                className="text-2xl font-bold"
-              >
-                CURaise
-              </Link>
-            </div>
-          )}
+					{/* Logo - Mobile (centered) - Hidden on browse page and fundraiser pages */}
+					{!pathname.includes("/buyer/browse") && !isFundraiserPage && (
+						<div className="md:hidden flex items-center justify-center w-full">
+							<Link href={isBuyer ? "/buyer" : "/seller"}>
+								<Image src="/images/curaise-logo.svg" alt="CURaise" width={347} height={117} className="h-10 w-auto" />
+							</Link>
+						</div>
+					)}
 
           {/* Mobile Search Bar - Top - Full width */}
           {showSearchBar && (

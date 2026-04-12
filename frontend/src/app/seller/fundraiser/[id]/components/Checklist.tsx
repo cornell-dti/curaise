@@ -143,11 +143,13 @@ export default function ListPage({
   fundraiserItems,
   onAction,
   publish,
+  isSubmitting,
 }: {
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
   fundraiserItems: z.infer<typeof CompleteItemSchema>[];
   onAction: (step: number) => void;
   publish: () => void;
+  isSubmitting: boolean;
 }) {
   const checkListData = getChecklistStatus(fundraiser, fundraiserItems);
   const [selectedItem, setSelectedItem] = useState<ListItem | null>(
@@ -237,6 +239,7 @@ export default function ListPage({
                 <Button
                   onClick={publish}
                   className="bg-[#265B34] hover:bg-[#1f4a2b]"
+                  disabled={isSubmitting}
                 >
                   Publish Fundraiser
                 </Button>

@@ -30,6 +30,7 @@ export function FundraiserHeader({
   fundraiserItems: z.infer<typeof CompleteItemSchema>[];
   referrals: z.infer<typeof ReferralSchema>[];
 }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [openReferral, setOpenReferral] = useState(false);
   const [step, setStep] = useState(0);
@@ -55,6 +56,9 @@ export function FundraiserHeader({
   }, {});
 
   async function onPublish() {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     try {
       await mutationFetch(`/fundraiser/${fundraiser.id}/publish`, { token });
       toast.success("Fundraiser published successfully");
@@ -62,6 +66,7 @@ export function FundraiserHeader({
       toast.error(
         `Failed to publish fundraiser: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
+      setIsSubmitting(false);
     }
   }
 
@@ -84,10 +89,10 @@ export function FundraiserHeader({
       />
 
       <div>
-        <div className="w-full flex justify-between">
+        <div className="w-full flex flex-wrap justify-between gap-3">
           <h1 className="text-[32px] font-semibold">{fundraiser.name}</h1>
           <div className="flex flex-col gap-3 items-end">
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               <Link href={`/buyer/fundraiser/${fundraiser.id}?preview=true`}>
                 <Button className="w-[100px] bg-[#265B34] text-white hover:bg-[#1f4a2b]">
                   Preview
@@ -171,6 +176,7 @@ export function FundraiserHeader({
               fundraiserItems={fundraiserItems}
               onAction={openStepAt}
               publish={onPublish}
+              isSubmitting={isSubmitting}
             />
           </div>
         )}

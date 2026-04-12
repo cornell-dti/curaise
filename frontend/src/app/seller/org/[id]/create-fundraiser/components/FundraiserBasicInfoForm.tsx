@@ -57,10 +57,12 @@ export function FundraiserBasicInfoForm({
   defaultValues,
   onNext,
   onSave,
+  isSubmitting,
 }: {
   defaultValues: z.infer<typeof BasicInformationSchema>;
   onNext: (data: z.infer<typeof BasicInformationSchema>) => void;
   onSave: (data: z.infer<typeof BasicInformationSchema>) => void;
+  isSubmitting: boolean;
 }) {
   const form = useForm<z.infer<typeof BasicInformationSchema>>({
     resolver: zodResolver(BasicInformationSchema),
@@ -201,8 +203,9 @@ export function FundraiserBasicInfoForm({
             <Button
               onClick={form.handleSubmit(onSave)}
               className="text-[#333F37] border border-current bg-transparent hover:bg-[#e6f0ea]"
+              disabled={isSubmitting}
             >
-              Save
+              {isSubmitting ? "Processing..." : "Save"}
             </Button>
             <Button type="submit">Next</Button>
           </CardFooter>

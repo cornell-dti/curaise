@@ -74,6 +74,8 @@ export function ReferralApprovalModal({
   useEffect(() => {
     setUnapprovedReferrers(referrals.filter((ref) => !ref.approved));
   }, [referrals]);
+  
+  const [loadingId, setLoadingId] = useState<string | null>(null);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -98,7 +100,10 @@ export function ReferralApprovalModal({
                       <span>{referral.referrer.name}</span>
                       <span className="flex gap-2 items-center">
                         <Button
+                          disabled={loadingId === referral.id}
                           onClick={async () => {
+                            if (loadingId) return;
+                            setLoadingId(referral.id);
                             await approveReferrer(
                               fundraiser.id,
                               referral.id,
@@ -107,6 +112,7 @@ export function ReferralApprovalModal({
                             setUnapprovedReferrers((prev) =>
                               prev.filter((ref) => ref.id !== referral.id),
                             );
+                            setLoadingId(null);
                           }}
                           className="text-[#265B34] border border-current bg-transparent hover:bg-[#e6f0ea]"
                         >
@@ -114,7 +120,10 @@ export function ReferralApprovalModal({
                         </Button>
                         <Button
                           variant="ghost"
+                          disabled={loadingId === referral.id}
                           onClick={async () => {
+                            if (loadingId) return;
+                            setLoadingId(referral.id);
                             await deleteReferrer(
                               fundraiser.id,
                               referral.id,
@@ -123,6 +132,7 @@ export function ReferralApprovalModal({
                             setUnapprovedReferrers((prev) =>
                               prev.filter((ref) => ref.id !== referral.id),
                             );
+                            setLoadingId(null);
                           }}
                           className="text-[#f74545] bg-transparent hover:bg-[#fdeaea] hover:text-[#f74545]"
                         >
