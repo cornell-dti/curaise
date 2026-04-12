@@ -89,6 +89,18 @@ export function ReviewFundraiserForm({
                 {formData.venmoEmail || "Not provided"}
               </p>
             </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">
+                Venmo Last Four Digits
+              </p>
+              <p
+                className={
+                  !formData.venmoLastFourDigits ? "text-muted-foreground" : ""
+                }
+              >
+                {formData.venmoLastFourDigits || "Not provided"}
+              </p>
+            </div>
           </div>
         </div>
 
