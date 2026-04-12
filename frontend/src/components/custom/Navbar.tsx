@@ -133,8 +133,8 @@ export default function Navbar() {
 					<div className="hidden md:flex ml-auto gap-4 flex-shrink-0">
 						{showSearchBar ? (
 							<>
-								{/* Dropdown menu for small/medium screens only */}
-								<div className="xl:hidden">
+								{/* Dropdown menu for small screens only */}
+								<div className="md:hidden">
 									<DropdownMenu>
 										<DropdownMenuTrigger asChild>
 											<Button
@@ -185,8 +185,8 @@ export default function Navbar() {
 										</DropdownMenuContent>
 									</DropdownMenu>
 								</div>
-								{/* Full navigation for XL screens and up */}
-								<div className="hidden xl:flex items-center">
+								{/* Full navigation for medium screens and up */}
+								<div className="hidden md:flex items-center">
 									<NavigationMenu>
 										<NavigationMenuList>
 											<>
@@ -216,7 +216,7 @@ export default function Navbar() {
 								</div>
 							</>
 						) : (
-							<div className="hidden xl:flex items-center">
+							<div className="hidden md:flex items-center">
 								<NavigationMenu>
 									<NavigationMenuList>
 										<>
