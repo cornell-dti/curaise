@@ -6,6 +6,7 @@
 - Frank Dai (Developer)
 - Eddie Hu (Developer)
 - Olivia Lee (Designer)
+- William Chen (Designer)
 - Chelsea She (Developer)
 - Arsh Singh (TPM)
 - Eric Weng (Developer)
