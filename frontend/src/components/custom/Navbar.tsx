@@ -9,7 +9,14 @@ import {
 } from "@/components/ui/navigation-menu";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Store, Package, Menu, BookOpen } from "lucide-react";
+import {
+	Store,
+	Package,
+	Menu,
+	BookOpen,
+	Search,
+	ArrowLeft,
+} from "lucide-react";
 import DesktopUserMenu from "./DesktopUserMenu";
 import MobileUserMenu from "./MobileUserMenu";
 import useStore from "@/lib/store/useStore";
@@ -36,6 +43,7 @@ export default function Navbar() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const [tutorialOpen, setTutorialOpen] = useState(false);
+	const [searchExpanded, setSearchExpanded] = useState(false);
 
 	// Determine user role based on pathname
 	const isBuyer = pathname.startsWith("/buyer");
@@ -102,7 +110,13 @@ export default function Navbar() {
 					{/* Logo - Desktop */}
 					<div className="hidden md:flex items-center flex-shrink-0">
 						<Link href={isBuyer ? "/buyer" : "/seller"}>
-							<Image src="/images/curaise-logo.svg" alt="CURaise" width={347} height={117} className="h-12 w-auto" />
+							<Image
+								src="/images/curaise-logo.svg"
+								alt="CURaise"
+								width={347}
+								height={117}
+								className="h-12 w-auto"
+							/>
 						</Link>
 					</div>
 
@@ -110,7 +124,13 @@ export default function Navbar() {
 					{!pathname.includes("/buyer/browse") && !isFundraiserPage && (
 						<div className="md:hidden flex items-center justify-center w-full">
 							<Link href={isBuyer ? "/buyer" : "/seller"}>
-								<Image src="/images/curaise-logo.svg" alt="CURaise" width={347} height={117} className="h-10 w-auto" />
+								<Image
+									src="/images/curaise-logo.svg"
+									alt="CURaise"
+									width={347}
+									height={117}
+									className="h-10 w-auto"
+								/>
 							</Link>
 						</div>
 					)}
@@ -122,10 +142,25 @@ export default function Navbar() {
 						</div>
 					)}
 
-					{/* Desktop Search Bar - Centered with responsive width */}
+					{/* Desktop Search Bar - Centered */}
 					{showSearchBar && (
-						<div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 w-48 lg:w-64 xl:w-80 2xl:w-96 pointer-events-auto">
+						<div className="hidden min-[1350px]:flex absolute left-1/2 transform -translate-x-1/2 w-40 xl:w-64 2xl:w-96 pointer-events-auto">
 							<SearchBar onSearchChange={handleSearchChange} />
+						</div>
+					)}
+
+					{/* Tablet Search Overlay - shown when search icon is clicked */}
+					{showSearchBar && searchExpanded && (
+						<div className="hidden md:flex min-[1350px]:hidden absolute inset-0 items-center px-4 md:px-[157px] bg-background z-20 gap-2">
+							<Button
+								variant="ghost"
+								size="icon"
+								onClick={() => setSearchExpanded(false)}>
+								<ArrowLeft className="h-5 w-5" />
+							</Button>
+							<div className="flex-1">
+								<SearchBar onSearchChange={handleSearchChange} />
+							</div>
 						</div>
 					)}
 
@@ -190,6 +225,14 @@ export default function Navbar() {
 									<NavigationMenu>
 										<NavigationMenuList>
 											<>
+												<NavigationMenuItem className="min-[1350px]:hidden">
+													<button
+														className={navigationMenuTriggerStyle()}
+														onClick={() => setSearchExpanded(true)}
+														aria-label="Open search">
+														<Search className="h-5 w-5" />
+													</button>
+												</NavigationMenuItem>
 												<NavigationMenuItem>
 													<NavigationMenuLink
 														asChild
@@ -303,7 +346,11 @@ export default function Navbar() {
 				</div>
 			</nav>
 
-			<TutorialModal open={tutorialOpen} onOpenChange={setTutorialOpen} userRole={userRole} />
+			<TutorialModal
+				open={tutorialOpen}
+				onOpenChange={setTutorialOpen}
+				userRole={userRole}
+			/>
 		</>
 	);
 }
