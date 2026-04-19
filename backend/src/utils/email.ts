@@ -399,7 +399,9 @@ export const sendVenmoSetupEmail = async (options: {
     1. In the top right corner, click on Settings > See all settings, then click on the Forwarding and POP/IMAP tab.
     2. Click on the Add a forwarding address button.
     3. Enter postmaster@curaise.app
-    4. Please wait a minute, then refresh this page. CURaise will have auto-confirmed you have permission to forward to this address.
+       Note: It may take a minute for postmaster@curaise.app to be auto-confirmed as a forwarding option — wait a moment and refresh if you don't see it right away.
+
+    Prefer a video walkthrough? Watch the tutorial here.
 
     Now follow the steps below to create a forwarding filter just for the Venmo emails:
 
@@ -421,6 +423,7 @@ export const sendVenmoSetupEmail = async (options: {
     <h1 ${styles.h1}>Action Required</h1>
     <p ${styles.p}>Set up email forwarding for your Venmo account to use it with <strong>${fundraiserName}</strong> on CURaise.</p>
     <p ${styles.p}>Open this email on a <strong>desktop browser</strong> and follow the steps below.</p>
+    <p ${styles.p}>Prefer a video walkthrough? <a href="https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/verify_venmo.mov" style="color: #E74C3C;">Watch the tutorial here.</a></p>
 
     <h2 ${styles.h2}>Step 1: Add Forwarding Address</h2>
     <ol style="padding-left: 20px; margin: 0 0 16px 0;">
@@ -428,6 +431,7 @@ export const sendVenmoSetupEmail = async (options: {
       <li ${stepStyle}>Click on the <strong>Add a forwarding address</strong> button.</li>
       <li ${stepStyle}>Enter <strong>postmaster@curaise.app</strong></li>
     </ol>
+    <p ${styles.muted}>Note: It may take a minute for <strong>postmaster@curaise.app</strong> to be auto-confirmed — if it doesn't appear right away as a forwarding option, wait a moment and refresh before continuing.</p>
 
     <h2 ${styles.h2}>Step 2: Create a Forwarding Filter</h2>
     <ol style="padding-left: 20px; margin: 0 0 16px 0;">
