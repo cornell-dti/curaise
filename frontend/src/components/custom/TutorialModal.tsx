@@ -31,13 +31,11 @@ const slides: Slide[] = [
     section: "Seller",
     title: "Organization Creation",
     points: [
-      "Click Account in the top navigation and hover to reveal the dropdown.",
-      "Select Organizations to view organizations you belong to.",
+      "Click Account in the top navigation and hover to reveal the dropdown, and select Organizations to view organizations you belong to.",
       "Click Create New Organization to set up your fundraising organization.",
       "Fill in every field — including a website or Instagram link to help verify your Cornell org.",
-      "Newly created organizations will show a 'Need Approval' status.",
-      "CURaise admins will review and approve your organization.",
-      "To speed up approval, make sure your organization page includes a website or Instagram handle to prove it's a Cornell org.",
+      "Newly created organizations will show a 'Need Approval' status, which CURaise admins will review + approve.",
+      "To speed up approval, make sure your organization page includes a website or Instagram handle.",
       "NOTE: You must NOT add an @ symbol in front of your Instagram handle",
     ],
     url: "https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/creating_organization.mov",
@@ -131,7 +129,7 @@ const slides: Slide[] = [
     title: "Checkout and Placing an Order",
     points: [
       "Return to your fundraiser and click Proceed to Checkout.",
-      "Payment Method can be Venmo or Cash In-Person (also covers Zelle and other methods).",
+      "Payment Method can be Venmo or Other (covers Zelle and other methods).",
       "Adjust item quantities on the checkout page if needed.",
       "Click Place Order to submit — make sure to confirm before leaving the page.",
       "Go to Orders to see all your orders.",
@@ -254,7 +252,7 @@ export default function TutorialModal({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className="max-w-2xl w-full p-0 gap-0 overflow-hidden flex flex-col [&>button]:hidden"
-        style={{ height: "85vh" }}
+        style={{ height: "92vh" }}
       >
         <DialogTitle className="sr-only">CURaise Tutorial</DialogTitle>
 
@@ -332,7 +330,15 @@ export default function TutorialModal({
           {/* Bullet points */}
           <ul className="space-y-2">
             {slide.points.map((point, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm">
+              <li
+                key={i}
+                className={cn(
+                  "flex items-start gap-2",
+                  slide.title == "Organization Creation"
+                    ? "text-xs"
+                    : "text-sm",
+                )}
+              >
                 <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
                 <span>{point}</span>
               </li>

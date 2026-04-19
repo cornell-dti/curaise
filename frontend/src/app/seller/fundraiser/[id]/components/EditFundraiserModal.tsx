@@ -1,6 +1,6 @@
 "use client";
 
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { CreateFundraiserBody, CreateFundraiserItemBody } from "common";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -77,6 +77,7 @@ export function EditFundraiserModal({
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [skipVenmo, setSkipVenmo] = useState(false);
+  const router = useRouter();
 
   // Track pending changes for published fundraisers
   // Batch API calls on these pending changes when fundraiser is saved
@@ -222,7 +223,8 @@ export function EditFundraiserModal({
     }
 
     toast.success("Fundraiser saved successfully");
-    redirect("/seller/fundraiser/" + fundraiser.id);
+    setOpen(false);
+    router.refresh();
   }
   const [currentStep, setCurrentStep] = useState(step);
   const [saveRequested, setSaveRequested] = useState(false);
