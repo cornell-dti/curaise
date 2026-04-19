@@ -2,6 +2,7 @@ import { FundraisersList } from "./components/FundraisersList";
 import { BasicFundraiserSchema } from "common";
 import { connection } from "next/server";
 import { serverFetch } from "@/lib/fetcher";
+import CalendarPage from "./components/Calendar";
 
 export default async function BrowseFundraisersPage({
   searchParams,
@@ -18,6 +19,7 @@ export default async function BrowseFundraisersPage({
 
   return (
     <div className="flex flex-col px-4 md:px-[157px] py-10">
+      <CalendarPage />{" "}
       <FundraisersList fundraisers={fundraisers} searchQuery={searchQuery} />
     </div>
   );
