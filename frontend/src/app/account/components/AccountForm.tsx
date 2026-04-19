@@ -14,6 +14,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { AlertTriangle } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -91,6 +92,19 @@ export function AccountForm({
                 </FormItem>
               )}
             />
+            <div className="flex gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0 text-amber-600" />
+              <div>
+                <p className="font-medium">Heads up</p>
+                <p className="text-amber-800">
+                  Updating your name changes it everywhere across CURaise —
+                  including in every organization you belong to, your order
+                  history visible to sellers, and any fundraisers you admin.
+                  Emails and receipts already sent will still show your
+                  previous name.
+                </p>
+              </div>
+            </div>
             <Button type="submit" disabled={!form.formState.isDirty}>
               Save changes
             </Button>
