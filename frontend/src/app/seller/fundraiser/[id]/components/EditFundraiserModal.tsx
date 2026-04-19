@@ -7,6 +7,10 @@ import { z } from "zod";
 import { useEffect, useState } from "react";
 import { mutationFetch } from "@/lib/fetcher";
 import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
+import {
+  getSkippedVenmoPreference,
+  setSkippedVenmoPreference,
+} from "@/lib/fundraiserVenmoPreference";
 import MultiStepForm from "@/components/custom/MultiStepForm";
 import { FundraiserBasicInfoForm } from "@/app/seller/org/[id]/create-fundraiser/components/FundraiserBasicInfoForm";
 import { FundraiserVenmoInfoForm } from "@/app/seller/org/[id]/create-fundraiser/components/FundraiserVenmoInfoForm";
@@ -32,13 +36,15 @@ export function EditFundraiserModal({
   open,
   setOpen,
   step,
+  onSkipVenmoChange,
 }: {
   token: string;
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
   currentFundraiserItems: z.infer<typeof CompleteItemSchema>[];
   open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setOpen: (open: boolean) => void;
   step: number;
+  onSkipVenmoChange?: (skipVenmo: boolean) => void;
 }) {
   const [formData, setFormData] = useState<
     z.infer<typeof CreateFundraiserBody>
@@ -70,6 +76,7 @@ export function EditFundraiserModal({
     })),
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [skipVenmo, setSkipVenmo] = useState(false);
 
   // Track pending changes for published fundraisers
   // Batch API calls on these pending changes when fundraiser is saved
@@ -96,6 +103,7 @@ export function EditFundraiserModal({
     // Guard against duplicated saved fundraisers
     if (isSubmitting) return;
     setIsSubmitting(true);
+    setSkippedVenmoPreference(fundraiser.id, skipVenmo);
 
     // Map empty-string venmo fields to null so backend will clear them
     const payload = {
@@ -221,10 +229,24 @@ export function EditFundraiserModal({
 
   useEffect(() => {
     if (open) {
+      const nextSkipVenmo =
+        !fundraiser.venmoUsername &&
+        !fundraiser.venmoEmail &&
+        getSkippedVenmoPreference(fundraiser.id);
+
       setCurrentStep(step);
       setIsSubmitting(false);
+      setSkipVenmo(nextSkipVenmo);
+      onSkipVenmoChange?.(nextSkipVenmo);
     }
-  }, [open, step]);
+  }, [
+    fundraiser.id,
+    fundraiser.venmoEmail,
+    fundraiser.venmoUsername,
+    onSkipVenmoChange,
+    open,
+    step,
+  ]);
 
   useEffect(() => {
     if (saveRequested) {
@@ -336,21 +358,31 @@ export function EditFundraiserModal({
 
             <FundraiserVenmoInfoForm
               defaultValues={formData}
-              onNext={(data) => {
+              defaultSkipVenmo={skipVenmo}
+              onNext={(data, nextSkipVenmo) => {
                 setFormData((prev) => ({ ...prev, ...data }));
+                setSkipVenmo(nextSkipVenmo);
+                onSkipVenmoChange?.(nextSkipVenmo);
                 setCurrentStep(4);
               }}
               onBack={() => setCurrentStep(2)}
-              onSave={(data) => {
+              onSave={(data, nextSkipVenmo) => {
                 setFormData((prev) => ({ ...prev, ...data }));
+                setSkipVenmo(nextSkipVenmo);
+                onSkipVenmoChange?.(nextSkipVenmo);
                 setSaveRequested(true);
                 setOpen(false);
+              }}
+              onSkipVenmoChange={(nextSkipVenmo) => {
+                setSkipVenmo(nextSkipVenmo);
+                onSkipVenmoChange?.(nextSkipVenmo);
               }}
               isSubmitting={isSubmitting}
             />
 
             <ReviewFundraiserForm
               formData={formData}
+              skipVenmo={skipVenmo}
               items={formFundraiserItems}
               onSave={() => {
                 onSubmit();
