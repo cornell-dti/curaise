@@ -15,6 +15,8 @@ type Order = z.infer<typeof BasicOrderSchema>;
 // Configuration
 const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN || "curaise.app";
 const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY || "";
+const CURAISE_URL = "https://www.curaise.app";
+const LOGO_URL = `${CURAISE_URL}/images/curaise-icon-square.png`;
 
 // Initialize Mailgun client
 const initMailgun = async () => {
@@ -28,6 +30,89 @@ const initMailgun = async () => {
     console.error("Failed to initialize Mailgun:", error);
     throw error;
   }
+};
+
+/**
+ * Wrap email body content in a branded HTML template
+ */
+const wrapInTemplate = (
+  content: string,
+  options?: { ctaText?: string; ctaUrl?: string },
+): string => {
+  const ctaText = options?.ctaText || "Visit CURaise";
+  const ctaUrl = options?.ctaUrl || CURAISE_URL;
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CURaise</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'DM Sans', Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4;">
+    <tr>
+      <td align="center" style="padding: 24px 16px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+          <!-- Header with Logo -->
+          <tr>
+            <td align="center" style="padding: 32px 40px 20px 40px; background-color: #ffffff;">
+              <a href="${CURAISE_URL}" target="_blank" style="text-decoration: none;">
+                <img src="${LOGO_URL}" alt="CURaise" width="60" height="60" style="display: block; border: 0; outline: none;">
+              </a>
+            </td>
+          </tr>
+          <!-- Green Divider -->
+          <tr>
+            <td style="padding: 0 40px;">
+              <div style="border-top: 3px solid #C6DDC8; margin: 0;"></div>
+            </td>
+          </tr>
+          <!-- Email Content -->
+          <tr>
+            <td style="padding: 32px 40px; color: #333333; font-size: 15px; line-height: 1.6;">
+              ${content}
+            </td>
+          </tr>
+          <!-- Green Divider -->
+          <tr>
+            <td style="padding: 0 40px;">
+              <div style="border-top: 3px solid #C6DDC8; margin: 0;"></div>
+            </td>
+          </tr>
+          <!-- CTA Button -->
+          <tr>
+            <td align="center" style="padding: 28px 40px 16px 40px;">
+              <a href="${ctaUrl}" target="_blank" style="display: inline-block; background-color: #265B34; color: #ffffff; text-decoration: none; font-family: 'DM Sans', Arial, Helvetica, sans-serif; font-size: 15px; font-weight: 600; padding: 12px 32px; border-radius: 6px;">${ctaText}</a>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 8px 40px 32px 40px;">
+              <p style="margin: 0; font-size: 13px; color: #999999; line-height: 1.5;">
+                &copy; ${new Date().getFullYear()} <a href="${CURAISE_URL}" target="_blank" style="color: #265B34; text-decoration: none;">CURaise</a> &mdash; Your one stop platform for fundraising.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+};
+
+/**
+ * Style helpers for consistent email content elements
+ */
+const styles = {
+  h1: `style="margin: 0 0 16px 0; font-size: 22px; font-weight: 700; color: #265B34; font-family: 'DM Sans', Arial, Helvetica, sans-serif;"`,
+  h2: `style="margin: 24px 0 12px 0; font-size: 17px; font-weight: 600; color: #265B34; font-family: 'DM Sans', Arial, Helvetica, sans-serif;"`,
+  p: `style="margin: 0 0 14px 0; color: #333333; font-size: 15px; line-height: 1.6;"`,
+  link: `style="color: #265B34; text-decoration: underline;"`,
+  infoBox: `style="padding: 16px 20px; background-color: #f0f7f1; border-left: 4px solid #265B34; border-radius: 0 6px 6px 0; margin: 16px 0;"`,
+  detailLabel: `style="font-weight: 600; color: #265B34;"`,
+  muted: `style="color: #888888; font-size: 13px; margin: 16px 0 0 0;"`,
 };
 
 /**
@@ -78,47 +163,43 @@ export const sendOrganizationInviteEmail = async (options: {
   for (const admin of invitedAdmins) {
     const text = `
     Hello ${admin.name},
-    
+
     ${creator.name} has invited you to be an administrator for ${
       organization.name
     } on Curaise.
-    
+
     Organization Details:
     Name: ${organization.name}
     Description: ${organization.description}
     ${organization.websiteUrl ? `Website: ${organization.websiteUrl}` : ""}
-    
-    To manage this organization, please log in to your Curaise account.
-    
+
+    To manage this organization, please log in to your Curaise account at ${CURAISE_URL}
+
     Thank you,
     The Curaise Team
   `;
 
-    const html = `
-    <h1>You've Been Invited to Manage ${organization.name}</h1>
-    
-    <p>Hello ${admin.name},</p>
-    
-    <p>${creator.name} has invited you to be an administrator for <strong>${
-      organization.name
-    }</strong> on Curaise.</p>
-    
-    <h2>Organization Details</h2>
-    <ul>
-      <li><strong>Name:</strong> ${organization.name}</li>
-      <li><strong>Description:</strong> ${organization.description}</li>
-      ${
-        organization.websiteUrl
-          ? `<li><strong>Website:</strong> <a href="${organization.websiteUrl}">${organization.websiteUrl}</a></li>`
-          : ""
-      }
-    </ul>
-    
-    <p>To manage this organization, please <a href="https://www.curaise.app">log in to your Curaise account</a>.</p>
-    
-    <p>Thank you,<br>
-    The Curaise Team</p>
-  `;
+    const content = `
+      <h1 ${styles.h1}>You've Been Invited!</h1>
+      <p ${styles.p}>Hello ${admin.name},</p>
+      <p ${styles.p}>${creator.name} has invited you to be an administrator for <strong>${organization.name}</strong> on CURaise.</p>
+      <h2 ${styles.h2}>Organization Details</h2>
+      <div ${styles.infoBox}>
+        <p style="margin: 0 0 6px 0;"><span ${styles.detailLabel}>Name:</span> ${organization.name}</p>
+        <p style="margin: 0 0 6px 0;"><span ${styles.detailLabel}>Description:</span> ${organization.description}</p>
+        ${
+          organization.websiteUrl
+            ? `<p style="margin: 0;"><span ${styles.detailLabel}>Website:</span> <a href="${organization.websiteUrl}" ${styles.link}>${organization.websiteUrl}</a></p>`
+            : ""
+        }
+      </div>
+      <p ${styles.p}>Log in to your CURaise account to start managing this organization.</p>
+    `;
+
+    const html = wrapInTemplate(content, {
+      ctaText: "View Organization",
+      ctaUrl: `${CURAISE_URL}/seller/org/${organization.id}`,
+    });
 
     try {
       await sendEmail({
@@ -164,7 +245,7 @@ export const sendPendingAdminInviteEmail = async (options: {
     Description: ${organization.description}
     ${organization.websiteUrl ? `Website: ${organization.websiteUrl}` : ""}
 
-    To accept this invitation and manage this organization, please sign up for a Curaise account at https://www.curaise.app
+    To accept this invitation and manage this organization, please sign up for a Curaise account at ${CURAISE_URL}
 
     Once you register with this email address (${email}), you'll automatically be granted administrator access to ${
       organization.name
@@ -174,35 +255,28 @@ export const sendPendingAdminInviteEmail = async (options: {
     The Curaise Team
   `;
 
-    const html = `
-    <h1>You've Been Invited to Manage ${organization.name}</h1>
+    const content = `
+      <h1 ${styles.h1}>You've Been Invited!</h1>
+      <p ${styles.p}>Hello,</p>
+      <p ${styles.p}>${creator.name} has invited you to be an administrator for <strong>${organization.name}</strong> on CURaise.</p>
+      <h2 ${styles.h2}>Organization Details</h2>
+      <div ${styles.infoBox}>
+        <p style="margin: 0 0 6px 0;"><span ${styles.detailLabel}>Name:</span> ${organization.name}</p>
+        <p style="margin: 0 0 6px 0;"><span ${styles.detailLabel}>Description:</span> ${organization.description}</p>
+        ${
+          organization.websiteUrl
+            ? `<p style="margin: 0;"><span ${styles.detailLabel}>Website:</span> <a href="${organization.websiteUrl}" ${styles.link}>${organization.websiteUrl}</a></p>`
+            : ""
+        }
+      </div>
+      <p ${styles.p}>Sign up for a CURaise account to accept this invitation.</p>
+      <p ${styles.p}>Once you register with this email address (<strong>${email}</strong>), you'll automatically be granted administrator access to ${organization.name}.</p>
+    `;
 
-    <p>Hello,</p>
-
-    <p>${creator.name} has invited you to be an administrator for <strong>${
-      organization.name
-    }</strong> on Curaise.</p>
-
-    <h2>Organization Details</h2>
-    <ul>
-      <li><strong>Name:</strong> ${organization.name}</li>
-      <li><strong>Description:</strong> ${organization.description}</li>
-      ${
-        organization.websiteUrl
-          ? `<li><strong>Website:</strong> <a href="${organization.websiteUrl}">${organization.websiteUrl}</a></li>`
-          : ""
-      }
-    </ul>
-
-    <p>To accept this invitation and manage this organization, please <a href="https://www.curaise.app">sign up for a Curaise account</a>.</p>
-
-    <p>Once you register with this email address (<strong>${email}</strong>), you'll automatically be granted administrator access to ${
-      organization.name
-    }.</p>
-
-    <p>Thank you,<br>
-    The Curaise Team</p>
-  `;
+    const html = wrapInTemplate(content, {
+      ctaText: "Sign Up for CURaise",
+      ctaUrl: CURAISE_URL,
+    });
 
     try {
       await sendEmail({
@@ -253,35 +327,38 @@ export const sendAnnouncementEmail = async (options: {
       ? fundraiser.pickupEvents
           .map(
             (event, index) =>
-              `<p><strong>Event ${index + 1}:</strong> ${event.location}<br/>
-        <strong>Time:</strong> ${event.startsAt.toLocaleDateString()} to ${event.endsAt.toLocaleDateString()}</p>`,
+              `<p style="margin: 0 0 8px 0;"><span ${styles.detailLabel}>Event ${index + 1}:</span> ${event.location}<br>
+              <span ${styles.detailLabel}>Time:</span> ${event.startsAt.toLocaleDateString()} to ${event.endsAt.toLocaleDateString()}</p>`,
           )
           .join("")
-      : "<p>No pickup events scheduled</p>";
+      : `<p style="margin: 0;">No pickup events scheduled</p>`;
 
   const text = `
     New Announcement for ${fundraiser.name}
-    
+
     ${announcement.message}
-    
+
     Pickup Information:
     ${pickupEventsText}
-    
+
     This is an automated message. Please do not reply.
   `;
 
-  const html = `
-    <h1>New Announcement for ${fundraiser.name}</h1>
-    
-    <div style="padding: 15px; background-color: #f5f5f5; border-left: 4px solid #3498db; margin: 20px 0;">
-      <p>${announcement.message}</p>
+  const content = `
+    <h1 ${styles.h1}>New Announcement</h1>
+    <p ${styles.p}>from <strong>${fundraiser.name}</strong></p>
+    <div ${styles.infoBox}>
+      <p style="margin: 0; font-size: 15px; line-height: 1.6;">${announcement.message}</p>
     </div>
-    
-    <h2>Pickup Information</h2>
+    <h2 ${styles.h2}>Pickup Information</h2>
     ${pickupEventsHtml}
-    
-    <p style="color: #777; font-size: 0.9em;">This is an automated message. Please do not reply.</p>
+    <p ${styles.muted}>This is an automated message. Please do not reply.</p>
   `;
+
+  const html = wrapInTemplate(content, {
+    ctaText: "View Fundraiser",
+    ctaUrl: `${CURAISE_URL}/buyer/fundraiser/${fundraiser.id}`,
+  });
 
   // Extract unique email addresses to avoid duplicate emails
   const uniqueEmails = [...new Set(recipients.map((user) => user.email))];
@@ -322,7 +399,9 @@ export const sendVenmoSetupEmail = async (options: {
     1. In the top right corner, click on Settings > See all settings, then click on the Forwarding and POP/IMAP tab.
     2. Click on the Add a forwarding address button.
     3. Enter postmaster@curaise.app
-    4. Please wait a minute, then refresh this page. CURaise will have auto-confirmed you have permission to forward to this address.
+       Note: It may take a minute for postmaster@curaise.app to be auto-confirmed as a forwarding option — wait a moment and refresh if you don't see it right away.
+
+    Prefer a video walkthrough? Watch the tutorial here.
 
     Now follow the steps below to create a forwarding filter just for the Venmo emails:
 
@@ -338,36 +417,40 @@ export const sendVenmoSetupEmail = async (options: {
     The CURaise Team
   `;
 
-  const html = `
-    <h1>Action Required: Set Up Email Forwarding</h1>
+  const stepStyle = `style="margin: 0 0 10px 0; padding-left: 4px; line-height: 1.6; color: #333333;"`;
 
-    <p>Hello,</p>
+  const content = `
+    <h1 ${styles.h1}>Action Required</h1>
+    <p ${styles.p}>Set up email forwarding for your Venmo account to use it with <strong>${fundraiserName}</strong> on CURaise.</p>
+    <p ${styles.p}>Open this email on a <strong>desktop browser</strong> and follow the steps below.</p>
+    <p ${styles.p}>Prefer a video walkthrough? <a href="https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/verify_venmo.mov" style="color: #E74C3C;">Watch the tutorial here.</a></p>
 
-    <p>You need to set up email forwarding for your Venmo account to use it with <strong>${fundraiserName}</strong> on CURaise.</p>
+    <h2 ${styles.h2}>Step 1: Add Forwarding Address</h2>
+    <ol style="padding-left: 20px; margin: 0 0 16px 0;">
+      <li ${stepStyle}>In the top right corner, click on <strong>Settings &gt; See all settings</strong>, then click on the <strong>Forwarding and POP/IMAP</strong> tab.</li>
+      <li ${stepStyle}>Click on the <strong>Add a forwarding address</strong> button.</li>
+      <li ${stepStyle}>Enter <strong>postmaster@curaise.app</strong></li>
+    </ol>
+    <p ${styles.muted}>Note: It may take a minute for <strong>postmaster@curaise.app</strong> to be auto-confirmed — if it doesn't appear right away as a forwarding option, wait a moment and refresh before continuing.</p>
 
-    <p>Open this email on a desktop browser and follow the steps to add CURaise's email address as a valid forwarding address:</p>
-
-    <ol>
-      <li>In the top right corner, click on <strong>Settings &gt; See all settings</strong>, then click on the <strong>Forwarding and POP/IMAP</strong> tab.</li>
-      <li>Click on the <strong>Add a forwarding address</strong> button.</li>
-      <li>Enter <strong>postmaster@curaise.app</strong></li>
+    <h2 ${styles.h2}>Step 2: Create a Forwarding Filter</h2>
+    <ol style="padding-left: 20px; margin: 0 0 16px 0;">
+      <li ${stepStyle}>Navigate to the <strong>Search bar</strong>, click on the filter icon on the right-hand side.</li>
+      <li ${stepStyle}>Enter <strong>venmo@venmo.com</strong> in the From field.</li>
+      <li ${stepStyle}>Near the bottom of that window, click on the <strong>Create filter</strong> button.</li>
+      <li ${stepStyle}>Enable the <strong>Forward it to</strong> option and select <strong>postmaster@curaise.app</strong></li>
+      <li ${stepStyle}>Click <strong>Create filter</strong> and you're done!</li>
     </ol>
 
-    <p>Now follow the steps below to create a forwarding filter just for the Venmo emails:</p>
-
-    <ol>
-      <li>Navigate to the <strong>Search bar</strong>, click on the filter icon on the right-hand side.</li>
-      <li>Enter <strong>venmo@venmo.com</strong> in the From field.</li>
-      <li>Near the bottom of that window, click on the <strong>Create filter</strong> button.</li>
-      <li>Enable the <strong>Forward it to</strong> option and select <strong>postmaster@curaise.app</strong></li>
-      <li>Click <strong>Create filter</strong> and you're done. All future emails will be automatically processed and turned into transactions by CURaise.</li>
-    </ol>
-
-    <p>Questions? Contact our support team.</p>
-
-    <p>Thank you,<br>
-    The CURaise Team</p>
+    <div ${styles.infoBox}>
+      <p style="margin: 0;">All future Venmo emails will be automatically processed and turned into transactions by CURaise.</p>
+    </div>
   `;
+
+  const html = wrapInTemplate(content, {
+    ctaText: "Go to CURaise",
+    ctaUrl: CURAISE_URL,
+  });
 
   try {
     await sendEmail({
@@ -407,20 +490,23 @@ export const sendPaymentReminderEmail = async (order: Order): Promise<any> => {
     The CURaise Team
   `;
 
-  const html = `
-    <h1>Payment Reminder</h1>
-
-    <p>Hi ${buyer.name},</p>
-
-    <p>This is a friendly reminder that your order <strong>#${order.id}</strong> for <strong>${fundraiser.name}</strong> placed on ${orderDateFormatted} has not been paid yet.</p>
-
-    <p>Please complete your payment via Venmo to finalize your order.</p>
-
-    <p>If you have already paid, please disregard this email — it may take some time for us to verify your payment.</p>
-
-    <p>Thank you,<br>
-    The CURaise Team</p>
+  const content = `
+    <h1 ${styles.h1}>Payment Reminder</h1>
+    <p ${styles.p}>Hi ${buyer.name},</p>
+    <p ${styles.p}>This is a friendly reminder that your order for <strong>${fundraiser.name}</strong> placed on ${orderDateFormatted} has not been paid yet.</p>
+    <div ${styles.infoBox}>
+      <p style="margin: 0 0 6px 0;"><span ${styles.detailLabel}>Order:</span> #${order.id}</p>
+      <p style="margin: 0 0 6px 0;"><span ${styles.detailLabel}>Fundraiser:</span> ${fundraiser.name}</p>
+      <p style="margin: 0;"><span ${styles.detailLabel}>Date:</span> ${orderDateFormatted}</p>
+    </div>
+    <p ${styles.p}>Please complete your payment via Venmo to finalize your order.</p>
+    <p ${styles.muted}>If you have already paid, please disregard this email &mdash; it may take some time for us to verify your payment.</p>
   `;
+
+  const html = wrapInTemplate(content, {
+    ctaText: "View Your Order",
+    ctaUrl: `${CURAISE_URL}/buyer/order/${order.id}`,
+  });
 
   return sendEmail({
     to: buyer.email,
@@ -482,42 +568,45 @@ export const sendOrderConfirmation = async (order: Order): Promise<any> => {
               event.endsAt,
               "EEEE, MMMM d, yyyy, h:mm a",
             );
-            return `<p><strong>Event ${index + 1}:</strong> ${
-              event.location
-            }<br/>
-        <strong>Pickup Window:</strong> ${startsFormatted} to ${endsFormatted}</p>`;
+            return `<p style="margin: 0 0 8px 0;"><span ${styles.detailLabel}>Event ${index + 1}:</span> ${event.location}<br>
+            <span ${styles.detailLabel}>Pickup Window:</span> ${startsFormatted} to ${endsFormatted}</p>`;
           })
           .join("")
-      : "<p>No pickup events scheduled</p>";
+      : `<p style="margin: 0;">No pickup events scheduled</p>`;
 
   const text = `
     Thank you for your order #${order.id}!
-    
+
     Fundraiser: ${fundraiser.name}
     Date: ${orderDateFormatted}
     Payment Method: ${paymentMethodText}
     Status: ${paymentStatusMessage}
-    
+
     Pickup Information:
     ${pickupEventsText}
-    
+
     If you have any questions, please contact ${fundraiser.organization.name}.
   `;
 
-  const html = `
-    <h1>Thank You for Your Order!</h1>
-    <p>Your order #${order.id} for ${fundraiser.name} has been received.</p>
-    
-    <h2>Order Details</h2>
-    <p><strong>Date:</strong> ${orderDateFormatted}</p>
-    <p><strong>Payment Method:</strong> ${paymentMethodText}</p>
-    <p><strong>Status:</strong> ${paymentStatusMessage}</p>
-    
-    <h2>Pickup Information</h2>
+  const content = `
+    <h1 ${styles.h1}>Thank You for Your Order!</h1>
+    <p ${styles.p}>Your order for <strong>${fundraiser.name}</strong> has been received.</p>
+    <h2 ${styles.h2}>Order Details</h2>
+    <div ${styles.infoBox}>
+      <p style="margin: 0 0 6px 0;"><span ${styles.detailLabel}>Order:</span> #${order.id}</p>
+      <p style="margin: 0 0 6px 0;"><span ${styles.detailLabel}>Date:</span> ${orderDateFormatted}</p>
+      <p style="margin: 0 0 6px 0;"><span ${styles.detailLabel}>Payment Method:</span> ${paymentMethodText}</p>
+      <p style="margin: 0;"><span ${styles.detailLabel}>Status:</span> ${paymentStatusMessage}</p>
+    </div>
+    <h2 ${styles.h2}>Pickup Information</h2>
     ${pickupEventsHtml}
-    
-    <p>If you have any questions, please contact ${fundraiser.organization.name}.</p>
+    <p ${styles.p}>If you have any questions, please contact <strong>${fundraiser.organization.name}</strong>.</p>
   `;
+
+  const html = wrapInTemplate(content, {
+    ctaText: "View Your Order",
+    ctaUrl: `${CURAISE_URL}/buyer/order/${order.id}`,
+  });
 
   return sendEmail({
     to: buyer.email,
