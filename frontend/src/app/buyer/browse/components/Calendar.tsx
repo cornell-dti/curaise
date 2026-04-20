@@ -8,11 +8,7 @@ import {
 } from "react-big-calendar";
 import moment from "moment";
 import { ChevronDown } from "lucide-react";
-import {
-  events,
-  OrganizationFilter,
-  organizations,
-} from "./OrganizationFilter";
+import { OrganizationFilter } from "./OrganizationFilter";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { SmallCalendar } from "./SmallCalendar";
 import {
@@ -35,21 +31,51 @@ export interface CalendarEvent {
   organization?: string;
 }
 
+type Organization = z.infer<typeof BasicOrganizationSchema>;
+
 const localizer = momentLocalizer(moment);
 
 export function CalendarPage({
   organizations,
+  userOrganizations,
   fundraisers,
 }: {
   organizations: z.infer<typeof BasicOrganizationSchema>[];
+  userOrganizations: Organization[];
   fundraisers: z.infer<typeof BasicFundraiserSchema>[];
 }) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date(today));
   const [currentView, setCurrentView] = useState<View>(Views.MONTH);
-  const [selectedOrganizations, setSelectedOrganizations] =
-    useState<string[]>(organizations);
+
+  const organizationNames = organizations.map((org) => org.name);
+  const authorizedUserOrganizations = userOrganizations.filter(
+    (org) => org.authorized,
+  );
+  const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>(
+    authorizedUserOrganizations.map((org) => org.name),
+  );
+
+  const events: CalendarEvent[] = fundraisers.flatMap((fundraiser) => {
+    const pickups: CalendarEvent[] = fundraiser.pickupEvents.map((pickup) => ({
+      title: fundraiser.name + " Pick Up",
+      allDay: false,
+      start: pickup.startsAt,
+      end: pickup.endsAt,
+      organization: fundraiser.organization.name,
+    }));
+
+    const buyingPeriod: CalendarEvent = {
+      title: fundraiser.name + " Buying Period",
+      allDay: true,
+      start: fundraiser.buyingStartsAt,
+      end: fundraiser.buyingEndsAt,
+      organization: fundraiser.organization.name,
+    };
+
+    return [...pickups, buyingPeriod];
+  });
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
@@ -71,15 +97,13 @@ export function CalendarPage({
 
   const eventStyleGetter = (event: any) => {
     const backgroundColor = event.organization
-      ? organizationColors[organizations.indexOf(event.organization)]
+      ? organizationColors[organizationNames.indexOf(event.organization)]
       : "#3174ad";
     return {
       style: {
         backgroundColor,
         opacity: 0.8,
-        border:
-          "1px solid " +
-          (event.organization === "CUxD" ? "#ddd" : backgroundColor),
+        border: event.organization === "CUxD" ? "#ddd" : backgroundColor,
         borderRadius: "2px",
       },
     };
@@ -117,6 +141,7 @@ export function CalendarPage({
             handleDateSelect={(date) => handleDateSelect(date)}
           />
           <OrganizationFilter
+            organizations={organizationNames}
             selectedOrganizations={selectedOrganizations}
             onToggleOrganization={handleToggleOrganization}
           />
@@ -208,6 +233,11 @@ export function CalendarPage({
               views={[Views.MONTH, Views.WEEK, Views.DAY]}
               components={{
                 toolbar: () => <></>,
+                event: ({ event }) => (
+                  <div style={{ fontSize: "12px", lineHeight: "1.1" }}>
+                    {event.title}
+                  </div>
+                ),
               }}
             />
           </div>

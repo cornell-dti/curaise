@@ -1,95 +1,13 @@
-import { ChevronDown } from "lucide-react";
-
-export const organizations = [
-  "Cornell Data Science",
-  "DCC",
-  "Digital Tech & Innovation",
-  "CUxD",
-];
-
-export const events: CalendarEvent[] = [
-  {
-    title: "CDS Annual Gala",
-    allDay: true,
-    start: new Date(2026, 3, 5),
-    end: new Date(2026, 3, 6),
-    organization: "Cornell Data Science",
-  },
-  {
-    title: "DCC Paris Baguette Fundraiser",
-    start: new Date(2026, 3, 2, 11, 0),
-    end: new Date(2026, 3, 2, 14, 0),
-    organization: "DCC",
-  },
-  {
-    title: "Redi x CURaise Hwa Yuan Fundraiser",
-    start: new Date(2026, 3, 3, 11, 0),
-    end: new Date(2026, 3, 3, 14, 0),
-    organization: "Digital Tech & Innovation",
-  },
-  {
-    title: "CURaise Egg Tart Fundraiser",
-    start: new Date(2026, 3, 7, 10, 0),
-    end: new Date(2026, 3, 13, 18, 0),
-    organization: "Cornell Data Science",
-  },
-  {
-    title: "DTI Pudding Fundraiser",
-    start: new Date(2026, 3, 16, 11, 0),
-    end: new Date(2026, 3, 16, 15, 0),
-    organization: "Digital Tech & Innovation",
-  },
-  {
-    title: "CDS Coffee Sale",
-    start: new Date(2026, 3, 20, 9, 0),
-    end: new Date(2026, 3, 20, 12, 0),
-    organization: "Cornell Data Science",
-  },
-  {
-    title: "DCC Spring Brunch",
-    start: new Date(2026, 3, 24, 10, 0),
-    end: new Date(2026, 3, 24, 13, 0),
-    organization: "DCC",
-  },
-  {
-    title: "CUxD Design Workshop",
-    start: new Date(2026, 3, 28, 14, 0),
-    end: new Date(2026, 3, 28, 17, 0),
-    organization: "CUxD",
-  },
-  {
-    title: "DTI Tech Talk",
-    start: new Date(2026, 3, 30, 18, 0),
-    end: new Date(2026, 3, 30, 20, 0),
-    organization: "Digital Tech & Innovation",
-  },
-  {
-    title: "CDS Networking Event",
-    start: new Date(2026, 4, 2, 17, 0),
-    end: new Date(2026, 4, 2, 19, 0),
-    organization: "Cornell Data Science",
-  },
-  {
-    title: "DCC Bake Sale",
-    start: new Date(2026, 4, 5, 11, 0),
-    end: new Date(2026, 4, 5, 15, 0),
-    organization: "DCC",
-  },
-];
+import { organizationColors } from "./utils";
 
 interface OrganizationFilterProps {
+  organizations: string[];
   selectedOrganizations: string[];
   onToggleOrganization: (org: string) => void;
 }
 
-const organizationColors: Record<string, string> = {
-  "Cornell Data Science": "#f74545",
-  DCC: "#6a9f48",
-  "Digital Tech & Innovation": "#3197f7",
-  CUxD: "#ffffff",
-};
-
 export function OrganizationFilter({
+  organizations,
   selectedOrganizations,
   onToggleOrganization,
 }: OrganizationFilterProps) {
@@ -116,10 +34,10 @@ export function OrganizationFilter({
                     className="sr-only"
                   />
                   <div
-                    className="relative rounded-[1px] shrink-0 size-[12px] border-[0.6px] border-black"
+                    className="relative rounded-[2px] shrink-0 size-[12px] border-[0.6px] border-muted-foreground"
                     style={{
                       backgroundColor: selectedOrganizations.includes(org)
-                        ? organizationColors[org]
+                        ? organizationColors[organizations.indexOf(org)]
                         : "#ffffff",
                     }}
                   />

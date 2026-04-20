@@ -15,8 +15,8 @@ export function SmallCalendar({
 }) {
   const [selectedDate, setSelectedDate] = useState<Date>(date);
   return (
-    <div className="bg-white rounded-[6px] border border-[#dfdfdf] py-[16px]">
-      <div className=" flex items-center justify-center mb-2">
+    <div className="w-full bg-white rounded-[6px] border border-[#dfdfdf] py-[16px]">
+      <div className="flex items-center justify-center mb-2">
         <div className="flex gap-1 justify-center items-center">
           <button
             onClick={() => {
@@ -39,7 +39,7 @@ export function SmallCalendar({
           >
             <ChevronLeft className="size-[18px]" />
           </button>
-          <p className="font-['DM_Sans',sans-serif] font-normal leading-[21px] text-[14px] text-black text-center w-[120px]">
+          <p className="leading-[21px] text-[14px] text-black text-center w-[120px]">
             {moment(selectedDate).format("MMMM YYYY")}
           </p>
           <button
