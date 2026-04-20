@@ -13,13 +13,23 @@ import {
   OrganizationFilter,
   organizations,
 } from "./OrganizationFilter";
-import { Calendar } from "@/components/ui/calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import { SmallCalendar } from "./SmallCalendar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 const localizer = momentLocalizer(moment);
 
-export default function CalendarPage() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date(2026, 3, 12));
+export function CalendarPage() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date(today));
   const [currentView, setCurrentView] = useState<View>(Views.MONTH);
   const [selectedOrganizations, setSelectedOrganizations] =
     useState<string[]>(organizations);
@@ -27,7 +37,7 @@ export default function CalendarPage() {
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
       setSelectedDate(date);
-      setCurrentView(Views.DAY);
+      setCurrentView(Views.WEEK);
     }
   };
 
@@ -72,58 +82,31 @@ export default function CalendarPage() {
     { label: "Day", value: Views.DAY },
   ];
 
+  // for highlighting the day that is selected
+  const dayStyleGetter = (date: Date) => {
+    const isSelected = moment(date).isSame(selectedDate, "day");
+
+    if (isSelected) {
+      return {
+        style: {
+          backgroundColor: "#e6f0ea",
+        },
+        className: "selected-calendar-day",
+      };
+    }
+
+    return {};
+  };
+
   return (
     <div className="bg-white size-full">
       <div className="flex py-[20px] gap-[40px]">
-        <div className="flex flex-col gap-[20px] w-[255px]">
-          <div className="bg-white rounded-[6px] border border-[#dfdfdf] p-[16px]">
-            <div className="flex items-center justify-between mb-2">
-              <p className="font-['DM_Sans:Regular',sans-serif] font-normal leading-[21px] text-[14px] text-black">
-                {moment(selectedDate).format("MMMM YYYY")}
-              </p>
-              <div className="flex gap-1">
-                <button
-                  onClick={() =>
-                    setSelectedDate(
-                      new Date(
-                        selectedDate.getFullYear(),
-                        selectedDate.getMonth() - 1,
-                        1,
-                      ),
-                    )
-                  }
-                  className="size-[18px] flex items-center justify-center"
-                >
-                  <ChevronLeft className="size-[18px]" />
-                </button>
-                <button
-                  onClick={() =>
-                    setSelectedDate(
-                      new Date(
-                        selectedDate.getFullYear(),
-                        selectedDate.getMonth() + 1,
-                        1,
-                      ),
-                    )
-                  }
-                  className="size-[18px] flex items-center justify-center"
-                >
-                  <ChevronRight className="size-[18px]" />
-                </button>
-              </div>
-            </div>
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={handleDateSelect}
-              className="w-full"
-              components={{
-                Chevron: () => <div className="hidden"></div>,
-                CaptionLabel: () => <></>,
-              }}
-            />
-          </div>
-
+        <div className="flex flex-col items-center gap-[20px] w-[275px]">
+          <SmallCalendar
+            onSelected={setSelectedDate}
+            date={selectedDate}
+            handleDateSelect={(date) => handleDateSelect(date)}
+          />
           <OrganizationFilter
             selectedOrganizations={selectedOrganizations}
             onToggleOrganization={handleToggleOrganization}
@@ -131,63 +114,76 @@ export default function CalendarPage() {
         </div>
 
         <div className="flex-1">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex gap-[8px] items-center">
-              <p className="font-['DM_Sans:SemiBold',sans-serif] font-semibold leading-[42px] text-[28px] text-black whitespace-nowrap">
-                {moment(selectedDate).format("MMMM YYYY")}
-              </p>
-              <div className="flex gap-1">
-                <button
-                  onClick={() =>
-                    setSelectedDate(
-                      new Date(
-                        selectedDate.getFullYear(),
-                        selectedDate.getMonth() - 1,
-                        1,
-                      ),
-                    )
-                  }
-                  className="size-[24px] flex items-center justify-center rotate-90"
-                >
-                  <ChevronDown className="size-[24px]" />
-                </button>
-                <button
-                  onClick={() =>
-                    setSelectedDate(
-                      new Date(
-                        selectedDate.getFullYear(),
-                        selectedDate.getMonth() + 1,
-                        1,
-                      ),
-                    )
-                  }
-                  className="size-[24px] flex items-center justify-center -rotate-90"
-                >
-                  <ChevronDown className="size-[24px]" />
-                </button>
-              </div>
-            </div>
-
-            <div className="relative">
-              <select
-                value={currentView}
-                onChange={(e) => setCurrentView(e.target.value as View)}
-                className="appearance-none font-['DM_Sans:Regular',sans-serif] font-normal text-[16px] text-[#3c5243] px-[16px] py-[8px] pr-[40px] border border-[#3c5243] rounded-[6px] bg-white cursor-pointer"
-              >
-                {viewOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-[20px] pointer-events-none text-[#3c5243]" />
-            </div>
-          </div>
-
           <div
             className="bg-white rounded-[8px] border border-[#ddd] p-4"
             style={{ height: "700px" }}
           >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex gap-[8px] items-center">
+                <p className="font-semibold leading-[42px] text-[28px] text-black whitespace-nowrap">
+                  {moment(selectedDate).format("MMMM YYYY")}
+                </p>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() =>
+                      setSelectedDate(
+                        new Date(
+                          selectedDate.getFullYear(),
+                          selectedDate.getMonth() - 1,
+                          1,
+                        ),
+                      )
+                    }
+                    className="size-[24px] flex items-center justify-center rotate-90"
+                  >
+                    <ChevronDown className="size-[24px]" />
+                  </button>
+                  <button
+                    onClick={() =>
+                      setSelectedDate(
+                        new Date(
+                          selectedDate.getFullYear(),
+                          selectedDate.getMonth() + 1,
+                          1,
+                        ),
+                      )
+                    }
+                    className="size-[24px] flex items-center justify-center -rotate-90"
+                  >
+                    <ChevronDown className="size-[24px]" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-3 relative">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setSelectedDate(new Date(today));
+                    setCurrentView(Views.WEEK);
+                  }}
+                  className="text-[16px] h-10 bg-[#265B34] hover:bg-[#1f4a2b]"
+                >
+                  Today
+                </Button>
+                <Select
+                  value={currentView}
+                  onValueChange={(value) => setCurrentView(value as View)}
+                >
+                  <SelectTrigger className="gap-2 text-[16px] text-[#265B34] border border-[#265B34] rounded-[6px] bg-white cursor-pointer hover:bg-[#e6f0ea]">
+                    <SelectValue placeholder="Select view" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {viewOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <BigCalendar
               localizer={localizer}
               events={filteredEvents}
@@ -197,9 +193,13 @@ export default function CalendarPage() {
               onView={setCurrentView}
               date={selectedDate}
               onNavigate={setSelectedDate}
+              dayPropGetter={dayStyleGetter}
               eventPropGetter={eventStyleGetter}
-              style={{ height: "100%" }}
+              style={{ height: "90%" }}
               views={[Views.MONTH, Views.WEEK, Views.DAY]}
+              components={{
+                toolbar: () => <></>,
+              }}
             />
           </div>
         </div>

@@ -2,7 +2,7 @@ import { FundraisersList } from "./components/FundraisersList";
 import { BasicFundraiserSchema } from "common";
 import { connection } from "next/server";
 import { serverFetch } from "@/lib/fetcher";
-import CalendarPage from "./components/Calendar";
+import { CalendarPage } from "./components/Calendar";
 
 export default async function BrowseFundraisersPage({
   searchParams,

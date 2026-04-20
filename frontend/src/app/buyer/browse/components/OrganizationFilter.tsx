@@ -102,11 +102,11 @@ export function OrganizationFilter({
   onToggleOrganization,
 }: OrganizationFilterProps) {
   return (
-    <div className="bg-white relative rounded-[8px] shrink-0 w-full border border-[#ddd]">
-      <div className="overflow-clip rounded-[inherit] size-full">
-        <div className="content-stretch flex flex-col gap-[8px] items-start p-[16px] relative size-full">
+    <div className="w-full bg-white relative rounded-[8px] shrink-0 w-full border border-[#ddd]">
+      <div className="px-[16px] overflow-clip rounded-[inherit] size-full">
+        <div className=" content-stretch flex flex-col gap-[8px] items-start p-[16px] relative size-full">
           <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
-            <p className="font-['DM_Sans:Regular',sans-serif] font-normal leading-[21px] relative shrink-0 text-[14px] text-black text-center whitespace-nowrap">
+            <p className="leading-[21px] relative shrink-0 text-[14px] text-black text-center whitespace-nowrap">
               Clubs
             </p>
             <ChevronDown className="h-5 w-5" />
@@ -132,7 +132,7 @@ export function OrganizationFilter({
                         : "#ffffff",
                     }}
                   />
-                  <p className="font-['DM_Sans:Regular',sans-serif] font-normal leading-[18px] relative shrink-0 text-[12px] text-black whitespace-nowrap">
+                  <p className="leading-[18px] relative shrink-0 text-[12px] text-black whitespace-nowrap">
                     {org}
                   </p>
                 </label>
