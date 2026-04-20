@@ -1,13 +1,5 @@
 import { ChevronDown } from "lucide-react";
 
-export interface CalendarEvent {
-  title: string;
-  start: Date;
-  end: Date;
-  allDay?: boolean;
-  organization?: string;
-}
-
 export const organizations = [
   "Cornell Data Science",
   "DCC",
@@ -109,10 +101,9 @@ export function OrganizationFilter({
             <p className="leading-[21px] relative shrink-0 text-[14px] text-black text-center whitespace-nowrap">
               Clubs
             </p>
-            <ChevronDown className="h-5 w-5" />
           </div>
           <div className="relative shrink-0 w-full">
-            <div className="content-stretch flex flex-col gap-[8px] items-start px-[8px] relative size-full">
+            <div className="content-stretch flex flex-col gap-[8px] items-start relative size-full">
               {organizations.map((org) => (
                 <label
                   key={org}

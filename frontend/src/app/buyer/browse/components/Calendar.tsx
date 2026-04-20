@@ -7,7 +7,7 @@ import {
   Views,
 } from "react-big-calendar";
 import moment from "moment";
-import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import {
   events,
   OrganizationFilter,
@@ -23,10 +23,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { organizationColors } from "./utils";
+import { z } from "zod";
+import { BasicFundraiserSchema, BasicOrganizationSchema } from "common";
+
+export interface CalendarEvent {
+  title: string;
+  start: Date;
+  end: Date;
+  allDay?: boolean;
+  organization?: string;
+}
 
 const localizer = momentLocalizer(moment);
 
-export function CalendarPage() {
+export function CalendarPage({
+  organizations,
+  fundraisers,
+}: {
+  organizations: z.infer<typeof BasicOrganizationSchema>[];
+  fundraisers: z.infer<typeof BasicFundraiserSchema>[];
+}) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date(today));
@@ -52,22 +69,14 @@ export function CalendarPage() {
       !event.organization || selectedOrganizations.includes(event.organization),
   );
 
-  const organizationColors: Record<string, string> = {
-    "Cornell Data Science": "#f74545",
-    DCC: "#6a9f48",
-    "Digital Tech & Innovation": "#3197f7",
-    CUxD: "#ffffff",
-  };
-
   const eventStyleGetter = (event: any) => {
     const backgroundColor = event.organization
-      ? organizationColors[event.organization]
+      ? organizationColors[organizations.indexOf(event.organization)]
       : "#3174ad";
     return {
       style: {
         backgroundColor,
         opacity: 0.8,
-        color: event.organization === "CUxD" ? "black" : "white",
         border:
           "1px solid " +
           (event.organization === "CUxD" ? "#ddd" : backgroundColor),

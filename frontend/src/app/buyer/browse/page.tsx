@@ -1,5 +1,5 @@
 import { FundraisersList } from "./components/FundraisersList";
-import { BasicFundraiserSchema } from "common";
+import { BasicFundraiserSchema, BasicOrganizationSchema } from "common";
 import { connection } from "next/server";
 import { serverFetch } from "@/lib/fetcher";
 import { CalendarPage } from "./components/Calendar";
@@ -14,12 +14,15 @@ export default async function BrowseFundraisersPage({
   const fundraisers = await serverFetch("/fundraiser", {
     schema: BasicFundraiserSchema.array(),
   });
+  const organizations = await serverFetch("/organization", {
+    schema: BasicOrganizationSchema.array(),
+  });
   const params = await searchParams;
   const searchQuery = params.search || "";
 
   return (
     <div className="flex flex-col px-4 md:px-[157px] py-10">
-      <CalendarPage />{" "}
+      <CalendarPage organizations={organizations} fundraisers={fundraisers} />{" "}
       <FundraisersList fundraisers={fundraisers} searchQuery={searchQuery} />
     </div>
   );
