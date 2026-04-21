@@ -44,8 +44,8 @@ export default async function BrowseFundraisersPage({
   const searchQuery = params.search || "";
 
   return (
-    <div className="flex flex-col px-4 md:px-[157px] py-10">
-      <h1 className="hidden md:block text-[32px] font-semibold text-black">
+    <div>
+      <h1 className="py-4 md:py-10 px-4 md:px-[157px] text-[28px] md:text-[32px] font-semibold text-black">
         Browse CURaise
       </h1>
       <CalendarPage
@@ -53,7 +53,9 @@ export default async function BrowseFundraisersPage({
         userOrganizations={userOrganizations}
         fundraisers={fundraisers}
       />{" "}
-      <FundraisersList fundraisers={fundraisers} searchQuery={searchQuery} />
+      <div className="flex flex-col px-4 md:px-[157px] py-10">
+        <FundraisersList fundraisers={fundraisers} searchQuery={searchQuery} />
+      </div>
     </div>
   );
 }

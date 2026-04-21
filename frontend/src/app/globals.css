@@ -96,3 +96,44 @@ body {
     display: none;
   }
 }
+
+/* React Big Calendar Custom CSS */
+.my-calendar .rbc-current-time-indicator {
+  height: 3px;
+  background-color: #265b34;
+}
+.my-calendar .rbc-current-time-indicator::before {
+  content: "";
+  position: absolute;
+  left: -6px; /* pushes dot slightly outside grid */
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #265b34;
+}
+.my-calendar .rbc-time-gutter .rbc-timeslot-group {
+  padding-right: 8px;
+}
+.my-calendar .rbc-month-row {
+  min-height: 180px;
+}
+
+.my-calendar .rbc-month-view {
+  height: 250px;
+  overflow-y: auto;
+}
+
+.my-calendar .rbc-row-content {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.my-calendar .rbc-row-content {
+  padding-bottom: 2px;
+}
+
+.my-calendar .rbc-month-view .rbc-event {
+  margin-bottom: 1px;
+}

@@ -15,10 +15,11 @@ export function OrganizationFilter({
     <div className="w-full bg-white relative rounded-[8px] shrink-0 w-full border border-[#ddd]">
       <div className="px-[16px] overflow-clip rounded-[inherit] size-full">
         <div className=" content-stretch flex flex-col gap-[8px] items-start p-[16px] relative size-full">
-          <div className="content-stretch flex items-center justify-between relative shrink-0 w-full">
-            <p className="leading-[21px] relative shrink-0 text-[14px] text-black text-center whitespace-nowrap">
+          <div className="content-stretch flex flex-col justify-between relative shrink-0 w-full">
+            <p className="leading-[21px] relative shrink-0 text-[14px] text-black whitespace-nowrap">
               Clubs
             </p>
+            <span className="text-xs">(Only can select 3 clubs at a time)</span>
           </div>
           <div className="relative shrink-0 w-full">
             <div className="content-stretch flex flex-col gap-[8px] items-start relative size-full">
