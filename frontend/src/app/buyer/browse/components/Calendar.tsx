@@ -189,7 +189,9 @@ export function CalendarPage({
   }, []);
   // updating the selected based on if it's mobile
   useEffect(() => {
-    handleToggleOrganization(isMobile, selectedOrganizations[0]);
+    if (isMobile) {
+      setSelectedOrganizations([selectedOrganizations[0]]);
+    }
   }, [isMobile]);
 
   return (
