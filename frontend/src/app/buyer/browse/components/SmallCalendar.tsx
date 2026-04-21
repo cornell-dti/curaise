@@ -15,7 +15,7 @@ export function SmallCalendar({
 }) {
   const [selectedDate, setSelectedDate] = useState<Date>(date);
   return (
-    <div className="w-full bg-white rounded-[6px] border border-[#dfdfdf] md:py-[16px]">
+    <div className="hidden md:block w-full bg-white rounded-[6px] border border-[#dfdfdf] md:py-[16px]">
       <div className="flex items-center justify-center mb-2">
         <div className="flex gap-1 justify-center items-center">
           <button

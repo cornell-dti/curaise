@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Calendar as BigCalendar,
   momentLocalizer,
@@ -36,6 +36,7 @@ export interface CalendarEvent {
 type Organization = z.infer<typeof BasicOrganizationSchema>;
 
 const localizer = momentLocalizer(moment);
+const MOBILE_BREAKPOINT = 768;
 
 export function CalendarPage({
   organizations,
@@ -58,6 +59,7 @@ export function CalendarPage({
   const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>(
     authorizedUserOrganizations.map((org) => org.name),
   );
+  const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
 
   const events: CalendarEvent[] = fundraisers.flatMap((fundraiser) => {
@@ -89,10 +91,12 @@ export function CalendarPage({
     }
   };
 
-  const handleToggleOrganization = (org: string) => {
+  const handleToggleOrganization = (isMobile: boolean, org: string) => {
     if (
       !selectedOrganizations.includes(org) &&
-      selectedOrganizations.length == 3
+      (isMobile
+        ? selectedOrganizations.length == 1
+        : selectedOrganizations.length == 3)
     ) {
       const firstOrg = selectedOrganizations.at(0);
       setSelectedOrganizations((prev) => prev.filter((o) => o !== firstOrg));
@@ -171,10 +175,27 @@ export function CalendarPage({
     }
   };
 
+  // checking if it's mobile
+  useEffect(() => {
+    const checkScreen = () => {
+      const mobile = window.innerWidth < MOBILE_BREAKPOINT;
+      setIsMobile(mobile);
+    };
+
+    checkScreen(); // run on mount
+
+    window.addEventListener("resize", checkScreen);
+    return () => window.removeEventListener("resize", checkScreen);
+  }, []);
+  // updating the selected based on if it's mobile
+  useEffect(() => {
+    handleToggleOrganization(isMobile, selectedOrganizations[0]);
+  }, [isMobile]);
+
   return (
     <div className="bg-white size-full md:px-10">
-      <div className="flex mdpy-[20px] gap-[40px]">
-        <div className="hidden md:flex flex-col items-center gap-[20px] w-[275px]">
+      <div className="flex flex-col-reverse items-center md:flex-row md:py-[20px] gap-[20px] md:gap-[40px]">
+        <div className="flex flex-col items-center gap-[20px] w-full md:w-[275px]">
           <SmallCalendar
             onSelected={setSelectedDate}
             date={selectedDate}
@@ -183,11 +204,13 @@ export function CalendarPage({
           <OrganizationFilter
             organizations={organizationNames}
             selectedOrganizations={selectedOrganizations}
-            onToggleOrganization={handleToggleOrganization}
+            onToggleOrganization={(org) =>
+              handleToggleOrganization(isMobile, org)
+            }
           />
         </div>
 
-        <div className="flex-1">
+        <div className="flex-1 w-full">
           <div
             className="bg-white rounded-[8px] md:border border-[#ddd] px-4 md:p-8"
             style={{ height: "700px" }}
@@ -271,6 +294,9 @@ export function CalendarPage({
                     {event.title}
                   </div>
                 ),
+              }}
+              formats={{
+                timeGutterFormat: "hA",
               }}
               className="my-calendar"
             />

@@ -12,7 +12,7 @@ export function OrganizationFilter({
   onToggleOrganization,
 }: OrganizationFilterProps) {
   return (
-    <div className="w-full bg-white relative rounded-[8px] shrink-0 w-full border border-[#ddd]">
+    <div className="w-full bg-white relative md:rounded-[8px] shrink-0 border border-[#ddd]">
       <div className="px-[16px] overflow-clip rounded-[inherit] size-full">
         <div className=" content-stretch flex flex-col gap-[8px] items-start p-[16px] relative size-full">
           <div className="content-stretch flex flex-col justify-between relative shrink-0 w-full">
