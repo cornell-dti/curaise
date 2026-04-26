@@ -13,7 +13,7 @@ export function BrowseFundraiserCard({ fundraiser }: BrowseFundraiserCardProps) 
       href={`/buyer/fundraiser/${fundraiser.id}`}
       className="flex flex-col gap-[15px] w-full"
     >
-      <div className="bg-white aspect-[3/2] w-full rounded-md shadow-[2px_2px_5px_0px_rgba(140,140,140,0.25)] overflow-hidden relative">
+      <div className="bg-white aspect-[16/9] w-full rounded-md shadow-[2px_2px_5px_0px_rgba(140,140,140,0.25)] overflow-hidden relative">
         {fundraiser.imageUrls && fundraiser.imageUrls.length > 0 ? (
           <Image
             src={fundraiser.imageUrls[0]}
