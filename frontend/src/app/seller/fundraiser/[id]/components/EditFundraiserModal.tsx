@@ -52,6 +52,7 @@ export function EditFundraiserModal({
     organizationId: fundraiser.organization.id,
     venmoEmail: fundraiser.venmoEmail ?? undefined,
     venmoUsername: fundraiser.venmoUsername ?? undefined,
+    venmoLastFourDigits: fundraiser.venmoLastFourDigits ?? undefined,
     pickupEvents: fundraiser.pickupEvents ?? [],
   });
   const [fundraiserItems, setFundraiserItems] = useState<
@@ -63,10 +64,11 @@ export function EditFundraiserModal({
   const [formFundraiserItems, setFormFundraiserItems] = useState<
     z.infer<typeof CreateFundraiserItemBody>[]
   >(
-    currentFundraiserItems.map(({ id, imageUrl, limit, ...rest }) => ({
+    currentFundraiserItems.map(({ id, imageUrl, limit, profit, ...rest }) => ({
       ...rest,
       imageUrl: imageUrl ?? undefined,
       limit: limit ?? undefined,
+      profit: profit ?? undefined,
     })),
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,9 +105,14 @@ export function EditFundraiserModal({
       venmoEmail: formData.venmoEmail === "" ? null : formData.venmoEmail,
       venmoUsername:
         formData.venmoUsername === "" ? null : formData.venmoUsername,
+      venmoLastFourDigits:
+        formData.venmoLastFourDigits === ""
+          ? null
+          : formData.venmoLastFourDigits,
     } as typeof formData & {
       venmoEmail: string | null;
       venmoUsername: string | null;
+      venmoLastFourDigits: string | null;
     };
 
     // Update the fundraiser basic info
@@ -239,10 +246,11 @@ export function EditFundraiserModal({
 
   useEffect(() => {
     setFormFundraiserItems(
-      fundraiserItems.map(({ id, imageUrl, limit, ...rest }) => ({
+      fundraiserItems.map(({ id, imageUrl, limit, profit, ...rest }) => ({
         ...rest,
         imageUrl: imageUrl ?? undefined,
         limit: limit ?? undefined,
+        profit: profit ?? undefined,
       })),
     );
   }, [fundraiserItems]);

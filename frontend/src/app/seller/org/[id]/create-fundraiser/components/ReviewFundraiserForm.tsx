@@ -89,6 +89,18 @@ export function ReviewFundraiserForm({
                 {formData.venmoEmail || "Not provided"}
               </p>
             </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">
+                Venmo Last Four Digits
+              </p>
+              <p
+                className={
+                  !formData.venmoLastFourDigits ? "text-muted-foreground" : ""
+                }
+              >
+                {formData.venmoLastFourDigits || "Not provided"}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -145,12 +157,23 @@ export function ReviewFundraiserForm({
                     <p className="font-medium">{item.name}</p>
                     <p className="text-sm text-gray-500">{item.description}</p>
                   </div>
-                  <p className="font-medium">
-                    $
-                    {typeof item.price === "object" && "toFixed" in item.price
-                      ? item.price.toFixed(2)
-                      : parseFloat(String(item.price)).toFixed(2)}
-                  </p>
+                  <div className="text-right">
+                    <p className="font-medium">
+                      Price: $
+                      {typeof item.price === "object" && "toFixed" in item.price
+                        ? item.price.toFixed(2)
+                        : parseFloat(String(item.price)).toFixed(2)}
+                    </p>
+                    {item.profit !== undefined && (
+                      <p className="text-sm text-gray-400">
+                        Profit: $
+                        {typeof item.profit === "object" &&
+                        "toFixed" in item.profit
+                          ? item.profit.toFixed(2)
+                          : parseFloat(String(item.profit)).toFixed(2)}
+                      </p>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

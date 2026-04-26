@@ -6,6 +6,7 @@ export const BasicItemSchema = z.object({
   name: z.string(),
   description: z.string(),
   price: MoneySchema,
+  profit: MoneySchema.nullish(),
   limit: z.number().int().positive().nullish(),
 });
 

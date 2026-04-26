@@ -98,7 +98,7 @@ export default async function OrderPage({
     .toFixed(2);
 
   // Use full order ID for Venmo payment
-  const orderIdForPayment = order.id;
+  const orderTransactionNote = "[DO NOT EDIT] " + order.id;
 
   // Get banner styling based on payment status and method
   const getBannerStyling = () => {
@@ -183,7 +183,11 @@ export default async function OrderPage({
         </div>
         <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-sm text-gray-800">
           <span>
-            Ordered on <LocalDate date={order.createdAt} formatStr="MMM d, yyyy 'at' h:mm a" />
+            Ordered on{" "}
+            <LocalDate
+              date={order.createdAt}
+              formatStr="MMM d, yyyy 'at' h:mm a"
+            />
           </span>
           <span className="hidden md:inline">|</span>
           <span>Order Id: {order.id}</span>
@@ -226,7 +230,7 @@ export default async function OrderPage({
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="flex flex-col items-center gap-2">
+                    <div className="flex flex-row items-center gap-2">
                       <Button
                         size="lg"
                         asChild
@@ -236,7 +240,7 @@ export default async function OrderPage({
                           href={`https://venmo.com/${
                             fundraiser.venmoUsername
                           }?txn=pay&note=${encodeURIComponent(
-                            orderIdForPayment,
+                            orderTransactionNote,
                           )}&amount=${encodeURIComponent(orderTotal)}`}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -267,10 +271,19 @@ export default async function OrderPage({
                         </a>
                       </Button>
                       <CopyButton
-                        text={`https://venmo.com/${fundraiser.venmoUsername}?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`}
+                        text={`https://venmo.com/${fundraiser.venmoUsername}?txn=pay&note=${encodeURIComponent(orderTransactionNote)}&amount=${encodeURIComponent(orderTotal)}`}
                         label="Copy Link"
                         variant="outline"
                       />
+                    </div>
+
+                    <div className="rounded-md border bg-muted/50 px-3 py-2 text-md">
+                      <span className="text-muted-foreground">
+                        Last 4 digits of seller&apos;s phone:{" "}
+                      </span>
+                      <span className="font-mono font-semibold">
+                        {fundraiser.venmoLastFourDigits}
+                      </span>
                     </div>
 
                     {/* Show payment details */}
@@ -305,9 +318,9 @@ export default async function OrderPage({
                         </p>
                         <div className="flex items-center gap-2">
                           <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs font-mono">
-                            {orderIdForPayment}
+                            {order.id}
                           </code>
-                          <CopyButton text={orderIdForPayment} />
+                          <CopyButton text={order.id} />
                         </div>
                       </div>
                     </details>
@@ -345,8 +358,11 @@ export default async function OrderPage({
                       <span className="text-sm">
                         <span className="font-medium">{event.location}</span>
                         <br />
-                        <LocalDate date={event.startsAt} formatStr="h:mm a" /> to{" "}
-                        <LocalDate date={event.endsAt} formatStr="h:mm a" />
+                        <LocalDate
+                          date={event.startsAt}
+                          formatStr="h:mm a"
+                        />{" "}
+                        to <LocalDate date={event.endsAt} formatStr="h:mm a" />
                       </span>
                     </div>
                   ))}
@@ -359,7 +375,7 @@ export default async function OrderPage({
                 <div className="flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">
-                    Paid with {order.paymentMethod}
+                    Payment method: {order.paymentMethod}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">

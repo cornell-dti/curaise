@@ -2,6 +2,7 @@ import { z } from "zod";
 import { BasicOrganizationSchema } from "./organization";
 import { MoneySchema } from "./decimal";
 import { UserSchema } from "./user";
+import Decimal from "decimal.js";
 
 export const AnnouncementSchema = z.object({
   id: z.string().uuid(),
@@ -29,6 +30,10 @@ export const BasicFundraiserSchema = z.object({
   published: z.boolean(),
   venmoUsername: z.string().min(1).max(255).nullish(),
   venmoEmail: z.string().min(1).max(255).nullish(),
+  venmoLastFourDigits: z
+    .string()
+    .regex(/^\d{4}$/, "Must be exactly 4 digits")
+    .nullish(),
   goalAmount: MoneySchema.nullish(),
   buyingStartsAt: z.coerce.date(),
   buyingEndsAt: z.coerce.date(),
@@ -64,16 +69,28 @@ export const CreateFundraiserBody = z.object({
     .string()
     .optional()
     .transform((value) =>
-      value ? (value.length === 0 ? undefined : value) : undefined
+      value ? (value.length === 0 ? undefined : value) : undefined,
     )
     .pipe(z.string().min(5).max(30).optional()),
   venmoEmail: z
     .string()
     .optional()
     .transform((value) =>
-      value ? (value.length === 0 ? undefined : value) : undefined
+      value ? (value.length === 0 ? undefined : value) : undefined,
     )
     .pipe(z.string().email().optional()),
+  venmoLastFourDigits: z
+    .string()
+    .optional()
+    .transform((value) =>
+      value ? (value.length === 0 ? undefined : value) : undefined,
+    )
+    .pipe(
+      z
+        .string()
+        .regex(/^\d{4}$/, "Must be exactly 4 digits")
+        .optional(),
+    ),
   imageUrls: z.array(z.string().url()),
   goalAmount: MoneySchema.optional(),
   buyingStartsAt: z.coerce.date(),
@@ -90,39 +107,81 @@ export const UpdateFundraiserBody = z.object({
     .string()
     .optional()
     .transform((value) =>
-      value ? (value.length === 0 ? undefined : value) : undefined
+      value ? (value.length === 0 ? undefined : value) : undefined,
     )
     .pipe(z.string().min(5).max(30).optional()),
   venmoEmail: z
     .string()
     .optional()
     .transform((value) =>
-      value ? (value.length === 0 ? undefined : value) : undefined
+      value ? (value.length === 0 ? undefined : value) : undefined,
     )
     .pipe(z.string().email().optional()),
+  venmoLastFourDigits: z
+    .string()
+    .optional()
+    .transform((value) =>
+      value ? (value.length === 0 ? undefined : value) : undefined,
+    )
+    .pipe(
+      z
+        .string()
+        .regex(/^\d{4}$/, "Must be exactly 4 digits")
+        .optional(),
+    ),
   goalAmount: MoneySchema.optional(),
   imageUrls: z.array(z.string().url()),
   buyingStartsAt: z.coerce.date(),
   buyingEndsAt: z.coerce.date(),
 });
 
-export const CreateFundraiserItemBody = z.object({
-  name: z.string().min(1).max(255),
-  description: z.string(),
-  price: MoneySchema,
-  imageUrl: z.string().url().optional(),
-  offsale: z.boolean(),
-  limit: z.number().int().positive().optional(),
-});
+export const CreateFundraiserItemBody = z
+  .object({
+    name: z.string().min(1).max(255),
+    description: z.string(),
+    price: MoneySchema,
+    profit: MoneySchema.optional(),
+    imageUrl: z.string().url().optional(),
+    offsale: z.boolean(),
+    limit: z.number().int().positive().optional(),
+  })
+  .refine(
+    (data) => {
+      // If profit isn't provided, the check passes automatically
+      if (!data.profit) return true;
 
-export const UpdateFundraiserItemBody = z.object({
-  name: z.string().min(1).max(255),
-  description: z.string(),
-  price: MoneySchema,
-  imageUrl: z.string().url().optional(),
-  offsale: z.boolean(),
-  limit: z.number().int().positive().nullable().optional(),
-});
+      // Using decimal.js comparison method
+      return Decimal(data.profit).lessThanOrEqualTo(Decimal(data.price));
+    },
+    {
+      message: "Profit cannot be greater than the total price",
+      path: ["profit"], // This attaches the error to the profit field specifically
+    },
+  );
+
+export const UpdateFundraiserItemBody = z
+  .object({
+    name: z.string().min(1).max(255),
+    description: z.string(),
+    price: MoneySchema,
+    profit: MoneySchema.optional(),
+    imageUrl: z.string().url().optional(),
+    offsale: z.boolean(),
+    limit: z.number().int().positive().nullable().optional(),
+  })
+  .refine(
+    (data) => {
+      // If profit isn't provided, the check passes automatically
+      if (!data.profit) return true;
+
+      // Using decimal.js comparison method
+      return Decimal(data.profit).lessThanOrEqualTo(Decimal(data.price));
+    },
+    {
+      message: "Profit cannot be greater than the total price",
+      path: ["profit"], // This attaches the error to the profit field specifically
+    },
+  );
 
 export const CreateAnnouncementBody = z.object({
   message: z.string(),

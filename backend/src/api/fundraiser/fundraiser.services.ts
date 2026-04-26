@@ -1,3 +1,4 @@
+import { Prisma } from "../../generated/client";
 import { prisma } from "../../utils/prisma";
 import { Item } from "../../generated/client";
 import {
@@ -11,10 +12,6 @@ import {
 } from "common";
 import { z } from "zod";
 import memclient from "../../utils/memjs";
-
-// Extract profit margin constant for the protif calculation in the analytics
-// This constant can be easily mocked for profit calculation in backend test to ensure that different margin values work
-export const PROFIT_MARGIN = 0.2;
 
 export const getFundraiser = async (fundraiserId: string) => {
   const fundraiser = await prisma.fundraiser.findUnique({
@@ -137,7 +134,7 @@ export const getAllFundraisers = async () => {
 };
 
 export const createFundraiser = async (
-  fundraiserBody: z.infer<typeof CreateFundraiserBody>
+  fundraiserBody: z.infer<typeof CreateFundraiserBody>,
 ) => {
   const fundraiser = await prisma.fundraiser.create({
     data: {
@@ -145,6 +142,7 @@ export const createFundraiser = async (
       description: fundraiserBody.description,
       venmoUsername: fundraiserBody.venmoUsername,
       venmoEmail: fundraiserBody.venmoEmail,
+      venmoLastFourDigits: fundraiserBody.venmoLastFourDigits,
       goalAmount: fundraiserBody.goalAmount,
       imageUrls: fundraiserBody.imageUrls,
       buyingStartsAt: fundraiserBody.buyingStartsAt,
@@ -191,7 +189,7 @@ export const publishFundraiser = async (fundraiserId: string) => {
 export const updateFundraiser = async (
   fundraiserBody: z.infer<typeof UpdateFundraiserBody> & {
     fundraiserId: string;
-  }
+  },
 ) => {
   const fundraiser = await prisma.fundraiser.update({
     where: {
@@ -202,6 +200,7 @@ export const updateFundraiser = async (
       description: fundraiserBody.description,
       venmoUsername: fundraiserBody.venmoUsername ?? null,
       venmoEmail: fundraiserBody.venmoEmail ?? null,
+      venmoLastFourDigits: fundraiserBody.venmoLastFourDigits ?? null,
       goalAmount: fundraiserBody.goalAmount ?? null,
       imageUrls: fundraiserBody.imageUrls,
       buyingStartsAt: fundraiserBody.buyingStartsAt,
@@ -223,7 +222,7 @@ export const updateFundraiser = async (
 export const createPickupEvent = async (
   pickupEventBody: z.infer<typeof CreatePickupEventBody> & {
     fundraiserId: string;
-  }
+  },
 ) => {
   const pickupEvent = await prisma.pickupEvent.create({
     data: {
@@ -244,7 +243,7 @@ export const createPickupEvent = async (
 export const updatePickupEvent = async (
   pickupEventBody: z.infer<typeof UpdatePickupEventBody> & {
     pickupEventId: string;
-  }
+  },
 ) => {
   const pickupEvent = await prisma.pickupEvent.update({
     where: {
@@ -271,15 +270,16 @@ export const deletePickupEvent = async (pickupEventId: string) => {
 };
 
 export const createFundraiserItem = async (
-  itemBody: z.infer<typeof CreateFundraiserItemBody> & { fundraiserId: string }
+  itemBody: z.infer<typeof CreateFundraiserItemBody> & { fundraiserId: string },
 ) => {
   const item = await prisma.item.create({
     data: {
       name: itemBody.name,
       description: itemBody.description,
       price: itemBody.price,
+      profit: itemBody.profit,
       imageUrl: itemBody.imageUrl,
-      limit: itemBody.limit ?? null,
+      limit: itemBody.limit,
       fundraiser: {
         connect: {
           id: itemBody.fundraiserId,
@@ -293,7 +293,7 @@ export const createFundraiserItem = async (
 
 export const getFundraiserItemForFundraiser = async (
   fundraiserId: string,
-  itemId: string
+  itemId: string,
 ) => {
   const item = await prisma.item.findFirst({
     where: {
@@ -306,10 +306,13 @@ export const getFundraiserItemForFundraiser = async (
 };
 
 export const updateFundraiserItem = async (
-  itemBody: z.infer<typeof UpdateFundraiserItemBody> & { itemId: string }
+  itemBody: z.infer<typeof UpdateFundraiserItemBody> & { itemId: string },
 ) => {
   if (itemBody.limit !== undefined) {
-    const validation = await validateCapUpdate(itemBody.itemId, itemBody.limit ?? null);
+    const validation = await validateCapUpdate(
+      itemBody.itemId,
+      itemBody.limit ?? null,
+    );
     if (!validation.valid) {
       throw new Error(validation.reason);
     }
@@ -323,9 +326,10 @@ export const updateFundraiserItem = async (
       name: itemBody.name,
       description: itemBody.description,
       price: itemBody.price,
+      profit: itemBody.profit ?? null,
       imageUrl: itemBody.imageUrl ?? null,
       offsale: itemBody.offsale,
-      limit: itemBody.limit !== undefined ? itemBody.limit : undefined,
+      limit: itemBody.limit ?? null,
     },
   });
 
@@ -344,7 +348,7 @@ export const deleteFundraiserItem = async (itemId: string) => {
 
 export const validatePublishedFundraiserItemUpdate = (
   existingItem: Item,
-  updates: z.infer<typeof UpdateFundraiserItemBody>
+  updates: z.infer<typeof UpdateFundraiserItemBody>,
 ): { valid: boolean; reason?: string } => {
   if (!existingItem.price.equals(updates.price)) {
     return {
@@ -388,7 +392,7 @@ export const validatePublishedFundraiserItemUpdate = (
 export const createAnnouncement = async (
   announcementBody: z.infer<typeof CreateAnnouncementBody> & {
     fundraiserId: string;
-  }
+  },
 ) => {
   const announcement = await prisma.announcement.create({
     data: {
@@ -484,7 +488,7 @@ export const deleteReferral = async (referralId: string) => {
 };
 
 export const getFundraiserItemsWithAvailability = async (
-  fundraiserId: string
+  fundraiserId: string,
 ) => {
   const items = await getFundraiserItems(fundraiserId);
   const itemIds = items.map((i) => i.id);
@@ -504,7 +508,9 @@ export const getFundraiserItemsWithAvailability = async (
  * Get confirmed quantity sold for a specific item
  * Counts orders that are CONFIRMED or have been picked up
  */
-export const getItemConfirmedCount = async (itemId: string): Promise<number> => {
+export const getItemConfirmedCount = async (
+  itemId: string,
+): Promise<number> => {
   const result = await prisma.orderItems.aggregate({
     where: {
       itemId,
@@ -524,7 +530,7 @@ export const getItemConfirmedCount = async (itemId: string): Promise<number> => 
  * Get confirmed counts for multiple items (bulk operation)
  */
 export const getItemsConfirmedCounts = async (
-  itemIds: string[]
+  itemIds: string[],
 ): Promise<Map<string, number>> => {
   if (itemIds.length === 0) {
     return new Map();
@@ -558,7 +564,7 @@ export const getItemsConfirmedCounts = async (
  */
 export const validateCapUpdate = async (
   itemId: string,
-  newLimit: number | null
+  newLimit: number | null,
 ): Promise<{ valid: boolean; reason?: string; confirmedCount?: number }> => {
   if (newLimit === null) {
     return { valid: true };
@@ -596,7 +602,7 @@ export interface FundraiserAnalytics {
  * @returns Promise<FundraiserAnalytics> - Analytics data including revenue, orders, and item statistics
  */
 export const calculateAndCacheFundraiserAnalytics = async (
-  fundraiserId: string
+  fundraiserId: string,
 ) => {
   const [orders, fundraiser] = await Promise.all([
     getFundraiserOrders(fundraiserId),
@@ -620,6 +626,7 @@ export const calculateAndCacheFundraiserAnalytics = async (
 
   orders.forEach((order) => {
     let orderTotal = 0;
+    let orderProfit = 0;
     const isPaidOrPickedUp =
       order.pickedUp || order.paymentStatus === "CONFIRMED";
 
@@ -631,12 +638,17 @@ export const calculateAndCacheFundraiserAnalytics = async (
       order.items.forEach((orderItem) => {
         const itemTotal = orderItem.quantity * Number(orderItem.item.price);
         orderTotal += itemTotal;
+        const itemProfit =
+          orderItem.quantity * Number(orderItem.item.profit ?? 0);
+        orderProfit += itemProfit;
         analytics.items[orderItem.item.name] =
           (analytics.items[orderItem.item.name] || 0) + orderItem.quantity;
       });
 
       // The total revenue should only consider the orders that are picked up or paid·
       analytics.total_revenue += orderTotal;
+
+      analytics.profit += orderProfit;
 
       // Track revenue by date only for paid or picked up orders
       const orderDate = order.createdAt.toISOString().split("T")[0];
@@ -650,9 +662,6 @@ export const calculateAndCacheFundraiserAnalytics = async (
     const orderDate = order.createdAt.toISOString().split("T")[0]; // Only keep the YYYY-MM-DD portion
     analytics.sale_data[orderDate] = (analytics.sale_data[orderDate] || 0) + 1;
   });
-
-  analytics.profit =
-    Math.round(analytics.total_revenue * PROFIT_MARGIN * 100) / 100;
 
   const cacheKey = `fundraiser_analytics_${fundraiserId}`;
   try {
@@ -692,7 +701,7 @@ export const getFundraiserAnalytics = async (fundraiserId: string) => {
  */
 // This is tentative for now, need to decide when the cache will be invalidated for the fundraiser
 export const invalidateFundraiserAnalyticsCache = async (
-  fundraiserId: string
+  fundraiserId: string,
 ) => {
   const cacheKey = `fundraiser_analytics_${fundraiserId}`;
   try {
@@ -710,7 +719,7 @@ export const invalidateFundraiserAnalyticsCache = async (
  * @returns Promise<FundraiserAnalytics | null> - Analytics data if cache exists, null otherwise
  */
 const peekCachedAnalytics = async (
-  cacheKey: string
+  cacheKey: string,
 ): Promise<FundraiserAnalytics | null> => {
   try {
     const cached = await memclient.get(cacheKey);
@@ -737,7 +746,7 @@ const peekCachedAnalytics = async (
  */
 export const updateCacheForNewOrder = async (
   fundraiserId: string,
-  orderDate: Date
+  orderDate: Date,
 ) => {
   const cacheKey = `fundraiser_analytics_${fundraiserId}`;
   try {
@@ -782,11 +791,12 @@ export const updateCacheForOrderPickup = async (
       quantity: number;
       item: {
         name: string;
-        price: number | any;
+        price: Prisma.Decimal;
+        profit: Prisma.Decimal | null;
       };
     }>;
   },
-  paymentStatus: string
+  paymentStatus: string,
 ) => {
   const cacheKey = `fundraiser_analytics_${fundraiserId}`;
   try {
@@ -799,9 +809,13 @@ export const updateCacheForOrderPickup = async (
 
     // Calculate order total and update items
     let orderTotal = 0;
+    let orderProfit = 0;
     order.items.forEach((orderItem) => {
       const itemTotal = orderItem.quantity * Number(orderItem.item.price);
       orderTotal += itemTotal;
+      const itemProfit =
+        orderItem.quantity * Number(orderItem.item.profit ?? 0);
+      orderProfit += itemProfit;
       analytics.items[orderItem.item.name] =
         (analytics.items[orderItem.item.name] || 0) + orderItem.quantity;
     });
@@ -814,8 +828,7 @@ export const updateCacheForOrderPickup = async (
     if (paymentStatus !== "CONFIRMED") {
       analytics.pending_orders--;
       analytics.total_revenue += orderTotal;
-      analytics.profit =
-        Math.round(analytics.total_revenue * PROFIT_MARGIN * 100) / 100;
+      analytics.profit += orderProfit;
 
       // Update revenue data by date
       const dateKey = order.createdAt.toISOString().split("T")[0];
@@ -848,10 +861,11 @@ export const updateCacheForOrderConfirmation = async (
       quantity: number;
       item: {
         name: string;
-        price: number | any;
+        price: Prisma.Decimal;
+        profit: Prisma.Decimal | null;
       };
     }>;
-  }
+  },
 ) => {
   const cacheKey = `fundraiser_analytics_${fundraiserId}`;
   try {
@@ -866,16 +880,24 @@ export const updateCacheForOrderConfirmation = async (
     // Only decrement pending_orders in that case
     if (order.pickedUp) {
       analytics.pending_orders--;
-      await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 300 });
-      console.log("Cached value updated for confirmed order (already picked up)");
+      await memclient.set(cacheKey, JSON.stringify(analytics), {
+        expires: 300,
+      });
+      console.log(
+        "Cached value updated for confirmed order (already picked up)",
+      );
       return;
     }
 
     // Calculate order total and update items
     let orderTotal = 0;
+    let orderProfit = 0;
     order.items.forEach((orderItem) => {
       const itemTotal = orderItem.quantity * Number(orderItem.item.price);
       orderTotal += itemTotal;
+      const itemProfit =
+        orderItem.quantity * Number(orderItem.item.profit ?? 0);
+      orderProfit += itemProfit;
       analytics.items[orderItem.item.name] =
         (analytics.items[orderItem.item.name] || 0) + orderItem.quantity;
     });
@@ -883,8 +905,7 @@ export const updateCacheForOrderConfirmation = async (
     // Update counters and revenue
     analytics.pending_orders--;
     analytics.total_revenue += orderTotal;
-    analytics.profit =
-      Math.round(analytics.total_revenue * PROFIT_MARGIN * 100) / 100;
+    analytics.profit += orderProfit;
 
     // Update revenue data by date
     const dateKey = order.createdAt.toISOString().split("T")[0];
