@@ -34,9 +34,9 @@ export function FundraiserCard({
   const isUpcoming = now < buyingStart;
 
   return (
-    <Card className="overflow-hidden border shadow-sm h-full flex flex-col hover:shadow-md hover:translate-y-[-2px] transition-all duration-200">
-      {/* Image Section */}
-      <div className="relative h-48 bg-gray-100">
+    <Card className="overflow-hidden border shadow-sm h-full flex flex-col md:flex-row hover:shadow-md hover:translate-y-[-2px] transition-all duration-200">
+      {/* Image Section - Left */}
+      <div className="relative w-full md:w-2/5 aspect-[16/9] bg-gray-100 flex-shrink-0">
         {fundraiser.imageUrls && fundraiser.imageUrls.length > 0 ? (
           <Image
             src={fundraiser.imageUrls[0]}
@@ -50,95 +50,78 @@ export function FundraiserCard({
             <span className="text-gray-400">No image</span>
           </div>
         )}
-
-        {/* Status Badge */}
-        <div
-          className={`absolute top-3 right-3 py-1 px-3 rounded-full text-xs font-medium ${
-            isBuyingActive
-              ? "bg-green-100 text-green-800"
-              : isUpcoming
-                ? "bg-blue-100 text-blue-800"
-                : "bg-gray-100 text-gray-800"
-          }`}
-        >
-          {isBuyingActive ? "Active" : isUpcoming ? "Upcoming" : "Ended"}
-        </div>
       </div>
 
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-base">{fundraiser.name}</CardTitle>
-            <CardDescription className="flex items-center gap-1 mt-1">
-              {fundraiser.description}
-            </CardDescription>
-            {fundraiser.organization && (
-              <div className="text-xs text-gray-500 mt-1">
-                {fundraiser.organization.name}
-              </div>
-            )}
+      {/* Text Info Section - Right */}
+      <div className="flex flex-col flex-1 min-w-0">
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-start gap-2">
+            <div>
+              <CardTitle className="text-base">{fundraiser.name}</CardTitle>
+              <CardDescription className="flex items-center gap-1 mt-1">
+                {fundraiser.description}
+              </CardDescription>
+              {fundraiser.organization && (
+                <div className="text-xs text-gray-500 mt-1">
+                  {fundraiser.organization.name}
+                </div>
+              )}
+            </div>
+            {/* Status Badge */}
+            <div
+              className={`py-1 px-3 rounded-full text-xs font-medium flex-shrink-0 ${
+                isBuyingActive
+                  ? "bg-green-100 text-green-800"
+                  : isUpcoming
+                    ? "bg-blue-100 text-blue-800"
+                    : "bg-gray-100 text-gray-800"
+              }`}
+            >
+              {isBuyingActive ? "Active" : isUpcoming ? "Upcoming" : "Ended"}
+            </div>
           </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
 
-      <CardContent className="pb-2 text-sm flex-1">
-        <div className="grid gap-2">
-          <div className="flex items-center gap-2">
-            <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-            <span>
-              Buying Window:{" "}
-              <b>
-                <LocalDate date={fundraiser.buyingStartsAt} formatStr="MMM d 'at' h:mm a" /> -{" "}
-                <LocalDate date={fundraiser.buyingEndsAt} formatStr="MMM d 'at' h:mm a" />
-              </b>
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-2">
+        <CardContent className="pb-2 text-sm flex-1">
+          <div className="grid gap-2">
             <div className="flex items-center gap-2">
-              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">
-                {fundraiser.pickupEvents.length === 1
-                  ? "Pickup Event"
-                  : `${fundraiser.pickupEvents.length} Pickup Events`}
+              <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+              <span>
+                Buying Window:{" "}
+                <b>
+                  <LocalDate date={fundraiser.buyingStartsAt} formatStr="MMM d 'at' h:mm a" /> -{" "}
+                  <LocalDate date={fundraiser.buyingEndsAt} formatStr="MMM d 'at' h:mm a" />
+                </b>
               </span>
             </div>
-            {fundraiser.pickupEvents.map((event) => (
-              <div key={event.id} className="ml-6 text-xs space-y-1">
-                <div className="flex items-center gap-2">
-                  <MapPinIcon className="h-3 w-3 text-muted-foreground" />
-                  <span>
-                    <b>{event.location}</b>
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CalendarIcon className="h-3 w-3 text-muted-foreground" />
-                  <span>
-                    <b>
-                      <LocalDate date={event.startsAt} formatStr="MMM d 'at' h:mm a" /> -{" "}
-                      <LocalDate date={event.endsAt} formatStr="MMM d 'at' h:mm a" />
-                    </b>
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </CardContent>
 
-      <CardFooter className="pt-2 flex mt-auto">
-        <Button variant="outline" size="sm" className="h-8" asChild>
-          <Link
-            href={
-              seller
-                ? `/seller/fundraiser/${fundraiser.id}`
-                : `/buyer/fundraiser/${fundraiser.id}`
-            }
-          >
-            View Details
-          </Link>
-        </Button>
-      </CardFooter>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">
+                  {fundraiser.pickupEvents.length === 1
+                    ? "1 Pickup Event"
+                    : `${fundraiser.pickupEvents.length} Pickup Events`}
+                </span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+
+        <CardFooter className="pt-2 flex mt-auto">
+          <Button variant="outline" size="sm" className="h-8" asChild>
+            <Link
+              href={
+                seller
+                  ? `/seller/fundraiser/${fundraiser.id}`
+                  : `/buyer/fundraiser/${fundraiser.id}`
+              }
+            >
+              View Details
+            </Link>
+          </Button>
+        </CardFooter>
+      </div>
     </Card>
   );
 }
