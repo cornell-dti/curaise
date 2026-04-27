@@ -108,6 +108,7 @@ export function FundraiserBasicInfoForm({
                     <Textarea
                       placeholder="Describe your fundraiser..."
                       {...field}
+                      maxLength={250}
                       className="min-h-24"
                     />
                   </FormControl>
