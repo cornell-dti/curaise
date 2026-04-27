@@ -76,7 +76,7 @@ export default async function FundraiserPage({
         {fundraiser.imageUrls.length > 0 ? (
           <FundraiserGallerySlider images={fundraiser.imageUrls} />
         ) : (
-          <div className="w-full h-[379px] md:h-[400px] bg-gray-200" />
+          <div className="w-full aspect-[16/9] bg-gray-200" />
         )}
       </div>
 
