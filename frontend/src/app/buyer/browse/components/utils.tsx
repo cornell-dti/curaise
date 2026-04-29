@@ -55,7 +55,7 @@ function hslToHex(h: number, s: number, l: number) {
 }
 
 export const organizationColors = [
-  "#f74545", // red
+  "#f74545ff", // red
   "#6a9f48", // green
   "#3197f7", // blue
   "#f78b2d", // orange

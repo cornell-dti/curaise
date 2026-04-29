@@ -7,7 +7,7 @@ import {
   Views,
 } from "react-big-calendar";
 import moment from "moment";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Clock3, MapPin, Pin } from "lucide-react";
 import { OrganizationFilter } from "./OrganizationFilter";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { SmallCalendar } from "./SmallCalendar";
@@ -23,6 +23,7 @@ import { organizationColors } from "./utils";
 import { z } from "zod";
 import { BasicFundraiserSchema, BasicOrganizationSchema } from "common";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export interface CalendarEvent {
   title: string;
@@ -31,6 +32,97 @@ export interface CalendarEvent {
   allDay: boolean;
   organization: string;
   id: string;
+  location: string;
+}
+
+const isPickupEvent = (event: CalendarEvent) => event.title.includes("Pick Up");
+
+function wideOverlapDayLayout({
+  events,
+  accessors,
+  slotMetrics,
+}: {
+  events: CalendarEvent[];
+  accessors: {
+    start: (event: CalendarEvent) => Date;
+    end: (event: CalendarEvent) => Date;
+  };
+  slotMetrics: {
+    getRange: (
+      start: Date,
+      end: Date,
+    ) => {
+      top: number;
+      height: number;
+    };
+  };
+}) {
+  const positionedEvents = events
+    .map((event) => {
+      const start = accessors.start(event);
+      const end = accessors.end(event);
+      const { top, height } = slotMetrics.getRange(start, end);
+
+      return {
+        event,
+        startMs: start.getTime(),
+        endMs: end.getTime(),
+        top,
+        height,
+      };
+    })
+    .sort((a, b) => a.startMs - b.startMs || b.endMs - a.endMs);
+
+  const overlapGroups: (typeof positionedEvents)[] = [];
+
+  for (const event of positionedEvents) {
+    const currentGroup = overlapGroups.at(-1);
+
+    if (!currentGroup) {
+      overlapGroups.push([event]);
+      continue;
+    }
+
+    const currentGroupEnd = Math.max(
+      ...currentGroup.map((groupEvent) => groupEvent.endMs),
+    );
+
+    if (event.startMs < currentGroupEnd) {
+      currentGroup.push(event);
+    } else {
+      overlapGroups.push([event]);
+    }
+  }
+
+  return overlapGroups.flatMap((group) => {
+    const width = group.length === 1 ? 100 : 88;
+    const maxOffset = Math.max(0, 100 - width);
+    const step =
+      group.length <= 1 ? 0 : Math.min(10, maxOffset / (group.length - 1));
+
+    return group.map((item, index) => ({
+      event: item.event,
+      style: {
+        top: item.top,
+        height: item.height,
+        width,
+        xOffset: Math.min(index * step, maxOffset),
+      },
+    }));
+  });
+}
+
+function CalendarDayHeader({ date }: { date: Date }) {
+  return (
+    <div className="flex flex-col items-center leading-tight h-[70px]">
+      <span className="text-[12px] font-normal uppercase text-muted-foreground">
+        {moment(date).format("ddd")}
+      </span>
+      <span className="text-[16px] font-medium text-black">
+        {moment(date).format("D")}
+      </span>
+    </div>
+  );
 }
 
 type Organization = z.infer<typeof BasicOrganizationSchema>;
@@ -70,6 +162,7 @@ export function CalendarPage({
       end: pickup.endsAt,
       organization: fundraiser.organization.name,
       id: fundraiser.id,
+      location: pickup.location,
     }));
 
     const buyingPeriod: CalendarEvent = {
@@ -79,6 +172,7 @@ export function CalendarPage({
       end: fundraiser.buyingEndsAt,
       organization: fundraiser.organization.name,
       id: fundraiser.id,
+      location: "",
     };
 
     return [...pickups, buyingPeriod];
@@ -111,16 +205,27 @@ export function CalendarPage({
       !event.organization || selectedOrganizations.includes(event.organization),
   );
 
-  const eventStyleGetter = (event: any) => {
+  const eventStyleGetter = (event: CalendarEvent) => {
     const backgroundColor = event.organization
       ? organizationColors[organizationNames.indexOf(event.organization)]
       : "#3174ad";
+
+    const isMonthPickup = currentView === Views.MONTH && isPickupEvent(event);
+
     return {
+      className: isMonthPickup ? "calendar-month-pickup-event" : undefined,
       style: {
-        backgroundColor,
-        opacity: 0.8,
-        border: event.organization === "CUxD" ? "#ddd" : backgroundColor,
-        borderRadius: "2px",
+        backgroundColor: isMonthPickup
+          ? "transparent"
+          : `color-mix(in srgb, ${backgroundColor} 80%, white)`,
+        opacity: 1,
+        border: isMonthPickup
+          ? "none"
+          : currentView !== Views.MONTH
+            ? `2px solid ${backgroundColor}`
+            : `none`,
+        borderRadius: currentView !== Views.MONTH ? "6px" : "2px",
+        boxShadow: isMonthPickup ? "none" : undefined,
       },
     };
   };
@@ -270,35 +375,124 @@ export function CalendarPage({
             <BigCalendar
               localizer={localizer}
               events={filteredEvents}
-              onSelectEvent={(event) => {
-                router.push(`/buyer/fundraiser/${event.id}`);
-              }}
               startAccessor="start"
               endAccessor="end"
               view={currentView}
               onView={setCurrentView}
               date={selectedDate}
               onNavigate={setSelectedDate}
-              dayPropGetter={dayStyleGetter}
-              dayLayoutAlgorithm="no-overlap"
+              dayLayoutAlgorithm={wideOverlapDayLayout}
               eventPropGetter={eventStyleGetter}
-              style={{ height: "90%" }}
+              popup
+              style={{ height: "90%", overflow: "auto" }}
               views={[Views.MONTH, Views.WEEK, Views.DAY]}
               components={{
                 toolbar: () => <></>,
+                week: {
+                  header: CalendarDayHeader,
+                },
+                day: {
+                  header: CalendarDayHeader,
+                },
                 event: ({ event }) => (
                   <div
+                    // onMouseEnter={(e) =>
+                    //   handleEventMouseEnter(event as CalendarEvent, e)
+                    // }
+                    // onMouseLeave={handleEventMouseLeave}
                     style={{
                       fontSize: "12px",
-                      lineHeight: "1.1",
+                      lineHeight: "1.2",
+                      fontFamily: "DM Sans, sans-serif",
+                      cursor: "pointer",
                     }}
                   >
-                    {event.title}
+                    {currentView === Views.MONTH && isPickupEvent(event) ? (
+                      <div className="flex items-center gap-1 pl-1">
+                        <span
+                          className="block h-[6px] w-[6px] shrink-0 rounded-4"
+                          style={{
+                            backgroundColor:
+                              organizationColors[
+                                organizationNames.indexOf(event.organization)
+                              ] ?? "#3174ad",
+                          }}
+                        />
+                        <span className="truncate font-medium text-black">
+                          {event.title}
+                        </span>
+                      </div>
+                    ) : (
+                      <>
+                        <div
+                          style={{
+                            fontWeight:
+                              currentView !== Views.MONTH ? "700" : "600",
+                            fontSize:
+                              currentView == Views.DAY ? "16px" : "12px",
+                          }}
+                        >
+                          {event.title}
+                        </div>
+                        {currentView !== Views.MONTH &&
+                          event.title.includes("Pick Up") && (
+                            <div className="flex flex-col py-1 gap-1">
+                              <div
+                                style={{
+                                  fontSize:
+                                    currentView == Views.DAY ? "14px" : "10px",
+                                  opacity: 0.9,
+                                }}
+                              >
+                                {event.organization}
+                              </div>
+                              <div
+                                className={cn(
+                                  "flex gap-1",
+                                  currentView == Views.DAY
+                                    ? "text-[14px]"
+                                    : "text-[10px]",
+                                )}
+                              >
+                                <MapPin
+                                  className={cn(
+                                    currentView == Views.DAY
+                                      ? "h-4 w-4"
+                                      : "h-3 w-3",
+                                  )}
+                                />{" "}
+                                {event.location}
+                              </div>
+                              <div
+                                className={cn(
+                                  "flex gap-1",
+                                  currentView == Views.DAY
+                                    ? "text-[14px]"
+                                    : "text-[10px]",
+                                )}
+                              >
+                                <Clock3
+                                  className={cn(
+                                    currentView == Views.DAY
+                                      ? "h-4 w-4"
+                                      : "h-3 w-3",
+                                  )}
+                                />
+                                {moment(event.start).format("h:mm A")} -{" "}
+                                {moment(event.end).format("h:mm A")}
+                              </div>
+                            </div>
+                          )}
+                      </>
+                    )}
                   </div>
                 ),
               }}
               formats={{
-                timeGutterFormat: "hA",
+                timeGutterFormat: "h A",
+                eventTimeRangeFormat: () => "",
+                dayRangeHeaderFormat: ({ start, end }) =>
+                  `${moment(start).format("MMM DD")} - ${moment(end).format("MMM DD")}`,
               }}
               className="my-calendar"
             />
