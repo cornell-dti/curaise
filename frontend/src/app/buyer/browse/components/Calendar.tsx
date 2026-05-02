@@ -7,7 +7,7 @@ import {
   Views,
 } from "react-big-calendar";
 import moment from "moment";
-import { ChevronDown, Clock3, MapPin, Pin } from "lucide-react";
+import { ChevronDown, Clock3, MapPin } from "lucide-react";
 import { OrganizationFilter } from "./OrganizationFilter";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { SmallCalendar } from "./SmallCalendar";
@@ -410,7 +410,7 @@ export function CalendarPage({
                     {currentView === Views.MONTH && isPickupEvent(event) ? (
                       <div className="flex items-center gap-1 pl-1">
                         <span
-                          className="block h-[6px] w-[6px] shrink-0 rounded-4"
+                          className="block h-2 w-2 shrink-0"
                           style={{
                             backgroundColor:
                               organizationColors[
@@ -419,7 +419,8 @@ export function CalendarPage({
                           }}
                         />
                         <span className="truncate font-medium text-black">
-                          {event.title}
+                          {moment(event.start).format("h:mm A")}{" "}
+                          <span className="font-normal">{event.title}</span>
                         </span>
                       </div>
                     ) : (

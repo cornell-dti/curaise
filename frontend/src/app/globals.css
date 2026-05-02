@@ -158,6 +158,10 @@ body {
   display: inline-block;
 }
 
+.my-calendar .rbc-date-cell.rbc-now {
+  font-weight: 900;
+}
+
 .my-calendar .rbc-off-range {
   color: #999;
 }
