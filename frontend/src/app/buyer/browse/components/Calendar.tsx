@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { organizationColors } from "./utils";
 import { z } from "zod";
 import {
   BasicFundraiserSchema,
@@ -39,7 +38,11 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { FundraiserSideCard } from "./SideCard";
-import { CalendarEventComponent, eventStyleGetter } from "./calendar-utils";
+import {
+  CalendarEventComponent,
+  eventStyleGetter,
+  organizationColors,
+} from "./calendar-utils";
 
 export interface CalendarEvent {
   title: string;

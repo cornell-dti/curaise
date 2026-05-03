@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { organizationColors } from "./utils";
+import { organizationColors } from "./calendar-utils";
 
 interface OrganizationFilterProps {
   organizations: string[];
