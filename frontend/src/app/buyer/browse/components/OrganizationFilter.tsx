@@ -1,25 +1,37 @@
+import { cn } from "@/lib/utils";
 import { organizationColors } from "./utils";
 
 interface OrganizationFilterProps {
   organizations: string[];
   selectedOrganizations: string[];
   onToggleOrganization: (org: string) => void;
+  className?: string;
+  isMobile: boolean;
 }
 
 export function OrganizationFilter({
   organizations,
   selectedOrganizations,
   onToggleOrganization,
+  className,
+  isMobile,
 }: OrganizationFilterProps) {
   return (
-    <div className="w-full bg-white relative md:rounded-[8px] shrink-0 border border-[#ddd]">
-      <div className="px-[16px] overflow-clip rounded-[inherit] size-full">
+    <div
+      className={cn(
+        "w-full bg-white relative md:rounded-[8px] shrink-0 border border-[#ddd] rounded-md",
+        className,
+      )}
+    >
+      <div className="px-[16px] h-[200px] overflow-auto rounded-[inherit] size-full">
         <div className=" content-stretch flex flex-col gap-[8px] items-start p-[16px] relative size-full">
           <div className="content-stretch flex flex-col justify-between relative shrink-0 w-full">
             <p className="leading-[21px] relative shrink-0 text-[14px] text-black whitespace-nowrap">
               Clubs
             </p>
-            <span className="text-xs">(Only can select 3 clubs at a time)</span>
+            <span className="text-xs">
+              (Only can select {isMobile ? "3" : "5"} clubs at a time)
+            </span>
           </div>
           <div className="relative shrink-0 w-full">
             <div className="content-stretch flex flex-col gap-[8px] items-start relative size-full">

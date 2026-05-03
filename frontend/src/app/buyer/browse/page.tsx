@@ -1,5 +1,9 @@
 import { FundraisersList } from "./components/FundraisersList";
-import { BasicFundraiserSchema, BasicOrganizationSchema } from "common";
+import {
+  BasicFundraiserSchema,
+  BasicOrganizationSchema,
+  CompleteItemSchema,
+} from "common";
 import { connection } from "next/server";
 import { serverFetch } from "@/lib/fetcher";
 import { CalendarPage } from "./components/Calendar";
@@ -37,9 +41,19 @@ export default async function BrowseFundraisersPage({
   const fundraisers = await serverFetch("/fundraiser", {
     schema: BasicFundraiserSchema.array(),
   });
+  const fundraisersWithItems = await Promise.all(
+    fundraisers.map(async (fundraiser) => ({
+      ...fundraiser,
+      items: await serverFetch(`/fundraiser/${fundraiser.id}/items`, {
+        schema: CompleteItemSchema.array(),
+      }),
+    })),
+  );
   const organizations = await serverFetch("/organization", {
     schema: BasicOrganizationSchema.array(),
   });
+
+  console.log(fundraisersWithItems);
   const params = await searchParams;
   const searchQuery = params.search || "";
 
@@ -51,7 +65,7 @@ export default async function BrowseFundraisersPage({
       <CalendarPage
         organizations={organizations}
         userOrganizations={userOrganizations}
-        fundraisers={fundraisers}
+        fundraisers={fundraisersWithItems}
       />{" "}
       <div className="flex flex-col px-4 md:px-[157px] py-10">
         <FundraisersList fundraisers={fundraisers} searchQuery={searchQuery} />

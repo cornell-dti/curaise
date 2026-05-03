@@ -1,5 +1,6 @@
 "use client";
 import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import moment from "moment";
 import { useState } from "react";
@@ -8,14 +9,24 @@ export function SmallCalendar({
   onSelected,
   date,
   handleDateSelect,
+  className,
+  forceVisible = false,
 }: {
   onSelected: (date: Date) => void;
   date: Date;
   handleDateSelect: (date: Date | undefined) => void;
+  className?: string;
+  forceVisible?: boolean;
 }) {
   const [selectedDate, setSelectedDate] = useState<Date>(date);
   return (
-    <div className="hidden md:block w-full bg-white rounded-[6px] border border-[#dfdfdf] md:py-[16px]">
+    <div
+      className={cn(
+        "w-full bg-white rounded-[6px] border border-[#dfdfdf] py-[16px]",
+        forceVisible ? "block" : "hidden md:block",
+        className,
+      )}
+    >
       <div className="flex items-center justify-center mb-2">
         <div className="flex gap-1 justify-center items-center">
           <button
