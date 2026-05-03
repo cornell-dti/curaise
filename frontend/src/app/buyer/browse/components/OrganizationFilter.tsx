@@ -19,7 +19,7 @@ export function OrganizationFilter({
   return (
     <div
       className={cn(
-        "w-full bg-white relative md:rounded-[8px] shrink-0 border border-[#ddd] rounded-md",
+        "hidden md:block w-full bg-white relative md:rounded-[8px] shrink-0 border border-[#ddd] rounded-md",
         className,
       )}
     >

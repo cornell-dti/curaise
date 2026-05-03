@@ -39,6 +39,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { FundraiserSideCard } from "./SideCard";
+import { CalendarEventComponent, eventStyleGetter } from "./calendar-utils";
 
 export interface CalendarEvent {
   title: string;
@@ -229,52 +230,11 @@ export function CalendarPage({
     ? fundraisers.find((fundraiser) => fundraiser.id === selectedFundraiserId)
     : undefined;
 
-  const eventStyleGetter = (event: CalendarEvent) => {
-    const backgroundColor = event.organization
-      ? organizationColors[organizationNames.indexOf(event.organization)]
-      : "#3174ad";
-
-    const isMonthPickup = currentView === Views.MONTH && isPickupEvent(event);
-
-    return {
-      className: isMonthPickup ? "calendar-month-pickup-event" : undefined,
-      style: {
-        backgroundColor: isMonthPickup
-          ? "transparent"
-          : `color-mix(in srgb, ${backgroundColor} 70%, white)`,
-        opacity: 1,
-        border: isMonthPickup
-          ? "none"
-          : currentView !== Views.MONTH
-            ? `2px solid ${backgroundColor}`
-            : `none`,
-        borderRadius: currentView !== Views.MONTH ? "6px" : "2px",
-        boxShadow: isMonthPickup ? "none" : undefined,
-      },
-    };
-  };
-
   const viewOptions: { label: string; value: View }[] = [
     { label: "Month", value: Views.MONTH },
     { label: "Week", value: Views.WEEK },
     { label: "Day", value: Views.DAY },
   ];
-
-  // for highlighting the day that is selected
-  const dayStyleGetter = (date: Date) => {
-    const isSelected = moment(date).isSame(selectedDate, "day");
-
-    if (isSelected) {
-      return {
-        style: {
-          backgroundColor: "#e6f0ea",
-        },
-        className: "selected-calendar-day",
-      };
-    }
-
-    return {};
-  };
 
   const incrementSelect = (increment: boolean) => {
     if (currentView == Views.MONTH) {
@@ -304,8 +264,6 @@ export function CalendarPage({
     }
   };
 
-  const isCompactSidebar = currentView !== Views.MONTH;
-
   // checking if it's mobile
   useEffect(() => {
     const checkScreen = () => {
@@ -318,6 +276,7 @@ export function CalendarPage({
     window.addEventListener("resize", checkScreen);
     return () => window.removeEventListener("resize", checkScreen);
   }, []);
+
   // updating the selected based on if it's mobile
   useEffect(() => {
     if (isMobile) {
@@ -365,7 +324,7 @@ export function CalendarPage({
   return (
     <div className="bg-white size-full md:px-10">
       <div className="flex flex-col-reverse items-center md:flex-row md:py-[20px] gap-[20px] md:gap-[40px]">
-        {!isCompactSidebar && (
+        {currentView === Views.MONTH && (
           <div className="flex flex-col items-center gap-[20px] w-full md:w-[275px]">
             <SmallCalendar
               onSelected={setSelectedDate}
@@ -386,7 +345,7 @@ export function CalendarPage({
         <div
           className={cn(
             "w-full",
-            isCompactSidebar && selectedFundraiser && !isMobile
+            currentView !== Views.MONTH && selectedFundraiser && !isMobile
               ? "flex flex-col gap-4 md:flex-row md:items-start"
               : "flex-1",
           )}
@@ -412,54 +371,53 @@ export function CalendarPage({
                       <ChevronDown className="size-[16px] md:size-[24px]" />
                     </button>
                   </div>
-                  {isCompactSidebar &&
-                    (isMobile ? (
-                      <Sheet
-                        open={isCalendarFiltersOpen}
-                        onOpenChange={setIsCalendarFiltersOpen}
+                  {isMobile ? (
+                    <Sheet
+                      open={isCalendarFiltersOpen}
+                      onOpenChange={setIsCalendarFiltersOpen}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setIsCalendarFiltersOpen(true)}
+                        className="flex size-10 items-center justify-center rounded-[8px] border border-[#dfdfdf] bg-white text-black transition-colors hover:bg-[#f7f7f7]"
+                        aria-label="Open calendar filters"
                       >
+                        <CalendarDays className="size-[18px]" />
+                      </button>
+                      <SheetContent
+                        side="bottom"
+                        className="rounded-t-[20px] px-4 pb-6 pt-8"
+                      >
+                        <SheetHeader className="mb-4 text-left">
+                          <SheetTitle>Calendar filters</SheetTitle>
+                        </SheetHeader>
+                        {calendarFilters}
+                      </SheetContent>
+                    </Sheet>
+                  ) : (
+                    <Popover
+                      open={isCalendarFiltersOpen}
+                      onOpenChange={setIsCalendarFiltersOpen}
+                    >
+                      <PopoverTrigger asChild>
                         <button
                           type="button"
-                          onClick={() => setIsCalendarFiltersOpen(true)}
                           className="flex size-10 items-center justify-center rounded-[8px] border border-[#dfdfdf] bg-white text-black transition-colors hover:bg-[#f7f7f7]"
                           aria-label="Open calendar filters"
                         >
                           <CalendarDays className="size-[18px]" />
                         </button>
-                        <SheetContent
-                          side="bottom"
-                          className="rounded-t-[20px] px-4 pb-6 pt-8"
-                        >
-                          <SheetHeader className="mb-4 text-left">
-                            <SheetTitle>Calendar filters</SheetTitle>
-                          </SheetHeader>
-                          {calendarFilters}
-                        </SheetContent>
-                      </Sheet>
-                    ) : (
-                      <Popover
-                        open={isCalendarFiltersOpen}
-                        onOpenChange={setIsCalendarFiltersOpen}
+                      </PopoverTrigger>
+                      <PopoverContent
+                        align="start"
+                        side="bottom"
+                        sideOffset={12}
+                        className="w-[320px] rounded-[12px] border border-[#dfdfdf] bg-[#fafafa] p-3"
                       >
-                        <PopoverTrigger asChild>
-                          <button
-                            type="button"
-                            className="flex size-10 items-center justify-center rounded-[8px] border border-[#dfdfdf] bg-white text-black transition-colors hover:bg-[#f7f7f7]"
-                            aria-label="Open calendar filters"
-                          >
-                            <CalendarDays className="size-[18px]" />
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent
-                          align="start"
-                          side="bottom"
-                          sideOffset={12}
-                          className="w-[320px] rounded-[12px] border border-[#dfdfdf] bg-[#fafafa] p-3"
-                        >
-                          {calendarFilters}
-                        </PopoverContent>
-                      </Popover>
-                    ))}
+                        {calendarFilters}
+                      </PopoverContent>
+                    </Popover>
+                  )}
                   <p className="font-semibold leading-[42px] text-[20px] md:text-[28px] text-black whitespace-nowrap">
                     {moment(selectedDate).format("MMMM YYYY")}
                   </p>
@@ -509,7 +467,14 @@ export function CalendarPage({
                   }
                 }}
                 dayLayoutAlgorithm={wideOverlapDayLayout}
-                eventPropGetter={eventStyleGetter}
+                eventPropGetter={(event) =>
+                  eventStyleGetter(
+                    event,
+                    organizationNames,
+                    currentView,
+                    isPickupEvent(event),
+                  )
+                }
                 popup
                 style={{ height: "90%", overflow: "auto" }}
                 views={[Views.MONTH, Views.WEEK, Views.DAY]}
@@ -522,100 +487,12 @@ export function CalendarPage({
                     header: CalendarDayHeader,
                   },
                   event: ({ event }) => (
-                    <div
-                      // onMouseEnter={(e) =>
-                      //   handleEventMouseEnter(event as CalendarEvent, e)
-                      // }
-                      // onMouseLeave={handleEventMouseLeave}
-                      style={{
-                        fontSize: "12px",
-                        lineHeight: "1.2",
-                        fontFamily: "DM Sans, sans-serif",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {currentView === Views.MONTH && isPickupEvent(event) ? (
-                        <div className="flex items-center gap-1 pl-1">
-                          <span
-                            className="block h-2 w-2 shrink-0"
-                            style={{
-                              backgroundColor:
-                                organizationColors[
-                                  organizationNames.indexOf(event.organization)
-                                ] ?? "#3174ad",
-                            }}
-                          />
-                          <span className="truncate font-medium text-black">
-                            {moment(event.start).format("h:mm A")}{" "}
-                            <span className="font-normal">{event.title}</span>
-                          </span>
-                        </div>
-                      ) : (
-                        <>
-                          <div
-                            style={{
-                              fontWeight:
-                                currentView !== Views.MONTH ? "700" : "600",
-                              fontSize:
-                                currentView == Views.DAY ? "16px" : "12px",
-                            }}
-                          >
-                            {event.title}
-                          </div>
-                          {currentView !== Views.MONTH &&
-                            event.title.includes("Pick Up") && (
-                              <div className="flex flex-col py-1 gap-1">
-                                <div
-                                  style={{
-                                    fontSize:
-                                      currentView == Views.DAY
-                                        ? "14px"
-                                        : "10px",
-                                    opacity: 0.9,
-                                  }}
-                                >
-                                  {event.organization}
-                                </div>
-                                <div
-                                  className={cn(
-                                    "flex gap-1",
-                                    currentView == Views.DAY
-                                      ? "text-[14px]"
-                                      : "text-[10px]",
-                                  )}
-                                >
-                                  <MapPin
-                                    className={cn(
-                                      currentView == Views.DAY
-                                        ? "h-4 w-4"
-                                        : "h-3 w-3",
-                                    )}
-                                  />{" "}
-                                  {event.location}
-                                </div>
-                                <div
-                                  className={cn(
-                                    "flex gap-1",
-                                    currentView == Views.DAY
-                                      ? "text-[14px]"
-                                      : "text-[10px]",
-                                  )}
-                                >
-                                  <Clock3
-                                    className={cn(
-                                      currentView == Views.DAY
-                                        ? "h-4 w-4"
-                                        : "h-3 w-3",
-                                    )}
-                                  />
-                                  {moment(event.start).format("h:mm A")} -{" "}
-                                  {moment(event.end).format("h:mm A")}
-                                </div>
-                              </div>
-                            )}
-                        </>
-                      )}
-                    </div>
+                    <CalendarEventComponent
+                      event={event}
+                      currentView={currentView}
+                      organizationNames={organizationNames}
+                      isPickupEvent={isPickupEvent(event)}
+                    />
                   ),
                 }}
                 formats={{
@@ -628,7 +505,7 @@ export function CalendarPage({
               />
             </div>
           </div>
-          {isCompactSidebar && selectedFundraiser && !isMobile && (
+          {currentView !== Views.MONTH && selectedFundraiser && !isMobile && (
             <div className="w-full px-4 md:px-0 md:w-[180px] shrink-0">
               <FundraiserSideCard
                 fundraiser={selectedFundraiser}
@@ -651,7 +528,7 @@ export function CalendarPage({
             </div>
           )}
         </div>
-        {isCompactSidebar && selectedFundraiser && isMobile && (
+        {currentView !== Views.MONTH && selectedFundraiser && isMobile && (
           <div
             className="fixed inset-0 z-40 flex items-end justify-center bg-black/30 px-4 pb-4 pt-24 rounded-md"
             onClick={() => setSelectedFundraiserId(null)}
