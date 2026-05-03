@@ -22,7 +22,8 @@ export function SmallCalendar({
   return (
     <div
       className={cn(
-        "w-full bg-white rounded-[6px] border border-[#dfdfdf] py-[16px] hidden md:block",
+        "w-full bg-white rounded-[6px] border border-[#dfdfdf] py-[16px]",
+        forceVisible ? "block" : "hidden md:block",
         className,
       )}
     >

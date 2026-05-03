@@ -7,6 +7,7 @@ interface OrganizationFilterProps {
   onToggleOrganization: (org: string) => void;
   className?: string;
   isMobile: boolean;
+  forceVisible?: boolean;
 }
 
 export function OrganizationFilter({
@@ -15,11 +16,13 @@ export function OrganizationFilter({
   onToggleOrganization,
   className,
   isMobile,
+  forceVisible = false,
 }: OrganizationFilterProps) {
   return (
     <div
       className={cn(
-        "hidden md:block w-full bg-white relative md:rounded-[8px] shrink-0 border border-[#ddd] rounded-md",
+        "w-full bg-white relative md:rounded-[8px] shrink-0 border border-[#ddd] rounded-md",
+        forceVisible ? "block" : "hidden md:block",
         className,
       )}
     >

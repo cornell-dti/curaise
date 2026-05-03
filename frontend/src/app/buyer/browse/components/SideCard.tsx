@@ -21,12 +21,12 @@ export function FundraiserSideCard({
     hostedBy: fundraiser.organization.name,
     description: fundraiser.description,
     pickupLocations: fundraiser.pickupEvents.map((event) => (
-      <span>
+      <span className="flex flex-col">
         {event.location}
-        <div>
+        <span>
           {moment(event.startsAt).format("h:mm A")} -
           {moment(event.endsAt).format("h:mm A")}
-        </div>
+        </span>
       </span>
     )),
     items: items.map((item) => ({
@@ -51,7 +51,7 @@ export function FundraiserSideCard({
           style={{ borderColor }}
         />
         <div className="content-stretch flex flex-col items-start p-[10.328px] relative size-full">
-          <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0">
+          <div className="content-stretch flex flex-col gap-[8px] items-start relative w-full">
             {/* Content */}
             <div className="content-stretch flex flex-col gap-[8px] items-center justify-center relative shrink-0">
               {/* Title with icon */}
@@ -123,7 +123,7 @@ export function FundraiserSideCard({
               </div>
 
               {/* Items */}
-              <div className="w-full content-stretch flex flex-col gap-[4px] h-[250px] overflow-auto items-start relative shrink-0">
+              <div className="w-full content-stretch flex flex-col gap-[4px] md:h-[250px] overflow-auto items-start relative shrink-0">
                 <div
                   className="flex flex-col font-bold justify-center leading-[normal] relative shrink-0 text-xs w-[126px]"
                   style={{ fontVariationSettings: "'opsz' 14" }}
@@ -182,7 +182,7 @@ export function FundraiserSideCard({
             {/* View Fundraiser Button */}
             <div
               onClick={() => router.push(`/buyer/fundraiser/${fundraiser.id}`)}
-              className="text-white flex h-[26px] items-center justify-center px-[16px] py-[8px] rounded-[6px] w-full cursor-pointer"
+              className="text-white flex h-[26px] items-center justify-center px-[16px] py-[8px] mt-2 md:mt-0 rounded-[6px] w-full cursor-pointer"
               style={{
                 backgroundColor: borderColor,
               }}

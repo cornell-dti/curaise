@@ -317,6 +317,7 @@ export function CalendarPage({
         selectedOrganizations={selectedOrganizations}
         onToggleOrganization={(org) => handleToggleOrganization(isMobile, org)}
         isMobile={isMobile}
+        forceVisible
       />
     </div>
   );
@@ -395,28 +396,33 @@ export function CalendarPage({
                       </SheetContent>
                     </Sheet>
                   ) : (
-                    <Popover
-                      open={isCalendarFiltersOpen}
-                      onOpenChange={setIsCalendarFiltersOpen}
-                    >
-                      <PopoverTrigger asChild>
-                        <button
-                          type="button"
-                          className="flex size-10 items-center justify-center rounded-[8px] border border-[#dfdfdf] bg-white text-black transition-colors hover:bg-[#f7f7f7]"
-                          aria-label="Open calendar filters"
+                    <div>
+                      {" "}
+                      {currentView !== Views.MONTH && (
+                        <Popover
+                          open={isCalendarFiltersOpen}
+                          onOpenChange={setIsCalendarFiltersOpen}
                         >
-                          <CalendarDays className="size-[18px]" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        align="start"
-                        side="bottom"
-                        sideOffset={12}
-                        className="w-[320px] rounded-[12px] border border-[#dfdfdf] bg-[#fafafa] p-3"
-                      >
-                        {calendarFilters}
-                      </PopoverContent>
-                    </Popover>
+                          <PopoverTrigger asChild>
+                            <button
+                              type="button"
+                              className="flex size-10 items-center justify-center rounded-[8px] border border-[#dfdfdf] bg-white text-black transition-colors hover:bg-[#f7f7f7]"
+                              aria-label="Open calendar filters"
+                            >
+                              <CalendarDays className="size-[18px]" />
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            align="start"
+                            side="bottom"
+                            sideOffset={12}
+                            className="w-[320px] rounded-[12px] border border-[#dfdfdf] bg-[#fafafa] p-3"
+                          >
+                            {calendarFilters}
+                          </PopoverContent>
+                        </Popover>
+                      )}{" "}
+                    </div>
                   )}
                   <p className="font-semibold leading-[42px] text-[20px] md:text-[28px] text-black whitespace-nowrap">
                     {moment(selectedDate).format("MMMM YYYY")}
@@ -534,7 +540,7 @@ export function CalendarPage({
             onClick={() => setSelectedFundraiserId(null)}
           >
             <div
-              className="relative w-full max-w-[360px] rounded-md mb-[40%]"
+              className="relative w-full max-w-[360px] rounded-md mb-[50%]"
               onClick={(event) => event.stopPropagation()}
             >
               <button
