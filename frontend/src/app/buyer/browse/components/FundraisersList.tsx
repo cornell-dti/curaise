@@ -85,10 +85,6 @@ export function FundraisersList({
     <div className="flex flex-col gap-6 w-full">
       {/* Heading and Filters Section */}
       <div className="flex flex-col gap-2 md:gap-4">
-        <h1 className="hidden md:block text-[32px] font-semibold leading-[48px] text-black">
-          Browse CURaise
-        </h1>
-
         <div className="flex flex-col gap-3 w-full">
           {/* TODO: Category Filters - Horizontal scroll on mobile
           {categories.map((cat) => {
