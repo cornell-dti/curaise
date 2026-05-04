@@ -226,6 +226,10 @@ export default async function OrderPage({
                   </div>
                 ) : (
                   <div className="space-y-4">
+                    <p className="-mt-2 flex items-start gap-1.5 text-sm font-semibold text-red-600 dark:text-red-400">
+                      <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span>Do not edit the Venmo message. Order ID must match exactly.</span>
+                    </p>
                     <div className="flex flex-col items-center gap-2">
                       <Button
                         size="lg"
