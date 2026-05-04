@@ -443,7 +443,7 @@ export default async function OrderPage({
           <CardHeader>
             <CardTitle>Order Pickup QR Code</CardTitle>
             <CardDescription>
-              Show this to DTI at pick up to get your order.
+              Show this QR code at pickup to get your order.
             </CardDescription>
           </CardHeader>
           <CardContent>
