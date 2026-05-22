@@ -14,5 +14,6 @@ export const config = {
     "/account-actions",
     "/account",
     "/seller/:path*",
+    "/admin/:path*",
   ],
 };
