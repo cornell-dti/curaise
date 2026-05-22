@@ -144,14 +144,14 @@ export default function Navbar() {
 
 					{/* Desktop Search Bar - Centered */}
 					{showSearchBar && (
-						<div className="hidden min-[1350px]:flex absolute left-1/2 transform -translate-x-1/2 w-40 xl:w-64 2xl:w-96 pointer-events-auto">
+						<div className="hidden min-[1440px]:flex absolute left-1/2 transform -translate-x-1/2 w-40 xl:w-64 2xl:w-96 pointer-events-auto">
 							<SearchBar onSearchChange={handleSearchChange} />
 						</div>
 					)}
 
 					{/* Tablet Search Overlay - shown when search icon is clicked */}
 					{showSearchBar && searchExpanded && (
-						<div className="hidden md:flex min-[1350px]:hidden absolute inset-0 items-center px-4 md:px-[157px] bg-background z-20 gap-2">
+						<div className="hidden md:flex min-[1440px]:hidden absolute inset-0 items-center px-4 md:px-[157px] bg-background z-20 gap-2">
 							<Button
 								variant="ghost"
 								size="icon"
@@ -225,13 +225,14 @@ export default function Navbar() {
 									<NavigationMenu>
 										<NavigationMenuList>
 											<>
-												<NavigationMenuItem className="min-[1350px]:hidden">
-													<button
-														className={navigationMenuTriggerStyle()}
+												<NavigationMenuItem className="min-[1440px]:hidden">
+													<Button
+														variant="ghost"
+														size="icon"
 														onClick={() => setSearchExpanded(true)}
 														aria-label="Open search">
 														<Search className="h-5 w-5" />
-													</button>
+													</Button>
 												</NavigationMenuItem>
 												<NavigationMenuItem>
 													<NavigationMenuLink
@@ -255,6 +256,11 @@ export default function Navbar() {
 										onClick={() => setTutorialOpen(true)}>
 										Tutorial
 									</button>
+									<Link
+										href="/seller"
+										className={navigationMenuTriggerStyle()}>
+										Organizations
+									</Link>
 									<DesktopUserMenu userRole={userRole} />
 								</div>
 							</>
@@ -304,6 +310,11 @@ export default function Navbar() {
 									onClick={() => setTutorialOpen(true)}>
 									Tutorial
 								</button>
+								<Link
+									href="/seller"
+									className={navigationMenuTriggerStyle()}>
+									Organizations
+								</Link>
 								<DesktopUserMenu userRole={userRole} />
 							</div>
 						)}

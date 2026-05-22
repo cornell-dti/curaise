@@ -126,9 +126,10 @@ export function OrdersTable<TValue>({
 						column={table.getColumn("paymentStatus")}
 						title="Payment Status"
 						options={[
-							{ label: "CONFIRMED", value: "CONFIRMED" },
-							{ label: "UNVERIFIABLE", value: "UNVERIFIABLE" },
-							{ label: "PENDING", value: "PENDING" },
+							{ label: "Picked Up", value: "Picked Up" },
+							{ label: "Not Picked Up", value: "Not Picked Up" },
+							{ label: "Pending", value: "Pending" },
+							{ label: "Unverifiable", value: "Unverifiable" },
 						]}
 					/>
 				)}
@@ -162,8 +163,8 @@ export function OrdersTable<TValue>({
 												? null
 												: flexRender(
 														header.column.columnDef.header,
-														header.getContext()
-												  )}
+														header.getContext(),
+													)}
 										</TableHead>
 									);
 								})}
@@ -180,7 +181,7 @@ export function OrdersTable<TValue>({
 										<TableCell key={cell.id}>
 											{flexRender(
 												cell.column.columnDef.cell,
-												cell.getContext()
+												cell.getContext(),
 											)}
 										</TableCell>
 									))}
