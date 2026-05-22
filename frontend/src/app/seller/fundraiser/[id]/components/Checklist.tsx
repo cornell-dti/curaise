@@ -1,8 +1,12 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import {
+  getSkippedVenmoPreference,
+  setSkippedVenmoPreference,
+} from "@/lib/fundraiserVenmoPreference";
 import {
   Image,
   PencilLine,
@@ -12,6 +16,7 @@ import {
   MoveRight,
   ShoppingCart,
   Upload,
+  Check,
 } from "lucide-react";
 import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
 import { z } from "zod";
@@ -104,7 +109,8 @@ interface ListItem {
 
 const getChecklistStatus = (
   fundraiser: z.infer<typeof CompleteFundraiserSchema>,
-  fundraiserItems: z.infer<typeof CompleteItemSchema>[]
+  fundraiserItems: z.infer<typeof CompleteItemSchema>[],
+  skipVenmo: boolean,
 ) => {
   return checkListData.map((item) => {
     let completed = false;
@@ -119,7 +125,9 @@ const getChecklistStatus = (
         break;
       case "venmoInfo":
         completed =
-          !!fundraiser.venmoUsername?.trim() || !!fundraiser.venmoEmail?.trim();
+          skipVenmo ||
+          !!fundraiser.venmoUsername?.trim() ||
+          !!fundraiser.venmoEmail?.trim();
         break;
       case "pickupLocation":
         completed = fundraiser.pickupEvents.length > 0;
@@ -141,28 +149,66 @@ const getChecklistStatus = (
 export default function ListPage({
   fundraiser,
   fundraiserItems,
+  skipVenmoOverride,
   onAction,
   publish,
   isSubmitting,
 }: {
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
   fundraiserItems: z.infer<typeof CompleteItemSchema>[];
+  skipVenmoOverride?: boolean;
   onAction: (step: number) => void;
   publish: () => void;
   isSubmitting: boolean;
 }) {
-  const checkListData = getChecklistStatus(fundraiser, fundraiserItems);
+  const [skipVenmo, setSkipVenmo] = useState(false);
+  const checkListData = useMemo(
+    () => getChecklistStatus(fundraiser, fundraiserItems, skipVenmo),
+    [fundraiser, fundraiserItems, skipVenmo],
+  );
   const [selectedItem, setSelectedItem] = useState<ListItem | null>(
-    checkListData.find((item) => !item.completed) || null
+    checkListData.find((item) => !item.completed) || null,
   );
   const [canPublish, setCanPublish] = useState(false);
 
   useEffect(() => {
-    const allCompleted = checkListData.every((item) => item.completed);
-    setCanPublish(allCompleted);
-    if (allCompleted) {
-      setSelectedItem((prev) => prev ?? checkListData[0]);
+    if (skipVenmoOverride !== undefined) {
+      setSkipVenmo(skipVenmoOverride);
+      return;
     }
+
+    if (fundraiser.venmoUsername?.trim() || fundraiser.venmoEmail?.trim()) {
+      setSkipVenmo(false);
+      return;
+    }
+
+    setSkipVenmo(getSkippedVenmoPreference(fundraiser.id));
+  }, [
+    fundraiser.id,
+    fundraiser.venmoEmail,
+    fundraiser.venmoUsername,
+    skipVenmoOverride,
+  ]);
+
+  useEffect(() => {
+    const allCompleted = checkListData.every((item) => item.completed);
+    const nextIncompleteItem =
+      checkListData.find((item) => !item.completed) || checkListData[0] || null;
+
+    setCanPublish(allCompleted);
+    setSelectedItem((prev) => {
+      if (!prev) {
+        return nextIncompleteItem;
+      }
+
+      const refreshedItem = checkListData.find((item) => item.key === prev.key);
+
+      if (!refreshedItem || refreshedItem.completed) {
+        return nextIncompleteItem;
+      }
+
+      return refreshedItem;
+    });
   }, [checkListData]);
 
   return (
@@ -183,7 +229,7 @@ export default function ListPage({
                     : "cursor-pointer border-border bg-card hover:border-ring hover:bg-accent",
                   selectedItem?.key === item.key &&
                     !item.completed &&
-                    "border-ring bg-accent"
+                    "border-ring bg-accent",
                 )}
               >
                 <div className="flex items-center gap-3">
@@ -192,7 +238,7 @@ export default function ListPage({
                       "h-5 w-5 rounded-full border-[1px] flex items-center justify-center",
                       item.completed
                         ? "border-muted-foreground"
-                        : "border-foreground"
+                        : "border-foreground",
                     )}
                   >
                     {item.completed && (
@@ -252,6 +298,50 @@ export default function ListPage({
                   <MoveRight />
                 </Button>
               )}
+
+              <div>
+                {selectedItem.key === "venmoInfo" && !canPublish && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextSkipVenmo = !skipVenmo;
+                      setSkipVenmo(nextSkipVenmo);
+                      setSkippedVenmoPreference(
+                        fundraiser.id,
+                        nextSkipVenmo,
+                      );
+                    }}
+                    className={cn(
+                      "flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-all",
+                      "hover:border-[#265B34] hover:bg-green-50/50",
+                      skipVenmo
+                        ? "border-[#265B34] bg-green-50"
+                        : "border-border bg-background",
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border",
+                        skipVenmo
+                          ? "border-[#265B34] bg-[#265B34] text-white"
+                          : "border-muted-foreground/40 bg-background",
+                      )}
+                    >
+                      {skipVenmo && <Check className="h-3.5 w-3.5" />}
+                    </div>
+
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-foreground">
+                        This fundraiser will not use Venmo
+                      </p>
+                      <p className="text-xs leading-relaxed text-muted-foreground">
+                        Check this if donations for this fundraiser will be
+                        handled without Venmo.
+                      </p>
+                    </div>
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <div className="flex h-64 items-center justify-center">
