@@ -42,7 +42,7 @@ git checkout dev
 
 ## 3. Add environment files
 
-Env files are gitignored. Arsh sent all four in Slack. Download them and drop them in place:
+Env files are gitignored. TPM should have sent them in Slack. Download them and drop them in place:
 
 | File                 | Purpose                                | Keys                                                                                                                  |
 | -------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
