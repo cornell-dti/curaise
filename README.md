@@ -1,10 +1,25 @@
 # CURaise
 
+New here? Start with [docs/ONBOARDING.md](docs/ONBOARDING.md).
+
 ## Contributors
+
+### Fall 2026
+- William Chen (Designer)
+- Eddie Hu (Developer)
+- Emir Icyer (Developer)
+- Jimin Kim (Developer)
+- Angela Koo (APM)
+- Olivia Lee (Designer)
+- Amber Shen (Developer)
+- Arsh Singh (TPM)
+- Andrew Wilmott (PM)
+- Steven Yu (TPM)
 
 ### Spring 2026
 - Frank Dai (Developer)
 - Eddie Hu (Developer)
+- Angela Koo (APM)
 - Olivia Lee (Designer)
 - William Chen (Designer)
 - Chelsea She (Developer)
