@@ -40,7 +40,7 @@ cd backend
 pnpm dev             # uses .env.dev
 pnpm prod            # uses .env.prod
 pnpm build           # tsc + copies src/generated to dist
-pnpm test            # jest (not installed, no tests yet; fails with jest: not found)
+pnpm test            # jest
 pnpm prisma:generate
 pnpm migrate:dev     # prisma migrate dev (uses .env.dev)
 pnpm migrate:prod    # prisma migrate deploy (uses .env.prod)
@@ -144,18 +144,18 @@ State: Zustand for cart (persisted), SWR for server state. Forms: React Hook For
 - **Backend host**: Heroku. `Procfile` is `web: pnpm --filter 'backend' start`. `heroku-postbuild` script builds the workspace.
 - **Frontend host**: Vercel.
 - **Database + Auth + Storage**: Supabase. Two projects:
-  - `curaise-dev` (`zrpllsbiklrzsufbbumw`, US-East Ohio). Free tier, auto-pauses after inactivity; backend then 500s with `tenant/user postgres.<ref> not found`. Restore from the Supabase dashboard or `POST https://api.supabase.com/v1/projects/<ref>/restore`.
+  - `curaise-dev` (`zrpllsbiklrzsufbbumw`, US-East Ohio)
   - `curaise-prod` (`zrqmplfsrshsdockyyjt`, US-East N.Virginia)
 - **Supabase storage**: bucket `images` with folders like `fundraisers/`, `items/`. Uploads go through `frontend/src/utils/supabase/storage/client.ts`.
 - **Email**: Mailgun (backend).
-- **Cache**: Memcachier (memjs) on backend. Prod only; local dev runs fine without memcached.
+- **Cache**: Memcachier (memjs) on backend.
 - **CI**: none currently. PRs are reviewed manually on GitHub.
 
 ## Environment variables
 
 Per-package env files (never commit production secrets). The dev/prod scripts copy the right file into the active env:
 
-- `backend/.env.dev`, `backend/.env.prod` -> copied to `backend/.env`. All four env files are distributed via Slack by the TPM.
+- `backend/.env.dev`, `backend/.env.prod` -> copied to `backend/.env`
 - `frontend/.env.dev`, `frontend/.env.prod` -> copied to `frontend/.env.local`
 
 Key vars:
