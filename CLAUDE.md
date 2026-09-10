@@ -1,229 +1,239 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guide for humans and AI agents working on CURaise. Keep this file authoritative; update it when conventions or infra change.
 
-## Project Overview
+## What this is
 
-CURaise is a monorepo fundraising platform with three packages:
-- **backend**: Express.js + TypeScript + Prisma ORM
-- **frontend**: Next.js 15 (App Router) + React 19 + TypeScript
-- **common**: Shared Zod schemas for type-safe API contracts
+CURaise is a fundraising platform built by Cornell DTI. Buyers browse organization fundraisers and place orders; sellers manage organizations, items, pickup events, and orders. Money is collected off-platform (Venmo) and reconciled in-app.
 
-## Development Commands
+Repo: `cornell-dti/curaise` (default branch `main`, working branch `dev`).
 
-### Initial Setup
+## Monorepo layout
+
+pnpm workspace with three packages:
+
+| Package | Stack | Notes |
+|---|---|---|
+| `backend/` | Node + Express 4 + TypeScript, Prisma, Supabase Auth | Deployed to Heroku |
+| `frontend/` | Next.js 15 (App Router) + React 19 + TypeScript, Tailwind, shadcn/ui | Deployed to Vercel |
+| `common/` | TypeScript + Zod | Shared schemas; published to other packages as `workspace:*` |
+
+Also: `e2e/` (Playwright scaffold; no committed tests).
+
+## Quickstart
+
+New devs: follow `docs/ONBOARDING.md` (prereqs, clone, env files, Windows/WSL2 notes).
+
 ```bash
-pnpm assemble  # Install deps, build common, generate Prisma client
+pnpm assemble        # install deps, build common, generate Prisma client
 ```
 
-### Running the Application
-```bash
-# Run both frontend and backend concurrently
-pnpm dev
+Then run backend and frontend in two separate terminals (`cd backend && pnpm dev`, `cd frontend && pnpm dev`). Root `pnpm dev` runs both in one terminal with interleaved logs; the team convention is two terminals.
 
-# Run individually
-cd backend && pnpm dev    # Backend dev server with nodemon
-cd frontend && pnpm dev   # Frontend dev server on port 8080
-```
+Requirements: Node 20.6+ (22 LTS recommended; backend dev script uses `node --env-file`), pnpm 9+ (lockfile v9). Windows must use WSL2 because the scripts use `cp`.
 
-### Backend Commands
+Per-package:
+
 ```bash
+# backend (port from .env, nodemon + ts-node)
 cd backend
+pnpm dev             # uses .env.dev
+pnpm prod            # uses .env.prod
+pnpm build           # tsc + copies src/generated to dist
+pnpm test            # jest (not installed, no tests yet; fails with jest: not found)
+pnpm prisma:generate
+pnpm migrate:dev     # prisma migrate dev (uses .env.dev)
+pnpm migrate:prod    # prisma migrate deploy (uses .env.prod)
+pnpm seed:dev        # ts-node prisma/seed.ts
+pnpm switch:dev | switch:prod  # copy env file to .env
 
-# Database
-pnpm prisma:generate      # Generate Prisma client after schema changes
-pnpm migrate:dev          # Run migrations (uses .env.dev)
-pnpm migrate:prod         # Deploy migrations to prod (uses .env.prod)
-pnpm seed:dev             # Seed database
-
-# Build & Test
-pnpm build                # TypeScript compilation
-pnpm test                 # Run Jest tests
-pnpm start                # Run production build
-
-# Environment switching
-pnpm switch:dev           # Copy .env.dev to .env
-pnpm switch:prod          # Copy .env.prod to .env
-```
-
-### Frontend Commands
-```bash
+# frontend (port 8080, Turbopack)
 cd frontend
+pnpm dev             # copies .env.dev -> .env.local
+pnpm prod            # copies .env.prod -> .env.local
+pnpm build           # next build
+pnpm lint            # next lint
 
-pnpm dev     # Dev server (copies .env.dev to .env.local, runs on port 8080)
-pnpm build   # Production build
-pnpm lint    # ESLint
-pnpm start   # Start production server
+# common (must rebuild after schema changes)
+cd common && pnpm build
 ```
 
-### Common Package
-```bash
-cd common
-pnpm build   # Build TypeScript to /dist (required after schema changes)
-```
+`pnpm heroku-postbuild` (root) builds common, generates Prisma, builds backend.
 
 ## Architecture
 
-### Backend API Structure
-
-The backend follows a **modular router pattern** with consistent file organization:
+### Backend (`backend/src/`)
 
 ```
-/api/{module}/
-  ├── {module}.router.ts    # Route definitions
-  ├── {module}.handlers.ts  # Request/response orchestration
-  ├── {module}.services.ts  # Database operations (Prisma)
-  ├── {module}.types.ts     # TypeScript interfaces
-  └── index.ts              # Module exports
+server.ts         # express setup (cors, json, router)
+router.ts         # mounts /api/<module> routers
+api/<module>/
+  <module>.router.ts     # routes; chain validate -> authenticate -> asyncHandler(handler)
+  <module>.handlers.ts   # request/response orchestration
+  <module>.services.ts   # Prisma calls
+  <module>.types.ts      # local TypeScript types (e.g. route param schemas)
+  index.ts               # re-exports router as default
+middleware/
+  authenticate.ts        # validates Supabase JWT; attaches user to res.locals.user. authenticateOptional variant exists.
+  validate.ts            # Zod-based params/query/body validator (modified express-zod-safe)
+  handlePrismaErrors.ts  # asyncHandler wrapper + 4-arg error middleware mapping Prisma codes to HTTP
+utils/
+  prisma.ts              # singleton Prisma client
+  email.ts               # Mailgun integration
+  memjs.ts               # memcached client (Heroku Memcachier)
+generated/client/        # Prisma client output (gitignored; run prisma:generate; copied into dist on build)
 ```
 
-**Current modules**: email, fundraiser, order, organization, referral, user
+Current API modules: `email`, `fundraiser`, `order`, `organization`, `user`. (The `Referral` model exists in Prisma but is not yet exposed via routes.)
 
-**Request flow**:
-1. Route matched in router
-2. Middleware runs: `authenticate` (JWT validation) → `validate` (Zod schema validation)
-3. Handler extracts data, calls service functions
-4. Service queries Prisma database
-5. Handler validates response with Zod schema, returns `{ message, data }`
+Response shape (always): `{ message: string, data?: T }`. Prisma errors are translated centrally:
 
-### Authentication & Authorization
+| Prisma code | HTTP | Message |
+|---|---|---|
+| P2002 | 409 | A record with this value already exists |
+| P2025 | 404 | Record not found |
+| P2003 | 400 | Related record not found |
+| ZodValidationError | 400 | Invalid data provided |
 
-**Stack**: Supabase Auth (JWT-based)
+### Database (Prisma, PostgreSQL via Supabase)
 
-**Flow**:
-1. Frontend: User logs in via Supabase → JWT stored in browser
-2. Frontend: Sends requests with `Authorization: Bearer {token}` header
-3. Backend: `authenticate` middleware validates JWT with Supabase service key
-4. Backend: Attaches user to `res.locals.user` for handlers
+Schema at `backend/prisma/schema.prisma`. Conventions: UUID primary keys, snake_case in DB (`@map`), camelCase in client, `Decimal` for money columns (`@db.Money`), cascade deletes on child records that should not outlive their parent (e.g. `PickupEvent`, `Announcement`, `Referral` cascade from `Fundraiser`).
 
-**Middleware**:
-- `authenticate.ts`: Requires valid JWT, returns 401 if missing/invalid
-- `authenticateOptional.ts`: Allows requests with or without auth
-- `validate.ts`: Validates request params/query/body against Zod schemas
+Models: `User`, `PendingUser` (invited but unregistered), `Organization`, `Fundraiser`, `Item`, `Order`, `OrderItems`, `PickupEvent`, `Announcement`, `Referral`. Enums: `PaymentMethod`, `PaymentStatus`.
 
-### Frontend-Backend Communication
+### Common (`common/`)
 
-**Fetcher Pattern** (`/frontend/src/lib/fetcher.ts`):
-- `authFetcher(schema)`: For authenticated requests, validates response with Zod
-- `noAuthFetcher(schema)`: For public endpoints
-- Used with SWR: `useSWR(url, authFetcher(CompleteSchema))`
+Zod schemas exported from `common/index.ts`: `fundraiser`, `item`, `order`, `organization`, `user`, `decimal`. Convention per entity:
 
-**Response Format**: Backend always returns `{ message: string, data: T }`
+- `Basic*Schema`: minimal fields for list views
+- `Complete*Schema`: full relations for detail views
+- `Create*Body` / `Update*Body`: request payload schemas
 
-### Shared Schemas (Common Package)
+Always run `cd common && pnpm build` after editing any schema; both apps consume the compiled `dist/`.
 
-All API contracts defined in `/common/schemas/` using Zod:
-- **Basic schemas**: Minimal fields for list responses (e.g., `BasicFundraiserSchema`)
-- **Complete schemas**: Full relations for detail views (e.g., `CompleteFundraiserSchema`)
-- **Body schemas**: Request validation (e.g., `CreateOrderBody`, `UpdateFundraiserBody`)
-
-**Important**: After changing schemas in `common/`, run `cd common && pnpm build` to recompile.
-
-### Database Schema (Prisma)
-
-**Location**: `/backend/prisma/schema.prisma`
-
-**Core entities**:
-- `User`: Authenticated users (links to Supabase user ID)
-- `PendingUser`: Users invited but not yet registered
-- `Organization`: Fundraiser organizations (requires authorization)
-- `Fundraiser`: Fundraising campaigns (belongs to organization)
-- `Item`: Products sold in fundraisers
-- `Order`: Customer purchases (has `PaymentStatus` enum)
-- `OrderItems`: Junction table for Order ↔ Item
-- `PickupEvent`: Collection times/locations for orders
-- `Announcement`: Updates posted to fundraisers
-- `Referral`: Referral program tracking (new feature)
-
-**Patterns**:
-- UUID primary keys
-- Decimal.js for money fields (`@db.Money`)
-- Cascade deletes for cleanup
-- Snake_case in database, camelCase in Prisma client
-
-### Frontend Routing (Next.js App Router)
+### Frontend (`frontend/src/`)
 
 ```
-/app/
-  ├── /auth           # Login/logout
-  ├── /buyer          # Customer-facing routes
-  │   ├── /browse     # Browse fundraisers
-  │   ├── /fundraiser/:id
-  │   ├── /order      # Order management
-  │   └── /account    # User profile
-  ├── /seller         # Organization admin routes
-  │   ├── /fundraiser # Create/manage fundraisers
-  │   ├── /order      # View orders
-  │   └── /org        # Organization settings
-  └── /page.tsx       # Landing page
+app/                  # Next.js App Router
+  page.tsx            # landing
+  auth/, login/, logout/, account/, account-actions/
+  buyer/              # browse, fundraiser/[id], order/, ...
+  seller/             # fundraiser/, order/, org/, components/
+  privacy-policy/, global-error.tsx, layout.tsx
+components/
+  ui/                 # shadcn primitives (new-york style, zinc base, lucide icons)
+  custom/             # app-specific composites (Navbar, ShoppingCart, OrderCard, ...)
+  auth/
+hooks/
+lib/
+  fetcher.ts          # authFetcher, noAuthFetcher (SWR), serverFetch (RSC), mutationFetch
+  store/useCartStore.ts  # Zustand cart, persisted to localStorage, keyed by fundraiserId
+  auth-actions.ts, auth-redirect.ts, capacity.ts, utils.ts
+utils/supabase/
+  client.ts, server.ts, middleware.ts   # SSR-aware Supabase clients
+  storage/client.ts                     # uploadImage / removeImage helpers (bucket: "images")
+middleware.ts         # invokes Supabase session middleware on protected matchers
 ```
 
-**Protected routes**: `/buyer/**` and `/seller/**` require authentication (enforced by middleware)
+Auth flow: user signs in via Supabase on the frontend; `authFetcher` attaches `Authorization: Bearer <jwt>`; backend `authenticate` validates with the service role key. Protected route prefixes: `/login`, `/buyer`, `/buyer/order/*`, `/account`, `/account-actions`, `/seller/*`.
 
-### State Management
+State: Zustand for cart (persisted), SWR for server state. Forms: React Hook Form + Zod via `@hookform/resolvers`. Tables: TanStack Table. Toasts: Sonner. Tailwind theme uses HSL CSS variables; fonts `--font-dm-sans` (sans) and `--font-roboto-mono` (mono).
 
-- **Zustand**: Shopping cart state (`/frontend/src/lib/store/useCartStore.ts`)
-  - Persists to localStorage
-  - Methods: `addItem`, `removeItem`, `updateQuantity`, `clearCart`, `prepareOrderItems`
-  - Organized per fundraiser (Map: `fundraiserId → CartItem[]`)
-- **SWR**: Data fetching and caching
+## Infrastructure
 
-### UI Components
+- **Backend host**: Heroku. `Procfile` is `web: pnpm --filter 'backend' start`. `heroku-postbuild` script builds the workspace.
+- **Frontend host**: Vercel.
+- **Database + Auth + Storage**: Supabase. Two projects:
+  - `curaise-dev` (`zrpllsbiklrzsufbbumw`, US-East Ohio). Free tier, auto-pauses after inactivity; backend then 500s with `tenant/user postgres.<ref> not found`. Restore from the Supabase dashboard or `POST https://api.supabase.com/v1/projects/<ref>/restore`.
+  - `curaise-prod` (`zrqmplfsrshsdockyyjt`, US-East N.Virginia)
+- **Supabase storage**: bucket `images` with folders like `fundraisers/`, `items/`. Uploads go through `frontend/src/utils/supabase/storage/client.ts`.
+- **Email**: Mailgun (backend).
+- **Cache**: Memcachier (memjs) on backend. Prod only; local dev runs fine without memcached.
+- **CI**: none currently. PRs are reviewed manually on GitHub.
 
-- **Radix UI**: Accessible component primitives
-- **Tailwind CSS**: Styling
-- **shadcn/ui pattern**: Components in `/frontend/src/components/ui/`
-- **React Hook Form**: Form state management
-- **TanStack React Table**: Data tables
+## Environment variables
 
-## Development Patterns
+Per-package env files (never commit production secrets). The dev/prod scripts copy the right file into the active env:
 
-### Adding a New API Endpoint
+- `backend/.env.dev`, `backend/.env.prod` -> copied to `backend/.env`. All four env files are distributed via Slack by the TPM.
+- `frontend/.env.dev`, `frontend/.env.prod` -> copied to `frontend/.env.local`
 
-1. Define schemas in `/common/schemas/{module}.ts`
-2. Build common: `cd common && pnpm build`
-3. Create handler in `/backend/src/api/{module}/{module}.handlers.ts`
-4. Create service function in `/backend/src/api/{module}/{module}.services.ts`
-5. Add route to `/backend/src/api/{module}/{module}.router.ts`
-6. Use `authenticate` and `validate` middleware as needed
-7. Frontend: Use `authFetcher` or `noAuthFetcher` with appropriate schema
+Key vars:
 
-### Database Changes
+| Var | Where | Purpose |
+|---|---|---|
+| `DATABASE_URL`, `DIRECT_URL` | backend | Postgres (pooled + direct for migrations) |
+| `PORT` | backend | Express listen port |
+| `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` | backend | JWT validation |
+| `NEXT_PUBLIC_API_URL` | frontend | Backend base URL |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | frontend | Client auth + storage URLs |
+| `MAILGUN_API_KEY`, `MAILGUN_DOMAIN` | backend | Outgoing email |
+| `MEMCACHIER_*` | backend | Cache client |
 
-1. Modify `/backend/prisma/schema.prisma`
-2. Run `cd backend && pnpm migrate:dev` (creates migration + regenerates client)
-3. Update seed file if needed: `/backend/prisma/seed.ts`
-4. Run `pnpm seed:dev` to apply seed data
+## Conventions
 
-### Adding Shared Types
+### Adding an API endpoint
 
-1. Add Zod schema to `/common/schemas/{module}.ts`
-2. Export from `/common/src/index.ts`
-3. Build: `cd common && pnpm build`
-4. Use in frontend: `import { SchemaName } from 'common'`
-5. Use in backend: `import { SchemaName } from 'common'`
+1. Define / extend Zod schemas in `common/schemas/<module>.ts` (Basic, Complete, body).
+2. `cd common && pnpm build`.
+3. Service in `backend/src/api/<module>/<module>.services.ts` (Prisma only, no Express).
+4. Handler in `<module>.handlers.ts` reads from `req.params/query/body` (already typed by `validate`) and `res.locals.user`, calls service, validates response with the Complete schema, returns `{ message, data }`.
+5. Route in `<module>.router.ts` chained as `validate(...) -> authenticate -> asyncHandler(handler)`. Use `authenticateOptional` for endpoints that work logged-out.
+6. Mount in `backend/src/router.ts` if it is a new module.
+7. Frontend: call via `authFetcher(CompleteSchema)` (SWR) or `mutationFetch` (POST/PUT/DELETE), or `serverFetch` from RSC.
 
-## Environment Variables
+### Database changes
 
-Each package has environment files:
-- **Backend**: `.env.dev`, `.env.prod` (copy to `.env` via switch scripts)
-- **Frontend**: `.env.dev`, `.env.local` (auto-copied by dev script)
+1. Edit `backend/prisma/schema.prisma`.
+2. `cd backend && pnpm migrate:dev` (creates migration + regenerates client).
+3. Update `prisma/seed.ts` if needed; `pnpm seed:dev`.
+4. Reflect any new fields in `common/schemas/*` and rebuild common.
+5. Apply to prod with `pnpm migrate:prod` after merge.
 
-**Key variables**:
-- `DATABASE_URL`: PostgreSQL connection string
-- `NEXT_PUBLIC_API_URL`: Backend API URL (frontend)
-- `SUPABASE_URL`, `SUPABASE_ANON_KEY`: Supabase project config
-- `SUPABASE_SERVICE_ROLE_KEY`: Backend-only (for JWT validation)
-- `MAILGUN_API_KEY`, `MAILGUN_DOMAIN`: Email service
+### Code style
 
-## Testing
+- TypeScript strict; no `any` in new code unless interfacing with untyped libs.
+- Filenames: `camelCase.ts` for libs/utilities, `PascalCase.tsx` for React components, `kebab-case` for App Router segments.
+- Backend module files: `<module>.<role>.ts` (router/handlers/services/types).
+- Imports: `common` package via bare specifier (`import { CompleteFundraiserSchema } from "common"`).
+- React: prefer Server Components; mark Client Components with `"use client"` only when needed (state, effects, browser APIs, Zustand, SWR).
+- Forms: validate with the same Zod body schema the backend uses.
+- Money: `decimal.js` everywhere. Never use JS `number` for prices.
+- Dates: `date-fns`. Persist as ISO strings / `DateTime` columns.
+- Errors: throw plain `Error` from services; `asyncHandler` + `handlePrismaErrors` will surface a sane HTTP response. Reserve `res.status(...).json(...)` for handler-specific responses.
+- Comments: explain the non-obvious (constraints, Venmo workflow quirks). Do not narrate what the code does.
+- No em dashes in user-visible copy.
 
-Backend tests use Jest:
+### Git and PRs
+
+- Branch off `dev`, name like `<name>-<short-description>` (existing pattern).
+- One logical change per PR. PR title is what shows on the merge commit.
+- Never push without explicit approval. Never add `Co-authored-by` trailers.
+- `dev` -> `main` is done via a periodic merge PR (e.g. PR #147).
+
+### When working with AI agents
+
+- Skim this file first; the answers to "where does X live" are above.
+- Trust generated `backend/src/generated/client/` only as Prisma output; do not hand-edit.
+- If a change spans `common/` and consumers, rebuild common before running typechecks.
+- Match the existing module shape (router/handlers/services/types) rather than introducing new patterns.
+- Surface infra changes (new env var, new Supabase bucket, new external service) by updating this file in the same PR.
+
+## Useful commands
+
 ```bash
-cd backend && pnpm test
+# Supabase (CLI is signed in)
+supabase projects list
+supabase link --project-ref <ref>          # zrpllsbiklrzsufbbumw (dev) or zrqmplfsrshsdockyyjt (prod)
+supabase db pull                           # mirror remote schema locally
+supabase secrets list
+
+# GitHub
+gh pr list --state open
+gh pr view <num>
+gh pr checks <num>
+
+# Heroku (backend)
+heroku logs --tail -a <app>
+heroku run "pnpm --filter backend prisma migrate deploy" -a <app>
 ```
-
-## Deployment
-
-**Backend**: Heroku (automatic via `heroku-postbuild` script in root `package.json`)
-**Frontend**: Vercel
