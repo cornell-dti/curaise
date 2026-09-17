@@ -84,18 +84,18 @@ export const sendOrganizationInviteEmail = async (options: {
 }): Promise<void> => {
   const { organization, creator, invitedAdmins } = options;
 
-  const subject = `You've Been Invited to Manage ${organization.name} on Curaise`;
+  const subject = `You've Been Invited to Manage ${escapeHtml(organization.name)} on Curaise`;
 
   for (const admin of invitedAdmins) {
     const text = `
     Hello ${admin.name},
     
     ${creator.name} has invited you to be an administrator for ${
-      organization.name
+      escapeHtml(organization.name)
     } on Curaise.
     
     Organization Details:
-    Name: ${organization.name}
+    Name: ${escapeHtml(organization.name)}
     Description: ${organization.description}
     ${organization.websiteUrl ? `Website: ${organization.websiteUrl}` : ""}
     
@@ -106,17 +106,17 @@ export const sendOrganizationInviteEmail = async (options: {
   `;
 
     const html = `
-    <h1>You've Been Invited to Manage ${organization.name}</h1>
+    <h1>You've Been Invited to Manage ${escapeHtml(organization.name)}</h1>
     
     <p>Hello ${admin.name},</p>
     
     <p>${creator.name} has invited you to be an administrator for <strong>${
-      organization.name
+      escapeHtml(organization.name)
     }</strong> on Curaise.</p>
     
     <h2>Organization Details</h2>
     <ul>
-      <li><strong>Name:</strong> ${organization.name}</li>
+      <li><strong>Name:</strong> ${escapeHtml(organization.name)}</li>
       <li><strong>Description:</strong> ${organization.description}</li>
       ${
         organization.websiteUrl
@@ -160,25 +160,25 @@ export const sendPendingAdminInviteEmail = async (options: {
 }): Promise<void> => {
   const { organization, creator, pendingAdminEmails } = options;
 
-  const subject = `You've Been Invited to Manage ${organization.name} on Curaise`;
+  const subject = `You've Been Invited to Manage ${escapeHtml(organization.name)} on Curaise`;
 
   for (const email of pendingAdminEmails) {
     const text = `
     Hello,
 
     ${creator.name} has invited you to be an administrator for ${
-      organization.name
+      escapeHtml(organization.name)
     } on Curaise.
 
     Organization Details:
-    Name: ${organization.name}
+    Name: ${escapeHtml(organization.name)}
     Description: ${organization.description}
     ${organization.websiteUrl ? `Website: ${organization.websiteUrl}` : ""}
 
     To accept this invitation and manage this organization, please sign up for a Curaise account at https://www.curaise.app
 
     Once you register with this email address (${email}), you'll automatically be granted administrator access to ${
-      organization.name
+      escapeHtml(organization.name)
     }.
 
     Thank you,
@@ -186,17 +186,17 @@ export const sendPendingAdminInviteEmail = async (options: {
   `;
 
     const html = `
-    <h1>You've Been Invited to Manage ${organization.name}</h1>
+    <h1>You've Been Invited to Manage ${escapeHtml(organization.name)}</h1>
 
     <p>Hello,</p>
 
     <p>${creator.name} has invited you to be an administrator for <strong>${
-      organization.name
+      escapeHtml(organization.name)
     }</strong> on Curaise.</p>
 
     <h2>Organization Details</h2>
     <ul>
-      <li><strong>Name:</strong> ${organization.name}</li>
+      <li><strong>Name:</strong> ${escapeHtml(organization.name)}</li>
       <li><strong>Description:</strong> ${organization.description}</li>
       ${
         organization.websiteUrl
@@ -208,7 +208,7 @@ export const sendPendingAdminInviteEmail = async (options: {
     <p>To accept this invitation and manage this organization, please <a href="https://www.curaise.app">sign up for a Curaise account</a>.</p>
 
     <p>Once you register with this email address (<strong>${email}</strong>), you'll automatically be granted administrator access to ${
-      organization.name
+      escapeHtml(organization.name)
     }.</p>
 
     <p>Thank you,<br>
