@@ -12,6 +12,17 @@ import { format } from "date-fns";
 
 type Order = z.infer<typeof BasicOrderSchema>;
 
+/**
+ * HTML escaping utility to avoid HTML injection attacks
+ */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 // Configuration
 const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN || "curaise.app";
 const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY || "";
