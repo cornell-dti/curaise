@@ -84,21 +84,21 @@ export const sendOrganizationInviteEmail = async (options: {
 }): Promise<void> => {
   const { organization, creator, invitedAdmins } = options;
 
-  const subject = `You've Been Invited to Manage ${escapeHtml(organization.name)} on Curaise`;
+  const subject = `You've Been Invited to Manage ${organization.name} on Curaise`;
 
   for (const admin of invitedAdmins) {
     const text = `
     Hello ${admin.name},
-    
+
     ${creator.name} has invited you to be an administrator for ${
-      escapeHtml(organization.name)
+      organization.name
     } on Curaise.
-    
+
     Organization Details:
-    Name: ${escapeHtml(organization.name)}
+    Name: ${organization.name}
     Description: ${organization.description}
     ${organization.websiteUrl ? `Website: ${organization.websiteUrl}` : ""}
-    
+
     To manage this organization, please log in to your Curaise account.
     
     Thank you,
@@ -108,19 +108,19 @@ export const sendOrganizationInviteEmail = async (options: {
     const html = `
     <h1>You've Been Invited to Manage ${escapeHtml(organization.name)}</h1>
     
-    <p>Hello ${admin.name},</p>
+    <p>Hello ${escapeHtml(admin.name)},</p>
     
-    <p>${creator.name} has invited you to be an administrator for <strong>${
+    <p>${escapeHtml(creator.name)} has invited you to be an administrator for <strong>${
       escapeHtml(organization.name)
     }</strong> on Curaise.</p>
-    
+
     <h2>Organization Details</h2>
     <ul>
       <li><strong>Name:</strong> ${escapeHtml(organization.name)}</li>
-      <li><strong>Description:</strong> ${organization.description}</li>
+      <li><strong>Description:</strong> ${escapeHtml(organization.description)}</li>
       ${
         organization.websiteUrl
-          ? `<li><strong>Website:</strong> <a href="${organization.websiteUrl}">${organization.websiteUrl}</a></li>`
+          ? `<li><strong>Website:</strong> <a href="${escapeHtml(organization.websiteUrl)}">${escapeHtml(organization.websiteUrl)}</a></li>`
           : ""
       }
     </ul>
@@ -160,25 +160,25 @@ export const sendPendingAdminInviteEmail = async (options: {
 }): Promise<void> => {
   const { organization, creator, pendingAdminEmails } = options;
 
-  const subject = `You've Been Invited to Manage ${escapeHtml(organization.name)} on Curaise`;
+  const subject = `You've Been Invited to Manage ${organization.name} on Curaise`;
 
   for (const email of pendingAdminEmails) {
     const text = `
     Hello,
 
     ${creator.name} has invited you to be an administrator for ${
-      escapeHtml(organization.name)
+      organization.name
     } on Curaise.
 
     Organization Details:
-    Name: ${escapeHtml(organization.name)}
+    Name: ${organization.name}
     Description: ${organization.description}
     ${organization.websiteUrl ? `Website: ${organization.websiteUrl}` : ""}
 
     To accept this invitation and manage this organization, please sign up for a Curaise account at https://www.curaise.app
 
     Once you register with this email address (${email}), you'll automatically be granted administrator access to ${
-      escapeHtml(organization.name)
+      organization.name
     }.
 
     Thank you,
@@ -190,17 +190,17 @@ export const sendPendingAdminInviteEmail = async (options: {
 
     <p>Hello,</p>
 
-    <p>${creator.name} has invited you to be an administrator for <strong>${
+    <p>${escapeHtml(creator.name)} has invited you to be an administrator for <strong>${
       escapeHtml(organization.name)
     }</strong> on Curaise.</p>
 
     <h2>Organization Details</h2>
     <ul>
       <li><strong>Name:</strong> ${escapeHtml(organization.name)}</li>
-      <li><strong>Description:</strong> ${organization.description}</li>
+      <li><strong>Description:</strong> ${escapeHtml(organization.description)}</li>
       ${
         organization.websiteUrl
-          ? `<li><strong>Website:</strong> <a href="${organization.websiteUrl}">${organization.websiteUrl}</a></li>`
+          ? `<li><strong>Website:</strong> <a href="${escapeHtml(organization.websiteUrl)}">${escapeHtml(organization.websiteUrl)}</a></li>`
           : ""
       }
     </ul>
@@ -264,7 +264,7 @@ export const sendAnnouncementEmail = async (options: {
       ? fundraiser.pickupEvents
           .map(
             (event, index) =>
-              `<p><strong>Event ${index + 1}:</strong> ${event.location}<br/>
+              `<p><strong>Event ${index + 1}:</strong> ${escapeHtml(event.location)}<br/>
         <strong>Time:</strong> ${event.startsAt.toLocaleDateString()} to ${event.endsAt.toLocaleDateString()}</p>`,
           )
           .join("")
@@ -282,10 +282,10 @@ export const sendAnnouncementEmail = async (options: {
   `;
 
   const html = `
-    <h1>New Announcement for ${fundraiser.name}</h1>
-    
+    <h1>New Announcement for ${escapeHtml(fundraiser.name)}</h1>
+
     <div style="padding: 15px; background-color: #f5f5f5; border-left: 4px solid #3498db; margin: 20px 0;">
-      <p>${announcement.message}</p>
+      <p>${escapeHtml(announcement.message)}</p>
     </div>
     
     <h2>Pickup Information</h2>
@@ -354,7 +354,7 @@ export const sendVenmoSetupEmail = async (options: {
 
     <p>Hello,</p>
 
-    <p>You need to set up email forwarding for your Venmo account to use it with <strong>${fundraiserName}</strong> on CURaise.</p>
+    <p>You need to set up email forwarding for your Venmo account to use it with <strong>${escapeHtml(fundraiserName)}</strong> on CURaise.</p>
 
     <p>Open this email on a desktop browser and follow the steps to add CURaise's email address as a valid forwarding address:</p>
 
@@ -421,9 +421,9 @@ export const sendPaymentReminderEmail = async (order: Order): Promise<any> => {
   const html = `
     <h1>Payment Reminder</h1>
 
-    <p>Hi ${buyer.name},</p>
+    <p>Hi ${escapeHtml(buyer.name)},</p>
 
-    <p>This is a friendly reminder that your order <strong>#${order.id}</strong> for <strong>${fundraiser.name}</strong> placed on ${orderDateFormatted} has not been paid yet.</p>
+    <p>This is a friendly reminder that your order <strong>#${order.id}</strong> for <strong>${escapeHtml(fundraiser.name)}</strong> placed on ${orderDateFormatted} has not been paid yet.</p>
 
     <p>Please complete your payment via Venmo to finalize your order.</p>
 
@@ -494,7 +494,7 @@ export const sendOrderConfirmation = async (order: Order): Promise<any> => {
               "EEEE, MMMM d, yyyy, h:mm a",
             );
             return `<p><strong>Event ${index + 1}:</strong> ${
-              event.location
+              escapeHtml(event.location)
             }<br/>
         <strong>Pickup Window:</strong> ${startsFormatted} to ${endsFormatted}</p>`;
           })
@@ -517,17 +517,17 @@ export const sendOrderConfirmation = async (order: Order): Promise<any> => {
 
   const html = `
     <h1>Thank You for Your Order!</h1>
-    <p>Your order #${order.id} for ${fundraiser.name} has been received.</p>
-    
+    <p>Your order #${order.id} for ${escapeHtml(fundraiser.name)} has been received.</p>
+
     <h2>Order Details</h2>
     <p><strong>Date:</strong> ${orderDateFormatted}</p>
     <p><strong>Payment Method:</strong> ${paymentMethodText}</p>
     <p><strong>Status:</strong> ${paymentStatusMessage}</p>
-    
+
     <h2>Pickup Information</h2>
     ${pickupEventsHtml}
-    
-    <p>If you have any questions, please contact ${fundraiser.organization.name}.</p>
+
+    <p>If you have any questions, please contact ${escapeHtml(fundraiser.organization.name)}.</p>
   `;
 
   return sendEmail({
