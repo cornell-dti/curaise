@@ -14,19 +14,15 @@ npm install -g pnpm@10
 
 **Windows**
 
-Use WSL2 with Ubuntu. The repo's npm scripts use `cp`, which is not available in PowerShell or cmd, so native Windows shells will fail on `pnpm dev`.
+Native Windows (PowerShell or cmd) works fine. No WSL2 required.
 
-1. In an admin PowerShell: `wsl --install -d Ubuntu`, then reboot and open the Ubuntu app.
-2. Inside Ubuntu:
+1. Install Git from https://git-scm.com/download/win (includes Git Bash).
+2. Install Node 22 LTS from https://nodejs.org (use the Windows Installer `.msi`).
+3. In PowerShell or cmd:
 
-```bash
-sudo apt-get update && sudo apt-get install -y git curl build-essential
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash -
-sudo apt-get install -y nodejs
-sudo npm install -g pnpm@10
+```powershell
+npm install -g pnpm@10
 ```
-
-Keep the repo inside the Linux filesystem (for example `~/curaise`), not under `/mnt/c`, or installs and hot reload will be very slow.
 
 Check versions: `node -v` (20.6+), `pnpm -v` (9+), `git --version`.
 
@@ -89,7 +85,6 @@ Branch off `dev` as `<name>-<short-description>` and open a PR into `dev`. Never
 ## Troubleshooting
 
 - **Backend returns 500 and logs `tenant/user postgres.<ref> not found`**: the free-tier dev Supabase project has been paused for inactivity. Ask a TPM to restore it from the Supabase dashboard (Project Settings > General > Restore project). It takes 2 to 4 minutes.
-- **`pnpm dev` fails with `cp is not recognized`** (Windows): you are in PowerShell or cmd. Use WSL2 as described above.
 - **Prisma client missing / import errors from `src/generated`**: run `cd backend && pnpm prisma:generate`. The generated client is gitignored and must be built locally.
 - **Types from `common` are stale**: run `cd common && pnpm build`.
 - **Memcached**: the backend uses Memcachier in production only. Locally it runs fine without memcached installed.

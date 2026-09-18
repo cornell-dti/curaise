@@ -11,7 +11,7 @@ CURaise is a monorepo fundraising platform with three packages:
 
 ## Development Commands
 
-New devs: follow `docs/ONBOARDING.md` (prereqs, clone, env files, Windows/WSL2 notes). Requirements: Node 20.6+ (22 LTS recommended), pnpm 9+. Windows must use WSL2 because the scripts use `cp`.
+New devs: follow `docs/ONBOARDING.md` (prereqs, clone, env files). Requirements: Node 20.6+ (22 LTS recommended), pnpm 9+. All scripts are cross-platform and work natively on Windows, macOS, and Linux.
 
 ### Initial Setup
 ```bash

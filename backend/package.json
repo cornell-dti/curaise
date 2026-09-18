@@ -4,16 +4,16 @@
   "private": true,
   "main": "./dist/src/server.js",
   "scripts": {
-    "build": "tsc --build && cp -r src/generated dist/src/",
-    "switch:dev": "cp .env.dev .env",
-    "switch:prod": "cp .env.prod .env",
+    "build": "tsc --build && shx cp -r src/generated dist/src/",
+    "switch:dev": "shx cp .env.dev .env",
+    "switch:prod": "shx cp .env.prod .env",
     "start": "node ./dist/src/server.js",
-    "dev": "cp .env.dev .env && nodemon --exec node --env-file='.env' -r ts-node/register ./src/server.ts",
-    "prod": "cp .env.prod .env && nodemon --exec node --env-file='.env' -r ts-node/register ./src/server.ts",
+    "dev": "shx cp .env.dev .env && nodemon --exec node --env-file=.env -r ts-node/register ./src/server.ts",
+    "prod": "shx cp .env.prod .env && nodemon --exec node --env-file=.env -r ts-node/register ./src/server.ts",
     "prisma:generate": "prisma generate",
-    "migrate:dev": "cp .env.dev .env && prisma migrate dev",
-    "migrate:prod": "cp .env.prod .env && prisma migrate deploy",
-    "seed:dev": "cp .env.dev .env && prisma db seed",
+    "migrate:dev": "shx cp .env.dev .env && prisma migrate dev",
+    "migrate:prod": "shx cp .env.prod .env && prisma migrate deploy",
+    "seed:dev": "shx cp .env.dev .env && prisma db seed",
     "test": "jest"
   },
   "prisma": {
@@ -39,6 +39,7 @@
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
+    "shx": "^0.3.4",
     "@types/express": "^5.0.0",
     "@types/express-serve-static-core": "^5.0.6",
     "@types/memjs": "^1.3.3",

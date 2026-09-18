@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "switch:dev": "cp .env.dev .env.local",
-    "switch:prod": "cp .env.prod .env.local",
-    "dev": "cp .env.dev .env.local && next dev --turbopack --port 8080",
-    "prod": "cp .env.prod .env.local && next dev --turbopack --port 8080",
+    "switch:dev": "shx cp .env.dev .env.local",
+    "switch:prod": "shx cp .env.prod .env.local",
+    "dev": "shx cp .env.dev .env.local && next dev --turbopack --port 8080",
+    "prod": "shx cp .env.prod .env.local && next dev --turbopack --port 8080",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -55,6 +55,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
+    "shx": "^0.3.4",
     "@types/node": "^20.17.12",
     "@types/react": "^19.0.6",
     "@types/react-dom": "^19.0.3",
