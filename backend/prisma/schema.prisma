@@ -141,6 +141,9 @@ model Order {
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
+  paymentRemindedAt DateTime? @map("payment_reminded_at")
+  pickupRemindedAt  DateTime? @map("pickup_reminded_at")
+
   buyer        User         @relation(fields: [buyerId], references: [id])
   buyerId      String       @map("buyer_id") @db.Uuid
   fundraiser   Fundraiser   @relation(fields: [fundraiserId], references: [id])
