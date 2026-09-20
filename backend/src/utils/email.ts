@@ -8,7 +8,7 @@ import {
   AnnouncementSchema,
   CompleteOrganizationSchema,
 } from "common";
-import { format } from "date-fns";
+import { addDays, format, isSameDay } from "date-fns";
 
 type Order = z.infer<typeof BasicOrderSchema>;
 
@@ -417,6 +417,55 @@ export const sendPaymentReminderEmail = async (order: Order): Promise<any> => {
     <p>Please complete your payment via Venmo to finalize your order.</p>
 
     <p>If you have already paid, please disregard this email — it may take some time for us to verify your payment.</p>
+
+    <p>Thank you,<br>
+    The CURaise Team</p>
+  `;
+
+  return sendEmail({
+    to: buyer.email,
+    subject,
+    text,
+    html,
+  });
+};
+
+/**
+ * Send pickup reminder email to a buyer with an order at a fundraiser picking up tomorrow
+ */
+export const sendPickupReminderEmail = async (order: Order): Promise<any> => {
+  const { buyer, fundraiser } = order;
+
+  const tomorrow = addDays(new Date(), 1);
+  const pickupEvent =
+    fundraiser.pickupEvents.find((event) => isSameDay(event.startsAt, tomorrow)) ??
+    fundraiser.pickupEvents[0];
+
+  const subject = `Pickup Reminder - ${fundraiser.name}`;
+
+  const pickupTimeFormatted = format(pickupEvent.startsAt, "h:mm a");
+  const pickupEndTimeFormatted = format(pickupEvent.endsAt, "h:mm a");
+  const pickupDateFormatted = format(pickupEvent.startsAt, "EEEE, MMMM d, yyyy");
+
+  const text = `
+    Hi ${buyer.name},
+
+    This is a friendly reminder that pickup for your order #${order.id} from ${fundraiser.name} is tomorrow, ${pickupDateFormatted}, from ${pickupTimeFormatted} to ${pickupEndTimeFormatted} at ${pickupEvent.location}.
+
+    If you have already picked up your order, please disregard this email.
+
+    Thank you,
+    The CURaise Team
+  `;
+
+  const html = `
+    <h1>Pickup Reminder</h1>
+
+    <p>Hi ${buyer.name},</p>
+
+    <p>This is a friendly reminder that pickup for your order <strong>#${order.id}</strong> from <strong>${fundraiser.name}</strong> is tomorrow, <strong>${pickupDateFormatted}</strong>, from <strong>${pickupTimeFormatted}</strong> to <strong>${pickupEndTimeFormatted}</strong> at <strong>${pickupEvent.location}</strong>.</p>
+
+    <p>If you have already picked up your order, please disregard this email.</p>
 
     <p>Thank you,<br>
     The CURaise Team</p>
