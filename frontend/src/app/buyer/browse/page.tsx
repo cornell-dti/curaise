@@ -1,4 +1,4 @@
-import { FundraisersList } from "./components/FundraisersList";
+import { BrowseView } from "./components/BrowseView";
 import {
   BasicFundraiserSchema,
   BasicOrganizationSchema,
@@ -6,7 +6,6 @@ import {
 } from "common";
 import { connection } from "next/server";
 import { serverFetch } from "@/lib/fetcher";
-import { CalendarPage } from "./components/Calendar";
 import { createClient } from "@/utils/supabase/server";
 import { z } from "zod";
 
@@ -58,18 +57,12 @@ export default async function BrowseFundraisersPage({
   const searchQuery = params.search || "";
 
   return (
-    <div>
-      <h1 className="py-4 md:py-10 px-4 md:px-[157px] text-[28px] md:text-[32px] font-semibold text-black">
-        Browse CURaise
-      </h1>
-      <CalendarPage
-        organizations={organizations}
-        userOrganizations={userOrganizations}
-        fundraisers={fundraisersWithItems}
-      />{" "}
-      <div className="flex flex-col px-4 md:px-[157px] py-10">
-        <FundraisersList fundraisers={fundraisers} searchQuery={searchQuery} />
-      </div>
-    </div>
+    <BrowseView
+      organizations={organizations}
+      userOrganizations={userOrganizations}
+      fundraisers={fundraisers}
+      fundraisersWithItems={fundraisersWithItems}
+      searchQuery={searchQuery}
+    />
   );
 }
