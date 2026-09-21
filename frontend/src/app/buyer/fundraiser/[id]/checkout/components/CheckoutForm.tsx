@@ -26,7 +26,6 @@ import {
   ChevronRight,
   Plus,
   Trash2,
-  ExternalLink,
   Search,
   ShieldAlert,
 } from "lucide-react";
@@ -53,15 +52,11 @@ import {
 } from "@/components/ui/sheet";
 import Image from "next/image";
 import { ReferrersModal } from "./ReferrersModal";
-import {
-  formatCapacityIssueMessage,
-  getCapacityIssues,
-} from "@/lib/capacity";
+import { formatCapacityIssueMessage, getCapacityIssues } from "@/lib/capacity";
 
 export function CheckoutForm({
   token,
   fundraiser,
-  userProfile,
   code,
 }: {
   token: string;
@@ -85,11 +80,10 @@ export function CheckoutForm({
   const initialReferralId = fundraiser.referrals.some((r) => r.id === code)
     ? code
     : "none";
-  const [selectedReferralId, setSelectedReferralId] = useState<string>(
-    initialReferralId,
-  );
+  const [selectedReferralId, setSelectedReferralId] =
+    useState<string>(initialReferralId);
   const [paymentMethod, setPaymentMethod] = useState<"VENMO" | "OTHER">(
-    "VENMO",
+    fundraiser.venmoEmail ? "VENMO" : "OTHER",
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isReferralSheetOpen, setIsReferralSheetOpen] = useState(false);
@@ -208,7 +202,9 @@ export function CheckoutForm({
         availabilityItem?.available !== undefined &&
         newQuantity > availabilityItem.available
       ) {
-        toast.error(`Only ${availabilityItem.available} available for ${item.name}`);
+        toast.error(
+          `Only ${availabilityItem.available} available for ${item.name}`,
+        );
         return;
       }
     }
@@ -429,36 +425,43 @@ export function CheckoutForm({
                       </div>
                     )}
                     <span className="text-base">
-                      {paymentMethod === "VENMO" ? "Venmo" : "Cash In-Person"}
+                      {paymentMethod === "VENMO" ? "Venmo" : "Other"}
                     </span>
                   </div>
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="VENMO">
-                  <div className="flex items-center gap-2">
-                    <svg
-                      className="h-7 w-7"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-label="Venmo"
-                      role="img"
-                      viewBox="0 0 512 512"
-                    >
-                      <rect width="512" height="512" rx="15%" fill="#008CFF" />
-                      <path
-                        d="m381.4 105.3c11 18.1 15.9 36.7 15.9 60.3 0 75.1-64.1 172.7-116.2 241.2h-118.8l-47.6-285 104.1-9.9 25.3 202.8c23.5-38.4 52.6-98.7 52.6-139.7 0-22.5-3.9-37.8-9.9-50.4z"
-                        fill="#ffffff"
-                      />
-                    </svg>
-                    <span>Venmo</span>
-                  </div>
-                </SelectItem>
+                {fundraiser.venmoEmail && (
+                  <SelectItem value="VENMO">
+                    <div className="flex items-center gap-2">
+                      <svg
+                        className="h-7 w-7"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-label="Venmo"
+                        role="img"
+                        viewBox="0 0 512 512"
+                      >
+                        <rect
+                          width="512"
+                          height="512"
+                          rx="15%"
+                          fill="#008CFF"
+                        />
+                        <path
+                          d="m381.4 105.3c11 18.1 15.9 36.7 15.9 60.3 0 75.1-64.1 172.7-116.2 241.2h-118.8l-47.6-285 104.1-9.9 25.3 202.8c23.5-38.4 52.6-98.7 52.6-139.7 0-22.5-3.9-37.8-9.9-50.4z"
+                          fill="#ffffff"
+                        />
+                      </svg>
+                      <span>Venmo</span>
+                    </div>
+                  </SelectItem>
+                )}
                 <SelectItem value="OTHER">
                   <div className="flex items-center gap-2">
                     <div className="h-7 w-7 bg-green-600 rounded flex items-center justify-center text-white font-bold text-[15px]">
                       $
                     </div>
-                    <span>Cash In-Person</span>
+                    <span>Other</span>
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -794,35 +797,37 @@ export function CheckoutForm({
                         </div>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="VENMO">
-                          <div className="flex items-center gap-2">
-                            <svg
-                              className="h-7 w-7"
-                              xmlns="http://www.w3.org/2000/svg"
-                              aria-label="Venmo"
-                              role="img"
-                              viewBox="0 0 512 512"
-                            >
-                              <rect
-                                width="512"
-                                height="512"
-                                rx="15%"
-                                fill="#008CFF"
-                              />
-                              <path
-                                d="m381.4 105.3c11 18.1 15.9 36.7 15.9 60.3 0 75.1-64.1 172.7-116.2 241.2h-118.8l-47.6-285 104.1-9.9 25.3 202.8c23.5-38.4 52.6-98.7 52.6-139.7 0-22.5-3.9-37.8-9.9-50.4z"
-                                fill="#ffffff"
-                              />
-                            </svg>
-                            <span>Venmo</span>
-                          </div>
-                        </SelectItem>
+                        {fundraiser.venmoEmail && (
+                          <SelectItem value="VENMO">
+                            <div className="flex items-center gap-2">
+                              <svg
+                                className="h-7 w-7"
+                                xmlns="http://www.w3.org/2000/svg"
+                                aria-label="Venmo"
+                                role="img"
+                                viewBox="0 0 512 512"
+                              >
+                                <rect
+                                  width="512"
+                                  height="512"
+                                  rx="15%"
+                                  fill="#008CFF"
+                                />
+                                <path
+                                  d="m381.4 105.3c11 18.1 15.9 36.7 15.9 60.3 0 75.1-64.1 172.7-116.2 241.2h-118.8l-47.6-285 104.1-9.9 25.3 202.8c23.5-38.4 52.6-98.7 52.6-139.7 0-22.5-3.9-37.8-9.9-50.4z"
+                                  fill="#ffffff"
+                                />
+                              </svg>
+                              <span>Venmo</span>
+                            </div>
+                          </SelectItem>
+                        )}
                         <SelectItem value="OTHER">
                           <div className="flex items-center gap-2">
                             <div className="h-7 w-7 bg-green-600 rounded flex items-center justify-center text-white font-bold text-[15px]">
                               $
                             </div>
-                            <span>Cash In-Person</span>
+                            <span>Other</span>
                           </div>
                         </SelectItem>
                       </SelectContent>

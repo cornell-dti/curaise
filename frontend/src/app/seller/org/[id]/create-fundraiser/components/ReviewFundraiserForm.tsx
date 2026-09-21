@@ -13,12 +13,14 @@ import { z } from "zod";
 
 export function ReviewFundraiserForm({
   formData,
+  skipVenmo,
   items,
   onSave,
   onBack,
   isSubmitting,
 }: {
   formData: z.infer<typeof CreateFundraiserBody>;
+  skipVenmo: boolean;
   items: z.infer<typeof CreateFundraiserItemBody>[];
   onSave: () => void;
   onBack: () => void;
@@ -75,18 +77,24 @@ export function ReviewFundraiserForm({
               </p>
               <p
                 className={
-                  !formData.venmoUsername ? "text-muted-foreground" : ""
+                  !formData.venmoUsername && !skipVenmo
+                    ? "text-muted-foreground"
+                    : ""
                 }
               >
-                {formData.venmoUsername || "Not provided"}
+                {skipVenmo ? "Not using Venmo" : formData.venmoUsername || "Not provided"}
               </p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Venmo Email</p>
               <p
-                className={!formData.venmoEmail ? "text-muted-foreground" : ""}
+                className={
+                  !formData.venmoEmail && !skipVenmo
+                    ? "text-muted-foreground"
+                    : ""
+                }
               >
-                {formData.venmoEmail || "Not provided"}
+                {skipVenmo ? "Not using Venmo" : formData.venmoEmail || "Not provided"}
               </p>
             </div>
           </div>
