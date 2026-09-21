@@ -361,6 +361,9 @@ export function CalendarPage({
             >
               <div className="flex items-center justify-between mb-3 md:mb-6">
                 <div className="flex gap-[8px] items-center">
+                  <p className="font-semibold leading-[42px] text-[20px] md:text-[28px] text-black whitespace-nowrap">
+                    {moment(selectedDate).format("MMMM YYYY")}
+                  </p>
                   <div className="flex gap-1">
                     <button
                       onClick={() => incrementSelect(false)}
@@ -427,9 +430,6 @@ export function CalendarPage({
                       )}{" "}
                     </div>
                   )}
-                  <p className="font-semibold leading-[42px] text-[20px] md:text-[28px] text-black whitespace-nowrap">
-                    {moment(selectedDate).format("MMMM YYYY")}
-                  </p>
                 </div>
 
                 <div className="flex gap-3 relative">
