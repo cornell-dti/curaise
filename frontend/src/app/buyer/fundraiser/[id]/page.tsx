@@ -72,11 +72,11 @@ export default async function FundraiserPage({
         <ChevronLeft strokeWidth={2} className="h-8 w-8 text-stone-800" />
       </Link>
 
-      <div className="relative mb-10">
+      <div className="relative mt-4 md:mt-6 mb-10 px-4 md:px-[157px]">
         {fundraiser.imageUrls.length > 0 ? (
           <FundraiserGallerySlider images={fundraiser.imageUrls} />
         ) : (
-          <div className="w-full h-[379px] md:h-[400px] bg-gray-200" />
+          <div className="w-full h-[200px] md:h-[300px] bg-gray-200 rounded-lg" />
         )}
       </div>
 

@@ -3,6 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "private": true,
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": "22.x",
+    "pnpm": "10.x"
+  },
   "scripts": {
     "assemble": "pnpm i && pnpm --filter 'common' build && pnpm --filter 'backend' prisma:generate",
     "dev": "pnpm -r --parallel run dev",

@@ -43,7 +43,7 @@ export default async function FundraiserAnalyticsPage({
     error: error1,
   } = await supabase.auth.getUser();
   if (error1 || !user) {
-    redirect("/login");
+    redirect(`/login?next=${encodeURIComponent(`/seller/fundraiser/${fundraiserId}`)}`);
   }
 
   const {
