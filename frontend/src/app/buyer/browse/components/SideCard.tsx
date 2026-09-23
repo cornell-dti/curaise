@@ -21,7 +21,7 @@ export function FundraiserSideCard({
     hostedBy: fundraiser.organization.name,
     description: fundraiser.description,
     pickupLocations: fundraiser.pickupEvents.map((event) => (
-      <span className="flex flex-col">
+      <span key={event.id} className="flex flex-col">
         {event.location}
         <span>
           {moment(event.startsAt).format("h:mm A")} -
