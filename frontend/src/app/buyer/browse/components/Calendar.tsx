@@ -519,18 +519,17 @@ export function CalendarPage({
               <FundraiserSideCard
                 fundraiser={selectedFundraiser}
                 items={selectedFundraiser.items}
-                bgColor={`color-mix(in srgb, ${
-                  organizationColors[
-                    organizationNames.indexOf(
-                      selectedFundraiser.organization.name,
-                    )
+                bgColor={`color-mix(in srgb, ${organizationColors[
+                  organizationNames.indexOf(
+                    selectedFundraiser.organization.name,
+                  )
                   ] ?? "#3174ad"
-                } 70%, white)`}
+                  } 70%, white)`}
                 borderColor={
                   organizationColors[
-                    organizationNames.indexOf(
-                      selectedFundraiser.organization.name,
-                    )
+                  organizationNames.indexOf(
+                    selectedFundraiser.organization.name,
+                  )
                   ] ?? "#3174ad"
                 }
               />
@@ -557,18 +556,17 @@ export function CalendarPage({
               <FundraiserSideCard
                 fundraiser={selectedFundraiser}
                 items={selectedFundraiser.items}
-                bgColor={`color-mix(in srgb, ${
-                  organizationColors[
-                    organizationNames.indexOf(
-                      selectedFundraiser.organization.name,
-                    )
+                bgColor={`color-mix(in srgb, ${organizationColors[
+                  organizationNames.indexOf(
+                    selectedFundraiser.organization.name,
+                  )
                   ] ?? "#3174ad"
-                } 70%, white)`}
+                  } 70%, white)`}
                 borderColor={
                   organizationColors[
-                    organizationNames.indexOf(
-                      selectedFundraiser.organization.name,
-                    )
+                  organizationNames.indexOf(
+                    selectedFundraiser.organization.name,
+                  )
                   ] ?? "#3174ad"
                 }
               />
