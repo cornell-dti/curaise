@@ -78,31 +78,31 @@ export const sendOrganizationInviteEmail = async (options: {
   for (const admin of invitedAdmins) {
     const text = `
     Hello ${admin.name},
-    
+
     ${creator.name} has invited you to be an administrator for ${
       organization.name
     } on Curaise.
-    
+
     Organization Details:
     Name: ${organization.name}
     Description: ${organization.description}
     ${organization.websiteUrl ? `Website: ${organization.websiteUrl}` : ""}
-    
+
     To manage this organization, please log in to your Curaise account.
-    
+
     Thank you,
     The Curaise Team
   `;
 
     const html = `
     <h1>You've Been Invited to Manage ${organization.name}</h1>
-    
+
     <p>Hello ${admin.name},</p>
-    
+
     <p>${creator.name} has invited you to be an administrator for <strong>${
       organization.name
     }</strong> on Curaise.</p>
-    
+
     <h2>Organization Details</h2>
     <ul>
       <li><strong>Name:</strong> ${organization.name}</li>
@@ -113,9 +113,9 @@ export const sendOrganizationInviteEmail = async (options: {
           : ""
       }
     </ul>
-    
+
     <p>To manage this organization, please <a href="https://www.curaise.app">log in to your Curaise account</a>.</p>
-    
+
     <p>Thank you,<br>
     The Curaise Team</p>
   `;
@@ -261,25 +261,25 @@ export const sendAnnouncementEmail = async (options: {
 
   const text = `
     New Announcement for ${fundraiser.name}
-    
+
     ${announcement.message}
-    
+
     Pickup Information:
     ${pickupEventsText}
-    
+
     This is an automated message. Please do not reply.
   `;
 
   const html = `
     <h1>New Announcement for ${fundraiser.name}</h1>
-    
+
     <div style="padding: 15px; background-color: #f5f5f5; border-left: 4px solid #3498db; margin: 20px 0;">
       <p>${announcement.message}</p>
     </div>
-    
+
     <h2>Pickup Information</h2>
     ${pickupEventsHtml}
-    
+
     <p style="color: #777; font-size: 0.9em;">This is an automated message. Please do not reply.</p>
   `;
 
@@ -431,7 +431,7 @@ export const sendPaymentReminderEmail = async (order: Order): Promise<any> => {
 };
 
 /**
- * Send pickup reminder email to a buyer with an order at a fundraiser picking up tomorrow
+ * Send pickup reminder emails to buyers of fundraisers that are occurring tomorrow
  */
 export const sendPickupReminderEmail = async (order: Order): Promise<any> => {
   const { buyer, fundraiser } = order;
@@ -440,7 +440,6 @@ export const sendPickupReminderEmail = async (order: Order): Promise<any> => {
   const pickupEvent =
     fundraiser.pickupEvents.find((event) => isSameDay(event.startsAt, tomorrow)) ??
     fundraiser.pickupEvents[0];
-
   const subject = `Pickup Reminder - ${fundraiser.name}`;
 
   const pickupTimeFormatted = format(pickupEvent.startsAt, "h:mm a");
@@ -541,30 +540,30 @@ export const sendOrderConfirmation = async (order: Order): Promise<any> => {
 
   const text = `
     Thank you for your order #${order.id}!
-    
+
     Fundraiser: ${fundraiser.name}
     Date: ${orderDateFormatted}
     Payment Method: ${paymentMethodText}
     Status: ${paymentStatusMessage}
-    
+
     Pickup Information:
     ${pickupEventsText}
-    
+
     If you have any questions, please contact ${fundraiser.organization.name}.
   `;
 
   const html = `
     <h1>Thank You for Your Order!</h1>
     <p>Your order #${order.id} for ${fundraiser.name} has been received.</p>
-    
+
     <h2>Order Details</h2>
     <p><strong>Date:</strong> ${orderDateFormatted}</p>
     <p><strong>Payment Method:</strong> ${paymentMethodText}</p>
     <p><strong>Status:</strong> ${paymentStatusMessage}</p>
-    
+
     <h2>Pickup Information</h2>
     ${pickupEventsHtml}
-    
+
     <p>If you have any questions, please contact ${fundraiser.organization.name}.</p>
   `;
 
