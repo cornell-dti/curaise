@@ -325,11 +325,188 @@ export function CalendarPage({
     </div>
   );
 
+  const showSidebar = currentView === Views.MONTH;
+  const showSideCard =
+    currentView !== Views.MONTH && !!selectedFundraiser && !isMobile;
+  const mainColumn = showSidebar ? "md:col-start-2" : "md:col-start-1";
+
   return (
     <div className="size-full">
-      <div className="flex flex-col-reverse items-center md:items-start bg-white rounded-[8px] md:shadow-[0_1px_4px_rgba(0,0,0,0.2)] md:flex-row md:pt-[19px] md:px-[30px] md:pb-[30px] gap-[20px] md:gap-[40px]">
-        {currentView === Views.MONTH && (
-          <div className="flex flex-col items-center gap-[20px] w-full md:w-[275px] md:mt-[67px]">
+      <div
+        className={cn(
+          "flex flex-col gap-3 bg-white rounded-[8px] md:grid md:grid-rows-[auto_1fr] md:gap-x-[30px] md:gap-y-6 md:shadow-[0_1px_4px_rgba(0,0,0,0.2)] md:pt-[19px] md:px-[30px] md:pb-[30px]",
+          showSidebar
+            ? "md:grid-cols-[275px_1fr]"
+            : showSideCard
+              ? "md:grid-cols-[1fr_180px]"
+              : "md:grid-cols-1",
+        )}
+      >
+        <div
+          className={cn(
+            "flex items-center justify-between px-4 md:px-0 md:row-start-1",
+            mainColumn,
+          )}
+        >
+          <div className="flex gap-[8px] items-center">
+            <p className="font-semibold leading-[42px] text-[20px] md:text-[28px] text-black whitespace-nowrap">
+              {moment(selectedDate).format("MMMM YYYY")}
+            </p>
+            <div className="flex gap-1">
+              <button
+                onClick={() => incrementSelect(false)}
+                className="size-[16px] md:size-[24px] flex items-center justify-center rotate-90"
+              >
+                <ChevronDown className="size-[16px] md:size-[24px]" />
+              </button>
+              <button
+                onClick={() => incrementSelect(true)}
+                className="size-[16px] md:size-[24px] flex items-center justify-center -rotate-90"
+              >
+                <ChevronDown className="size-[16px] md:size-[24px]" />
+              </button>
+            </div>
+            {isMobile ? (
+              <Sheet
+                open={isCalendarFiltersOpen}
+                onOpenChange={setIsCalendarFiltersOpen}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsCalendarFiltersOpen(true)}
+                  className="flex size-10 items-center justify-center rounded-[8px] border border-[#dfdfdf] bg-white text-black transition-colors hover:bg-[#f7f7f7]"
+                  aria-label="Open calendar filters"
+                >
+                  <CalendarDays className="size-[18px]" />
+                </button>
+                <SheetContent
+                  side="bottom"
+                  className="rounded-t-[20px] px-4 pb-6 pt-8"
+                >
+                  <SheetHeader className="mb-4 text-left">
+                    <SheetTitle>Calendar filters</SheetTitle>
+                  </SheetHeader>
+                  {calendarFilters}
+                </SheetContent>
+              </Sheet>
+            ) : (
+              <div>
+                {" "}
+                {currentView !== Views.MONTH && (
+                  <Popover
+                    open={isCalendarFiltersOpen}
+                    onOpenChange={setIsCalendarFiltersOpen}
+                  >
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex size-10 items-center justify-center rounded-[8px] border border-[#dfdfdf] bg-white text-black transition-colors hover:bg-[#f7f7f7]"
+                        aria-label="Open calendar filters"
+                      >
+                        <CalendarDays className="size-[18px]" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      align="start"
+                      side="bottom"
+                      sideOffset={12}
+                      className="w-[320px] rounded-[12px] border border-[#dfdfdf] bg-[#fafafa] p-3"
+                    >
+                      {calendarFilters}
+                    </PopoverContent>
+                  </Popover>
+                )}{" "}
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-3 relative">
+            <Button
+              type="button"
+              onClick={() => {
+                setSelectedDate(new Date(today));
+                setCurrentView(Views.WEEK);
+              }}
+              className="text-xs h-8 md:text-[16px] md:h-10 bg-[#265B34] hover:bg-[#1f4a2b]"
+            >
+              Today
+            </Button>
+            <Select
+              value={currentView}
+              onValueChange={(value) => setCurrentView(value as View)}
+            >
+              <SelectTrigger className="gap-2 text-xs h-8 md:text-[16px] md:h-10 text-[#265B34] border border-[#265B34] rounded-[6px] bg-white cursor-pointer hover:bg-[#e6f0ea]">
+                <SelectValue placeholder="Select view" />
+              </SelectTrigger>
+              <SelectContent>
+                {viewOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div
+          className={cn("h-[630px] px-4 md:px-0 md:row-start-2", mainColumn)}
+        >
+          <BigCalendar
+            localizer={localizer}
+            events={filteredEvents}
+            startAccessor="start"
+            endAccessor="end"
+            view={currentView}
+            onView={setCurrentView}
+            date={selectedDate}
+            onNavigate={setSelectedDate}
+            onSelectEvent={(event) => {
+              if (currentView !== Views.MONTH) {
+                setSelectedFundraiserId((event as CalendarEvent).id);
+              }
+            }}
+            dayLayoutAlgorithm={wideOverlapDayLayout}
+            eventPropGetter={(event) =>
+              eventStyleGetter(
+                event,
+                organizationNames,
+                currentView,
+                isPickupEvent(event),
+              )
+            }
+            popup
+            style={{ height: "100%", overflow: "auto" }}
+            views={[Views.MONTH, Views.WEEK, Views.DAY]}
+            components={{
+              toolbar: () => <></>,
+              week: {
+                header: CalendarDayHeader,
+              },
+              day: {
+                header: CalendarDayHeader,
+              },
+              event: ({ event }) => (
+                <CalendarEventComponent
+                  event={event}
+                  currentView={currentView}
+                  organizationNames={organizationNames}
+                  isPickupEvent={isPickupEvent(event)}
+                />
+              ),
+            }}
+            formats={{
+              timeGutterFormat: "h A",
+              eventTimeRangeFormat: () => "",
+              dayRangeHeaderFormat: ({ start, end }) =>
+                `${moment(start).format("MMM DD")} - ${moment(end).format("MMM DD")}`,
+            }}
+            className="my-calendar"
+          />
+        </div>
+
+        {showSidebar && (
+          <div className="flex flex-col items-center gap-[20px] w-full md:col-start-1 md:row-start-2">
             <SmallCalendar
               onSelected={setSelectedDate}
               date={selectedDate}
@@ -346,196 +523,27 @@ export function CalendarPage({
           </div>
         )}
 
-        <div
-          className={cn(
-            "w-full",
-            currentView !== Views.MONTH && selectedFundraiser && !isMobile
-              ? "flex flex-col gap-4 md:flex-row md:items-start"
-              : "flex-1",
-          )}
-        >
-          <div className="flex-1 w-full">
-            <div
-              className="rounded-[8px] px-4 md:px-0"
-              style={{ height: "700px" }}
-            >
-              <div className="flex items-center justify-between mb-3 md:mb-6">
-                <div className="flex gap-[8px] items-center">
-                  <p className="font-semibold leading-[42px] text-[20px] md:text-[28px] text-black whitespace-nowrap">
-                    {moment(selectedDate).format("MMMM YYYY")}
-                  </p>
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => incrementSelect(false)}
-                      className="size-[16px] md:size-[24px] flex items-center justify-center rotate-90"
-                    >
-                      <ChevronDown className="size-[16px] md:size-[24px]" />
-                    </button>
-                    <button
-                      onClick={() => incrementSelect(true)}
-                      className="size-[16px] md:size-[24px] flex items-center justify-center -rotate-90"
-                    >
-                      <ChevronDown className="size-[16px] md:size-[24px]" />
-                    </button>
-                  </div>
-                  {isMobile ? (
-                    <Sheet
-                      open={isCalendarFiltersOpen}
-                      onOpenChange={setIsCalendarFiltersOpen}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setIsCalendarFiltersOpen(true)}
-                        className="flex size-10 items-center justify-center rounded-[8px] border border-[#dfdfdf] bg-white text-black transition-colors hover:bg-[#f7f7f7]"
-                        aria-label="Open calendar filters"
-                      >
-                        <CalendarDays className="size-[18px]" />
-                      </button>
-                      <SheetContent
-                        side="bottom"
-                        className="rounded-t-[20px] px-4 pb-6 pt-8"
-                      >
-                        <SheetHeader className="mb-4 text-left">
-                          <SheetTitle>Calendar filters</SheetTitle>
-                        </SheetHeader>
-                        {calendarFilters}
-                      </SheetContent>
-                    </Sheet>
-                  ) : (
-                    <div>
-                      {" "}
-                      {currentView !== Views.MONTH && (
-                        <Popover
-                          open={isCalendarFiltersOpen}
-                          onOpenChange={setIsCalendarFiltersOpen}
-                        >
-                          <PopoverTrigger asChild>
-                            <button
-                              type="button"
-                              className="flex size-10 items-center justify-center rounded-[8px] border border-[#dfdfdf] bg-white text-black transition-colors hover:bg-[#f7f7f7]"
-                              aria-label="Open calendar filters"
-                            >
-                              <CalendarDays className="size-[18px]" />
-                            </button>
-                          </PopoverTrigger>
-                          <PopoverContent
-                            align="start"
-                            side="bottom"
-                            sideOffset={12}
-                            className="w-[320px] rounded-[12px] border border-[#dfdfdf] bg-[#fafafa] p-3"
-                          >
-                            {calendarFilters}
-                          </PopoverContent>
-                        </Popover>
-                      )}{" "}
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex gap-3 relative">
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      setSelectedDate(new Date(today));
-                      setCurrentView(Views.WEEK);
-                    }}
-                    className="text-xs h-8 md:text-[16px] md:h-10 bg-[#265B34] hover:bg-[#1f4a2b]"
-                  >
-                    Today
-                  </Button>
-                  <Select
-                    value={currentView}
-                    onValueChange={(value) => setCurrentView(value as View)}
-                  >
-                    <SelectTrigger className="gap-2 text-xs h-8 md:text-[16px] md:h-10 text-[#265B34] border border-[#265B34] rounded-[6px] bg-white cursor-pointer hover:bg-[#e6f0ea]">
-                      <SelectValue placeholder="Select view" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {viewOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <BigCalendar
-                localizer={localizer}
-                events={filteredEvents}
-                startAccessor="start"
-                endAccessor="end"
-                view={currentView}
-                onView={setCurrentView}
-                date={selectedDate}
-                onNavigate={setSelectedDate}
-                onSelectEvent={(event) => {
-                  if (currentView !== Views.MONTH) {
-                    setSelectedFundraiserId((event as CalendarEvent).id);
-                  }
-                }}
-                dayLayoutAlgorithm={wideOverlapDayLayout}
-                eventPropGetter={(event) =>
-                  eventStyleGetter(
-                    event,
-                    organizationNames,
-                    currentView,
-                    isPickupEvent(event),
-                  )
-                }
-                popup
-                style={{ height: "90%", overflow: "auto" }}
-                views={[Views.MONTH, Views.WEEK, Views.DAY]}
-                components={{
-                  toolbar: () => <></>,
-                  week: {
-                    header: CalendarDayHeader,
-                  },
-                  day: {
-                    header: CalendarDayHeader,
-                  },
-                  event: ({ event }) => (
-                    <CalendarEventComponent
-                      event={event}
-                      currentView={currentView}
-                      organizationNames={organizationNames}
-                      isPickupEvent={isPickupEvent(event)}
-                    />
-                  ),
-                }}
-                formats={{
-                  timeGutterFormat: "h A",
-                  eventTimeRangeFormat: () => "",
-                  dayRangeHeaderFormat: ({ start, end }) =>
-                    `${moment(start).format("MMM DD")} - ${moment(end).format("MMM DD")}`,
-                }}
-                className="my-calendar"
-              />
-            </div>
-          </div>
-          {currentView !== Views.MONTH && selectedFundraiser && !isMobile && (
-            <div className="w-full px-4 md:px-0 md:w-[180px] shrink-0">
-              <FundraiserSideCard
-                fundraiser={selectedFundraiser}
-                items={selectedFundraiser.items}
-                bgColor={`color-mix(in srgb, ${organizationColors[
-                  organizationNames.indexOf(
-                    selectedFundraiser.organization.name,
-                  )
+        {showSideCard && selectedFundraiser && (
+          <div className="w-full md:w-[180px] md:col-start-2 md:row-start-1 md:row-span-2 md:self-start">
+            <FundraiserSideCard
+              fundraiser={selectedFundraiser}
+              items={selectedFundraiser.items}
+              bgColor={`color-mix(in srgb, ${organizationColors[
+                organizationNames.indexOf(
+                  selectedFundraiser.organization.name,
+                )
+              ] ?? "#3174ad"
+                } 70%, white)`}
+              borderColor={
+                organizationColors[
+                organizationNames.indexOf(
+                  selectedFundraiser.organization.name,
+                )
                 ] ?? "#3174ad"
-                  } 70%, white)`}
-                borderColor={
-                  organizationColors[
-                  organizationNames.indexOf(
-                    selectedFundraiser.organization.name,
-                  )
-                  ] ?? "#3174ad"
-                }
-              />
-            </div>
-          )}
-        </div>
+              }
+            />
+          </div>
+        )}
         {currentView !== Views.MONTH && selectedFundraiser && isMobile && (
           <div
             className="fixed inset-0 z-40 flex items-end justify-center bg-black/30 px-4 pb-4 pt-24 rounded-md"
