@@ -327,9 +327,9 @@ export function CalendarPage({
 
   return (
     <div className="size-full">
-      <div className="flex flex-col-reverse items-center md:items-start bg-white rounded-[8px] md:shadow-[0_1px_4px_rgba(0,0,0,0.2)] md:flex-row md:pt-[19px] md:pr-[30px] md:pb-[30px] md:pl-[17px] gap-[20px] md:gap-[40px]">
+      <div className="flex flex-col-reverse items-center md:items-start bg-white rounded-[8px] md:shadow-[0_1px_4px_rgba(0,0,0,0.2)] md:flex-row md:pt-[19px] md:px-[30px] md:pb-[30px] gap-[20px] md:gap-[40px]">
         {currentView === Views.MONTH && (
-          <div className="flex flex-col items-center gap-[20px] w-full md:w-[275px]">
+          <div className="flex flex-col items-center gap-[20px] w-full md:w-[275px] md:mt-[67px]">
             <SmallCalendar
               onSelected={setSelectedDate}
               date={selectedDate}

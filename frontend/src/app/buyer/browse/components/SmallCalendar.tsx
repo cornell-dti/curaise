@@ -27,8 +27,11 @@ export function SmallCalendar({
         className,
       )}
     >
-      <div className="flex items-center justify-center mb-2">
-        <div className="flex gap-1 justify-center items-center">
+      <div className="flex items-center justify-between mb-2 px-[16px]">
+        <p className="leading-[21px] text-[14px] text-black">
+          {moment(selectedDate).format("MMMM YYYY")}
+        </p>
+        <div className="flex items-center">
           <button
             onClick={() => {
               onSelected(
@@ -50,9 +53,6 @@ export function SmallCalendar({
           >
             <ChevronLeft className="size-[18px]" />
           </button>
-          <p className="leading-[21px] text-[14px] text-black text-center w-[120px]">
-            {moment(selectedDate).format("MMMM YYYY")}
-          </p>
           <button
             onClick={() => {
               onSelected(
@@ -86,8 +86,22 @@ export function SmallCalendar({
             handleDateSelect(date);
           }
         }}
-        className="w-full px-[16px]"
+        className="w-full px-[16px] py-0"
         month={selectedDate}
+        hideNavigation
+        formatters={{
+          formatWeekdayName: (day) =>
+            day.toLocaleDateString("en-US", { weekday: "narrow" }),
+        }}
+        classNames={{
+          weekdays: "flex justify-between",
+          weekday:
+            "w-[25px] select-none text-center text-[0.8rem] font-normal text-[#989898]",
+          week: "mt-1 flex w-full justify-between",
+          day: "relative size-[25px] select-none p-0 text-center [&_button]:size-[25px] [&_button]:min-w-0 [&_button]:aspect-auto",
+          selected:
+            "[&_button[data-selected-single=true]]:bg-[#568165] [&_button[data-selected-single=true]]:text-white",
+        }}
         components={{
           Chevron: () => <></>,
           MonthCaption: () => <></>,
