@@ -327,7 +327,7 @@ export function CalendarPage({
 
   return (
     <div className="size-full">
-      <div className="flex flex-col-reverse items-center md:flex-row md:py-[20px] gap-[20px] md:gap-[40px]">
+      <div className="flex flex-col-reverse items-center md:items-start bg-white rounded-[8px] md:shadow-[0_1px_4px_rgba(0,0,0,0.2)] md:flex-row md:pt-[19px] md:pr-[30px] md:pb-[30px] md:pl-[17px] gap-[20px] md:gap-[40px]">
         {currentView === Views.MONTH && (
           <div className="flex flex-col items-center gap-[20px] w-full md:w-[275px]">
             <SmallCalendar
@@ -356,7 +356,7 @@ export function CalendarPage({
         >
           <div className="flex-1 w-full">
             <div
-              className="bg-white rounded-[8px] md:border border-[#ddd] px-4 md:p-8"
+              className="rounded-[8px] px-4 md:px-0"
               style={{ height: "700px" }}
             >
               <div className="flex items-center justify-between mb-3 md:mb-6">

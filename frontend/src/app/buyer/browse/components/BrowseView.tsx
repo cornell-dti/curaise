@@ -100,11 +100,13 @@ export function BrowseView({
         </div>
       </div>
       {view === "calendar" ? (
-        <CalendarPage
-          organizations={organizations}
-          userOrganizations={userOrganizations}
-          fundraisers={fundraisersWithItems}
-        />
+        <div className="pb-10 md:pb-[53px]">
+          <CalendarPage
+            organizations={organizations}
+            userOrganizations={userOrganizations}
+            fundraisers={fundraisersWithItems}
+          />
+        </div>
       ) : (
         <div className="flex flex-col pb-10">
           <FundraisersList fundraisers={fundraisers} searchQuery={searchQuery} />
