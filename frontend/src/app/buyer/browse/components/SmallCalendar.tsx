@@ -3,7 +3,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import moment from "moment";
-import { useState } from "react";
 
 export function SmallCalendar({
   onSelected,
@@ -18,7 +17,6 @@ export function SmallCalendar({
   className?: string;
   forceVisible?: boolean;
 }) {
-  const [selectedDate, setSelectedDate] = useState<Date>(date);
   return (
     <div
       className={cn(
@@ -29,22 +27,15 @@ export function SmallCalendar({
     >
       <div className="flex items-center justify-between mb-2 px-[16px]">
         <p className="leading-[21px] text-[14px] text-black">
-          {moment(selectedDate).format("MMMM YYYY")}
+          {moment(date).format("MMMM YYYY")}
         </p>
         <div className="flex items-center">
           <button
             onClick={() => {
               onSelected(
                 new Date(
-                  selectedDate.getFullYear(),
-                  selectedDate.getMonth() - 1,
-                  1,
-                ),
-              );
-              setSelectedDate(
-                new Date(
-                  selectedDate.getFullYear(),
-                  selectedDate.getMonth() - 1,
+                  date.getFullYear(),
+                  date.getMonth() - 1,
                   1,
                 ),
               );
@@ -57,15 +48,8 @@ export function SmallCalendar({
             onClick={() => {
               onSelected(
                 new Date(
-                  selectedDate.getFullYear(),
-                  selectedDate.getMonth() + 1,
-                  1,
-                ),
-              );
-              setSelectedDate(
-                new Date(
-                  selectedDate.getFullYear(),
-                  selectedDate.getMonth() + 1,
+                  date.getFullYear(),
+                  date.getMonth() + 1,
                   1,
                 ),
               );
@@ -79,15 +63,14 @@ export function SmallCalendar({
       <Calendar
         required
         mode="single"
-        selected={selectedDate}
+        selected={date}
         onSelect={(date) => {
           if (date) {
-            setSelectedDate(date);
             handleDateSelect(date);
           }
         }}
         className="w-full px-[16px] py-0"
-        month={selectedDate}
+        month={date}
         hideNavigation
         formatters={{
           formatWeekdayName: (day) =>

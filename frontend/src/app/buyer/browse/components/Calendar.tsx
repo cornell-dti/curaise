@@ -27,11 +27,6 @@ import {
 } from "common";
 import { cn } from "@/lib/utils";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -325,29 +320,20 @@ export function CalendarPage({
     </div>
   );
 
-  const showSidebar = currentView === Views.MONTH;
   const showSideCard =
     currentView !== Views.MONTH && !!selectedFundraiser && !isMobile;
-  const mainColumn = showSidebar ? "md:col-start-2" : "md:col-start-1";
 
   return (
     <div className="size-full">
       <div
         className={cn(
           "flex flex-col gap-3 bg-white rounded-[8px] md:grid md:grid-rows-[auto_1fr] md:gap-x-[30px] md:gap-y-6 md:shadow-[0_1px_4px_rgba(0,0,0,0.2)] md:pt-[19px] md:px-[30px] md:pb-[30px]",
-          showSidebar
-            ? "md:grid-cols-[275px_1fr]"
-            : showSideCard
-              ? "md:grid-cols-[1fr_180px]"
-              : "md:grid-cols-1",
+          showSideCard
+            ? "md:grid-cols-[275px_1fr_180px]"
+            : "md:grid-cols-[275px_1fr]",
         )}
       >
-        <div
-          className={cn(
-            "flex items-center justify-between px-4 md:px-0 md:row-start-1",
-            mainColumn,
-          )}
-        >
+        <div className="flex items-center justify-between px-4 md:px-0 md:col-start-2 md:row-start-1">
           <div className="flex gap-[8px] items-center">
             <p className="font-semibold leading-[42px] text-[20px] md:text-[28px] text-black whitespace-nowrap">
               {moment(selectedDate).format("MMMM YYYY")}
@@ -366,7 +352,7 @@ export function CalendarPage({
                 <ChevronDown className="size-[16px] md:size-[24px]" />
               </button>
             </div>
-            {isMobile ? (
+            {isMobile && (
               <Sheet
                 open={isCalendarFiltersOpen}
                 onOpenChange={setIsCalendarFiltersOpen}
@@ -389,34 +375,6 @@ export function CalendarPage({
                   {calendarFilters}
                 </SheetContent>
               </Sheet>
-            ) : (
-              <div>
-                {" "}
-                {currentView !== Views.MONTH && (
-                  <Popover
-                    open={isCalendarFiltersOpen}
-                    onOpenChange={setIsCalendarFiltersOpen}
-                  >
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className="flex size-10 items-center justify-center rounded-[8px] border border-[#dfdfdf] bg-white text-black transition-colors hover:bg-[#f7f7f7]"
-                        aria-label="Open calendar filters"
-                      >
-                        <CalendarDays className="size-[18px]" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      align="start"
-                      side="bottom"
-                      sideOffset={12}
-                      className="w-[320px] rounded-[12px] border border-[#dfdfdf] bg-[#fafafa] p-3"
-                    >
-                      {calendarFilters}
-                    </PopoverContent>
-                  </Popover>
-                )}{" "}
-              </div>
             )}
           </div>
 
@@ -450,7 +408,7 @@ export function CalendarPage({
         </div>
 
         <div
-          className={cn("h-[630px] px-4 md:px-0 md:row-start-2", mainColumn)}
+          className="h-[630px] px-4 md:px-0 md:col-start-2 md:row-start-2"
         >
           <BigCalendar
             localizer={localizer}
@@ -505,26 +463,24 @@ export function CalendarPage({
           />
         </div>
 
-        {showSidebar && (
-          <div className="flex flex-col items-center gap-[20px] w-full md:col-start-1 md:row-start-2">
-            <SmallCalendar
-              onSelected={setSelectedDate}
-              date={selectedDate}
-              handleDateSelect={(date) => handleDateSelect(date)}
-            />
-            <OrganizationFilter
-              organizations={organizationNames}
-              selectedOrganizations={selectedOrganizations}
-              onToggleOrganization={(org) =>
-                handleToggleOrganization(isMobile, org)
-              }
-              isMobile={isMobile}
-            />
-          </div>
-        )}
+        <div className="flex flex-col items-center gap-[20px] w-full md:col-start-1 md:row-start-2">
+          <SmallCalendar
+            onSelected={setSelectedDate}
+            date={selectedDate}
+            handleDateSelect={(date) => handleDateSelect(date)}
+          />
+          <OrganizationFilter
+            organizations={organizationNames}
+            selectedOrganizations={selectedOrganizations}
+            onToggleOrganization={(org) =>
+              handleToggleOrganization(isMobile, org)
+            }
+            isMobile={isMobile}
+          />
+        </div>
 
         {showSideCard && selectedFundraiser && (
-          <div className="w-full md:w-[180px] md:col-start-2 md:row-start-1 md:row-span-2 md:self-start">
+          <div className="w-full md:w-[180px] md:col-start-3 md:row-start-1 md:row-span-2 md:self-start">
             <FundraiserSideCard
               fundraiser={selectedFundraiser}
               items={selectedFundraiser.items}
