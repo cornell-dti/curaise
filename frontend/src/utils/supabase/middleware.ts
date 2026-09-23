@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { sanitizeNextPath } from "@/lib/auth-redirect";
+import { isAllowedEmail } from "@/lib/auth-domain";
 
 // middleware responsible for refreshing the supabase auth token and saving to cookies
 // source: https://supabase.com/docs/guides/auth/server-side/nextjs?queryGroups=router&router=app
@@ -62,6 +63,28 @@ export async function updateSession(request: NextRequest) {
     url.search = "";
     url.searchParams.set("next", nextPath);
     return redirectWithCookies(url);
+  }
+
+  // A session can outlive the domain check in /auth/callback (that route only
+  // runs at sign-in). Drop it here too, so an existing non-Cornell session is
+  // signed out instead of being let through the frontend and 403ing on every
+  // backend call.
+  if (user && !isAllowedEmail(user.email)) {
+    await supabase.auth.signOut();
+
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/auth-code-error";
+    url.search = "";
+    url.searchParams.set("reason", "non_cornell");
+
+    const response = redirectWithCookies(url);
+    request.cookies
+      .getAll()
+      .forEach(
+        (cookie) =>
+          cookie.name.startsWith("sb-") && response.cookies.delete(cookie.name)
+      );
+    return response;
   }
 
   if (user && request.nextUrl.pathname.startsWith("/login")) {

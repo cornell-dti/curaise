@@ -3,13 +3,7 @@ import { cookies } from "next/headers";
 // The client you created from the Server-Side Auth instructions
 import { sanitizeNextPath } from "@/lib/auth-redirect";
 import { createClient } from "@/utils/supabase/server";
-
-const ALLOWED_EMAIL_DOMAIN = "@cornell.edu";
-
-function isAllowedEmail(email: string | undefined | null): boolean {
-  if (!email) return false;
-  return email.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN);
-}
+import { isAllowedEmail } from "@/lib/auth-domain";
 
 async function redirectWithClearedSession(url: string): Promise<NextResponse> {
   const response = NextResponse.redirect(url);
