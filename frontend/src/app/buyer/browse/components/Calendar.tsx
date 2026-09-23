@@ -326,7 +326,7 @@ export function CalendarPage({
   );
 
   return (
-    <div className="bg-white size-full">
+    <div className="size-full">
       <div className="flex flex-col-reverse items-center md:flex-row md:py-[20px] gap-[20px] md:gap-[40px]">
         {currentView === Views.MONTH && (
           <div className="flex flex-col items-center gap-[20px] w-full md:w-[275px]">
