@@ -5,7 +5,10 @@ import {
   confirmOrderPayment,
   createOrder,
   getOrder,
+  getUnremindedPickupOrders,
   getUnremindedUnpaidOrders,
+  markOrderPaymentReminded,
+  markOrderPickupReminded,
   undoOrderPickup,
 } from "./order.services";
 import { BasicOrderSchema, CompleteOrderSchema, CreateOrderBody } from "common";
@@ -14,6 +17,7 @@ import { z } from "zod";
 import {
   sendOrderConfirmation,
   sendPaymentReminderEmail,
+  sendPickupReminderEmail,
 } from "../../utils/email";
 
 export const getOrderHandler = async (
@@ -282,6 +286,7 @@ export const sendPaymentRemindersHandler = async (
 
     try {
       await sendPaymentReminderEmail(parsed.data);
+      await markOrderPaymentReminded(order.id);
       sent++;
     } catch (error) {
       console.error(
@@ -294,6 +299,41 @@ export const sendPaymentRemindersHandler = async (
 
   res.status(200).json({
     message: "Payment reminders processed",
+    data: { total: orders.length, sent, failed },
+  });
+};
+
+export const sendPickupRemindersHandler = async (
+  req: Request,
+  res: Response,
+) => {
+  const orders = await getUnremindedPickupOrders();
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const order of orders) {
+    const parsed = BasicOrderSchema.safeParse(order);
+    if (!parsed.success) {
+      failed++;
+      continue;
+    }
+
+    try {
+      await sendPickupReminderEmail(parsed.data);
+      await markOrderPickupReminded(order.id);
+      sent++;
+    } catch (error) {
+      console.error(
+        `Failed to send pickup reminder for order ${order.id}:`,
+        error,
+      );
+      failed++;
+    }
+  }
+
+  res.status(200).json({
+    message: "Pickup reminders processed",
     data: { total: orders.length, sent, failed },
   });
 };
