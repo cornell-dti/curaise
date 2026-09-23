@@ -70,8 +70,8 @@ export function BrowseView({
   const [view, setView] = useState<BrowseViewType>("grid");
 
   return (
-    <div>
-      <div className="flex items-center justify-between py-4 md:py-10 px-4 md:px-[157px]">
+    <div className="px-4 md:px-[157px]">
+      <div className="flex items-center justify-between py-4 md:py-10">
         <h1 className="text-[28px] md:text-[32px] font-semibold text-black">
           Browse CURaise
         </h1>
@@ -106,7 +106,7 @@ export function BrowseView({
           fundraisers={fundraisersWithItems}
         />
       ) : (
-        <div className="flex flex-col px-4 md:px-[157px] pb-10">
+        <div className="flex flex-col pb-10">
           <FundraisersList fundraisers={fundraisers} searchQuery={searchQuery} />
         </div>
       )}
