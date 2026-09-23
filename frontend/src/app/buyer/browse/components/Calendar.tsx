@@ -7,7 +7,7 @@ import {
   Views,
 } from "react-big-calendar";
 import moment from "moment";
-import { CalendarDays, ChevronDown, Clock3, MapPin, X } from "lucide-react";
+import { CalendarDays, ChevronDown, X } from "lucide-react";
 import { OrganizationFilter } from "./OrganizationFilter";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { SmallCalendar } from "./SmallCalendar";
@@ -523,7 +523,7 @@ export function CalendarPage({
                   organizationNames.indexOf(
                     selectedFundraiser.organization.name,
                   )
-                  ] ?? "#3174ad"
+                ] ?? "#3174ad"
                   } 70%, white)`}
                 borderColor={
                   organizationColors[
@@ -560,7 +560,7 @@ export function CalendarPage({
                   organizationNames.indexOf(
                     selectedFundraiser.organization.name,
                   )
-                  ] ?? "#3174ad"
+                ] ?? "#3174ad"
                   } 70%, white)`}
                 borderColor={
                   organizationColors[

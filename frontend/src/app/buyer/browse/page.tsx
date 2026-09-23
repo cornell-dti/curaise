@@ -52,7 +52,6 @@ export default async function BrowseFundraisersPage({
     schema: BasicOrganizationSchema.array(),
   });
 
-  console.log(fundraisersWithItems);
   const params = await searchParams;
   const searchQuery = params.search || "";
 
