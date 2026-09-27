@@ -14,7 +14,6 @@ import { GridView } from "./GridView";
 import {
   filterFundraisers,
   type CategoryType,
-  type FilterType,
 } from "./browse-utils";
 
 type BrowseViewType = "grid" | "calendar";
@@ -74,16 +73,15 @@ export function BrowseView({
   searchQuery: string;
 }) {
   const [view, setView] = useState<BrowseViewType>("grid");
-  const [filter, setFilter] = useState<FilterType>("all");
   const [category, setCategory] = useState<CategoryType>("all");
 
   const filteredFundraisers = useMemo(
-    () => filterFundraisers(fundraisers, { searchQuery, filter }),
-    [fundraisers, searchQuery, filter],
+    () => filterFundraisers(fundraisers, searchQuery),
+    [fundraisers, searchQuery],
   );
   const filteredFundraisersWithItems = useMemo(
-    () => filterFundraisers(fundraisersWithItems, { searchQuery, filter }),
-    [fundraisersWithItems, searchQuery, filter],
+    () => filterFundraisers(fundraisersWithItems, searchQuery),
+    [fundraisersWithItems, searchQuery],
   );
 
   return (
@@ -118,7 +116,6 @@ export function BrowseView({
       </div>
       <div className="flex flex-col gap-6">
         <FilterBar
-          onFilterChange={setFilter}
           category={category}
           onCategoryChange={setCategory}
         />
@@ -132,7 +129,7 @@ export function BrowseView({
           </div>
         ) : (
           <div className="pb-10">
-            <GridView fundraisers={filteredFundraisers} filter={filter} />
+            <GridView fundraisers={filteredFundraisers} />
           </div>
         )}
       </div>

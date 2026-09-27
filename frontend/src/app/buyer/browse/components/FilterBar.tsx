@@ -13,7 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import type { CategoryType, FilterType } from "./browse-utils";
+import type { CategoryType } from "./browse-utils";
 
 const categories = [
   { id: "desserts" as CategoryType, label: "Desserts", icon: Lollipop },
@@ -23,11 +23,9 @@ const categories = [
 ];
 
 export function FilterBar({
-  onFilterChange,
   category,
   onCategoryChange,
 }: {
-  onFilterChange: (filter: FilterType) => void;
   category: CategoryType;
   onCategoryChange: (category: CategoryType) => void;
 }) {
@@ -74,25 +72,6 @@ export function FilterBar({
                     Clear All
                   </button>
                 </div>
-                <button
-                  onClick={() => {
-                    onFilterChange("all");
-                    setSortOpen(false);
-                  }}
-                  className="text-base font-normal leading-6 text-black text-left hover:bg-gray-50 rounded px-2 py-1"
-                >
-                  All Fundraisers
-                </button>
-
-                <button
-                  onClick={() => {
-                    onFilterChange("pickup-today");
-                    setSortOpen(false);
-                  }}
-                  className="text-base font-normal leading-6 text-black text-left hover:bg-gray-50 rounded px-2 py-1"
-                >
-                  Pick-up Today
-                </button>
               </div>
             </PopoverContent>
           </Popover>
