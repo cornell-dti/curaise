@@ -130,3 +130,38 @@ test("public organization response does not expose pending invitee emails", asyn
   await getOrganizationHandler({ params: { id: "org-id" } }, res);
   assert.deepEqual(response.data.pendingAdmins, organization.pendingAdmins);
 });
+
+test("a registered invitee becomes an active admin when loading their organizations", async () => {
+  const updates = [];
+  const deleted = [];
+  const prisma = {
+    user: { findUnique: async () => ({ id: "user-id" }) },
+    pendingUser: {
+      findMany: async () => [{
+        id: "invite-id",
+        email: "new@cornell.edu",
+        organizations: [{ id: "org-id" }],
+      }],
+    },
+    organization: {
+      findMany: async () => [{ id: "org-id", admins: [{ id: "user-id" }] }],
+    },
+    $transaction: async (fn) => fn({
+      organization: { update: async (options) => updates.push(options) },
+      pendingUser: { deleteMany: async (options) => deleted.push(options) },
+    }),
+  };
+  const { getUserOrganizations } = loadTypescript("backend/src/api/user/user.services.ts", {
+    "../../utils/prisma": { prisma },
+    common: {},
+  });
+  await getUserOrganizations("user-id", "new@cornell.edu");
+  assert.deepEqual(updates, [{
+    where: { id: "org-id" },
+    data: {
+      admins: { connect: { id: "user-id" } },
+      pendingAdmins: { disconnect: { id: "invite-id" } },
+    },
+  }]);
+  assert.deepEqual(deleted, [{ where: { id: "invite-id" } }]);
+});
