@@ -101,7 +101,7 @@ export async function serverFetch<T extends z.ZodTypeAny>(
 // Client component mutations (POST/PUT/DELETE)
 type MutationFetchOptions = {
   method?: "POST" | "PUT" | "DELETE";
-  token: string;
+  token?: string; // Legacy callers pass a page-load token; use the current session instead.
   body?: unknown;
 };
 
@@ -109,14 +109,31 @@ export async function mutationFetch(
   url: string,
   options: MutationFetchOptions,
 ): Promise<{ message: string; data: unknown }> {
-  const response = await fetch(process.env.NEXT_PUBLIC_API_URL! + url, {
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
+  if (error || !session?.access_token) {
+    throw new Error("Session expired. Please sign in again.");
+  }
+
+  const send = (accessToken: string) => fetch(process.env.NEXT_PUBLIC_API_URL! + url, {
     method: options.method ?? "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: "Bearer " + options.token,
+      Authorization: "Bearer " + accessToken,
     },
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
   });
+
+  let response = await send(session.access_token);
+  if (response.status === 401) {
+    const { data, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError || !data.session?.access_token) {
+      throw new Error("Session expired. Please sign in again.");
+    }
+    response = await send(data.session.access_token);
+  }
   let result;
   try {
     result = await response.json();
