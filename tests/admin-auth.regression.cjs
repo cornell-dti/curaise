@@ -102,3 +102,31 @@ test("organization read includes invited admins so a saved invitation remains vi
   await getOrganization("org-id");
   assert.equal(query.include.pendingAdmins, true);
 });
+
+test("public organization response does not expose pending invitee emails", async () => {
+  const organization = {
+    id: "org-id",
+    admins: [{ id: "admin-id" }],
+    pendingAdmins: [{ id: "invite-id", email: "invitee@cornell.edu" }],
+  };
+  const { getOrganizationHandler } = loadTypescript("backend/src/api/organization/organization.handlers.ts", {
+    "./organization.services": { getOrganization: async () => organization },
+    common: { CompleteOrganizationSchema: {
+      safeParse: (value) => ({ success: true, data: value }),
+    } },
+    "../user/user.services": {},
+    "../../utils/email": {},
+  });
+  let response;
+  const res = {
+    locals: {},
+    status() { return this; },
+    json(value) { response = value; return this; },
+  };
+  await getOrganizationHandler({ params: { id: "org-id" } }, res);
+  assert.deepEqual(response.data.pendingAdmins, []);
+
+  res.locals.user = { id: "admin-id" };
+  await getOrganizationHandler({ params: { id: "org-id" } }, res);
+  assert.deepEqual(response.data.pendingAdmins, organization.pendingAdmins);
+});

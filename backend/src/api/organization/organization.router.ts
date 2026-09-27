@@ -22,6 +22,7 @@ const organizationRouter = Router();
 organizationRouter.get(
   "/:id",
   validate({ params: OrganizationRouteParams }),
+  authenticateOptional,
   asyncHandler(getOrganizationHandler)
 );
 
