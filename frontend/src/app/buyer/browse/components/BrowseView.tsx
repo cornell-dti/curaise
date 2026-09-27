@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { z } from "zod";
 import {
   BasicFundraiserSchema,
@@ -8,8 +8,14 @@ import {
   CompleteItemSchema,
 } from "common";
 import { cn } from "@/lib/utils";
-import { CalendarPage } from "./Calendar";
-import { FundraisersList } from "./FundraisersList";
+import { CalendarView } from "./CalendarView";
+import { FilterBar } from "./FilterBar";
+import { GridView } from "./GridView";
+import {
+  filterFundraisers,
+  type CategoryType,
+  type FilterType,
+} from "./browse-utils";
 
 type BrowseViewType = "grid" | "calendar";
 type Organization = z.infer<typeof BasicOrganizationSchema>;
@@ -68,6 +74,17 @@ export function BrowseView({
   searchQuery: string;
 }) {
   const [view, setView] = useState<BrowseViewType>("grid");
+  const [filter, setFilter] = useState<FilterType>("all");
+  const [category, setCategory] = useState<CategoryType>("all");
+
+  const filteredFundraisers = useMemo(
+    () => filterFundraisers(fundraisers, { searchQuery, filter }),
+    [fundraisers, searchQuery, filter],
+  );
+  const filteredFundraisersWithItems = useMemo(
+    () => filterFundraisers(fundraisersWithItems, { searchQuery, filter }),
+    [fundraisersWithItems, searchQuery, filter],
+  );
 
   return (
     <div className="px-4 md:px-[157px]">
@@ -99,19 +116,26 @@ export function BrowseView({
           ))}
         </div>
       </div>
-      {view === "calendar" ? (
-        <div className="pb-10 md:pb-[53px]">
-          <CalendarPage
-            organizations={organizations}
-            userOrganizations={userOrganizations}
-            fundraisers={fundraisersWithItems}
-          />
-        </div>
-      ) : (
-        <div className="flex flex-col pb-10">
-          <FundraisersList fundraisers={fundraisers} searchQuery={searchQuery} />
-        </div>
-      )}
+      <div className="flex flex-col gap-6">
+        <FilterBar
+          onFilterChange={setFilter}
+          category={category}
+          onCategoryChange={setCategory}
+        />
+        {view === "calendar" ? (
+          <div className="pb-10 md:pb-[53px]">
+            <CalendarView
+              organizations={organizations}
+              userOrganizations={userOrganizations}
+              fundraisers={filteredFundraisersWithItems}
+            />
+          </div>
+        ) : (
+          <div className="pb-10">
+            <GridView fundraisers={filteredFundraisers} filter={filter} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

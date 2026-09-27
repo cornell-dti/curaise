@@ -1,5 +1,5 @@
 import { View, Views } from "react-big-calendar";
-import { CalendarEvent } from "./Calendar";
+import { CalendarEvent } from "./CalendarView";
 import { Clock3, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import moment from "moment";
@@ -130,7 +130,7 @@ export function CalendarEventComponent({
             style={{
               backgroundColor:
                 organizationColors[
-                  organizationNames.indexOf(event.organization)
+                organizationNames.indexOf(event.organization)
                 ] ?? "#3174ad",
             }}
           />

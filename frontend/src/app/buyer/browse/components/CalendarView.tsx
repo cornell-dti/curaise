@@ -147,7 +147,7 @@ type FundraiserWithItems = z.infer<typeof BasicFundraiserSchema> & {
 const localizer = momentLocalizer(moment);
 const MOBILE_BREAKPOINT = 768;
 
-export function CalendarPage({
+export function CalendarView({
   organizations,
   userOrganizations,
   fundraisers,
