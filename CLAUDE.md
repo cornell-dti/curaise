@@ -78,7 +78,7 @@ The backend follows a **modular router pattern** with consistent file organizati
   └── index.ts              # Module exports
 ```
 
-**Current modules**: email, fundraiser, order, organization, referral, user
+**Current modules**: admin, email, fundraiser, order, organization, referral, user
 
 **Request flow**:
 1. Route matched in router
@@ -146,6 +146,7 @@ All API contracts defined in `/common/schemas/` using Zod:
 
 ```
 /app/
+  ├── /admin          # Platform admin (org approval, gated by ADMIN_EMAILS)
   ├── /auth           # Login/logout
   ├── /buyer          # Customer-facing routes
   │   ├── /browse     # Browse fundraisers
@@ -159,7 +160,7 @@ All API contracts defined in `/common/schemas/` using Zod:
   └── /page.tsx       # Landing page
 ```
 
-**Protected routes**: `/buyer/**` and `/seller/**` require authentication (enforced by middleware)
+**Protected routes**: `/buyer/**`, `/seller/**`, and `/admin/**` require authentication (enforced by middleware). `/admin/**` additionally requires the user's email to be in the `ADMIN_EMAILS` backend env var.
 
 ### State Management
 
@@ -216,6 +217,7 @@ Each package has environment files:
 - `SUPABASE_URL`, `SUPABASE_ANON_KEY`: Supabase project config
 - `SUPABASE_SERVICE_ROLE_KEY`: Backend-only (for JWT validation)
 - `MAILGUN_API_KEY`, `MAILGUN_DOMAIN`: Email service
+- `ADMIN_EMAILS`: Comma-separated list of admin email addresses (backend-only)
 
 ## Testing
 
