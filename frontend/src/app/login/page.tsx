@@ -18,7 +18,7 @@ export default async function LoginPage({
           If you are not redirected automatically, you can sign in below:
         </div>
         <div className="flex justify-center">
-          <SignInWithGoogleButton />
+          <SignInWithGoogleButton next={next} />
         </div>
       </div>
     </div>

@@ -72,7 +72,10 @@ export const getUserOrganizationsHandler = async (
     return;
   }
 
-  const organizations = await getUserOrganizations(req.params.id);
+  const organizations = await getUserOrganizations(
+    req.params.id,
+    res.locals.user!.email
+  );
   if (!organizations) {
     res.status(404).json({ message: "Organizations not found" });
     return;

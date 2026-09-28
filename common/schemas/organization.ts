@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { UserSchema } from "./user";
+import { PendingUserSchema, UserSchema } from "./user";
 
 export const BasicOrganizationSchema = z.object({
   id: z.string().uuid(),
@@ -14,6 +14,7 @@ export const CompleteOrganizationSchema = BasicOrganizationSchema.extend({
   instagramUsername: z.string().min(1).max(255).nullish(),
 
   admins: z.array(UserSchema),
+  pendingAdmins: z.array(PendingUserSchema),
 });
 
 export const AdminOrganizationSchema = BasicOrganizationSchema.extend({

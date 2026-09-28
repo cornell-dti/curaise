@@ -57,7 +57,7 @@ export default function DesktopUserMenu({ userRole }: { userRole: UserRole }) {
 					<ChevronDown className="h-4 w-4" />
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-35">
+			<DropdownMenuContent align="start" alignOffset={15}>
 				{loggedIn ? (
 					<>
 						<DropdownMenuItem
