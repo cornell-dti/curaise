@@ -16,7 +16,7 @@ export const MailgunInboundEmailBody = z.object({
   timestamp: z.coerce.number(),
   token: z.string(),
   signature: z.string(),
-  "message-headers": z.string().optional(),
+  "message-headers": z.string(),
   "content-id-map": z.string().optional(),
 });
 
