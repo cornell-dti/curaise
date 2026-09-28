@@ -11,20 +11,21 @@ CURaise is a monorepo fundraising platform with three packages:
 
 ## Development Commands
 
+New devs: follow `docs/ONBOARDING.md` (prereqs, clone, env files, Windows/WSL2 notes). Requirements: Node 20.6+ (22 LTS recommended), pnpm 9+. Windows must use WSL2 because the scripts use `cp`.
+
 ### Initial Setup
 ```bash
-pnpm assemble  # Install deps, build common, generate Prisma client
+pnpm assemble  # Install deps, build common, generate Prisma client (src/generated is gitignored)
 ```
 
 ### Running the Application
+Run backend and frontend in two separate terminals (team convention):
 ```bash
-# Run both frontend and backend concurrently
-pnpm dev
-
-# Run individually
-cd backend && pnpm dev    # Backend dev server with nodemon
-cd frontend && pnpm dev   # Frontend dev server on port 8080
+cd backend && pnpm dev    # Terminal 1: backend dev server with nodemon
+cd frontend && pnpm dev   # Terminal 2: frontend dev server on port 8080
 ```
+
+Root `pnpm dev` runs both in one terminal with interleaved logs.
 
 ### Backend Commands
 ```bash

@@ -14,8 +14,7 @@
     "migrate:dev": "cp .env.dev .env && prisma migrate dev",
     "migrate:prod": "cp .env.prod .env && prisma migrate deploy",
     "seed:dev": "cp .env.dev .env && prisma db seed",
-    "test": "jest",
-    "test:email": "cp .env.dev .env && node --env-file='.env' -r ts-node/register ./src/scripts/test-email.ts"
+    "test": "jest"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
