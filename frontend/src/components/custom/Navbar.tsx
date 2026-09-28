@@ -37,6 +37,7 @@ import { signOut } from "@/lib/auth-actions";
 import { useState } from "react";
 import Image from "next/image";
 import TutorialModal from "./TutorialModal";
+import { useLoggedIn } from "@/lib/useLoggedIn";
 
 export default function Navbar() {
 	const pathname = usePathname();
@@ -44,6 +45,7 @@ export default function Navbar() {
 	const searchParams = useSearchParams();
 	const [tutorialOpen, setTutorialOpen] = useState(false);
 	const [searchExpanded, setSearchExpanded] = useState(false);
+	const loggedIn = useLoggedIn();
 
 	// Determine user role based on pathname
 	const isBuyer = pathname.startsWith("/buyer");
@@ -256,11 +258,13 @@ export default function Navbar() {
 										onClick={() => setTutorialOpen(true)}>
 										Tutorial
 									</button>
-									<Link
-										href="/seller"
-										className={navigationMenuTriggerStyle()}>
-										Organizations
-									</Link>
+									{loggedIn === true && (
+										<Link
+											href="/seller"
+											className={navigationMenuTriggerStyle()}>
+											Organizations
+										</Link>
+									)}
 									<DesktopUserMenu userRole={userRole} />
 								</div>
 							</>
@@ -310,11 +314,13 @@ export default function Navbar() {
 									onClick={() => setTutorialOpen(true)}>
 									Tutorial
 								</button>
-								<Link
-									href="/seller"
-									className={navigationMenuTriggerStyle()}>
-									Organizations
-								</Link>
+								{loggedIn === true && (
+									<Link
+										href="/seller"
+										className={navigationMenuTriggerStyle()}>
+										Organizations
+									</Link>
+								)}
 								<DesktopUserMenu userRole={userRole} />
 							</div>
 						)}

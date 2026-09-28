@@ -1,8 +1,7 @@
 "use client";
 
-import { createClient } from "@/utils/supabase/client";
-import { useEffect, useState } from "react";
 import { signInWithGoogle, signOut } from "@/lib/auth-actions";
+import { useLoggedIn } from "@/lib/useLoggedIn";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -16,20 +15,7 @@ import { Button } from "../ui/button";
 type UserRole = "buyer" | "seller";
 
 export default function DesktopUserMenu({ userRole }: { userRole: UserRole }) {
-	const [loggedIn, setLoggedIn] = useState(true);
-
-	useEffect(() => {
-		const checkLoginStatus = async () => {
-			const supabase = await createClient();
-			const { data, error } = await supabase.auth.getUser();
-			if (error || !data.user) {
-				setLoggedIn(false);
-			} else {
-				setLoggedIn(true);
-			}
-		};
-		checkLoginStatus();
-	}, []);
+	const loggedIn = useLoggedIn();
 
 	const navigateToSettings = () => {
 		redirect("/account");
@@ -55,7 +41,7 @@ export default function DesktopUserMenu({ userRole }: { userRole: UserRole }) {
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end">
-				{loggedIn ? (
+				{loggedIn !== false ? (
 					<>
 						<DropdownMenuItem
 							onClick={navigateToSettings}
