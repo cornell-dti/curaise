@@ -35,7 +35,7 @@ export default async function OrderPage({
     error: error1,
   } = await supabase.auth.getUser();
   if (error1 || !user) {
-    redirect("/");
+    redirect(`/login?next=${encodeURIComponent(`/seller/order/${id}`)}`);
   }
 
   // get auth jwt token

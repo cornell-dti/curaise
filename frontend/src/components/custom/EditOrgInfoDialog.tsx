@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/form";
 import { useState } from "react";
 import useSWR from "swr";
-import { authFetcher, serverFetch, mutationFetch } from "@/lib/fetcher";
+import { authFetcher, mutationFetch } from "@/lib/fetcher";
 import { UpdateOrganizationBody } from "common";
 import { X } from "lucide-react";
 
@@ -46,7 +46,7 @@ export function EditOrgInfoDialog({
   org: z.infer<typeof CompleteOrganizationSchema>;
   token: string;
 }) {
-  const { data, error, mutate } = useSWR(
+  const { data, mutate } = useSWR(
     `/organization/${org.id}`,
     authFetcher(CompleteOrganizationSchema),
     {
@@ -92,7 +92,8 @@ export function EditOrgInfoDialog({
     // Check if email is already in the list
     if (
       additionalAdminEmails.some((email) => email.toLowerCase() === trimmedEmail.toLowerCase()) ||
-      org.admins.some((admin) => admin.email.toLowerCase() === trimmedEmail.toLowerCase())
+      data.admins.some((admin) => admin.email.toLowerCase() === trimmedEmail.toLowerCase()) ||
+      data.pendingAdmins.some((admin) => admin.email.toLowerCase() === trimmedEmail.toLowerCase())
     ) {
       toast.error("This email is already added as an admin");
       return;
@@ -120,13 +121,18 @@ export function EditOrgInfoDialog({
         token,
         body: dataToSubmit,
       });
+      const saved = CompleteOrganizationSchema.parse(result.data);
+      await mutate(saved, { revalidate: false });
       setOpen(false);
       setAdditionalAdminEmails([]); // Reset admin list after successful submission
-      mutate({
-        ...data,
-        ...dataToSubmit,
+      form.reset({
+        name: saved.name,
+        description: saved.description,
+        logoUrl: saved.logoUrl ?? undefined,
+        websiteUrl: saved.websiteUrl ?? "",
+        instagramUsername: saved.instagramUsername ?? "",
+        addedAdminsEmails: [],
       });
-      form.reset();
       toast.success(result.message);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update organization");
@@ -225,6 +231,16 @@ export function EditOrgInfoDialog({
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
+                {data.pendingAdmins.length > 0 && (
+                  <div className="mt-3 text-sm text-muted-foreground">
+                    <p>Pending invitations ({data.pendingAdmins.length})</p>
+                    <ul className="mt-1 space-y-1">
+                      {data.pendingAdmins.map((admin) => (
+                        <li key={admin.id}>{admin.email}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <FormLabel className="block mb-2 mt-4">
                   Add Additional Admins (Optional)
                 </FormLabel>
@@ -270,7 +286,8 @@ export function EditOrgInfoDialog({
               <Button
                 type="submit"
                 disabled={
-                  !form.formState.isDirty && additionalAdminEmails.length === 0
+                  form.formState.isSubmitting ||
+                  (!form.formState.isDirty && additionalAdminEmails.length === 0)
                 }
               >
                 Save changes
