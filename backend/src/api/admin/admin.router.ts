@@ -36,9 +36,9 @@ adminRouter.get(
 
 adminRouter.post(
   "/organizations/:id/authorize",
-  validate({ params: OrganizationParams, body: UpdateOrganizationAuthorizedBody }),
   authenticate,
   authorizeAdmin,
+  validate({ params: OrganizationParams, body: UpdateOrganizationAuthorizedBody }),
   asyncHandler(updateOrganizationAuthorizedHandler),
 );
 

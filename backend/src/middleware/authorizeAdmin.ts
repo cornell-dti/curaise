@@ -21,6 +21,13 @@ export const authorizeAdmin = async <ParamsT, BodyT, QueryT>(
     return;
   }
 
+  // ADMIN_EMAILS grants access by address, so an unconfirmed address would let
+  // anyone who signs up as an admin inherit admin.
+  if (!user.email_confirmed_at) {
+    res.status(403).json({ message: "Forbidden: admin access required" });
+    return;
+  }
+
   const adminEmails = getAdminEmails();
   if (!adminEmails.includes(user.email.toLowerCase())) {
     res.status(403).json({ message: "Forbidden: admin access required" });
