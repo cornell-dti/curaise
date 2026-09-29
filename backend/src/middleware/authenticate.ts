@@ -6,6 +6,13 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY as string
 );
 
+const ALLOWED_EMAIL_DOMAIN = "@cornell.edu";
+
+const hasAllowedEmail = (email: string | undefined | null): boolean => {
+  if (!email) return false;
+  return email.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN);
+};
+
 // authenticates user by checking the authorization header JWT
 // attaches the Supabase user object to res.locals
 // note: only checks that the supabase user is authenticated, not that the user is authorized to perform an action
@@ -26,6 +33,14 @@ export const authenticate = async <ParamsT, BodyT, QueryT>(
     return;
   }
 
+  if (!hasAllowedEmail(user.email)) {
+    res.status(403).json({
+      message:
+        "CURaise is restricted to @cornell.edu accounts. Please sign in with your Cornell email.",
+    });
+    return;
+  }
+
   res.locals.user = user;
 
   next();
@@ -43,7 +58,7 @@ export const authenticateOptional = async <ParamsT, BodyT, QueryT>(
     req.headers.authorization?.split("Bearer ")[1]
   );
 
-  if (user) {
+  if (user && hasAllowedEmail(user.email)) {
     res.locals.user = user;
   }
 

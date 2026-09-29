@@ -35,6 +35,7 @@ export default async function CreateFundraiserPage({
 
   const id = (await params).id;
   const org = await serverFetch(`/organization/${id}`, {
+    token: session.access_token,
     schema: CompleteOrganizationSchema,
   });
 

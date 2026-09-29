@@ -74,7 +74,38 @@ export const getUserOrders = async (userId: string) => {
   return orders;
 };
 
-export const getUserOrganizations = async (userId: string) => {
+export const getUserOrganizations = async (
+  userId: string,
+  email?: string
+) => {
+  if (email) {
+    const pendingInvites = await prisma.pendingUser.findMany({
+      where: { email: { equals: email, mode: "insensitive" } },
+      include: { organizations: { select: { id: true } } },
+    });
+
+    const registeredUser = pendingInvites.length > 0
+      ? await prisma.user.findUnique({ where: { id: userId }, select: { id: true } })
+      : null;
+
+    if (registeredUser) {
+      await prisma.$transaction(async (tx) => {
+        for (const invite of pendingInvites) {
+          for (const organization of invite.organizations) {
+            await tx.organization.update({
+              where: { id: organization.id },
+              data: {
+                admins: { connect: { id: userId } },
+                pendingAdmins: { disconnect: { id: invite.id } },
+              },
+            });
+          }
+          await tx.pendingUser.deleteMany({ where: { id: invite.id } });
+        }
+      });
+    }
+  }
+
   const organizations = await prisma.organization.findMany({
     where: {
       admins: {
