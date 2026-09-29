@@ -82,6 +82,10 @@ export function BrowseView({
     [fundraisersWithItems, searchQuery, filters],
   );
 
+  const hasActiveFilters =
+    filters.organizations.length > 0 || filters.categories.length > 0;
+  const isFiltered = hasActiveFilters || searchQuery !== "";
+
   return (
     <div className="px-4 md:px-[157px]">
       <div className="flex items-center justify-between py-4 md:py-10">
@@ -120,6 +124,13 @@ export function BrowseView({
         />
         {view === "calendar" ? (
           <div className="pb-10 md:pb-[53px]">
+            {isFiltered && filteredFundraisersWithItems.length === 0 && (
+              <div className="mb-3 rounded-[6px] border-[0.5px] border-[#BABABA] bg-white px-3 py-2">
+                <p className="text-[14px] leading-[21px] text-black">
+                  No events match your filters
+                </p>
+              </div>
+            )}
             <CalendarView
               organizations={organizations}
               fundraisers={filteredFundraisersWithItems}
@@ -127,7 +138,10 @@ export function BrowseView({
           </div>
         ) : (
           <div className="pb-10">
-            <GridView fundraisers={filteredFundraisers} />
+            <GridView
+              fundraisers={filteredFundraisers}
+              isFiltered={isFiltered}
+            />
           </div>
         )}
       </div>

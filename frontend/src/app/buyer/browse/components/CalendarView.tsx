@@ -35,8 +35,8 @@ import { FundraiserSideCard } from "./SideCard";
 import {
   CalendarEventComponent,
   eventStyleGetter,
-  organizationColors,
 } from "./calendar-utils";
+import { getOrganizationColor } from "./browse-utils";
 
 export interface CalendarEvent {
   title: string;
@@ -271,6 +271,12 @@ export function CalendarView({
     </div>
   );
 
+  const selectedFundraiserColor = getOrganizationColor(
+    selectedFundraiser
+      ? organizationNames.indexOf(selectedFundraiser.organization.name)
+      : -1,
+  );
+
   const showSideCard =
     currentView !== Views.MONTH && !!selectedFundraiser && !isMobile;
 
@@ -427,19 +433,8 @@ export function CalendarView({
             <FundraiserSideCard
               fundraiser={selectedFundraiser}
               items={selectedFundraiser.items}
-              bgColor={`color-mix(in srgb, ${organizationColors[
-                organizationNames.indexOf(
-                  selectedFundraiser.organization.name,
-                )
-              ] ?? "#3174ad"
-                } 70%, white)`}
-              borderColor={
-                organizationColors[
-                organizationNames.indexOf(
-                  selectedFundraiser.organization.name,
-                )
-                ] ?? "#3174ad"
-              }
+              bgColor={`color-mix(in srgb, ${selectedFundraiserColor} 70%, white)`}
+              borderColor={selectedFundraiserColor}
             />
           </div>
         )}
@@ -463,19 +458,8 @@ export function CalendarView({
               <FundraiserSideCard
                 fundraiser={selectedFundraiser}
                 items={selectedFundraiser.items}
-                bgColor={`color-mix(in srgb, ${organizationColors[
-                  organizationNames.indexOf(
-                    selectedFundraiser.organization.name,
-                  )
-                ] ?? "#3174ad"
-                  } 70%, white)`}
-                borderColor={
-                  organizationColors[
-                  organizationNames.indexOf(
-                    selectedFundraiser.organization.name,
-                  )
-                  ] ?? "#3174ad"
-                }
+                bgColor={`color-mix(in srgb, ${selectedFundraiserColor} 70%, white)`}
+                borderColor={selectedFundraiserColor}
               />
             </div>
           </div>

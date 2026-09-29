@@ -3,6 +3,7 @@ import { CalendarEvent } from "./CalendarView";
 import { Clock3, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import moment from "moment";
+import { getOrganizationColor } from "./browse-utils";
 
 function hexToHSL(hex: string) {
   let r = 0,
@@ -60,28 +61,15 @@ function hslToHex(h: number, s: number, l: number) {
     .padStart(2, "0")}${f(4).toString(16).padStart(2, "0")}`;
 }
 
-export const organizationColors = [
-  "#f74545ff", // red
-  "#6a9f48", // green
-  "#3197f7", // blue
-  "#f78b2d", // orange
-  "#f7c948", // yellow
-  "#5b6cf7", // indigo
-  "#8b5cf6", // violet
-  "#ec4899", // pink
-  "#2dd4bf", // teal
-  "#6b7280", // gray
-];
-
 export const eventStyleGetter = (
   event: CalendarEvent,
   organizationNames: string[],
   currentView: View,
   isPickupEvent: boolean,
 ) => {
-  const backgroundColor = event.organization
-    ? organizationColors[organizationNames.indexOf(event.organization)]
-    : "#3174ad";
+  const backgroundColor = getOrganizationColor(
+    organizationNames.indexOf(event.organization),
+  );
 
   const isMonthPickup = currentView === Views.MONTH && isPickupEvent;
 
@@ -128,10 +116,9 @@ export function CalendarEventComponent({
           <span
             className="block h-2 w-2 shrink-0"
             style={{
-              backgroundColor:
-                organizationColors[
-                organizationNames.indexOf(event.organization)
-                ] ?? "#3174ad",
+              backgroundColor: getOrganizationColor(
+                organizationNames.indexOf(event.organization),
+              ),
             }}
           />
           <span className="truncate font-medium text-black">

@@ -2,7 +2,6 @@ import { z } from "zod";
 import { BasicFundraiserSchema, BasicOrganizationSchema } from "common";
 import { isPast } from "date-fns";
 import { CupSoda, Hamburger, Lollipop, Scissors } from "lucide-react";
-import { organizationColors } from "./calendar-utils";
 
 type Fundraiser = z.infer<typeof BasicFundraiserSchema>;
 
@@ -17,7 +16,23 @@ export const categories = [
   { id: "crafts" as CategoryType, label: "Crafts", icon: Scissors },
 ];
 
+const organizationColors = [
+  "#f74545ff", // red
+  "#6a9f48", // green
+  "#3197f7", // blue
+  "#f78b2d", // orange
+  "#f7c948", // yellow
+  "#5b6cf7", // indigo
+  "#8b5cf6", // violet
+  "#ec4899", // pink
+  "#2dd4bf", // teal
+  "#6b7280", // gray
+];
+
+const FALLBACK_ORGANIZATION_COLOR = "#3174ad";
+
 export function getOrganizationColor(index: number): string {
+  if (index < 0) return FALLBACK_ORGANIZATION_COLOR;
   return organizationColors[index % organizationColors.length];
 }
 
