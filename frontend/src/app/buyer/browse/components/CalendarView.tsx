@@ -278,10 +278,10 @@ export function CalendarView({
     <div className="size-full">
       <div
         className={cn(
-          "flex flex-col gap-3 bg-white rounded-[8px] md:grid md:grid-rows-[auto_1fr] md:gap-x-[30px] md:gap-y-6 md:shadow-[0_1px_4px_rgba(0,0,0,0.2)] md:pt-[19px] md:px-[30px] md:pb-[30px]",
+          "flex flex-col gap-3 bg-white rounded-[8px] md:grid md:grid-rows-[auto_1fr] md:gap-x-[19px] md:gap-y-6 md:shadow-[0_1px_4px_rgba(0,0,0,0.2)] md:pt-[19px] md:px-[30px] md:pb-[30px]",
           showSideCard
-            ? "md:grid-cols-[275px_1fr_180px]"
-            : "md:grid-cols-[275px_1fr]",
+            ? "md:grid-cols-[200px_1fr_180px]"
+            : "md:grid-cols-[200px_1fr]",
         )}
       >
         <div className="flex items-center justify-between px-4 md:px-0 md:col-start-2 md:row-start-1">

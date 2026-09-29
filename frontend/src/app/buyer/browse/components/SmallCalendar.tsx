@@ -20,13 +20,13 @@ export function SmallCalendar({
   return (
     <div
       className={cn(
-        "w-full bg-white rounded-[6px] border border-[#dfdfdf] py-[16px]",
+        "w-full bg-white rounded-[6px] border border-[#dfdfdf] py-[16px] md:rounded-[5px] md:py-[13px]",
         forceVisible ? "block" : "hidden md:block",
         className,
       )}
     >
-      <div className="flex items-center justify-between mb-2 px-[16px]">
-        <p className="leading-[21px] text-[14px] text-black">
+      <div className="flex items-center justify-between mb-2 px-[16px] md:mb-[3px] md:px-[13px]">
+        <p className="leading-[21px] text-[14px] text-black md:text-[13px] md:leading-[23px]">
           {moment(date).format("MMMM YYYY")}
         </p>
         <div className="flex items-center">
@@ -40,9 +40,9 @@ export function SmallCalendar({
                 ),
               );
             }}
-            className="size-[18px] flex items-center justify-center"
+            className="size-[18px] flex items-center justify-center md:size-[16px]"
           >
-            <ChevronLeft className="size-[18px]" />
+            <ChevronLeft className="size-[18px] md:size-[13px]" />
           </button>
           <button
             onClick={() => {
@@ -54,9 +54,9 @@ export function SmallCalendar({
                 ),
               );
             }}
-            className="size-[18px] flex items-center justify-center"
+            className="size-[18px] flex items-center justify-center md:size-[16px]"
           >
-            <ChevronRight className="size-[18px]" />
+            <ChevronRight className="size-[18px] md:size-[13px]" />
           </button>
         </div>
       </div>
@@ -69,7 +69,7 @@ export function SmallCalendar({
             handleDateSelect(date);
           }
         }}
-        className="w-full px-[16px] py-0"
+        className="w-full px-[16px] py-0 md:px-[13px]"
         month={date}
         hideNavigation
         formatters={{
@@ -79,9 +79,9 @@ export function SmallCalendar({
         classNames={{
           weekdays: "flex justify-between",
           weekday:
-            "w-[25px] select-none text-center text-[0.8rem] font-normal text-[#989898]",
-          week: "mt-1 flex w-full justify-between",
-          day: "relative size-[25px] select-none p-0 text-center [&_button]:size-[25px] [&_button]:min-w-0 [&_button]:aspect-auto",
+            "w-[25px] select-none text-center text-[0.8rem] font-normal text-[#989898] md:w-[20px] md:text-[11px] md:leading-[16px]",
+          week: "mt-1 flex w-full justify-between md:mt-[3px]",
+          day: "relative size-[25px] select-none p-0 text-center [&_button]:size-[25px] [&_button]:min-w-0 [&_button]:aspect-auto md:size-[20px] md:[&_button]:size-[20px] md:[&_button]:text-[11px] md:[&_button]:rounded-[5px]",
           selected:
             "[&_button[data-selected-single=true]]:bg-[#568165] [&_button[data-selected-single=true]]:text-white",
         }}
