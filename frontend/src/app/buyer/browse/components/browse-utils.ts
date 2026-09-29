@@ -1,12 +1,25 @@
 import { z } from "zod";
 import { BasicFundraiserSchema, BasicOrganizationSchema } from "common";
 import { isPast } from "date-fns";
+import { CupSoda, Hamburger, Lollipop, Scissors } from "lucide-react";
+import { organizationColors } from "./calendar-utils";
 
 type Fundraiser = z.infer<typeof BasicFundraiserSchema>;
 
 export type Organization = z.infer<typeof BasicOrganizationSchema>;
 export type CategoryType = "desserts" | "food" | "crafts" | "drinks";
 export type OrganizationId = Organization["id"];
+
+export const categories = [
+  { id: "desserts" as CategoryType, label: "Desserts", icon: Lollipop },
+  { id: "food" as CategoryType, label: "Food", icon: Hamburger },
+  { id: "drinks" as CategoryType, label: "Drinks", icon: CupSoda },
+  { id: "crafts" as CategoryType, label: "Crafts", icon: Scissors },
+];
+
+export function getOrganizationColor(index: number): string {
+  return organizationColors[index % organizationColors.length];
+}
 
 export type Filters = {
   organizations: OrganizationId[]; // Stored as unique ID instead of name

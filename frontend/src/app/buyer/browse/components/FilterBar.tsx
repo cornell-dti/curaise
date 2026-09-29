@@ -1,32 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Lollipop,
-  Hamburger,
-  Scissors,
-  CupSoda,
-  ChevronDown,
-  Search,
-} from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { organizationColors } from "./calendar-utils";
-import type { CategoryType, Filters, Organization } from "./browse-utils";
-import { emptyFilters, toggleFilter } from "./browse-utils";
+import { FilterChips } from "./FilterChips";
+import type { Filters, Organization } from "./browse-utils";
+import {
+  categories,
+  emptyFilters,
+  getOrganizationColor,
+  toggleFilter,
+} from "./browse-utils";
 
 const VISIBLE_CLUB_COUNT = 5;
-
-const categories = [
-  { id: "desserts" as CategoryType, label: "Desserts", icon: Lollipop },
-  { id: "food" as CategoryType, label: "Food", icon: Hamburger },
-  { id: "drinks" as CategoryType, label: "Drinks", icon: CupSoda },
-  { id: "crafts" as CategoryType, label: "Crafts", icon: Scissors },
-];
 
 export function FilterBar({
   organizations,
@@ -55,7 +46,7 @@ export function FilterBar({
     !isSearching && organizations.length > VISIBLE_CLUB_COUNT;
 
   return (
-    <div className="flex gap-3 items-center">
+    <div className="flex flex-wrap gap-3 items-center">
       <Popover open={sortOpen} onOpenChange={setSortOpen}>
         <PopoverTrigger asChild>
           <button className="flex h-[31px] items-center gap-[10px] rounded-[6px] border border-[#265B34] bg-white px-3 py-1 text-[14px] font-semibold leading-[21px] text-[#265B34]">
@@ -106,10 +97,7 @@ export function FilterBar({
                   />
                   <span
                     className="size-[9px] shrink-0 rounded-full"
-                    style={{
-                      backgroundColor:
-                        organizationColors[colorIndex % organizationColors.length],
-                    }}
+                    style={{ backgroundColor: getOrganizationColor(colorIndex) }}
                   />
                   <span className="text-[12px] leading-[18px] text-black">
                     {organization.name}
@@ -162,6 +150,12 @@ export function FilterBar({
           </div>
         </PopoverContent>
       </Popover>
+
+      <FilterChips
+        organizations={organizations}
+        filters={filters}
+        onFiltersChange={onFiltersChange}
+      />
     </div>
   );
 }
