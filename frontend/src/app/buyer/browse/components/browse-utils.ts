@@ -1,14 +1,30 @@
 import { z } from "zod";
-import { BasicFundraiserSchema } from "common";
+import { BasicFundraiserSchema, BasicOrganizationSchema } from "common";
 import { isPast } from "date-fns";
 
-export type CategoryType = "desserts" | "food" | "crafts" | "drinks" | "all";
-
 type Fundraiser = z.infer<typeof BasicFundraiserSchema>;
+
+export type Organization = z.infer<typeof BasicOrganizationSchema>;
+export type CategoryType = "desserts" | "food" | "crafts" | "drinks";
+export type OrganizationId = Organization["id"];
+
+export type Filters = {
+  organizations: OrganizationId[]; // Stored as unique ID instead of name
+  categories: CategoryType[];
+}
+
+export const emptyFilters: Filters = { organizations: [], categories: [] };
+
+export function toggleFilter<T>(filterList: T[], filter: T): T[] {
+  return filterList.includes(filter)
+    ? filterList.filter((x) => x !== filter)
+    : [...filterList, filter];
+}
 
 export function filterFundraisers<T extends Fundraiser>(
   fundraisers: T[],
   searchQuery: string,
+  filters: Filters,
 ): T[] {
   let filtered = fundraisers;
 
@@ -19,7 +35,7 @@ export function filterFundraisers<T extends Fundraiser>(
       !fundraiser.pickupEvents.every((event) => isPast(event.endsAt)),
   );
 
-  // Apply search filter
+  // Apply search query 
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
     filtered = filtered.filter((fundraiser) =>
@@ -27,8 +43,12 @@ export function filterFundraisers<T extends Fundraiser>(
     );
   }
 
-  // Apply category filter (for now, we'll show all since we don't have category data)
-  // This can be implemented when categories are added to the schema
+  // Apply filters
+  if (filters.organizations.length > 0) {
+    filtered = filtered.filter((fundraiser) =>
+      filters.organizations.includes(fundraiser.organization.id),
+    );
+  }
 
   return filtered;
 }

@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { z } from "zod";
 import {
   BasicFundraiserSchema,
-  BasicOrganizationSchema,
   CompleteItemSchema,
 } from "common";
 import { cn } from "@/lib/utils";
@@ -12,12 +11,13 @@ import { CalendarView } from "./CalendarView";
 import { FilterBar } from "./FilterBar";
 import { GridView } from "./GridView";
 import {
+  emptyFilters,
   filterFundraisers,
-  type CategoryType,
+  type Organization,
+  type Filters,
 } from "./browse-utils";
 
 type BrowseViewType = "grid" | "calendar";
-type Organization = z.infer<typeof BasicOrganizationSchema>;
 type Fundraiser = z.infer<typeof BasicFundraiserSchema>;
 type FundraiserWithItems = Fundraiser & {
   items: z.infer<typeof CompleteItemSchema>[];
@@ -61,27 +61,25 @@ const viewOptions = [
 
 export function BrowseView({
   organizations,
-  userOrganizations,
   fundraisers,
   fundraisersWithItems,
   searchQuery,
 }: {
   organizations: Organization[];
-  userOrganizations: Organization[];
   fundraisers: Fundraiser[];
   fundraisersWithItems: FundraiserWithItems[];
   searchQuery: string;
 }) {
   const [view, setView] = useState<BrowseViewType>("grid");
-  const [category, setCategory] = useState<CategoryType>("all");
+  const [filters, setFilters] = useState<Filters>(emptyFilters);
 
   const filteredFundraisers = useMemo(
-    () => filterFundraisers(fundraisers, searchQuery),
-    [fundraisers, searchQuery],
+    () => filterFundraisers(fundraisers, searchQuery, filters),
+    [fundraisers, searchQuery, filters],
   );
   const filteredFundraisersWithItems = useMemo(
-    () => filterFundraisers(fundraisersWithItems, searchQuery),
-    [fundraisersWithItems, searchQuery],
+    () => filterFundraisers(fundraisersWithItems, searchQuery, filters),
+    [fundraisersWithItems, searchQuery, filters],
   );
 
   return (
@@ -116,14 +114,14 @@ export function BrowseView({
       </div>
       <div className="flex flex-col gap-6">
         <FilterBar
-          category={category}
-          onCategoryChange={setCategory}
+          organizations={organizations}
+          filters={filters}
+          onFiltersChange={setFilters}
         />
         {view === "calendar" ? (
           <div className="pb-10 md:pb-[53px]">
             <CalendarView
               organizations={organizations}
-              userOrganizations={userOrganizations}
               fundraisers={filteredFundraisersWithItems}
             />
           </div>

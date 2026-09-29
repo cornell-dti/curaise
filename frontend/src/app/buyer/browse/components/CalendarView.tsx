@@ -8,7 +8,6 @@ import {
 } from "react-big-calendar";
 import moment from "moment";
 import { CalendarDays, ChevronDown, X } from "lucide-react";
-import { OrganizationFilter } from "./OrganizationFilter";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { SmallCalendar } from "./SmallCalendar";
 import {
@@ -139,7 +138,6 @@ function CalendarDayHeader({ date }: { date: Date }) {
   );
 }
 
-type Organization = z.infer<typeof BasicOrganizationSchema>;
 type FundraiserWithItems = z.infer<typeof BasicFundraiserSchema> & {
   items: z.infer<typeof CompleteItemSchema>[];
 };
@@ -149,11 +147,9 @@ const MOBILE_BREAKPOINT = 768;
 
 export function CalendarView({
   organizations,
-  userOrganizations,
   fundraisers,
 }: {
   organizations: z.infer<typeof BasicOrganizationSchema>[];
-  userOrganizations: Organization[];
   fundraisers: FundraiserWithItems[];
 }) {
   const today = new Date();
@@ -162,12 +158,6 @@ export function CalendarView({
   const [currentView, setCurrentView] = useState<View>(Views.MONTH);
 
   const organizationNames = organizations.map((org) => org.name);
-  const authorizedUserOrganizations = userOrganizations.filter(
-    (org) => org.authorized,
-  );
-  const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>(
-    authorizedUserOrganizations.map((org) => org.name),
-  );
   const [isMobile, setIsMobile] = useState(false);
   const [isCalendarFiltersOpen, setIsCalendarFiltersOpen] = useState(false);
   const [selectedFundraiserId, setSelectedFundraiserId] = useState<
@@ -205,25 +195,6 @@ export function CalendarView({
     }
   };
 
-  const handleToggleOrganization = (isMobile: boolean, org: string) => {
-    if (
-      !selectedOrganizations.includes(org) &&
-      (isMobile
-        ? selectedOrganizations.length == 3
-        : selectedOrganizations.length == 5)
-    ) {
-      const firstOrg = selectedOrganizations.at(0);
-      setSelectedOrganizations((prev) => prev.filter((o) => o !== firstOrg));
-    }
-    setSelectedOrganizations((prev) =>
-      prev.includes(org) ? prev.filter((o) => o !== org) : [...prev, org],
-    );
-  };
-
-  const filteredEvents = events.filter(
-    (event) =>
-      !event.organization || selectedOrganizations.includes(event.organization),
-  );
   const selectedFundraiser = selectedFundraiserId
     ? fundraisers.find((fundraiser) => fundraiser.id === selectedFundraiserId)
     : undefined;
@@ -275,19 +246,6 @@ export function CalendarView({
     return () => window.removeEventListener("resize", checkScreen);
   }, []);
 
-  // updating the selected based on if it's mobile
-  useEffect(() => {
-    if (isMobile) {
-      if (selectedOrganizations.length == 4) {
-        setSelectedOrganizations((prev) => prev.filter((o) => o !== prev[0]));
-      } else if (selectedOrganizations.length == 5) {
-        setSelectedOrganizations((prev) =>
-          prev.filter((o) => o !== prev[0] && o !== prev[1]),
-        );
-      }
-    }
-  }, [isMobile]);
-
   useEffect(() => {
     setIsCalendarFiltersOpen(false);
   }, [currentView]);
@@ -309,13 +267,6 @@ export function CalendarView({
         }}
         forceVisible
         className="md:py-[12px]"
-      />
-      <OrganizationFilter
-        organizations={organizationNames}
-        selectedOrganizations={selectedOrganizations}
-        onToggleOrganization={(org) => handleToggleOrganization(isMobile, org)}
-        isMobile={isMobile}
-        forceVisible
       />
     </div>
   );
@@ -412,7 +363,7 @@ export function CalendarView({
         >
           <BigCalendar
             localizer={localizer}
-            events={filteredEvents}
+            events={events}
             startAccessor="start"
             endAccessor="end"
             view={currentView}
@@ -468,14 +419,6 @@ export function CalendarView({
             onSelected={setSelectedDate}
             date={selectedDate}
             handleDateSelect={(date) => handleDateSelect(date)}
-          />
-          <OrganizationFilter
-            organizations={organizationNames}
-            selectedOrganizations={selectedOrganizations}
-            onToggleOrganization={(org) =>
-              handleToggleOrganization(isMobile, org)
-            }
-            isMobile={isMobile}
           />
         </div>
 
