@@ -9,6 +9,11 @@ import {
 } from "../fundraiser/fundraiser.services";
 import { Decimal } from "decimal.js";
 import { addDays, endOfDay, startOfDay } from "date-fns";
+import { TZDate } from "@date-fns/tz";
+
+// Pickup reminders are scheduled around the fundraiser's local calendar day,
+// which is always Eastern time regardless of the server's own timezone.
+const FUNDRAISER_TIME_ZONE = "America/New_York";
 
 const getConfirmedCountsByItem = async (
   tx: Prisma.TransactionClient,
@@ -611,8 +616,9 @@ export const markOrderPaymentReminded = async (orderId: string) => {
  * that haven't been sent a pickup reminder yet
  */
 export const getUnremindedPickupOrders = async () => {
-  const tomorrowStart = startOfDay(addDays(new Date(), 1));
-  const tomorrowEnd = endOfDay(addDays(new Date(), 1));
+  const tomorrow = addDays(TZDate.tz(FUNDRAISER_TIME_ZONE), 1);
+  const tomorrowStart = startOfDay(tomorrow);
+  const tomorrowEnd = endOfDay(tomorrow);
 
   return prisma.order.findMany({
     where: {
