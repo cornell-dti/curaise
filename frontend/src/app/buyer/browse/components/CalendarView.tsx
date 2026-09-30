@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Calendar as BigCalendar,
   momentLocalizer,
@@ -7,7 +7,7 @@ import {
   Views,
 } from "react-big-calendar";
 import moment from "moment";
-import { CalendarDays, ChevronDown, X } from "lucide-react";
+import { CalendarDays, ChevronDown } from "lucide-react";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { SmallCalendar } from "./SmallCalendar";
 import {
@@ -24,14 +24,18 @@ import {
   BasicOrganizationSchema,
   CompleteItemSchema,
 } from "common";
-import { cn } from "@/lib/utils";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { FundraiserSideCard } from "./SideCard";
+import {
+  Popover,
+  PopoverAnchor,
+  PopoverContent,
+} from "@/components/ui/popover";
+import { EventDetailsCard } from "./EventDetailsCard";
 import {
   CalendarEventComponent,
   eventStyleGetter,
@@ -148,13 +152,16 @@ const MOBILE_BREAKPOINT = 768;
 export function CalendarView({
   organizations,
   fundraisers,
+  selectedDate,
+  onSelectedDateChange,
 }: {
   organizations: z.infer<typeof BasicOrganizationSchema>[];
   fundraisers: FundraiserWithItems[];
+  selectedDate: Date;
+  onSelectedDateChange: (date: Date) => void;
 }) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date(today));
   const [currentView, setCurrentView] = useState<View>(Views.MONTH);
 
   const organizationNames = organizations.map((org) => org.name);
@@ -163,6 +170,9 @@ export function CalendarView({
   const [selectedFundraiserId, setSelectedFundraiserId] = useState<
     string | null
   >(null);
+  const selectedEventRef = useRef<Pick<HTMLElement, "getBoundingClientRect">>({
+    getBoundingClientRect: () => new DOMRect(),
+  });
 
   const events: CalendarEvent[] = fundraisers.flatMap((fundraiser) => {
     const pickups: CalendarEvent[] = fundraiser.pickupEvents.map((pickup) => ({
@@ -190,7 +200,7 @@ export function CalendarView({
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
-      setSelectedDate(date);
+      onSelectedDateChange(date);
       setCurrentView(Views.WEEK);
     }
   };
@@ -207,7 +217,7 @@ export function CalendarView({
 
   const incrementSelect = (increment: boolean) => {
     if (currentView == Views.MONTH) {
-      setSelectedDate(
+      onSelectedDateChange(
         new Date(
           selectedDate.getFullYear(),
           increment ? selectedDate.getMonth() + 1 : selectedDate.getMonth() - 1,
@@ -215,7 +225,7 @@ export function CalendarView({
         ),
       );
     } else if (currentView == Views.DAY) {
-      setSelectedDate(
+      onSelectedDateChange(
         new Date(
           selectedDate.getFullYear(),
           selectedDate.getMonth(),
@@ -223,7 +233,7 @@ export function CalendarView({
         ),
       );
     } else if (currentView == Views.WEEK) {
-      setSelectedDate(
+      onSelectedDateChange(
         new Date(
           selectedDate.getFullYear(),
           selectedDate.getMonth(),
@@ -259,7 +269,7 @@ export function CalendarView({
   const calendarFilters = (
     <div className="flex flex-col gap-[20px] w-full">
       <SmallCalendar
-        onSelected={setSelectedDate}
+        onSelected={onSelectedDateChange}
         date={selectedDate}
         handleDateSelect={(date) => {
           handleDateSelect(date);
@@ -277,18 +287,20 @@ export function CalendarView({
       : -1,
   );
 
-  const showSideCard =
-    currentView !== Views.MONTH && !!selectedFundraiser && !isMobile;
+  const closeEventDetails = () => setSelectedFundraiserId(null);
+
+  useEffect(() => {
+    if (selectedFundraiserId && !selectedFundraiser) {
+      setSelectedFundraiserId(null);
+    }
+  }, [selectedFundraiserId, selectedFundraiser]);
+
+  const showEventDetails = currentView !== Views.MONTH && !!selectedFundraiser;
 
   return (
     <div className="size-full">
       <div
-        className={cn(
-          "flex flex-col gap-3 bg-white rounded-[8px] md:grid md:grid-rows-[auto_1fr] md:gap-x-[19px] md:gap-y-6 md:shadow-[0_1px_4px_rgba(0,0,0,0.2)] md:pt-[19px] md:px-[30px] md:pb-[30px]",
-          showSideCard
-            ? "md:grid-cols-[200px_1fr_180px]"
-            : "md:grid-cols-[200px_1fr]",
-        )}
+        className="flex flex-col gap-3 bg-white rounded-[8px] md:grid md:grid-cols-[200px_minmax(0,1fr)] md:grid-rows-[auto_1fr] md:gap-x-[19px] md:gap-y-6 md:shadow-[0_1px_4px_rgba(0,0,0,0.2)] md:pt-[19px] md:px-[30px] md:pb-[30px]"
       >
         <div className="flex items-center justify-between px-4 md:px-0 md:col-start-2 md:row-start-1">
           <div className="flex gap-[8px] items-center">
@@ -339,7 +351,7 @@ export function CalendarView({
             <Button
               type="button"
               onClick={() => {
-                setSelectedDate(new Date(today));
+                onSelectedDateChange(new Date(today));
                 setCurrentView(Views.WEEK);
               }}
               className="text-xs h-8 md:text-[16px] md:h-10 bg-[#265B34] hover:bg-[#1f4a2b]"
@@ -375,9 +387,10 @@ export function CalendarView({
             view={currentView}
             onView={setCurrentView}
             date={selectedDate}
-            onNavigate={setSelectedDate}
-            onSelectEvent={(event) => {
+            onNavigate={onSelectedDateChange}
+            onSelectEvent={(event, domEvent) => {
               if (currentView !== Views.MONTH) {
+                selectedEventRef.current = domEvent.currentTarget as HTMLElement;
                 setSelectedFundraiserId((event as CalendarEvent).id);
               }
             }}
@@ -422,49 +435,57 @@ export function CalendarView({
 
         <div className="flex flex-col items-center gap-[20px] w-full md:col-start-1 md:row-start-2">
           <SmallCalendar
-            onSelected={setSelectedDate}
+            onSelected={onSelectedDateChange}
             date={selectedDate}
             handleDateSelect={(date) => handleDateSelect(date)}
           />
         </div>
 
-        {showSideCard && selectedFundraiser && (
-          <div className="w-full md:w-[180px] md:col-start-3 md:row-start-1 md:row-span-2 md:self-start">
-            <FundraiserSideCard
-              fundraiser={selectedFundraiser}
-              items={selectedFundraiser.items}
-              bgColor={`color-mix(in srgb, ${selectedFundraiserColor} 70%, white)`}
-              borderColor={selectedFundraiserColor}
-            />
-          </div>
-        )}
-        {currentView !== Views.MONTH && selectedFundraiser && isMobile && (
+        {showEventDetails && selectedFundraiser && isMobile && (
           <div
-            className="fixed inset-0 z-40 flex items-end justify-center bg-black/30 px-4 pb-4 pt-24 rounded-md"
-            onClick={() => setSelectedFundraiserId(null)}
+            className="fixed inset-0 z-40 flex items-end justify-center bg-black/30 px-4 pb-4 pt-24"
+            onClick={closeEventDetails}
           >
             <div
-              className="relative w-full max-w-[360px] rounded-md mb-[50%]"
+              className="w-full max-w-[400px] mb-[50%]"
               onClick={(event) => event.stopPropagation()}
             >
-              <button
-                type="button"
-                onClick={() => setSelectedFundraiserId(null)}
-                className="absolute right-3 top-3 z-10 flex size-8 items-center justify-center rounded-full bg-white/90 text-black shadow-sm"
-                aria-label="Close fundraiser details"
-              >
-                <X className="size-4" />
-              </button>
-              <FundraiserSideCard
+              <EventDetailsCard
                 fundraiser={selectedFundraiser}
                 items={selectedFundraiser.items}
-                bgColor={`color-mix(in srgb, ${selectedFundraiserColor} 70%, white)`}
-                borderColor={selectedFundraiserColor}
+                color={selectedFundraiserColor}
+                onClose={closeEventDetails}
               />
             </div>
           </div>
         )}
       </div>
+
+      <Popover
+        open={showEventDetails && !isMobile}
+        onOpenChange={(open) => {
+          if (!open) closeEventDetails();
+        }}
+      >
+        <PopoverAnchor virtualRef={selectedEventRef} />
+        {selectedFundraiser && (
+          <PopoverContent
+            side="left"
+            align="start"
+            sideOffset={8}
+            collisionPadding={16}
+            hideWhenDetached
+            className="w-[400px] rounded-none border-0 bg-transparent p-0 shadow-none"
+          >
+            <EventDetailsCard
+              fundraiser={selectedFundraiser}
+              items={selectedFundraiser.items}
+              color={selectedFundraiserColor}
+              onClose={closeEventDetails}
+            />
+          </PopoverContent>
+        )}
+      </Popover>
     </div>
   );
 }

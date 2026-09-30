@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { startOfToday } from "date-fns";
 import { z } from "zod";
 import {
   BasicFundraiserSchema,
@@ -72,6 +73,7 @@ export function BrowseView({
 }) {
   const [view, setView] = useState<BrowseViewType>("grid");
   const [filters, setFilters] = useState<Filters>(emptyFilters);
+  const [selectedDate, setSelectedDate] = useState<Date>(startOfToday);
 
   const filteredFundraisers = useMemo(
     () => filterFundraisers(fundraisers, searchQuery, filters),
@@ -134,6 +136,8 @@ export function BrowseView({
             <CalendarView
               organizations={organizations}
               fundraisers={filteredFundraisersWithItems}
+              selectedDate={selectedDate}
+              onSelectedDateChange={setSelectedDate}
             />
           </div>
         ) : (
