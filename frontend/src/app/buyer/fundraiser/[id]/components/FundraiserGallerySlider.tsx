@@ -53,24 +53,23 @@ export function FundraiserGallerySlider({
 		setCurrentIndex((prevIndex) => prevIndex + 1);
 	};
 
-  return (
-    <div className="relative w-full aspect-[16/9] overflow-hidden rounded-none">
-      <div
-        className="flex w-full h-full transition-transform duration-500 ease-in-out"
-        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-      >
-        {images.map((image, index) => (
-          <div key={index} className="flex-shrink-0 w-full h-full relative">
-            <Image
-              src={image}
-              alt={`Slide ${index + 1}`}
-              fill
-              className="object-cover"
-              style={{ objectFit: 'cover' }}
-            />
-          </div>
-        ))}
-      </div>
+	return (
+		<div className="relative w-full aspect-[16/9] overflow-hidden rounded-none">
+			<div
+				className="flex w-full h-full transition-transform duration-500 ease-in-out"
+				style={{ transform: `translateX(-${currentIndex * 100}%)` }}>
+				{images.map((image, index) => (
+					<div key={index} className="flex-shrink-0 w-full h-full relative">
+						<Image
+							src={image}
+							alt={`Slide ${index + 1}`}
+							fill
+							className="object-cover"
+							style={{ objectFit: "cover" }}
+						/>
+					</div>
+				))}
+			</div>
 
 			{/* Previous and Next Buttons */}
 			{/* {currentIndex !== 0 ? (

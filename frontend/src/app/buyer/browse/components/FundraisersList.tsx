@@ -108,69 +108,67 @@ export function FundraisersList({
           })}
           */}
 
-          {/* Sort By Dropdown */}
-          <div className="flex gap-3 items-center">
-            <Popover open={sortOpen} onOpenChange={setSortOpen}>
-              <PopoverTrigger asChild>
-                <button className="bg-white border border-[#dddddd] rounded-md px-[20px] py-2 flex items-center justify-center gap-[10px]">
-                  <span className="text-base font-normal leading-6 text-black">
-                    {selectedLabel}
-                  </span>
-                  <ChevronDown className="h-4 w-4 text-black" />
-                </button>
-              </PopoverTrigger>
+					{/* Sort By Dropdown */}
+					<div className="flex gap-3 items-center">
+						<Popover open={sortOpen} onOpenChange={setSortOpen}>
+							<PopoverTrigger asChild>
+								<button className="bg-white border border-[#dddddd] rounded-md px-[20px] py-2 flex items-center justify-center gap-[10px]">
+									<span className="text-base font-normal leading-6 text-black">
+										{selectedLabel}
+									</span>
+									<ChevronDown className="h-4 w-4 text-black" />
+								</button>
+							</PopoverTrigger>
 
-              <PopoverContent className="w-full p-0" align="start">
-                <div className="p-3 flex flex-col gap-3">
-                  <button
-                    onClick={() => {
-                      setFilter("all");
-                      setSelectedLabel("All Fundraisers");
-                      setSortOpen(false);
-                    }}
-                    className="text-base font-normal leading-6 text-black text-left hover:bg-gray-50 rounded px-2 py-1"
-                  >
-                    All Fundraisers
-                  </button>
+							<PopoverContent className="w-full p-0" align="start">
+								<div className="p-3 flex flex-col gap-3">
+									<button
+										onClick={() => {
+											setFilter("all");
+											setSelectedLabel("All Fundraisers");
+											setSortOpen(false);
+										}}
+										className="text-base font-normal leading-6 text-black text-left hover:bg-gray-50 rounded px-2 py-1">
+										All Fundraisers
+									</button>
 
-                  <button
-                    onClick={() => {
-                      setFilter("pickup-today");
-                      setSelectedLabel("Pick-up Today");
-                      setSortOpen(false);
-                    }}
-                    className="text-base font-normal leading-6 text-black text-left hover:bg-gray-50 rounded px-2 py-1"
-                  >
-                    Pick-up Today
-                  </button>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
-      </div>
+									<button
+										onClick={() => {
+											setFilter("pickup-today");
+											setSelectedLabel("Pick-up Today");
+											setSortOpen(false);
+										}}
+										className="text-base font-normal leading-6 text-black text-left hover:bg-gray-50 rounded px-2 py-1">
+										Pick-up Today
+									</button>
+								</div>
+							</PopoverContent>
+						</Popover>
+					</div>
+				</div>
+			</div>
 
-      {/* Fundraisers Grid */}
-      {filteredFundraisers.length === 0 ? (
-        <div className="w-full text-center py-12 bg-gray-100 rounded-lg">
-          <h3 className="text-lg font-medium text-gray-600 mb-2">
-            {filter === "pickup-today"
-              ? "No fundraisers with pick-up today"
-              : "No fundraisers available"}
-          </h3>
-          <p className="text-gray-500">
-            {filter === "pickup-today"
-              ? "Check back for fundraisers with pick-ups scheduled for today"
-              : "Check back soon for upcoming fundraisers"}
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[50px]">
-          {filteredFundraisers.map((fundraiser) => (
-            <BrowseFundraiserCard key={fundraiser.id} fundraiser={fundraiser} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
+			{/* Fundraisers Grid */}
+			{filteredFundraisers.length === 0 ? (
+				<div className="w-full text-center py-12 bg-gray-100 rounded-lg">
+					<h3 className="text-lg font-medium text-gray-600 mb-2">
+						{filter === "pickup-today"
+							? "No fundraisers with pick-up today"
+							: "No fundraisers available"}
+					</h3>
+					<p className="text-gray-500">
+						{filter === "pickup-today"
+							? "Check back for fundraisers with pick-ups scheduled for today"
+							: "Check back soon for upcoming fundraisers"}
+					</p>
+				</div>
+			) : (
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[50px]">
+					{filteredFundraisers.map((fundraiser) => (
+						<BrowseFundraiserCard key={fundraiser.id} fundraiser={fundraiser} />
+					))}
+				</div>
+			)}
+		</div>
+	);
 }
