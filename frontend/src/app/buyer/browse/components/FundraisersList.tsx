@@ -3,18 +3,11 @@
 import { useState, useMemo } from "react";
 import { z } from "zod";
 import { BasicFundraiserSchema } from "common";
+import { ChevronDown } from "lucide-react";
 import {
-  Lollipop,
-  Utensils,
-  Scissors,
-  CupSoda,
-  ChevronDown,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
 } from "@/components/ui/popover";
 import { isPast } from "date-fns";
 import { BrowseFundraiserCard } from "./BrowseFundraiserCard";
@@ -23,73 +16,76 @@ type FilterType = "all" | "pickup-today";
 // type CategoryType = "desserts" | "food" | "crafts" | "drinks" | "all";
 
 interface FundraisersListProps {
-  fundraisers: z.infer<typeof BasicFundraiserSchema>[];
-  searchQuery?: string;
+	fundraisers: z.infer<typeof BasicFundraiserSchema>[];
+	searchQuery?: string;
 }
 
 export function FundraisersList({
-  fundraisers,
-  searchQuery = "",
+	fundraisers,
+	searchQuery = "",
 }: FundraisersListProps) {
-  const [filter, setFilter] = useState<FilterType>("all");
-  // const [category, setCategory] = useState<CategoryType>("desserts");
-  const [sortOpen, setSortOpen] = useState(false);
-  const [selectedLabel, setSelectedLabel] = useState("All Fundraisers");
+	const [filter, setFilter] = useState<FilterType>("all");
+	// const [category, setCategory] = useState<CategoryType>("desserts");
+	const [sortOpen, setSortOpen] = useState(false);
+	const [selectedLabel, setSelectedLabel] = useState("All Fundraisers");
 
-  const filteredFundraisers = useMemo(() => {
-    let filtered = fundraisers;
+	const filteredFundraisers = useMemo(() => {
+		let filtered = fundraisers;
 
-    // Filter out all fundraisers from un-approved organizations and fundraiser
-    filtered = filtered.filter(
-      (fundraiser) =>
-        fundraiser.organization.authorized === true &&
-        !fundraiser.pickupEvents.every((event) => isPast(event.endsAt)),
-    );
+		// Filter out all fundraisers from un-approved organizations and fundraiser
+		filtered = filtered.filter(
+			(fundraiser) =>
+				fundraiser.organization.authorized === true &&
+				!fundraiser.pickupEvents.every((event) => isPast(event.endsAt)),
+		);
 
-    // Apply search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((fundraiser) =>
-        fundraiser.name.toLowerCase().includes(query),
-      );
-    }
+		// Apply search filter (name, organization name, or description)
+		if (searchQuery) {
+			const query = searchQuery.toLowerCase();
+			filtered = filtered.filter(
+				(fundraiser) =>
+					fundraiser.name.toLowerCase().includes(query) ||
+					(fundraiser.organization?.name || "").toLowerCase().includes(query) ||
+					fundraiser.description.toLowerCase().includes(query),
+			);
+		}
 
-    // Apply category filter (for now, we'll show all since we don't have category data)
-    // This can be implemented when categories are added to the schema
+		// Apply category filter (for now, we'll show all since we don't have category data)
+		// This can be implemented when categories are added to the schema
 
-    // Apply dropdown filter
-    if (filter === "pickup-today") {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      filtered = filtered.filter((fundraiser) =>
-        fundraiser.pickupEvents.some((event) => {
-          const eventDate = new Date(event.startsAt);
-          eventDate.setHours(0, 0, 0, 0);
-          return eventDate.getTime() === today.getTime();
-        }),
-      );
-    }
+		// Apply dropdown filter
+		if (filter === "pickup-today") {
+			const today = new Date();
+			today.setHours(0, 0, 0, 0);
+			filtered = filtered.filter((fundraiser) =>
+				fundraiser.pickupEvents.some((event) => {
+					const eventDate = new Date(event.startsAt);
+					eventDate.setHours(0, 0, 0, 0);
+					return eventDate.getTime() === today.getTime();
+				}),
+			);
+		}
 
-    return filtered;
-  }, [fundraisers, filter, searchQuery]);
-  // TODO This isn't actually used yet, but should be in the future; just adding to match Figma design right now
-  // const categories = [
-  // 	{ id: "desserts" as CategoryType, label: "Desserts", icon: Lollipop },
-  // 	{ id: "food" as CategoryType, label: "Food", icon: Utensils },
-  // 	{ id: "crafts" as CategoryType, label: "Crafts", icon: Scissors },
-  // 	{ id: "drinks" as CategoryType, label: "Drinks", icon: CupSoda },
-  // ];
+		return filtered;
+	}, [fundraisers, filter, searchQuery]);
+	// TODO This isn't actually used yet, but should be in the future; just adding to match Figma design right now
+	// const categories = [
+	// 	{ id: "desserts" as CategoryType, label: "Desserts", icon: Lollipop },
+	// 	{ id: "food" as CategoryType, label: "Food", icon: Utensils },
+	// 	{ id: "crafts" as CategoryType, label: "Crafts", icon: Scissors },
+	// 	{ id: "drinks" as CategoryType, label: "Drinks", icon: CupSoda },
+	// ];
 
-  return (
-    <div className="flex flex-col gap-6 w-full">
-      {/* Heading and Filters Section */}
-      <div className="flex flex-col gap-2 md:gap-4">
-        <h1 className="hidden md:block text-[32px] font-semibold leading-[48px] text-black">
-          Browse CURaise
-        </h1>
+	return (
+		<div className="flex flex-col gap-6 w-full">
+			{/* Heading and Filters Section */}
+			<div className="flex flex-col gap-2 md:gap-4">
+				<h1 className="hidden md:block text-[32px] font-semibold leading-[48px] text-black">
+					Browse CURaise
+				</h1>
 
-        <div className="flex flex-col gap-3 w-full">
-          {/* TODO: Category Filters - Horizontal scroll on mobile
+				<div className="flex flex-col gap-3 w-full">
+					{/* TODO: Category Filters - Horizontal scroll on mobile
           {categories.map((cat) => {
             const Icon = cat.icon;
             const isActive = category === cat.id;

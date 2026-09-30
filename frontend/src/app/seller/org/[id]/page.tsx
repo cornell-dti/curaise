@@ -41,6 +41,7 @@ export default async function OrganizationPage({
   const id = (await params).id;
 
   const org = await serverFetch(`/organization/${id}`, {
+    token: session.access_token,
     schema: CompleteOrganizationSchema,
   });
   const fundraisers = await serverFetch(`/organization/${id}/fundraisers`, {

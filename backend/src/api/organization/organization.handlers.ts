@@ -30,8 +30,13 @@ export const getOrganizationHandler = async (
     return;
   }
 
-  // remove irrelevant fields from returned order
-  const parsedOrganization = CompleteOrganizationSchema.safeParse(organization);
+  const isAdmin = organization.admins.some(
+    (admin) => admin.id === res.locals.user?.id
+  );
+  const visibleOrganization = isAdmin
+    ? organization
+    : { ...organization, pendingAdmins: [] };
+  const parsedOrganization = CompleteOrganizationSchema.safeParse(visibleOrganization);
   if (!parsedOrganization.success) {
     res.status(500).json({ message: "Internal server error" });
     return;
