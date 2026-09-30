@@ -80,7 +80,10 @@ export function BrowseView({
     [fundraisers, searchQuery, filters],
   );
   const filteredFundraisersWithItems = useMemo(
-    () => filterFundraisers(fundraisersWithItems, searchQuery, filters),
+    () =>
+      filterFundraisers(fundraisersWithItems, searchQuery, filters, {
+        includeEnded: true,
+      }),
     [fundraisersWithItems, searchQuery, filters],
   );
 

@@ -53,6 +53,7 @@ export function filterFundraisers<T extends Fundraiser>(
   fundraisers: T[],
   searchQuery: string,
   filters: Filters,
+  { includeEnded = false }: { includeEnded?: boolean } = {},
 ): T[] {
   let filtered = fundraisers;
 
@@ -60,7 +61,8 @@ export function filterFundraisers<T extends Fundraiser>(
   filtered = filtered.filter(
     (fundraiser) =>
       fundraiser.organization.authorized === true &&
-      !fundraiser.pickupEvents.every((event) => isPast(event.endsAt)),
+      (includeEnded ||
+        !fundraiser.pickupEvents.every((event) => isPast(event.endsAt))),
   );
 
   // Apply search query 
