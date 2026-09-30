@@ -1,4 +1,4 @@
-import { CalendarIcon, MapPinIcon, ShoppingBag } from "lucide-react";
+import { CalendarIcon, ShoppingBag } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -36,12 +36,13 @@ export function FundraiserCard({
   return (
     <Card className="overflow-hidden border shadow-sm h-full flex flex-col md:flex-row hover:shadow-md hover:translate-y-[-2px] transition-all duration-200">
       {/* Image Section - Left */}
-      <div className="relative w-full md:w-2/5 aspect-[16/9] bg-gray-100 flex-shrink-0">
+      <div className="relative w-full md:w-2/5 md:self-start aspect-[16/9] bg-gray-100 flex-shrink-0">
         {fundraiser.imageUrls && fundraiser.imageUrls.length > 0 ? (
           <Image
             src={fundraiser.imageUrls[0]}
             alt={fundraiser.name}
             fill
+            sizes="(min-width: 768px) 40vw, 100vw"
             className="object-cover"
             style={{ objectFit: "cover" }}
           />
@@ -56,9 +57,9 @@ export function FundraiserCard({
       <div className="flex flex-col flex-1 min-w-0">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start gap-2">
-            <div>
+            <div className="min-w-0 flex-1 break-words">
               <CardTitle className="text-base">{fundraiser.name}</CardTitle>
-              <CardDescription className="flex items-center gap-1 mt-1">
+              <CardDescription className="mt-1 max-h-20 overflow-y-auto">
                 {fundraiser.description}
               </CardDescription>
               {fundraiser.organization && (
@@ -95,15 +96,13 @@ export function FundraiserCard({
               </span>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">
-                  {fundraiser.pickupEvents.length === 1
-                    ? "1 Pickup Event"
-                    : `${fundraiser.pickupEvents.length} Pickup Events`}
-                </span>
-              </div>
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium">
+                {fundraiser.pickupEvents.length === 1
+                  ? "1 Pickup Event"
+                  : `${fundraiser.pickupEvents.length} Pickup Events`}
+              </span>
             </div>
           </div>
         </CardContent>
