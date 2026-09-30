@@ -14,7 +14,7 @@ export default function AccountLayout({
 				</Suspense>
 			</div>
 			<main className="flex-grow pt-16 pb-20 md:pb-0">
-				<Suspense>{children}</Suspense>
+				{children}
 			</main>
 		</div>
 	);
