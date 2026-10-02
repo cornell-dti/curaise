@@ -58,81 +58,6 @@ export interface CalendarEvent {
 
 const SCROLL_TO_TIME = new Date(1970, 0, 1, 10);
 
-function wideOverlapDayLayout({
-  events,
-  accessors,
-  slotMetrics,
-}: {
-  events: CalendarEvent[];
-  accessors: {
-    start: (event: CalendarEvent) => Date;
-    end: (event: CalendarEvent) => Date;
-  };
-  slotMetrics: {
-    getRange: (
-      start: Date,
-      end: Date,
-    ) => {
-      top: number;
-      height: number;
-    };
-  };
-}) {
-  const positionedEvents = events
-    .map((event) => {
-      const start = accessors.start(event);
-      const end = accessors.end(event);
-      const { top, height } = slotMetrics.getRange(start, end);
-
-      return {
-        event,
-        startMs: start.getTime(),
-        endMs: end.getTime(),
-        top,
-        height,
-      };
-    })
-    .sort((a, b) => a.startMs - b.startMs || b.endMs - a.endMs);
-
-  const overlapGroups: (typeof positionedEvents)[] = [];
-
-  for (const event of positionedEvents) {
-    const currentGroup = overlapGroups.at(-1);
-
-    if (!currentGroup) {
-      overlapGroups.push([event]);
-      continue;
-    }
-
-    const currentGroupEnd = Math.max(
-      ...currentGroup.map((groupEvent) => groupEvent.endMs),
-    );
-
-    if (event.startMs < currentGroupEnd) {
-      currentGroup.push(event);
-    } else {
-      overlapGroups.push([event]);
-    }
-  }
-
-  return overlapGroups.flatMap((group) => {
-    const width = group.length === 1 ? 100 : 88;
-    const maxOffset = Math.max(0, 100 - width);
-    const step =
-      group.length <= 1 ? 0 : Math.min(10, maxOffset / (group.length - 1));
-
-    return group.map((item, index) => ({
-      event: item.event,
-      style: {
-        top: item.top,
-        height: item.height,
-        width,
-        xOffset: Math.min(index * step, maxOffset),
-      },
-    }));
-  });
-}
-
 function CalendarDayHeader({ date }: { date: Date }) {
   return (
     <div className="flex flex-col items-center leading-tight h-[70px]">
@@ -434,7 +359,7 @@ export function CalendarView({
                 setSelectedFundraiserId((event as CalendarEvent).id);
               }
             }}
-            dayLayoutAlgorithm={wideOverlapDayLayout}
+            dayLayoutAlgorithm="overlap"
             eventPropGetter={(event) =>
               eventStyleGetter(event, organizationNames, currentView)
             }

@@ -103,6 +103,7 @@ export const eventStyleGetter = (
       borderRadius: "5px",
       padding: "9px",
       color: "black",
+      boxShadow: "0 0 0 1px white",
     },
   };
 };
@@ -166,11 +167,13 @@ export function CalendarEventComponent({
   return (
     <div className="flex flex-col gap-[13px] text-black">
       <div className="flex flex-col gap-[5px]">
-        <div className="flex items-center gap-[3px] text-[12px] leading-[15px]">
+        <div className="flex min-w-0 items-center gap-[3px] text-[12px] leading-[15px]">
           <ShoppingBag className="size-3 shrink-0" />
-          Pick Up
+          <span className="truncate">Pick Up</span>
         </div>
-        <p className="text-[13px] font-bold leading-[16px]">{event.title}</p>
+        <p className="line-clamp-3 break-normal text-[13px] font-bold leading-[16px]">
+          {event.title}
+        </p>
       </div>
       <div className="flex flex-col gap-[5px] text-[10px] leading-[13px]">
         <PickupDetailRow
