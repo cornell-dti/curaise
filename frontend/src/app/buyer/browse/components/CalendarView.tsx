@@ -2,10 +2,12 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Calendar as BigCalendar,
+  DateHeaderProps,
   momentLocalizer,
   View,
   Views,
 } from "react-big-calendar";
+import { isToday } from "date-fns";
 import moment from "moment";
 import { CalendarDays, ChevronDown } from "lucide-react";
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -18,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { z } from "zod";
 import {
   BasicFundraiserSchema,
@@ -43,16 +46,17 @@ import {
 import { getOrganizationColor } from "./browse-utils";
 
 export interface CalendarEvent {
+  id: string;
+  type: "pickup" | "buying";
   title: string;
   start: Date;
   end: Date;
   allDay: boolean;
   organization: string;
-  id: string;
-  location: string;
+  locations: string[];
 }
 
-const isPickupEvent = (event: CalendarEvent) => event.title.includes("Pick Up");
+const SCROLL_TO_TIME = new Date(1970, 0, 1, 10);
 
 function wideOverlapDayLayout({
   events,
@@ -142,6 +146,25 @@ function CalendarDayHeader({ date }: { date: Date }) {
   );
 }
 
+function CalendarMonthDateHeader({
+  date,
+  label,
+  onDrillDown,
+}: DateHeaderProps) {
+  return (
+    <button
+      type="button"
+      onClick={onDrillDown}
+      className={cn(
+        "inline-flex size-[27px] items-center justify-center rounded-[6px] text-[15px] font-normal leading-[22px]",
+        isToday(date) ? "bg-[#568165] text-white" : "text-black",
+      )}
+    >
+      {label}
+    </button>
+  );
+}
+
 type FundraiserWithItems = z.infer<typeof BasicFundraiserSchema> & {
   items: z.infer<typeof CompleteItemSchema>[];
 };
@@ -175,27 +198,38 @@ export function CalendarView({
   });
 
   const events: CalendarEvent[] = fundraisers.flatMap((fundraiser) => {
-    const pickups: CalendarEvent[] = fundraiser.pickupEvents.map((pickup) => ({
-      title: fundraiser.name + " Pick Up",
-      allDay: false,
-      start: pickup.startsAt,
-      end: pickup.endsAt,
-      organization: fundraiser.organization.name,
-      id: fundraiser.id,
-      location: pickup.location,
-    }));
+    const pickupsByTime = new Map<string, CalendarEvent>();
+    for (const pickup of fundraiser.pickupEvents) {
+      const key = `${pickup.startsAt.getTime()}-${pickup.endsAt.getTime()}`;
+      const existing = pickupsByTime.get(key);
+      if (existing) {
+        existing.locations.push(pickup.location);
+      } else {
+        pickupsByTime.set(key, {
+          id: fundraiser.id,
+          type: "pickup",
+          title: fundraiser.name,
+          start: pickup.startsAt,
+          end: pickup.endsAt,
+          allDay: false,
+          organization: fundraiser.organization.name,
+          locations: [pickup.location],
+        });
+      }
+    }
 
     const buyingPeriod: CalendarEvent = {
-      title: fundraiser.name + " Buying Period",
-      allDay: true,
+      id: fundraiser.id,
+      type: "buying",
+      title: fundraiser.name,
       start: fundraiser.buyingStartsAt,
       end: fundraiser.buyingEndsAt,
+      allDay: true,
       organization: fundraiser.organization.name,
-      id: fundraiser.id,
-      location: "",
+      locations: [],
     };
 
-    return [...pickups, buyingPeriod];
+    return [...pickupsByTime.values(), buyingPeriod];
   });
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -381,7 +415,13 @@ export function CalendarView({
         >
           <BigCalendar
             localizer={localizer}
-            events={events}
+            events={
+              currentView === Views.MONTH
+                ? events
+                    .filter((event) => event.type === "pickup")
+                    .map((event) => ({ ...event, end: event.start }))
+                : events
+            }
             startAccessor="start"
             endAccessor="end"
             view={currentView}
@@ -396,13 +436,10 @@ export function CalendarView({
             }}
             dayLayoutAlgorithm={wideOverlapDayLayout}
             eventPropGetter={(event) =>
-              eventStyleGetter(
-                event,
-                organizationNames,
-                currentView,
-                isPickupEvent(event),
-              )
+              eventStyleGetter(event, organizationNames, currentView)
             }
+            scrollToTime={SCROLL_TO_TIME}
+            showMultiDayTimes
             popup
             style={{ height: "100%", overflow: "auto" }}
             views={[Views.MONTH, Views.WEEK, Views.DAY]}
@@ -414,18 +451,23 @@ export function CalendarView({
               day: {
                 header: CalendarDayHeader,
               },
+              month: {
+                dateHeader: CalendarMonthDateHeader,
+              },
               event: ({ event }) => (
                 <CalendarEventComponent
                   event={event}
                   currentView={currentView}
                   organizationNames={organizationNames}
-                  isPickupEvent={isPickupEvent(event)}
                 />
               ),
             }}
             formats={{
               timeGutterFormat: "h A",
+              dateFormat: "D",
               eventTimeRangeFormat: () => "",
+              eventTimeRangeStartFormat: () => "",
+              eventTimeRangeEndFormat: () => "",
               dayRangeHeaderFormat: ({ start, end }) =>
                 `${moment(start).format("MMM DD")} - ${moment(end).format("MMM DD")}`,
             }}

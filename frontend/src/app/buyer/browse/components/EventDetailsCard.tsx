@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { format } from "date-fns";
 import { MapPin, Tag, X, type LucideIcon } from "lucide-react";
 import { z } from "zod";
 import { BasicFundraiserSchema, CompleteItemSchema } from "common";
+import { formatTimeRange } from "./browse-utils";
 
 type Fundraiser = z.infer<typeof BasicFundraiserSchema>;
 type Item = z.infer<typeof CompleteItemSchema>;
@@ -12,10 +12,6 @@ const VISIBLE_ITEM_COUNT = 2;
 
 function formatPrice(price: number) {
   return Number.isInteger(price) ? `$${price}` : `$${price.toFixed(2)}`;
-}
-
-function formatTime(date: Date) {
-  return format(date, date.getMinutes() === 0 ? "h a" : "h:mm a");
 }
 
 function getPriceRange(items: Item[]) {
@@ -115,8 +111,7 @@ export function EventDetailsCard({
       <Section label="Pickup Details">
         {fundraiser.pickupEvents.map((pickup) => (
           <DetailRow key={pickup.id} icon={MapPin}>
-            {pickup.location}, {formatTime(pickup.startsAt)} -{" "}
-            {formatTime(pickup.endsAt)}
+            {pickup.location}, {formatTimeRange(pickup.startsAt, pickup.endsAt)}
           </DetailRow>
         ))}
       </Section>

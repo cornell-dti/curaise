@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { BasicFundraiserSchema, BasicOrganizationSchema } from "common";
-import { isPast } from "date-fns";
+import { format, isPast } from "date-fns";
 import { CupSoda, Hamburger, Lollipop, Scissors } from "lucide-react";
 
 type Fundraiser = z.infer<typeof BasicFundraiserSchema>;
@@ -34,6 +34,18 @@ const FALLBACK_ORGANIZATION_COLOR = "#3174ad";
 export function getOrganizationColor(index: number): string {
   if (index < 0) return FALLBACK_ORGANIZATION_COLOR;
   return organizationColors[index % organizationColors.length];
+}
+
+export function formatTime(date: Date): string {
+  return format(date, date.getMinutes() === 0 ? "h a" : "h:mm a");
+}
+
+export function formatCompactTime(date: Date): string {
+  return format(date, date.getMinutes() === 0 ? "ha" : "h:mma");
+}
+
+export function formatTimeRange(start: Date, end: Date): string {
+  return `${formatTime(start)} - ${formatTime(end)}`;
 }
 
 export type Filters = {

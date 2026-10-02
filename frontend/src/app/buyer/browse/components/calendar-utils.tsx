@@ -1,9 +1,11 @@
 import { View, Views } from "react-big-calendar";
 import { CalendarEvent } from "./CalendarView";
-import { Clock3, MapPin } from "lucide-react";
-import { cn } from "@/lib/utils";
-import moment from "moment";
-import { getOrganizationColor } from "./browse-utils";
+import { Clock3, FileText, MapPin, ShoppingBag } from "lucide-react";
+import {
+  formatCompactTime,
+  formatTimeRange,
+  getOrganizationColor,
+} from "./browse-utils";
 
 function hexToHSL(hex: string) {
   let r = 0,
@@ -65,118 +67,129 @@ export const eventStyleGetter = (
   event: CalendarEvent,
   organizationNames: string[],
   currentView: View,
-  isPickupEvent: boolean,
 ) => {
-  const backgroundColor = getOrganizationColor(
+  const color = getOrganizationColor(
     organizationNames.indexOf(event.organization),
   );
+  const lightColor = `color-mix(in srgb, ${color} 30%, white)`;
 
-  const isMonthPickup = currentView === Views.MONTH && isPickupEvent;
+  if (currentView === Views.MONTH && event.type === "pickup") {
+    return {
+      className: "calendar-month-pickup-event",
+      style: {
+        backgroundColor: "transparent",
+        border: "none",
+        boxShadow: "none",
+      },
+    };
+  }
+
+  if (event.type === "buying") {
+    return {
+      style: {
+        backgroundColor: lightColor,
+        border: `1px solid ${color}`,
+        borderRadius: "3px",
+        padding: "3px 4px",
+        color: "black",
+      },
+    };
+  }
 
   return {
-    className: isMonthPickup ? "calendar-month-pickup-event" : undefined,
     style: {
-      backgroundColor: isMonthPickup
-        ? "transparent"
-        : `color-mix(in srgb, ${backgroundColor} 70%, white)`,
-      opacity: 1,
-      border: isMonthPickup
-        ? "none"
-        : currentView !== Views.MONTH
-          ? `2px solid ${backgroundColor}`
-          : `none`,
-      borderRadius: currentView !== Views.MONTH ? "6px" : "2px",
-      boxShadow: isMonthPickup ? "none" : undefined,
+      backgroundColor: lightColor,
+      border: `1px solid ${color}`,
+      borderRadius: "5px",
+      padding: "9px",
+      color: "black",
     },
   };
 };
+
+function PickupDetailRow({
+  icon,
+  children,
+}: {
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-[3px]">
+      {icon}
+      <span className="truncate">{children}</span>
+    </div>
+  );
+}
 
 export function CalendarEventComponent({
   event,
   currentView,
   organizationNames,
-  isPickupEvent,
 }: {
   event: CalendarEvent;
   currentView: View;
   organizationNames: string[];
-  isPickupEvent: boolean;
 }) {
+  const color = getOrganizationColor(
+    organizationNames.indexOf(event.organization),
+  );
+
+  if (event.type === "buying") {
+    return (
+      <div className="flex min-w-0 items-center gap-[5px] text-[12px] leading-[15px] text-black">
+        <FileText className="size-3 shrink-0" />
+        <span className="truncate">
+          Pre-Order Form | <span className="font-bold">{event.title}</span>
+        </span>
+      </div>
+    );
+  }
+
+  if (currentView === Views.MONTH) {
+    return (
+      <div className="flex min-w-0 items-center gap-[3px] pl-1 text-[12px] leading-[20px] text-black">
+        <span
+          className="size-[9px] shrink-0 rounded-[1px]"
+          style={{ backgroundColor: color }}
+        />
+        <span className="truncate">
+          <span className="font-semibold">
+            {formatCompactTime(event.start)}
+          </span>{" "}
+          {event.title}
+        </span>
+      </div>
+    );
+  }
+
   return (
-    <div
-      style={{
-        fontSize: "12px",
-        lineHeight: "1.2",
-        fontFamily: "DM Sans, sans-serif",
-        cursor: "pointer",
-      }}
-    >
-      {currentView === Views.MONTH && isPickupEvent ? (
-        <div className="flex items-center gap-1 pl-1">
-          <span
-            className="block h-2 w-2 shrink-0"
-            style={{
-              backgroundColor: getOrganizationColor(
-                organizationNames.indexOf(event.organization),
-              ),
-            }}
-          />
-          <span className="truncate font-medium text-black">
-            {moment(event.start).format("h:mm A")}{" "}
-            <span className="font-normal">{event.title}</span>
-          </span>
+    <div className="flex flex-col gap-[13px] text-black">
+      <div className="flex flex-col gap-[5px]">
+        <div className="flex items-center gap-[3px] text-[12px] leading-[15px]">
+          <ShoppingBag className="size-3 shrink-0" />
+          Pick Up
         </div>
-      ) : (
-        <>
-          <div
-            style={{
-              fontWeight: currentView !== Views.MONTH ? "700" : "600",
-              fontSize: currentView == Views.DAY ? "16px" : "12px",
-            }}
-          >
-            {event.title}
-          </div>
-          {currentView !== Views.MONTH && event.title.includes("Pick Up") && (
-            <div className="flex flex-col py-1 gap-1">
-              <div
-                style={{
-                  fontSize: currentView == Views.DAY ? "14px" : "10px",
-                  opacity: 0.9,
-                }}
-              >
-                {event.organization}
-              </div>
-              <div
-                className={cn(
-                  "flex gap-1",
-                  currentView == Views.DAY ? "text-[14px]" : "text-[10px]",
-                )}
-              >
-                <MapPin
-                  className={cn(
-                    currentView == Views.DAY ? "h-4 w-4" : "h-3 w-3",
-                  )}
-                />{" "}
-                {event.location}
-              </div>
-              <div
-                className={cn(
-                  "flex gap-1",
-                  currentView == Views.DAY ? "text-[14px]" : "text-[10px]",
-                )}
-              >
-                <Clock3
-                  className={cn(
-                    currentView == Views.DAY ? "h-4 w-4" : "h-3 w-3",
-                  )}
-                />
-                {moment(event.start).format("h:mm A")} -{" "}
-                {moment(event.end).format("h:mm A")}
-              </div>
-            </div>
-          )}
-        </>
-      )}
+        <p className="text-[13px] font-bold leading-[16px]">{event.title}</p>
+      </div>
+      <div className="flex flex-col gap-[5px] text-[10px] leading-[13px]">
+        <PickupDetailRow
+          icon={
+            <span
+              className="size-[9px] shrink-0 rounded-full"
+              style={{ backgroundColor: color }}
+            />
+          }
+        >
+          {event.organization}
+        </PickupDetailRow>
+        <PickupDetailRow icon={<MapPin className="size-[10px] shrink-0" />}>
+          {event.locations.join(", ")}
+        </PickupDetailRow>
+        <PickupDetailRow icon={<Clock3 className="size-[10px] shrink-0" />}>
+          {formatTimeRange(event.start, event.end)}
+        </PickupDetailRow>
+      </div>
     </div>
   );
 }
