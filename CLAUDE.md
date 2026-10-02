@@ -158,7 +158,7 @@ All API contracts defined in `/common/schemas/` using Zod:
   └── /page.tsx       # Landing page
 ```
 
-**Protected routes**: `/buyer/**` and `/seller/**` require authentication (enforced by middleware)
+**Protected routes**: `/buyer`, `/buyer/order/**`, `/account`, `/account-actions` and `/seller/**` require authentication (enforced by the matcher in `frontend/src/middleware.ts`). Other buyer pages, such as `/buyer/browse`, are public.
 
 ### State Management
 
