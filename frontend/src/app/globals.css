@@ -212,8 +212,12 @@ body {
   align-items: center;
 }
 
+.rbc-overlay {
+  max-width: 300px;
+}
+
 .my-calendar .rbc-month-view .rbc-event.calendar-month-pickup-event,
-.my-calendar .rbc-overlay .rbc-event.calendar-month-pickup-event {
+.rbc-overlay .rbc-event.calendar-month-pickup-event {
   min-height: auto;
   padding: 2px 0;
   margin: 0;

@@ -58,6 +58,28 @@ export interface CalendarEvent {
 
 const SCROLL_TO_TIME = new Date(1970, 0, 1, 10);
 
+type EventAnchor = {
+  getBoundingClientRect: () => DOMRect;
+  contextElement?: Element;
+};
+
+function createClickAnchor(
+  element: HTMLElement,
+  nativeEvent: Event,
+): EventAnchor {
+  const clickOffset =
+    nativeEvent instanceof MouseEvent
+      ? nativeEvent.clientY - element.getBoundingClientRect().top
+      : 0;
+  return {
+    contextElement: element,
+    getBoundingClientRect: () => {
+      const rect = element.getBoundingClientRect();
+      return new DOMRect(rect.left, rect.top + clickOffset, rect.width, 0);
+    },
+  };
+}
+
 function CalendarDayHeader({ date }: { date: Date }) {
   return (
     <div className="flex flex-col items-center leading-tight h-[70px]">
@@ -118,7 +140,7 @@ export function CalendarView({
   const [selectedFundraiserId, setSelectedFundraiserId] = useState<
     string | null
   >(null);
-  const selectedEventRef = useRef<Pick<HTMLElement, "getBoundingClientRect">>({
+  const selectedEventRef = useRef<EventAnchor>({
     getBoundingClientRect: () => new DOMRect(),
   });
 
@@ -355,7 +377,10 @@ export function CalendarView({
             onNavigate={onSelectedDateChange}
             onSelectEvent={(event, domEvent) => {
               if (currentView !== Views.MONTH) {
-                selectedEventRef.current = domEvent.currentTarget as HTMLElement;
+                selectedEventRef.current = createClickAnchor(
+                  domEvent.currentTarget as HTMLElement,
+                  domEvent.nativeEvent,
+                );
                 setSelectedFundraiserId((event as CalendarEvent).id);
               }
             }}
