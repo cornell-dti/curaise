@@ -143,13 +143,12 @@ describe("User Router E2E Tests", () => {
             id: "423e4567-e89b-12d3-a456-426614174000",
             name: "Test Fundraiser",
             description: "Test description",
+            published: true,
             goalAmount: 1000,
             imageUrls: ["https://example.com/image.jpg"],
-            pickupLocation: "Test Location",
             buyingStartsAt: new Date("2024-01-01"),
             buyingEndsAt: new Date("2024-12-31"),
-            pickupStartsAt: new Date("2024-12-01"),
-            pickupEndsAt: new Date("2024-12-31"),
+            pickupEvents: [],
             organization: createMockOrganization(),
           },
         },
@@ -218,6 +217,7 @@ describe("User Router E2E Tests", () => {
       });
 
       const mockOrganizations = [createMockOrganization()];
+      prismaMock.pendingUser.findMany.mockResolvedValue([]);
       prismaMock.organization.findMany.mockResolvedValue(mockOrganizations);
 
       const response = await request(app)
@@ -270,7 +270,6 @@ describe("User Router E2E Tests", () => {
       const updatedUser = {
         ...mockUser,
         name: "Updated Name",
-        venmoUsername: "updated-venmo",
       };
 
       prismaMock.user.update.mockResolvedValue(updatedUser);
@@ -280,7 +279,6 @@ describe("User Router E2E Tests", () => {
         .set("Authorization", "Bearer valid-token")
         .send({
           name: "Updated Name",
-          venmoUsername: "updated-venmo",
         })
         .expect(200);
 
@@ -288,7 +286,6 @@ describe("User Router E2E Tests", () => {
       expect(response.body.data).toMatchObject({
         id: mockUser.id,
         name: "Updated Name",
-        venmoUsername: "updated-venmo",
       });
     });
 
@@ -301,7 +298,7 @@ describe("User Router E2E Tests", () => {
       const response = await request(app)
         .post(`/api/user/${mockUser.id}`)
         .set("Authorization", "Bearer valid-token")
-        .send({ venmoUsername: "updated-venmo" })
+        .send({})
         .expect(400);
 
       expect(response.body.message).toContain("Invalid schema");
@@ -322,66 +319,5 @@ describe("User Router E2E Tests", () => {
       expect(response.body.message).toContain("Invalid schema");
     });
 
-    it("should return 400 when venmoUsername is too short", async () => {
-      const mockUser = createMockUser();
-      mockSupabaseAuth.getUser.mockResolvedValue({
-        data: { user: createMockSupabaseUser(mockUser.id) },
-      });
-
-      const response = await request(app)
-        .post(`/api/user/${mockUser.id}`)
-        .set("Authorization", "Bearer valid-token")
-        .send({
-          name: "Updated Name",
-          venmoUsername: "abc", // Less than 5 characters
-        })
-        .expect(400);
-
-      expect(response.body.message).toContain("Invalid schema");
-    });
-
-    it("should return 400 when venmoUsername is too long", async () => {
-      const mockUser = createMockUser();
-      mockSupabaseAuth.getUser.mockResolvedValue({
-        data: { user: createMockSupabaseUser(mockUser.id) },
-      });
-
-      const response = await request(app)
-        .post(`/api/user/${mockUser.id}`)
-        .set("Authorization", "Bearer valid-token")
-        .send({
-          name: "Updated Name",
-          venmoUsername: "a".repeat(31), // More than 30 characters
-        })
-        .expect(400);
-
-      expect(response.body.message).toContain("Invalid schema");
-    });
-
-    it("should accept empty string for venmoUsername", async () => {
-      const mockUser = createMockUser();
-      mockSupabaseAuth.getUser.mockResolvedValue({
-        data: { user: createMockSupabaseUser(mockUser.id) },
-      });
-
-      const updatedUser = {
-        ...mockUser,
-        name: "Updated Name",
-        venmoUsername: null,
-      };
-
-      prismaMock.user.update.mockResolvedValue(updatedUser);
-
-      const response = await request(app)
-        .post(`/api/user/${mockUser.id}`)
-        .set("Authorization", "Bearer valid-token")
-        .send({
-          name: "Updated Name",
-          venmoUsername: "", // Empty string should be transformed to undefined
-        })
-        .expect(200);
-
-      expect(response.body.message).toBe("User updated");
-    });
   });
 });

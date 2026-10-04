@@ -109,13 +109,12 @@ describe("User Services", () => {
             id: "423e4567-e89b-12d3-a456-426614174000",
             name: "Test Fundraiser",
             description: "A test fundraiser",
+            published: true,
             goalAmount: 1000,
             imageUrls: ["https://example.com/image.jpg"],
-            pickupLocation: "Test Location",
             buyingStartsAt: new Date("2024-01-01"),
             buyingEndsAt: new Date("2024-12-31"),
-            pickupStartsAt: new Date("2024-12-01"),
-            pickupEndsAt: new Date("2024-12-31"),
+            pickupEvents: [],
             organization: createMockOrganization(),
           },
         },
@@ -137,13 +136,11 @@ describe("User Services", () => {
               id: true,
               name: true,
               description: true,
+              published: true,
               goalAmount: true,
               imageUrls: true,
-              pickupLocation: true,
               buyingStartsAt: true,
               buyingEndsAt: true,
-              pickupStartsAt: true,
-              pickupEndsAt: true,
               organization: {
                 select: {
                   id: true,
@@ -153,6 +150,16 @@ describe("User Services", () => {
                   logoUrl: true,
                 },
               },
+              pickupEvents: {
+                orderBy: {
+                  startsAt: "asc",
+                },
+              },
+            },
+          },
+          referral: {
+            include: {
+              referrer: true,
             },
           },
         },
@@ -214,13 +221,11 @@ describe("User Services", () => {
       const updateData = {
         userId: mockUser.id,
         name: "Updated Name",
-        venmoUsername: "updated-venmo",
       };
 
       prismaMock.user.update.mockResolvedValue({
         ...mockUser,
         name: updateData.name,
-        venmoUsername: updateData.venmoUsername,
       });
 
       const result = await updateUser(updateData);
@@ -228,39 +233,11 @@ describe("User Services", () => {
       expect(result).toMatchObject({
         id: mockUser.id,
         name: "Updated Name",
-        venmoUsername: "updated-venmo",
       });
       expect(prismaMock.user.update).toHaveBeenCalledWith({
         where: { id: mockUser.id },
         data: {
           name: updateData.name,
-          venmoUsername: updateData.venmoUsername,
-        },
-      });
-    });
-
-    it("should set venmoUsername to null when undefined", async () => {
-      const mockUser = createMockUser();
-      const updateData = {
-        userId: mockUser.id,
-        name: "Updated Name",
-        venmoUsername: undefined,
-      };
-
-      prismaMock.user.update.mockResolvedValue({
-        ...mockUser,
-        name: updateData.name,
-        venmoUsername: null,
-      });
-
-      const result = await updateUser(updateData);
-
-      expect(result?.venmoUsername).toBeNull();
-      expect(prismaMock.user.update).toHaveBeenCalledWith({
-        where: { id: mockUser.id },
-        data: {
-          name: updateData.name,
-          venmoUsername: null,
         },
       });
     });

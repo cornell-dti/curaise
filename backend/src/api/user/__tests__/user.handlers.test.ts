@@ -104,13 +104,12 @@ describe("User Handlers", () => {
             id: "423e4567-e89b-12d3-a456-426614174000",
             name: "Test Fundraiser",
             description: "Test description",
+            published: true,
             goalAmount: 1000,
             imageUrls: ["https://example.com/image.jpg"],
-            pickupLocation: "Test Location",
             buyingStartsAt: new Date("2024-01-01"),
             buyingEndsAt: new Date("2024-12-31"),
-            pickupStartsAt: new Date("2024-12-01"),
-            pickupEndsAt: new Date("2024-12-31"),
+            pickupEvents: [],
             organization: createMockOrganization(),
           },
         },
@@ -274,7 +273,6 @@ describe("User Handlers", () => {
         params: { id: mockUser.id },
         body: {
           name: "Updated Name",
-          venmoUsername: "updated-venmo",
         },
       };
       mockRes.locals.user = createMockSupabaseUser(mockUser.id);
@@ -282,7 +280,6 @@ describe("User Handlers", () => {
       const updatedUser = {
         ...mockUser,
         name: "Updated Name",
-        venmoUsername: "updated-venmo",
       };
 
       (userServices.updateUser as jest.Mock).mockResolvedValue(updatedUser);
@@ -295,13 +292,11 @@ describe("User Handlers", () => {
         data: expect.objectContaining({
           id: mockUser.id,
           name: "Updated Name",
-          venmoUsername: "updated-venmo",
         }),
       });
       expect(userServices.updateUser).toHaveBeenCalledWith({
         userId: mockUser.id,
         name: "Updated Name",
-        venmoUsername: "updated-venmo",
       });
     });
 

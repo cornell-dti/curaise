@@ -39,7 +39,7 @@ export const createMockSupabaseUser = (
   userId: string = "123e4567-e89b-12d3-a456-426614174000"
 ) => ({
   id: userId,
-  email: "test@example.com",
+  email: "test@cornell.edu",
   aud: "authenticated",
   role: "authenticated",
   app_metadata: {},

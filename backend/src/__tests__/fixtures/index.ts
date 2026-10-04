@@ -1,4 +1,4 @@
-import { User, Order, Organization } from "@prisma/client";
+import { User, Order, Organization } from "../../generated/client";
 
 /**
  * Test data factory functions
@@ -20,7 +20,6 @@ export const createMockUser = (overrides?: Partial<User>): User => ({
   id: "123e4567-e89b-12d3-a456-426614174000",
   email: "test@example.com",
   name: "Test User",
-  venmoUsername: null,
   createdAt: new Date("2024-01-01T00:00:00.000Z"),
   ...overrides,
 });
@@ -83,6 +82,7 @@ export const createMockOrder = (overrides?: Partial<Order>): Order => ({
   pickedUp: false,
   buyerId: "123e4567-e89b-12d3-a456-426614174000",
   fundraiserId: "423e4567-e89b-12d3-a456-426614174000",
+  referralId: null,
   createdAt: new Date("2024-01-01T00:00:00.000Z"),
   updatedAt: new Date("2024-01-01T00:00:00.000Z"),
   ...overrides,
