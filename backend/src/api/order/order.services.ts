@@ -1,4 +1,4 @@
-import { Prisma } from "../../generated/client";
+import { Prisma, PaymentMethod } from "../../generated/client";
 import { prisma } from "../../utils/prisma";
 import { CreateOrderBody } from "common";
 import { z } from "zod";
@@ -460,7 +460,10 @@ export const undoOrderPickup = async (orderId: string) => {
   return order;
 };
 
-export const confirmOrderPayment = async (orderId: string) => {
+export const confirmOrderPayment = async (
+  orderId: string,
+  paymentMethod?: PaymentMethod,
+) => {
   const order = await prisma.$transaction(
     async (tx) => {
       const existingOrder = await tx.order.findUnique({
@@ -492,6 +495,7 @@ export const confirmOrderPayment = async (orderId: string) => {
         where: { id: orderId },
         data: {
           paymentStatus: "CONFIRMED",
+          ...(paymentMethod && { paymentMethod }),
         },
         include: {
           buyer: true,
@@ -560,6 +564,7 @@ export const getUnremindedUnpaidOrders = async () => {
     where: {
       paymentStatus: "PENDING",
       paymentMethod: "VENMO",
+      paymentMismatchAt: null,
       createdAt: {
         gte: twoHoursAgo,
         lte: oneHourAgo,
@@ -631,4 +636,31 @@ export const calculateOrderTotal = async (
   );
 
   return total;
+};
+
+/**
+ * Flag an order as having received a Venmo payment that doesn't match its
+ * expected total. Leaves paymentStatus as-is (PENDING) so an admin can
+ * resolve it manually via confirmOrderPayment once the discrepancy is sorted out.
+ */
+export const recordOrderPaymentMismatch = async (
+  orderId: string,
+  paidAmount: Decimal,
+) => {
+  return prisma.order.update({
+    where: { id: orderId },
+    data: {
+      paidAmount: paidAmount.toNumber(),
+      paymentMismatchAt: new Date(),
+    },
+    include: {
+      buyer: true,
+      fundraiser: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
 };
