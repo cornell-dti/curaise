@@ -80,8 +80,11 @@ export function filterFundraisers<T extends Fundraiser>(
   // Apply search query 
   if (searchQuery) {
     const query = searchQuery.toLowerCase();
-    filtered = filtered.filter((fundraiser) =>
-      fundraiser.name.toLowerCase().includes(query),
+    filtered = filtered.filter(
+      (fundraiser) =>
+        fundraiser.name.toLowerCase().includes(query) ||
+        fundraiser.organization.name.toLowerCase().includes(query) ||
+        fundraiser.description.toLowerCase().includes(query),
     );
   }
 

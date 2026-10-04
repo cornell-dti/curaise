@@ -25,6 +25,7 @@ organizationRouter.get("/", asyncHandler(getAllOrganizationsHandler));
 organizationRouter.get(
   "/:id",
   validate({ params: OrganizationRouteParams }),
+  authenticateOptional,
   asyncHandler(getOrganizationHandler),
 );
 
