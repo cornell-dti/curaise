@@ -1,12 +1,29 @@
 # CURaise
 
-New here? Start with [docs/ONBOARDING.md](docs/ONBOARDING.md).
+Fundraising platform for Cornell student orgs. Sellers set up a fundraiser with items and pickup times, buyers order and pay (Venmo, Zelle, cash), sellers confirm payments and track pickups. Live at [curaise.app](https://curaise.app).
+
+Monorepo: `frontend/` (Next.js), `backend/` (Express + Prisma on Supabase Postgres), `common/` (shared Zod schemas).
+
+## Run locally
+
+Full setup in [docs/ONBOARDING.md](docs/ONBOARDING.md). Short version, once you have Node 22, pnpm 10, and the `.env.dev` files from the TPM:
+
+```bash
+pnpm assemble            # install, build common, generate Prisma client
+cd backend && pnpm dev   # terminal 1, port 3000
+cd frontend && pnpm dev  # terminal 2, port 8080
+```
+
+## Links
+
+- [Notion hub](https://app.notion.com/p/9a55cb3ba5834b70bf7ab73777198e31) (DTI members)
+- [Production](https://curaise.app)
 
 ## Contributors
 
 ### Fall 2026
 - William Chen (Designer)
-- Eddie Hu (Developer)
+- Eddie Hu (TPM)
 - Emir Icyer (Developer)
 - Jimin Kim (Developer)
 - Angela Koo (APM)
@@ -14,7 +31,7 @@ New here? Start with [docs/ONBOARDING.md](docs/ONBOARDING.md).
 - Amber Shen (Developer)
 - Arsh Singh (TPM)
 - Andrew Wilmott (PM)
-- Steven Yu (TPM)
+- Steven Yu (Advisor)
 
 ### Spring 2026
 - Frank Dai (Developer)
