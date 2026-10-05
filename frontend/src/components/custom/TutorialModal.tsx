@@ -24,7 +24,7 @@ const slides: Slide[] = [
       "Sign in with your @cornell.edu email — non-Cornell emails are not supported.",
       "After signing in, you'll be taken to your Orders page automatically.",
     ],
-    youtubeId: "",
+    youtubeId: "gdkUV724hmA",
   },
 
   // Seller: Organizations
@@ -51,7 +51,7 @@ const slides: Slide[] = [
       "Add admins who already have a CURaise account by searching their email.",
       "You can also invite admins who don't have accounts yet — they'll receive an email invitation to join.",
     ],
-    youtubeId: "",
+    youtubeId: "-pfcc_-1Ryw",
   },
   {
     section: "Seller",
@@ -99,7 +99,7 @@ const slides: Slide[] = [
       "Follow the instructions in the email to set up Venmo payment forwarding.",
       "This enables automatic Venmo payment confirmation for your orders.",
     ],
-    youtubeId: "",
+    youtubeId: "sZHxcb4GycA",
   },
   {
     section: "Seller",
@@ -137,7 +137,7 @@ const slides: Slide[] = [
       "Click Place Order to submit — make sure to confirm before leaving the page.",
       "Go to Orders to see all your orders.",
     ],
-    youtubeId: "",
+    youtubeId: "LKRVca-9-nE",
   },
   {
     section: "Buyer",
@@ -148,7 +148,7 @@ const slides: Slide[] = [
       "Click Pay with Venmo — the amount and recipient fields are pre-filled automatically.",
       "After paying, return to the Order Details page — the payment badge should automatically update to Confirmed.",
     ],
-    youtubeId: "",
+    youtubeId: "yX4sLNSDjn4",
   },
 
   // Seller: Check-In
@@ -171,7 +171,7 @@ const slides: Slide[] = [
       "You can also manually mark cash payments as received.",
       "Use the filters on the orders table to view by payment status or pickup status.",
     ],
-    youtubeId: "",
+    youtubeId: "T1FcSx0GeYo",
   },
   {
     section: "Seller",
@@ -193,7 +193,7 @@ const slides: Slide[] = [
       "Add yourself as a referrer in the cart.",
       "Copy your referral link and share it — when someone opens it, your name is auto-filled as the referrer.",
     ],
-    youtubeId: "",
+    youtubeId: "lLGc3nwqNWU",
   },
 
   // Seller: Referrals
@@ -206,7 +206,7 @@ const slides: Slide[] = [
       "Refresh the page and scroll down to see the referrals card update.",
       "At checkout, approved referrers will appear automatically and their quantities update in your seller view.",
     ],
-    youtubeId: "",
+    youtubeId: "RJw5sqnD__Y",
   },
 ];
 
