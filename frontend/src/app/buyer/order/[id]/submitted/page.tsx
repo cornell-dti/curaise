@@ -134,7 +134,9 @@ export default async function OrderSubmittedPage({
 
             <Link href={`/buyer/order/${id}`} className="w-full mt-2">
               <Button className="w-full h-[50px] rounded-[8px] bg-black hover:bg-black/90 text-[#fefdfd] text-[18px] leading-[27px] font-normal">
-                View Order Details and Pay
+                {order.paymentMethod === "VENMO"
+                  ? "View Order Details and Pay"
+                  : "View Order Details"}
               </Button>
             </Link>
           </CardContent>

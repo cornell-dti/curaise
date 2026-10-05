@@ -117,6 +117,7 @@ export function OrdersTable<TValue>({
 						title="Payment Type"
 						options={[
 							{ label: "VENMO", value: "VENMO" },
+							{ label: "ZELLE", value: "ZELLE" },
 							{ label: "OTHER", value: "OTHER" },
 						]}
 					/>

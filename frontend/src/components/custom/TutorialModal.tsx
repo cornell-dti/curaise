@@ -131,7 +131,7 @@ const slides: Slide[] = [
     title: "Checkout and Placing an Order",
     points: [
       "Return to your fundraiser and click Proceed to Checkout.",
-      "Payment Method can be Venmo or Cash In-Person (also covers Zelle and other methods).",
+      "Choose Venmo for automatic payment verification. Zelle and Cash In-Person are available but require manual verification.",
       "Adjust item quantities on the checkout page if needed.",
       "Click Place Order to submit — make sure to confirm before leaving the page.",
       "Go to Orders to see all your orders.",
