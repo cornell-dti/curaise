@@ -11,7 +11,8 @@ interface Slide {
   section: "Getting Started" | "Seller" | "Buyer";
   title: string;
   points: string[];
-  url: string;
+  /** YouTube video ID (unlisted). Empty string shows the "coming soon" placeholder. */
+  youtubeId: string;
 }
 
 const slides: Slide[] = [
@@ -23,7 +24,7 @@ const slides: Slide[] = [
       "Sign in with your @cornell.edu email — non-Cornell emails are not supported.",
       "After signing in, you'll be taken to your Orders page automatically.",
     ],
-    url: "https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/signing_in.mov",
+    youtubeId: "gdkUV724hmA",
   },
 
   // Seller: Organizations
@@ -40,7 +41,7 @@ const slides: Slide[] = [
       "To speed up approval, make sure your organization page includes a website or Instagram handle to prove it's a Cornell org.",
       "NOTE: You must NOT add an @ symbol in front of your Instagram handle",
     ],
-    url: "https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/creating_organization.mov",
+    youtubeId: "uGwif1lyIAQ",
   },
   {
     section: "Seller",
@@ -50,7 +51,7 @@ const slides: Slide[] = [
       "Add admins who already have a CURaise account by searching their email.",
       "You can also invite admins who don't have accounts yet — they'll receive an email invitation to join.",
     ],
-    url: "https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/admin_management.mov",
+    youtubeId: "-pfcc_-1Ryw",
   },
   {
     section: "Seller",
@@ -63,7 +64,7 @@ const slides: Slide[] = [
       "Go to the Pickup Events tab — you must add at least 1 pickup event before saving.",
       "Once pickup events are set, skip to the Review Fundraiser tab and click Save Fundraiser.",
     ],
-    url: "https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/creating_fundraiser.mov",
+    youtubeId: "xavgxlbEL3w",
   },
   {
     section: "Seller",
@@ -75,7 +76,7 @@ const slides: Slide[] = [
       "Click Add Venmo Info to jump directly to the Venmo Information tab.",
       "NOTE: You MUST NOT add the @ symbol in front of your venmo username.",
     ],
-    url: "https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/edit_fundraiser.mov",
+    youtubeId: "CspTb40_nt8",
   },
   {
     section: "Seller",
@@ -86,7 +87,7 @@ const slides: Slide[] = [
       "Click Review to see a preview of how your fundraiser looks.",
       "Click Save Fundraiser to save the items.",
     ],
-    url: "https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/adding-fundraising-items.mov",
+    youtubeId: "Q_Lz2YbHZ8U",
   },
   {
     section: "Seller",
@@ -98,7 +99,7 @@ const slides: Slide[] = [
       "Follow the instructions in the email to set up Venmo payment forwarding.",
       "This enables automatic Venmo payment confirmation for your orders.",
     ],
-    url: "https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/verify_venmo.mov",
+    youtubeId: "sZHxcb4GycA",
   },
   {
     section: "Seller",
@@ -110,7 +111,7 @@ const slides: Slide[] = [
       "When you're ready, click Publish Fundraiser.",
       "Return to the home page — your fundraiser now shows as an Active Fundraiser.",
     ],
-    url: "https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/publish_fundraiser.mov",
+    youtubeId: "c-39tjKz4Kc",
   },
 
   // Buyer
@@ -124,7 +125,7 @@ const slides: Slide[] = [
       "Click on items to add them to your cart — try adding, removing, and re-adding items.",
       "Browsing to a different fundraiser shows a separate cart (each organization has its own cart).",
     ],
-    url: "https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/browsing-fundraisers.mov",
+    youtubeId: "uXfL7_R6tdc",
   },
   {
     section: "Buyer",
@@ -136,7 +137,7 @@ const slides: Slide[] = [
       "Click Place Order to submit — make sure to confirm before leaving the page.",
       "Go to Orders to see all your orders.",
     ],
-    url: "https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/placing_order.mov",
+    youtubeId: "LKRVca-9-nE",
   },
   {
     section: "Buyer",
@@ -147,7 +148,7 @@ const slides: Slide[] = [
       "Click Pay with Venmo — the amount and recipient fields are pre-filled automatically.",
       "After paying, return to the Order Details page — the payment badge should automatically update to Confirmed.",
     ],
-    url: "https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/venmo_payment.mov",
+    youtubeId: "yX4sLNSDjn4",
   },
 
   // Seller: Check-In
@@ -160,7 +161,7 @@ const slides: Slide[] = [
       "Confirm that the buyer has received their item.",
       "Only organization admins can scan QR codes and see the confirmation page.",
     ],
-    url: "https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/confirm_payment.mov",
+    youtubeId: "0ekC9CGaw8o",
   },
   {
     section: "Seller",
@@ -170,7 +171,7 @@ const slides: Slide[] = [
       "You can also manually mark cash payments as received.",
       "Use the filters on the orders table to view by payment status or pickup status.",
     ],
-    url: "https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/order_management.mov",
+    youtubeId: "T1FcSx0GeYo",
   },
   {
     section: "Seller",
@@ -180,7 +181,7 @@ const slides: Slide[] = [
       "Use filters to view revenue, item breakdowns, and order counts.",
       "Filter by date range, pickup event, or payment method to analyze your fundraiser's performance.",
     ],
-    url: "https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/analytics_filter.mov",
+    youtubeId: "rAibbaBhx04",
   },
 
   // Buyer: Referrals
@@ -192,7 +193,7 @@ const slides: Slide[] = [
       "Add yourself as a referrer in the cart.",
       "Copy your referral link and share it — when someone opens it, your name is auto-filled as the referrer.",
     ],
-    url: "https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/referral_request.mov",
+    youtubeId: "lLGc3nwqNWU",
   },
 
   // Seller: Referrals
@@ -205,7 +206,7 @@ const slides: Slide[] = [
       "Refresh the page and scroll down to see the referrals card update.",
       "At checkout, approved referrers will appear automatically and their quantities update in your seller view.",
     ],
-    url: "https://zrqmplfsrshsdockyyjt.supabase.co/storage/v1/object/public/tutorial_videos/referral_management.mov",
+    youtubeId: "RJw5sqnD__Y",
   },
 ];
 
@@ -305,7 +306,7 @@ export default function TutorialModal({
           </div>
 
           {/* Video placeholder */}
-          {slide.url === "" ? (
+          {!slide.youtubeId ? (
             <div className="w-full h-64 rounded-lg bg-muted flex flex-col items-center justify-center gap-2 border border-dashed border-muted-foreground/30">
               <div className="h-10 w-10 rounded-full bg-background flex items-center justify-center shadow-sm border">
                 <Play className="h-4 w-4 text-muted-foreground ml-0.5" />
@@ -315,17 +316,16 @@ export default function TutorialModal({
               </span>{" "}
             </div>
           ) : (
-            <div className="w-full rounded-lg overflow-hidden border bg-black">
-              <video
-                className="w-full max-h-[500px] object-contain"
-                src={slide.url}
-                controls
-                controlsList="nodownload"
-                playsInline
-                preload="metadata"
-              >
-                Your browser does not support the video tag.
-              </video>
+            <div className="w-full rounded-lg overflow-hidden border bg-black aspect-video">
+              <iframe
+                key={slide.youtubeId}
+                className="w-full h-full"
+                src={`https://www.youtube-nocookie.com/embed/${slide.youtubeId}?rel=0&modestbranding=1`}
+                title={slide.title}
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
             </div>
           )}
 
