@@ -1,5 +1,9 @@
-import { FundraisersList } from "./components/FundraisersList";
-import { BasicFundraiserSchema } from "common";
+import { BrowseView } from "./components/BrowseView";
+import {
+  BasicFundraiserSchema,
+  BasicOrganizationSchema,
+  CompleteItemSchema,
+} from "common";
 import { connection } from "next/server";
 import { serverFetch } from "@/lib/fetcher";
 
@@ -13,12 +17,27 @@ export default async function BrowseFundraisersPage({
   const fundraisers = await serverFetch("/fundraiser", {
     schema: BasicFundraiserSchema.array(),
   });
+  const fundraisersWithItems = await Promise.all(
+    fundraisers.map(async (fundraiser) => ({
+      ...fundraiser,
+      items: await serverFetch(`/fundraiser/${fundraiser.id}/items`, {
+        schema: CompleteItemSchema.array(),
+      }),
+    })),
+  );
+  const organizations = await serverFetch("/organization", {
+    schema: BasicOrganizationSchema.array(),
+  });
+
   const params = await searchParams;
   const searchQuery = params.search || "";
 
   return (
-    <div className="flex flex-col px-4 md:px-[157px] py-10">
-      <FundraisersList fundraisers={fundraisers} searchQuery={searchQuery} />
-    </div>
+    <BrowseView
+      organizations={organizations}
+      fundraisers={fundraisers}
+      fundraisersWithItems={fundraisersWithItems}
+      searchQuery={searchQuery}
+    />
   );
 }

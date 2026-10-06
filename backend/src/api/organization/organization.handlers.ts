@@ -5,6 +5,7 @@ import {
   getOrganizationFundraisers,
   createOrganization,
   updateOrganization,
+  getAllOrganizations,
 } from "./organization.services";
 import {
   BasicFundraiserSchema,
@@ -19,6 +20,29 @@ import {
   sendOrganizationInviteEmail,
   sendPendingAdminInviteEmail,
 } from "../../utils/email";
+
+export const getAllOrganizationsHandler = async (
+  req: Request,
+  res: Response,
+) => {
+  const organizations = await getAllOrganizations();
+  if (!organizations) {
+    res.status(404).json({ message: "Organizations not found" });
+    return;
+  }
+
+  const parsedOrganizations =
+    BasicOrganizationSchema.array().safeParse(organizations);
+  if (!parsedOrganizations.success) {
+    res.status(500).json({ message: "Couldn't parse organizations" });
+    return;
+  }
+  const cleanredOrganizations = parsedOrganizations.data;
+
+  res
+    .status(200)
+    .json({ message: "Organizations retrieved", data: cleanredOrganizations });
+};
 
 export const getOrganizationHandler = async (
   req: Request<OrganizationRouteParams, any, {}, {}>,
