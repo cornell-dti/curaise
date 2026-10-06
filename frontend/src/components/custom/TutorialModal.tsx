@@ -320,7 +320,7 @@ export default function TutorialModal({
               <iframe
                 key={slide.youtubeId}
                 className="w-full h-full"
-                src={`https://www.youtube-nocookie.com/embed/${slide.youtubeId}?rel=0&modestbranding=1`}
+                src={`https://www.youtube-nocookie.com/embed/${slide.youtubeId}?rel=0&controls=0&playsinline=1`}
                 title={slide.title}
                 allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                 loading="lazy"
