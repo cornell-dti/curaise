@@ -1,39 +1,21 @@
 "use client";
 
-import { createClient } from "@/utils/supabase/client";
-import { useEffect, useState } from "react";
 import { signInWithGoogle, signOut } from "@/lib/auth-actions";
+import { useLoggedIn } from "@/lib/useLoggedIn";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, ChevronDown } from "lucide-react";
+import { User } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Button } from "../ui/button";
 
 type UserRole = "buyer" | "seller";
 
 export default function DesktopUserMenu({ userRole }: { userRole: UserRole }) {
-	const [loggedIn, setLoggedIn] = useState(true);
-
-	useEffect(() => {
-		const checkLoginStatus = async () => {
-			const supabase = await createClient();
-			const { data, error } = await supabase.auth.getUser();
-			if (error || !data.user) {
-				setLoggedIn(false);
-			} else {
-				setLoggedIn(true);
-			}
-		};
-		checkLoginStatus();
-	}, []);
-
-	const navigateToOrganizations = () => {
-		redirect("/seller");
-	};
+	const loggedIn = useLoggedIn();
 
 	const navigateToSettings = () => {
 		redirect("/account");
@@ -52,19 +34,15 @@ export default function DesktopUserMenu({ userRole }: { userRole: UserRole }) {
 			<DropdownMenuTrigger asChild>
 				<Button
 					variant="ghost"
-					className="flex items-center gap-1 text-base font-normal">
-					Account
-					<ChevronDown className="h-4 w-4" />
+					size="icon"
+					aria-label="Account"
+					className="rounded-full">
+					<User className="h-5 w-5" />
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="start" alignOffset={15}>
-				{loggedIn ? (
+			<DropdownMenuContent align="end">
+				{loggedIn !== false ? (
 					<>
-						<DropdownMenuItem
-							onClick={navigateToOrganizations}
-							className="text-base">
-							Organizations
-						</DropdownMenuItem>
 						<DropdownMenuItem
 							onClick={navigateToSettings}
 							className="text-base">
