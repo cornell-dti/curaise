@@ -9,20 +9,10 @@ import {
   CompleteOrganizationSchema,
 } from "common";
 import { format } from "date-fns";
+import { escapeHtml } from "./html";
 
 type Order = z.infer<typeof BasicOrderSchema>;
 
-/**
- * HTML escaping utility to avoid HTML injection attacks
- */
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
 // Configuration
 const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN || "curaise.app";
 const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY || "";
@@ -207,7 +197,7 @@ export const sendPendingAdminInviteEmail = async (options: {
 
     <p>To accept this invitation and manage this organization, please <a href="https://www.curaise.app">sign up for a Curaise account</a>.</p>
 
-    <p>Once you register with this email address (<strong>${email}</strong>), you'll automatically be granted administrator access to ${
+    <p>Once you register with this email address (<strong>${escapeHtml(email)}</strong>), you'll automatically be granted administrator access to ${
       escapeHtml(organization.name)
     }.</p>
 
