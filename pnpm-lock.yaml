@@ -43,6 +43,9 @@ importers:
       memjs:
         specifier: ^1.3.2
         version: 1.3.2
+      prisma:
+        specifier: ^6.4.1
+        version: 6.4.1(typescript@5.8.2)
       zod:
         specifier: ^3.24.2
         version: 3.24.2
@@ -80,9 +83,6 @@ importers:
       nodemon:
         specifier: ^3.1.9
         version: 3.1.9
-      prisma:
-        specifier: ^6.4.1
-        version: 6.4.1(typescript@5.8.2)
       supertest:
         specifier: ^7.1.4
         version: 7.3.1
