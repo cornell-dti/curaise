@@ -58,6 +58,69 @@ import {
   getCapacityIssues,
 } from "@/lib/capacity";
 
+type PaymentMethod = z.infer<typeof CreateOrderBody>["payment_method"];
+
+const paymentMethods = [
+  "VENMO",
+  "ZELLE",
+  "OTHER",
+] as const satisfies readonly PaymentMethod[];
+
+const paymentMethodLabels: Record<PaymentMethod, string> = {
+  VENMO: "Venmo",
+  ZELLE: "Zelle",
+  OTHER: "Cash In-Person",
+};
+
+function PaymentMethodIcon({ method }: { method: PaymentMethod }) {
+  if (method === "VENMO") {
+    return (
+      <svg
+        className="h-7 w-7"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-label="Venmo"
+        role="img"
+        viewBox="0 0 512 512"
+      >
+        <rect width="512" height="512" rx="15%" fill="#008CFF" />
+        <path
+          d="m381.4 105.3c11 18.1 15.9 36.7 15.9 60.3 0 75.1-64.1 172.7-116.2 241.2h-118.8l-47.6-285 104.1-9.9 25.3 202.8c23.5-38.4 52.6-98.7 52.6-139.7 0-22.5-3.9-37.8-9.9-50.4z"
+          fill="#ffffff"
+        />
+      </svg>
+    );
+  }
+
+  if (method === "ZELLE") {
+    return (
+      <div
+        className="h-7 w-7 bg-[#6d1ed4] rounded flex items-center justify-center text-white font-bold text-[15px]"
+        aria-label="Zelle"
+      >
+        Z
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="h-7 w-7 bg-green-600 rounded flex items-center justify-center text-white font-bold text-[15px]"
+      aria-label="Cash"
+    >
+      $
+    </div>
+  );
+}
+
+function PaymentMethodOption({ method }: { method: PaymentMethod }) {
+  return (
+    <div className="flex items-center gap-2">
+      <PaymentMethodIcon method={method} />
+      <span>{paymentMethodLabels[method]}</span>
+    </div>
+  );
+}
+
 export function CheckoutForm({
   token,
   fundraiser,
@@ -88,9 +151,7 @@ export function CheckoutForm({
   const [selectedReferralId, setSelectedReferralId] = useState<string>(
     initialReferralId,
   );
-  const [paymentMethod, setPaymentMethod] = useState<"VENMO" | "OTHER">(
-    "VENMO",
-  );
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("VENMO");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isReferralSheetOpen, setIsReferralSheetOpen] = useState(false);
   const [referralSearch, setReferralSearch] = useState("");
@@ -398,69 +459,20 @@ export function CheckoutForm({
             <Select
               value={paymentMethod}
               onValueChange={(value) =>
-                setPaymentMethod(value as "VENMO" | "OTHER")
+                setPaymentMethod(value as PaymentMethod)
               }
             >
               <SelectTrigger className="border-[#dddddd] rounded-[6px] w-full h-auto py-3.5 px-3.5">
                 <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-3">
-                    {paymentMethod === "VENMO" ? (
-                      <svg
-                        className="h-7 w-7"
-                        xmlns="http://www.w3.org/2000/svg"
-                        aria-label="Venmo"
-                        role="img"
-                        viewBox="0 0 512 512"
-                      >
-                        <rect
-                          width="512"
-                          height="512"
-                          rx="15%"
-                          fill="#008CFF"
-                        />
-                        <path
-                          d="m381.4 105.3c11 18.1 15.9 36.7 15.9 60.3 0 75.1-64.1 172.7-116.2 241.2h-118.8l-47.6-285 104.1-9.9 25.3 202.8c23.5-38.4 52.6-98.7 52.6-139.7 0-22.5-3.9-37.8-9.9-50.4z"
-                          fill="#ffffff"
-                        />
-                      </svg>
-                    ) : (
-                      <div className="h-7 w-7 bg-green-600 rounded flex items-center justify-center text-white font-bold text-xs text-[15px]">
-                        $
-                      </div>
-                    )}
-                    <span className="text-base">
-                      {paymentMethod === "VENMO" ? "Venmo" : "Cash In-Person"}
-                    </span>
-                  </div>
+                  <PaymentMethodOption method={paymentMethod} />
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="VENMO">
-                  <div className="flex items-center gap-2">
-                    <svg
-                      className="h-7 w-7"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-label="Venmo"
-                      role="img"
-                      viewBox="0 0 512 512"
-                    >
-                      <rect width="512" height="512" rx="15%" fill="#008CFF" />
-                      <path
-                        d="m381.4 105.3c11 18.1 15.9 36.7 15.9 60.3 0 75.1-64.1 172.7-116.2 241.2h-118.8l-47.6-285 104.1-9.9 25.3 202.8c23.5-38.4 52.6-98.7 52.6-139.7 0-22.5-3.9-37.8-9.9-50.4z"
-                        fill="#ffffff"
-                      />
-                    </svg>
-                    <span>Venmo</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="OTHER">
-                  <div className="flex items-center gap-2">
-                    <div className="h-7 w-7 bg-green-600 rounded flex items-center justify-center text-white font-bold text-[15px]">
-                      $
-                    </div>
-                    <span>Cash In-Person</span>
-                  </div>
-                </SelectItem>
+                {paymentMethods.map((method) => (
+                  <SelectItem key={method} value={method}>
+                    <PaymentMethodOption method={method} />
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -785,7 +797,7 @@ export function CheckoutForm({
                     <Select
                       value={paymentMethod}
                       onValueChange={(value) =>
-                        setPaymentMethod(value as "VENMO" | "OTHER")
+                        setPaymentMethod(value as PaymentMethod)
                       }
                     >
                       <SelectTrigger className="border-[#dddddd] rounded-[6px] w-fit h-auto py-2.5">
@@ -794,37 +806,11 @@ export function CheckoutForm({
                         </div>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="VENMO">
-                          <div className="flex items-center gap-2">
-                            <svg
-                              className="h-7 w-7"
-                              xmlns="http://www.w3.org/2000/svg"
-                              aria-label="Venmo"
-                              role="img"
-                              viewBox="0 0 512 512"
-                            >
-                              <rect
-                                width="512"
-                                height="512"
-                                rx="15%"
-                                fill="#008CFF"
-                              />
-                              <path
-                                d="m381.4 105.3c11 18.1 15.9 36.7 15.9 60.3 0 75.1-64.1 172.7-116.2 241.2h-118.8l-47.6-285 104.1-9.9 25.3 202.8c23.5-38.4 52.6-98.7 52.6-139.7 0-22.5-3.9-37.8-9.9-50.4z"
-                                fill="#ffffff"
-                              />
-                            </svg>
-                            <span>Venmo</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="OTHER">
-                          <div className="flex items-center gap-2">
-                            <div className="h-7 w-7 bg-green-600 rounded flex items-center justify-center text-white font-bold text-[15px]">
-                              $
-                            </div>
-                            <span>Cash In-Person</span>
-                          </div>
-                        </SelectItem>
+                        {paymentMethods.map((method) => (
+                          <SelectItem key={method} value={method}>
+                            <PaymentMethodOption method={method} />
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
 

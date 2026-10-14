@@ -123,22 +123,11 @@ export default async function OrderPage({
       };
     }
 
-    // If unverifiable AND venmo, show unverifiable message
+    // Zelle and cash are unverifiable, same as a Venmo payment that could not be verified.
     if (
-      order.paymentStatus === "UNVERIFIABLE" &&
-      order.paymentMethod === "VENMO"
+      order.paymentStatus === "UNVERIFIABLE" ||
+      order.paymentMethod !== "VENMO"
     ) {
-      return {
-        borderColor: "border-blue-500",
-        textColor: "text-blue-800 dark:text-blue-200",
-        title: "Order Processed",
-        message:
-          "Your order has been received. Payment will have to be manually verified by the fundraiser managers.",
-      };
-    }
-
-    // For OTHER payment method (PENDING or UNVERIFIABLE), show unverifiable messaging
-    if (order.paymentMethod === "OTHER") {
       return {
         borderColor: "border-blue-500",
         textColor: "text-blue-800 dark:text-blue-200",
