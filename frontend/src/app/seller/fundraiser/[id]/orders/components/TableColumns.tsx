@@ -29,7 +29,7 @@ import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
 import { z } from "zod";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { toast } from "sonner";
-import { mutationFetch } from "@/lib/fetcher";
+import { authFetcher, mutationFetch } from "@/lib/fetcher";
 import { useState } from "react";
 
 type Order = z.infer<typeof CompleteOrderSchema>;
@@ -44,7 +44,7 @@ export function PickupStatusCell({
 }) {
   const [showWarning, setShowWarning] = useState(false);
 
-  const { data, mutate } = useSWR(`/order/${order.id}`, null, {
+  const { data, mutate } = useSWR(`/order/${order.id}`, authFetcher(CompleteOrderSchema), {
     fallbackData: order, // Use the original order data as fallback (default)
     revalidateOnFocus: false, // Don't revalidate on focus
   });
@@ -138,7 +138,7 @@ export function PickupStatusCell({
 
 // Component for the payment status cell (received / not received / unverified)
 const PaymentStatusCell = ({ order }: { order: Order }) => {
-  const { data } = useSWR(`/order/${order.id}`, null, {
+  const { data } = useSWR(`/order/${order.id}`, authFetcher(CompleteOrderSchema), {
     fallbackData: order,
     revalidateOnFocus: false,
   });
@@ -173,7 +173,7 @@ const PaymentStatusCell = ({ order }: { order: Order }) => {
 
 // Component for the pickup status badge cell (picked up / not picked up)
 const PickupStatusBadgeCell = ({ order }: { order: Order }) => {
-  const { data } = useSWR(`/order/${order.id}`, null, {
+  const { data } = useSWR(`/order/${order.id}`, authFetcher(CompleteOrderSchema), {
     fallbackData: order,
     revalidateOnFocus: false,
   });
