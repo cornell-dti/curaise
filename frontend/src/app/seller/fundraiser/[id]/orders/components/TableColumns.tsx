@@ -272,7 +272,7 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
       );
     },
     cell: ({ row }) => (
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center whitespace-nowrap">
         {row.original.buyer.name}
       </div>
     ),
