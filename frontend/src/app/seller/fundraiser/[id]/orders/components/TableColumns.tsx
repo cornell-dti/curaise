@@ -1,6 +1,7 @@
 // @STEVEN CHECK THIS FUNCTION
 
 "use client";
+import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -135,7 +136,7 @@ export function PickupStatusCell({
   );
 }
 
-// Component for the payment status cell
+// Component for the payment status cell (received / not received / unverified)
 const PaymentStatusCell = ({ order }: { order: Order }) => {
   const { data } = useSWR(`/order/${order.id}`, null, {
     fallbackData: order,
@@ -143,45 +144,55 @@ const PaymentStatusCell = ({ order }: { order: Order }) => {
   });
 
   const paymentStatus = data?.paymentStatus as string;
-  const isPickedUp = data?.pickedUp === true;
 
-  if (isPickedUp) {
+  if (paymentStatus === "CONFIRMED") {
     return (
       <div className="flex justify-center">
         <Badge className="flex justify-center items-center min-w-[90px] bg-[#DCEBDE] text-[#086A19] rounded-full px-3 py-1 hover:bg-[#c5e0c6] hover:text-[#065a13] font-[700] text-md">
-          Picked Up
+          Received
         </Badge>
       </div>
     );
   } else if (paymentStatus === "UNVERIFIABLE") {
     return (
       <div className="flex justify-center">
-        <Badge className="flex justify-center items-center min-w-[90px] bg-[#FBE6E6] text-[#E1080B] rounded-full px-3 py-1 hover:bg-[#f5c6c6] hover:text-[#b30607] font-[700] text-md">
-          Unverifiable
-        </Badge>
-      </div>
-    );
-  } else if (paymentStatus === "PENDING") {
-    return (
-      <div className="flex justify-center">
-        <Badge className="flex justify-center items-center min-w-[90px] bg-[#FFEEC2] text-[#FEA839] rounded-full px-3 py-1 hover:bg-[#fddc9e] hover:text-[#d97a2b] font-[700] text-md">
-          Pending
-        </Badge>
-      </div>
-    );
-  } else if (paymentStatus === "CONFIRMED") {
-    return (
-      <div className="flex justify-center">
-        <Badge className="flex justify-center items-center min-w-[90px] bg-[#DCE8FB] text-[#1D5FAD] rounded-full px-3 py-1 hover:bg-[#c2daf7] hover:text-[#174a87] font-[700] text-md">
-          Not Picked Up
+        <Badge className="flex justify-center items-center min-w-[90px] bg-[#F7F7F7] text-[#959494] rounded-full px-3 py-1 hover:bg-[#e5e5e5] hover:text-[#6e6e6e] font-[700] text-md">
+          Unverified
         </Badge>
       </div>
     );
   }
   return (
     <div className="flex justify-center">
-      <Badge className="flex justify-center items-center min-w-[90px] bg-[#F7F7F7] text-[#959494] rounded-full px-3 py-1 font-[700] text-md hover:bg-[#e5e5e5] hover:text-[#6e6e6e]">
-        Unknown
+      <Badge className="flex justify-center items-center min-w-[90px] bg-[#FBE6E6] text-[#E1080B] rounded-full px-3 py-1 hover:bg-[#f5c6c6] hover:text-[#b30607] font-[700] text-md">
+        Not Received
+      </Badge>
+    </div>
+  );
+};
+
+// Component for the pickup status badge cell (picked up / not picked up)
+const PickupStatusBadgeCell = ({ order }: { order: Order }) => {
+  const { data } = useSWR(`/order/${order.id}`, null, {
+    fallbackData: order,
+    revalidateOnFocus: false,
+  });
+
+  const isPickedUp = data?.pickedUp === true;
+
+  if (isPickedUp) {
+    return (
+      <div className="flex justify-center">
+        <Badge className="flex justify-center items-center min-w-[90px] bg-[#DCE8FB] text-[#1D5FAD] rounded-full px-3 py-1 hover:bg-[#c2daf7] hover:text-[#174a87] font-[700] text-md">
+          Picked Up
+        </Badge>
+      </div>
+    );
+  }
+  return (
+    <div className="flex justify-center">
+      <Badge className="flex justify-center items-center min-w-[90px] bg-[#FFEEC2] text-[#FEA839] rounded-full px-3 py-1 hover:bg-[#fddc9e] hover:text-[#d97a2b] font-[700] text-md">
+        Not Picked Up
       </Badge>
     </div>
   );
@@ -436,11 +447,9 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
     accessorKey: "paymentStatus",
     // Return the displayed status for sorting (matches what user sees)
     accessorFn: (row) => {
-      if (row.pickedUp) return "Picked Up";
-      if (row.paymentStatus === "UNVERIFIABLE") return "Unverifiable";
-      if (row.paymentStatus === "PENDING") return "Pending";
-      if (row.paymentStatus === "CONFIRMED") return "Not Picked Up";
-      return "Unknown";
+      if (row.paymentStatus === "CONFIRMED") return "Received";
+      if (row.paymentStatus === "UNVERIFIABLE") return "Unverified";
+      return "Not Received";
     },
     header: ({ column }) => {
       return (
@@ -450,16 +459,15 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
             className="px-2"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Order Status
+            Payment Status
             <ArrowUpDown className="ml-1 h-3 w-3" />
           </Button>
           <InfoTooltip
             content={
               <>
-                • <strong>Pending:</strong> Payment not yet verified
-                <br />• <strong>Not Picked Up:</strong> Payment confirmed, awaiting pickup
-                <br />• <strong>Picked Up:</strong> Order complete
-                <br />• <strong>Unverifiable:</strong> Payment can&apos;t be verified (cash/manual order), but can be picked up
+                • <strong>Received:</strong> Payment confirmed
+                <br />• <strong>Not Received:</strong> Payment not yet verified
+                <br />• <strong>Unverified:</strong> Payment can&apos;t be verified (cash/manual order), but can be picked up
               </>
             }
             size={18}
@@ -471,6 +479,28 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
     cell: ({ row }) => {
       const order = row.original;
       return <PaymentStatusCell order={order} />;
+    },
+  },
+  {
+    id: "pickupStatus",
+    // Return the displayed status for sorting (matches what user sees)
+    accessorFn: (row) => (row.pickedUp ? "Picked Up" : "Not Picked Up"),
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="flex justify-center w-full px-2"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Pickup Status
+          <ArrowUpDown className="ml-1 h-3 w-3" />
+        </Button>
+      );
+    },
+    filterFn: "arrIncludesSome",
+    cell: ({ row }) => {
+      const order = row.original;
+      return <PickupStatusBadgeCell order={order} />;
     },
   },
   {
@@ -486,6 +516,9 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link href={`/seller/order/${order.id}`}>View Order</Link>
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(order.id)}
             >
