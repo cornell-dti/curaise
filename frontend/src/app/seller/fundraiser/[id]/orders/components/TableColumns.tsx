@@ -172,7 +172,7 @@ const PaymentStatusCell = ({ order }: { order: Order }) => {
   } else if (paymentStatus === "CONFIRMED") {
     return (
       <div className="flex justify-center">
-        <Badge className="flex justify-center items-center min-w-[90px] bg-[#FBE6E6] text-[#E1080B] rounded-full px-3 py-1 hover:bg-[#f5c6c6] hover:text-[#b30607] font-[700] text-md">
+        <Badge className="flex justify-center items-center min-w-[90px] bg-[#DCE8FB] text-[#1D5FAD] rounded-full px-3 py-1 hover:bg-[#c2daf7] hover:text-[#174a87] font-[700] text-md">
           Not Picked Up
         </Badge>
       </div>
