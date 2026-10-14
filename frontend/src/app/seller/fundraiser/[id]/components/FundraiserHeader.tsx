@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { ReferralApprovalModal, ReferralButton } from "./ReferralApprovalModal";
 import { Card, CardContent } from "@/components/ui/card";
 import { mutationFetch } from "@/lib/fetcher";
+import { getSkippedVenmoPreference } from "@/lib/fundraiserVenmoPreference";
 
 export function FundraiserHeader({
   token,
@@ -27,13 +28,30 @@ export function FundraiserHeader({
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
   fundraiserItems: z.infer<typeof CompleteItemSchema>[];
 }) {
+  const getInitialSkipVenmoState = () =>
+    !fundraiser.venmoUsername &&
+    !fundraiser.venmoEmail &&
+    getSkippedVenmoPreference(fundraiser.id);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [openReferral, setOpenReferral] = useState(false);
   const [step, setStep] = useState(0);
+  const [checklistSkipVenmo, setChecklistSkipVenmo] = useState(
+    getInitialSkipVenmoState(),
+  );
+
+  const handleEditOpenChange = (nextOpen: boolean) => {
+    setOpenEdit(nextOpen);
+
+    if (!nextOpen) {
+      setChecklistSkipVenmo(getInitialSkipVenmoState());
+    }
+  };
+
   const openStepAt = (step: number) => {
     setStep(step);
-    setOpenEdit(true);
+    handleEditOpenChange(true);
   };
   // Sort pickup events by start time and group by day
   const sortedEvents = [...fundraiser.pickupEvents].sort(
@@ -74,8 +92,9 @@ export function FundraiserHeader({
         fundraiser={fundraiser}
         currentFundraiserItems={fundraiserItems}
         open={openEdit}
-        setOpen={setOpenEdit}
+        setOpen={handleEditOpenChange}
         step={step}
+        onSkipVenmoChange={setChecklistSkipVenmo}
       />
       <ReferralApprovalModal
         fundraiser={fundraiser}
@@ -97,7 +116,7 @@ export function FundraiserHeader({
               <Button
                 onClick={() => {
                   setStep(0);
-                  setOpenEdit(true);
+                  handleEditOpenChange(true);
                 }}
                 className="w-[100px] bg-[#265B34] text-white hover:bg-[#1f4a2b]"
               >
@@ -170,6 +189,7 @@ export function FundraiserHeader({
             <Checklist
               fundraiser={fundraiser}
               fundraiserItems={fundraiserItems}
+              skipVenmoOverride={checklistSkipVenmo}
               onAction={openStepAt}
               publish={onPublish}
               isSubmitting={isSubmitting}
