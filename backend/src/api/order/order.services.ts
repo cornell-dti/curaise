@@ -8,6 +8,12 @@ import {
   updateCacheForOrderConfirmation,
 } from "../fundraiser/fundraiser.services";
 import { Decimal } from "decimal.js";
+import { addDays, endOfDay, startOfDay } from "date-fns";
+import { TZDate } from "@date-fns/tz";
+
+// Pickup reminders are scheduled around the fundraiser's local calendar day,
+// which is always Eastern time regardless of the server's own timezone.
+const FUNDRAISER_TIME_ZONE = "America/New_York";
 
 const getConfirmedCountsByItem = async (
   tx: Prisma.TransactionClient,
@@ -549,20 +555,84 @@ export const confirmOrderPayment = async (orderId: string) => {
 };
 
 /**
- * Find unpaid orders created 1-2 hours ago
+ * Find unpaid orders created at least an hour ago that haven't been sent a payment reminder yet
  */
 export const getUnremindedUnpaidOrders = async () => {
-  const now = new Date();
-  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-  const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
   return prisma.order.findMany({
     where: {
       paymentStatus: "PENDING",
       paymentMethod: "VENMO",
       createdAt: {
-        gte: twoHoursAgo,
         lte: oneHourAgo,
+      },
+      paymentRemindedAt: null,
+    },
+    include: {
+      buyer: true,
+      fundraiser: {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          published: true,
+          goalAmount: true,
+          imageUrls: true,
+          buyingStartsAt: true,
+          buyingEndsAt: true,
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              authorized: true,
+              logoUrl: true,
+            },
+          },
+          pickupEvents: {
+            orderBy: {
+              startsAt: "asc",
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
+/**
+ * Mark an order as having had its payment reminder sent
+ */
+export const markOrderPaymentReminded = async (orderId: string) => {
+  return prisma.order.update({
+    where: { id: orderId },
+    data: { paymentRemindedAt: new Date() },
+  });
+};
+
+/**
+ * Find orders, not yet picked up, whose fundraiser has a pickup event tomorrow,
+ * that haven't been sent a pickup reminder yet
+ */
+export const getUnremindedPickupOrders = async () => {
+  const tomorrow = addDays(TZDate.tz(FUNDRAISER_TIME_ZONE), 1);
+  const tomorrowStart = startOfDay(tomorrow);
+  const tomorrowEnd = endOfDay(tomorrow);
+
+  return prisma.order.findMany({
+    where: {
+      pickedUp: false,
+      pickupRemindedAt: null,
+      fundraiser: {
+        pickupEvents: {
+          some: {
+            startsAt: {
+              gte: tomorrowStart,
+              lte: tomorrowEnd,
+            },
+          },
+        },
       },
     },
     include: {
@@ -594,6 +664,16 @@ export const getUnremindedUnpaidOrders = async () => {
         },
       },
     },
+  });
+};
+
+/**
+ * Mark an order as having had its pickup reminder sent
+ */
+export const markOrderPickupReminded = async (orderId: string) => {
+  return prisma.order.update({
+    where: { id: orderId },
+    data: { pickupRemindedAt: new Date() },
   });
 };
 
