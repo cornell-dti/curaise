@@ -123,7 +123,17 @@ export default async function OrderPage({
       };
     }
 
-    // Zelle and cash are paid in person, so there is nothing to verify online.
+    // Zelle and cash are not verified online. Zelle may be sent ahead of pickup.
+    if (order.paymentMethod === "ZELLE") {
+      return {
+        borderColor: "border-blue-500",
+        textColor: "text-blue-800 dark:text-blue-200",
+        title: "Order Received",
+        message:
+          "Your order has been received. Zelle payments aren't verified automatically, so your order isn't guaranteed to be held if the fundraiser sells out.",
+      };
+    }
+
     if (order.paymentMethod !== "VENMO") {
       return {
         borderColor: "border-blue-500",

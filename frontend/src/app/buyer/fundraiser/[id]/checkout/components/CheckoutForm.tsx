@@ -129,10 +129,11 @@ function PayAtPickupNote({ method }: { method: PaymentMethod }) {
         aria-hidden="true"
       />
       <p className="text-sm leading-5 text-[#78350f]">
-        You&apos;ll pay with {method === "ZELLE" ? "Zelle" : "cash"} in person
-        at pickup. Only Venmo payments are verified
-        automatically, so unverified orders aren&apos;t guaranteed to be held if
-        the fundraiser sells out.
+        {method === "ZELLE"
+          ? "We highly suggest paying with Venmo."
+          : "You'll pay with cash in person at pickup."}{" "}
+        Only Venmo payments are verified automatically, so unverified orders
+        aren&apos;t guaranteed to be held if the fundraiser sells out.
       </p>
     </div>
   );
