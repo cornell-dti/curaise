@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { CompleteOrderSchema } from "common";
 import Decimal from "decimal.js";
 import { isPast } from "date-fns";
+import Link from "next/link";
 import { LocalDate } from "@/components/ui/LocalDate";
 import {
   Card,
@@ -15,7 +16,7 @@ import {
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
 import { OrderActionButtons } from "@/components/custom/OrderActionButtons";
-import { CreditCard, ShoppingBag, User, CalendarIcon } from "lucide-react";
+import { ArrowLeft, CreditCard, ShoppingBag, User, CalendarIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { serverFetch } from "@/lib/fetcher";
 
@@ -107,6 +108,13 @@ export default async function OrderPage({
   return (
     <div className="container max-w-4xl py-6 px-4 md:py-8 md:px-6 mx-auto">
       <div className="mb-4">
+        <Link
+          href={`/seller/fundraiser/${order.fundraiser.id}`}
+          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-4"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Fundraiser
+        </Link>
         <h1 className="text-3xl font-bold tracking-tight">Order Details</h1>
       </div>
 

@@ -1,4 +1,4 @@
-import { PrismaClient, PaymentMethod, PaymentStatus } from "@prisma/client";
+import { PrismaClient, PaymentMethod, PaymentStatus } from "../src/generated/client";
 import { v4 as uuidv4 } from "uuid";
 
 const prisma = new PrismaClient();
@@ -317,6 +317,24 @@ async function main() {
           {
             quantity: 1,
             itemId: dtiItems[2].id, // Apple pie
+          },
+        ],
+      },
+    },
+  });
+
+  const dtiOrder4 = await prisma.order.create({
+    data: {
+      buyerId: testUser1.id,
+      fundraiserId: dtiFundraiser.id,
+      paymentMethod: PaymentMethod.OTHER,
+      paymentStatus: PaymentStatus.CONFIRMED,
+      pickedUp: true,
+      items: {
+        create: [
+          {
+            quantity: 1,
+            itemId: dtiItems[1].id, // Chocolate Chip Cookie
           },
         ],
       },

@@ -8,6 +8,13 @@ import { z } from "zod";
 
 type Order = z.infer<typeof CompleteOrderSchema>;
 
+const paymentStatusLabel = (status: string | undefined) => {
+	if (status === "CONFIRMED") return "Received";
+	if (status === "UNVERIFIABLE") return "Unverified";
+	if (status === "PENDING") return "Not Received";
+	return "Unknown";
+};
+
 export function ExportButton({
 	orders,
 	fundraiserName,
@@ -48,7 +55,7 @@ export function ExportButton({
 					order.buyer?.email?.split("@")[0] || "Unknown",
 					orderDetails,
 					order.paymentMethod || "Unknown",
-					order.paymentStatus || "Unknown",
+					paymentStatusLabel(order.paymentStatus),
 					order.pickedUp ? "Picked Up" : "Not Picked Up",
 					`$${orderTotal.toFixed(2)}`,
 				];
