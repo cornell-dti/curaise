@@ -29,6 +29,10 @@ import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
 import { z } from "zod";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { toast } from "sonner";
+import {
+  getErrorMessage,
+  showPickupUndoToast,
+} from "@/components/custom/PickupUndoToast";
 import { authFetcher, mutationFetch } from "@/lib/fetcher";
 import { useState } from "react";
 
@@ -202,39 +206,8 @@ const PickupStatusBadgeCell = ({ order }: { order: Order }) => {
 // This function posts to the API to update the pickup status of an order
 const completePickup = async (orderId: string, token: string) => {
   await mutationFetch(`/order/${orderId}/complete-pickup`, { token });
-  const toastId = toast("Order marked as picked up", {
-    duration: 10000, // 10 seconds
-    action: (
-      <div className="ml-auto">
-        <button
-          onClick={async () => {
-            try {
-              await mutationFetch(`/order/${orderId}/undo-pickup`, { token });
-              toast.dismiss(toastId);
-              toast.success("Pickup undone");
-            } catch (error) {
-              toast.error(
-                getErrorMessage(error) ||
-                  "Undo window expired or request failed.",
-              );
-            }
-          }}
-          className="text-green-600 hover:text-green-700 font-semibold flex flex-end"
-        >
-          Undo
-        </button>
-      </div>
-    ),
-  });
+  showPickupUndoToast(orderId, token);
 };
-
-function getErrorMessage(error: unknown) {
-  if (error instanceof Error && error.message.trim().length > 0) {
-    return error.message;
-  }
-
-  return "Failed to update pickup status";
-}
 
 // Create a function that returns columns with the token (access token)
 export const getColumns = (token: string): ColumnDef<Order>[] => [
