@@ -75,7 +75,9 @@ export default async function OrderSubmittedPage({
                   Thank you for ordering!
                 </h2>
                 <p className="text-[16px] md:text-[18px] leading-[24px] md:leading-[27px] text-muted-foreground">
-                  You will get a confirmation email once we verify your payment.
+                  {order.paymentMethod === "VENMO"
+                    ? "Please pay as soon as possible so your order can be confirmed and held for you."
+                    : "Remember to bring your payment method to pickup."}
                 </p>
               </div>
             </div>
@@ -134,7 +136,9 @@ export default async function OrderSubmittedPage({
 
             <Link href={`/buyer/order/${id}`} className="w-full mt-2">
               <Button className="w-full h-[50px] rounded-[8px] bg-black hover:bg-black/90 text-[#fefdfd] text-[18px] leading-[27px] font-normal">
-                View Order Details and Pay
+                {order.paymentMethod === "VENMO"
+                  ? "View Order Details and Pay"
+                  : "View Order Details"}
               </Button>
             </Link>
           </CardContent>

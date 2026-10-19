@@ -445,8 +445,11 @@ export const sendOrderConfirmation = async (order: Order): Promise<any> => {
     CONFIRMED: "Your payment has been confirmed.",
   }[order.paymentStatus];
 
-  const paymentMethodText =
-    order.paymentMethod === "VENMO" ? "Venmo" : "Other payment method";
+  const paymentMethodText = {
+    VENMO: "Venmo",
+    ZELLE: "Zelle",
+    OTHER: "Other payment method",
+  }[order.paymentMethod];
 
   // Format order creation date
   const orderDateFormatted = format(order.createdAt, "MMMM d, yyyy");

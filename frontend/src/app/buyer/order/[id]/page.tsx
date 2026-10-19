@@ -123,22 +123,18 @@ export default async function OrderPage({
       };
     }
 
-    // If unverifiable AND venmo, show unverifiable message
-    if (
-      order.paymentStatus === "UNVERIFIABLE" &&
-      order.paymentMethod === "VENMO"
-    ) {
+    // Zelle and cash are paid in person, so there is nothing to verify online.
+    if (order.paymentMethod !== "VENMO") {
       return {
         borderColor: "border-blue-500",
         textColor: "text-blue-800 dark:text-blue-200",
-        title: "Order Processed",
+        title: "Pay at Pickup",
         message:
-          "Your order has been received. Payment will have to be manually verified by the fundraiser managers.",
+          "Your order has been received. Remember to bring your payment method to pickup.",
       };
     }
 
-    // For OTHER payment method (PENDING or UNVERIFIABLE), show unverifiable messaging
-    if (order.paymentMethod === "OTHER") {
+    if (order.paymentStatus === "UNVERIFIABLE") {
       return {
         borderColor: "border-blue-500",
         textColor: "text-blue-800 dark:text-blue-200",
