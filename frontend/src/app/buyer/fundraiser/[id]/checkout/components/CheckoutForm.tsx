@@ -121,6 +121,23 @@ function PaymentMethodOption({ method }: { method: PaymentMethod }) {
   );
 }
 
+function PayAtPickupNote({ method }: { method: PaymentMethod }) {
+  return (
+    <div className="rounded-[8px] border border-[#fcd34d] bg-[#fffbeb] px-3 py-2.5 flex gap-2 items-start">
+      <ShieldAlert
+        className="h-4 w-4 text-[#b45309] mt-0.5 flex-shrink-0"
+        aria-hidden="true"
+      />
+      <p className="text-sm leading-5 text-[#78350f]">
+        You&apos;ll pay with {method === "ZELLE" ? "Zelle" : "cash"} in person
+        at pickup. Only Venmo payments are verified
+        automatically, so unverified orders aren&apos;t guaranteed to be held if
+        the fundraiser sells out.
+      </p>
+    </div>
+  );
+}
+
 export function CheckoutForm({
   token,
   fundraiser,
@@ -475,6 +492,9 @@ export function CheckoutForm({
                 ))}
               </SelectContent>
             </Select>
+            {paymentMethod !== "VENMO" && (
+              <PayAtPickupNote method={paymentMethod} />
+            )}
 
             {/* Pay Button */}
             {isAvailabilityPending && cart.length > 0 && (
@@ -813,6 +833,9 @@ export function CheckoutForm({
                         ))}
                       </SelectContent>
                     </Select>
+                    {paymentMethod !== "VENMO" && (
+                      <PayAtPickupNote method={paymentMethod} />
+                    )}
 
                     {/* Pay Button */}
                     {isAvailabilityPending && cart.length > 0 && (

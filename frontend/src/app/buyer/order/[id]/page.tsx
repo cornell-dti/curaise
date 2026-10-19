@@ -123,11 +123,18 @@ export default async function OrderPage({
       };
     }
 
-    // Zelle and cash are unverifiable, same as a Venmo payment that could not be verified.
-    if (
-      order.paymentStatus === "UNVERIFIABLE" ||
-      order.paymentMethod !== "VENMO"
-    ) {
+    // Zelle and cash are paid in person, so there is nothing to verify online.
+    if (order.paymentMethod !== "VENMO") {
+      return {
+        borderColor: "border-blue-500",
+        textColor: "text-blue-800 dark:text-blue-200",
+        title: "Pay at Pickup",
+        message:
+          "Your order has been received. Remember to bring your payment method to pickup.",
+      };
+    }
+
+    if (order.paymentStatus === "UNVERIFIABLE") {
       return {
         borderColor: "border-blue-500",
         textColor: "text-blue-800 dark:text-blue-200",

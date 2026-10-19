@@ -75,7 +75,9 @@ export default async function OrderSubmittedPage({
                   Thank you for ordering!
                 </h2>
                 <p className="text-[16px] md:text-[18px] leading-[24px] md:leading-[27px] text-muted-foreground">
-                  You will get a confirmation email once we verify your payment.
+                  {order.paymentMethod === "VENMO"
+                    ? "Please pay as soon as possible so your order can be confirmed and held for you."
+                    : "Remember to bring your payment method to pickup."}
                 </p>
               </div>
             </div>
