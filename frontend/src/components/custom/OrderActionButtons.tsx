@@ -8,6 +8,7 @@ import { BasicOrderSchema } from "common";
 import { z } from "zod";
 import { toast } from "sonner";
 import { mutationFetch } from "@/lib/fetcher";
+import { showPickupUndoToast } from "@/components/custom/PickupUndoToast";
 
 interface OrderActionButtonsProps {
   order: z.infer<typeof BasicOrderSchema>;
@@ -39,7 +40,7 @@ export function OrderActionButtons({ order, token }: OrderActionButtonsProps) {
     setIsCompletingPickup(true);
     try {
       await mutationFetch(`/order/${order.id}/complete-pickup`, { token });
-      toast.success("Order marked as picked up");
+      showPickupUndoToast(order.id, token, () => router.refresh());
       router.refresh();
     } catch (error) {
       const errorMessage =
