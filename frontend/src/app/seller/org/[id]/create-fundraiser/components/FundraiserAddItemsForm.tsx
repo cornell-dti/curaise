@@ -39,7 +39,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { itemCategories } from "@/lib/item-categories";
+import { itemCategories, itemCategoryInfo } from "@/lib/item-categories";
 
 export function FundraiserAddItemsForm({
 	items,
@@ -248,6 +248,10 @@ export function FundraiserAddItemsForm({
 								<div className="flex-1">
 									<div className="flex items-center gap-2">
 										<h4 className="font-medium">{item.name}</h4>
+										<span className="text-gray-400">·</span>
+										<span className="text-sm text-gray-500">
+											{itemCategoryInfo[item.category].label}
+										</span>
 									</div>
 									<p className="text-sm text-gray-500 mt-1">
 										{item.description}
