@@ -12,6 +12,7 @@ import { FundraiserItemCard } from "@/app/buyer/fundraiser/[id]/components/Fundr
 import { useState, useEffect } from "react";
 import { Plus, Minus, ShoppingCart } from "lucide-react";
 import Image from "next/image";
+import { ItemCategoryBadge } from "@/app/buyer/fundraiser/[id]/components/ItemCategoryBadge";
 
 export function FundraiserItemModal({
   item,
@@ -90,6 +91,10 @@ export function FundraiserItemModal({
                 className="object-cover rounded-md"
                 style={{ objectFit: "cover" }}
               />
+              <ItemCategoryBadge
+                category={item.category}
+                className="absolute top-3 left-3"
+              />
             </div>
           </div>
         )}
@@ -98,6 +103,7 @@ export function FundraiserItemModal({
         <div className="flex flex-col px-5 pt-[22px] gap-[22px] pb-6">
           {/* Title and Price */}
           <div className="flex flex-col gap-[10px]">
+            {!item.imageUrl && <ItemCategoryBadge category={item.category} />}
             <h2 className="text-[22px] font-semibold leading-[33px] text-black">
               {item.name}
             </h2>
