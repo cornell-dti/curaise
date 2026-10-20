@@ -10,6 +10,7 @@ import Image from "next/image";
 import { useShallow } from "zustand/react/shallow";
 import { serverFetch } from "@/lib/fetcher";
 import { toast } from "sonner";
+import { ItemCategoryBadge } from "@/app/buyer/fundraiser/[id]/components/ItemCategoryBadge";
 
 const getItem = async (fundraiserId: string, itemId: string) => {
   const items = await serverFetch(`/fundraiser/${fundraiserId}/items/availability`, {
@@ -147,6 +148,10 @@ export default function ItemPage() {
         ) : (
           <div className="w-full h-full bg-gray-200" />
         )}
+        <ItemCategoryBadge
+          category={item.category}
+          className="absolute bottom-4 left-5"
+        />
       </div>
 
       {/* Content */}
