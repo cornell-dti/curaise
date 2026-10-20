@@ -32,6 +32,14 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import UploadImageComponent from "@/components/custom/UploadImageComponent";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { itemCategories } from "@/lib/item-categories";
 
 export function FundraiserAddItemsForm({
 	items,
@@ -60,6 +68,7 @@ export function FundraiserAddItemsForm({
 			price: 0,
 			imageUrl: undefined,
 			offsale: false, // Always set to false
+			category: undefined,
 		},
 	});
 
@@ -110,6 +119,36 @@ export function FundraiserAddItemsForm({
 															{...field}
 														/>
 													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+
+										<FormField
+											control={form.control}
+											name="category"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Category</FormLabel>
+													<Select
+														value={field.value ?? ""}
+														onValueChange={field.onChange}>
+														<FormControl>
+															<SelectTrigger>
+																<SelectValue placeholder="Select a category" />
+															</SelectTrigger>
+														</FormControl>
+														<SelectContent>
+															{itemCategories.map(({ id, label, icon: Icon }) => (
+																<SelectItem key={id} value={id}>
+																	<span className="flex items-center gap-2">
+																		<Icon className="h-4 w-4" />
+																		{label}
+																	</span>
+																</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
 													<FormMessage />
 												</FormItem>
 											)}
