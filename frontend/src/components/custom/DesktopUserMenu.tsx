@@ -11,6 +11,7 @@ import {
 import { User } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Button } from "../ui/button";
+import posthog from "posthog-js";
 
 type UserRole = "buyer" | "seller";
 
@@ -26,6 +27,7 @@ export default function DesktopUserMenu({ userRole }: { userRole: UserRole }) {
 	};
 
 	const handleLogout = () => {
+		posthog.reset();
 		signOut();
 	};
 
