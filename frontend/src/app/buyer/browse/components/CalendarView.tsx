@@ -11,6 +11,7 @@ import { isToday } from "date-fns";
 import moment from "moment";
 import { CalendarDays, ChevronDown } from "lucide-react";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import { MobileCalendarView } from "./MobileCalendarView";
 import { SmallCalendar } from "./SmallCalendar";
 import {
   Select,
@@ -277,6 +278,16 @@ export function CalendarView({
   }, [selectedFundraiserId, selectedFundraiser]);
 
   const showEventDetails = currentView !== Views.MONTH && !!selectedFundraiser;
+
+  if (isMobile) {
+    return (
+      <MobileCalendarView
+        fundraisers={fundraisers}
+        selectedDate={selectedDate}
+        onSelectedDateChange={onSelectedDateChange}
+      />
+    );
+  }
 
   return (
     <div className="size-full">

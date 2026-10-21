@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { startOfToday } from "date-fns";
 import { z } from "zod";
 import {
@@ -18,13 +18,13 @@ import {
   type Filters,
 } from "./browse-utils";
 
-type BrowseViewType = "grid" | "calendar";
+import { BrowseViewContext } from "./BrowseViewContext";
 type Fundraiser = z.infer<typeof BasicFundraiserSchema>;
 type FundraiserWithItems = Fundraiser & {
   items: z.infer<typeof CompleteItemSchema>[];
 };
 
-function GridIcon({ className }: { className?: string }) {
+export function GridIcon({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -71,7 +71,7 @@ export function BrowseView({
   fundraisersWithItems: FundraiserWithItems[];
   searchQuery: string;
 }) {
-  const [view, setView] = useState<BrowseViewType>("grid");
+  const { view, setView } = useContext(BrowseViewContext);
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [selectedDate, setSelectedDate] = useState<Date>(startOfToday);
 
@@ -93,40 +93,42 @@ export function BrowseView({
 
   return (
     <div className="px-4 md:px-[157px]">
-      <div className="flex items-center justify-between py-4 md:py-10">
-        <h1 className="text-[28px] md:text-[32px] font-semibold text-black">
-          Browse CURaise
-        </h1>
-        <div
-          role="group"
-          aria-label="Browse view"
-          className="flex overflow-hidden rounded-[4px] border-[1.36px] border-[#265B34]"
-        >
-          {viewOptions.map(({ value, label, icon: Icon }) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setView(value)}
-              aria-label={label}
-              aria-pressed={view === value}
-              className={cn(
-                "flex h-8 w-[42px] md:h-10 md:w-[52px] items-center justify-center transition-colors",
-                view === value
-                  ? "bg-[#265B34] text-white"
-                  : "bg-white text-[#265B34] hover:bg-[#e6f0ea]",
-              )}
-            >
-              <Icon className="size-5 md:size-6" />
-            </button>
-          ))}
+      <div className="flex flex-col gap-3 pb-6 md:gap-0">
+        <div className="flex items-center justify-between md:py-10">
+          <h1 className="text-[28px] md:text-[32px] font-semibold text-black">
+            Browse CURaise
+          </h1>
+          <div
+            role="group"
+            aria-label="Browse view"
+            className="hidden md:flex overflow-hidden rounded-[4px] border-[1.36px] border-[#265B34]"
+          >
+            {viewOptions.map(({ value, label, icon: Icon }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setView(value)}
+                aria-label={label}
+                aria-pressed={view === value}
+                className={cn(
+                  "flex h-8 w-[42px] md:h-10 md:w-[52px] items-center justify-center transition-colors",
+                  view === value
+                    ? "bg-[#265B34] text-white"
+                    : "bg-white text-[#265B34] hover:bg-[#e6f0ea]",
+                )}
+              >
+                <Icon className="size-5 md:size-6" />
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-      <div className="flex flex-col gap-6">
         <FilterBar
           organizations={organizations}
           filters={filters}
           onFiltersChange={setFilters}
         />
+      </div>
+      <div className="flex flex-col gap-6">
         {view === "calendar" ? (
           <div className="pb-10 md:pb-[53px]">
             {isFiltered && filteredFundraisersWithItems.length === 0 && (

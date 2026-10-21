@@ -135,13 +135,6 @@ export default function Navbar() {
 						</div>
 					)}
 
-					{/* Mobile Search Bar - Top - Full width */}
-					{showSearchBar && (
-						<div className="md:hidden absolute top-0 left-0 right-0 px-4 py-4 bg-background w-full">
-							<SearchBar onSearchChange={handleSearchChange} />
-						</div>
-					)}
-
 					{/* Desktop Search Bar - Centered */}
 					{showSearchBar && (
 						<div className="hidden min-[1350px]:flex absolute left-1/2 transform -translate-x-1/2 w-40 xl:w-64 2xl:w-96 pointer-events-auto">
