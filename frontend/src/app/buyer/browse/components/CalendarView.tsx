@@ -292,9 +292,9 @@ export function CalendarView({
   return (
     <div className="size-full">
       <div
-        className="flex flex-col gap-3 bg-white rounded-[8px] md:grid md:grid-cols-[200px_minmax(0,1fr)] md:grid-rows-[auto_1fr] md:gap-x-[19px] md:gap-y-6 md:shadow-[0_1px_4px_rgba(0,0,0,0.2)] md:pt-[19px] md:px-[30px] md:pb-[30px]"
+        className="flex flex-col gap-3 bg-white rounded-[8px] md:grid md:grid-cols-[minmax(0,1fr)] xl:grid-cols-[200px_minmax(0,1fr)] md:grid-rows-[auto_1fr] md:gap-x-[19px] md:gap-y-6 md:shadow-[0_1px_4px_rgba(0,0,0,0.2)] md:pt-[19px] md:px-[30px] md:pb-[30px]"
       >
-        <div className="flex items-center justify-between px-4 md:px-0 md:col-start-2 md:row-start-1">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 md:px-0 md:col-start-1 md:row-start-1 xl:col-start-2 xl:flex-nowrap xl:gap-0">
           <div className="flex gap-[8px] items-center">
             <p className="font-semibold leading-[42px] text-[20px] md:text-[28px] text-black whitespace-nowrap">
               {moment(selectedDate).format("MMMM YYYY")}
@@ -369,7 +369,7 @@ export function CalendarView({
         </div>
 
         <div
-          className="h-[630px] px-4 md:px-0 md:col-start-2 md:row-start-2"
+          className="h-[630px] min-w-0 px-4 md:px-0 md:col-start-1 md:row-start-2 xl:col-start-2"
         >
           <BigCalendar
             localizer={localizer}
@@ -436,7 +436,7 @@ export function CalendarView({
           />
         </div>
 
-        <div className="flex flex-col items-center gap-[20px] w-full md:col-start-1 md:row-start-2">
+        <div className="hidden flex-col items-center gap-[20px] w-full xl:flex xl:col-start-1 xl:row-start-2">
           <SmallCalendar
             onSelected={onSelectedDateChange}
             date={selectedDate}
