@@ -27,12 +27,14 @@ import {
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/custom/CopyButton";
+import { VenmoPayButton } from "@/components/custom/VenmoPayButton";
 import { Separator } from "@/components/ui/separator";
 import { LocalDate } from "@/components/ui/LocalDate";
 import { ConfettiWrapper } from "@/components/custom/ConfettiWrapper";
 import { OrderQRCodeDisplay } from "@/components/custom/OrderQRCodeDisplay";
 import { serverFetch } from "@/lib/fetcher";
 import { formatCapacityIssueMessage, getCapacityIssues } from "@/lib/capacity";
+import { venmoWebUrl } from "@/lib/venmo";
 
 export default async function OrderPage({
   params,
@@ -242,14 +244,10 @@ export default async function OrderPage({
                         asChild
                         className="flex items-center gap-2 bg-[#008CFF] hover:bg-[#2E7BB8] text-white font-semibold px-4 py-3 text-md"
                       >
-                        <a
-                          href={`https://venmo.com/${
-                            fundraiser.venmoUsername
-                          }?txn=pay&note=${encodeURIComponent(
-                            orderIdForPayment,
-                          )}&amount=${encodeURIComponent(orderTotal)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <VenmoPayButton
+                          username={fundraiser.venmoUsername}
+                          amount={orderTotal}
+                          note={orderIdForPayment}
                         >
                           <span className="flex items-center gap-2">
                             <svg
@@ -274,10 +272,14 @@ export default async function OrderPage({
                             </svg>
                             <span>Pay with Venmo</span>
                           </span>
-                        </a>
+                        </VenmoPayButton>
                       </Button>
                       <CopyButton
-                        text={`https://venmo.com/${fundraiser.venmoUsername}?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`}
+                        text={venmoWebUrl({
+                          username: fundraiser.venmoUsername,
+                          amount: orderTotal,
+                          note: orderIdForPayment,
+                        })}
                         label="Copy Link"
                         variant="outline"
                       />
