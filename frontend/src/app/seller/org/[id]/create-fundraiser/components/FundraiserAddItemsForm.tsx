@@ -7,31 +7,22 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { CreateFundraiserItemBody } from "common";
 import { Dispatch, SetStateAction, useState } from "react";
 import { z } from "zod";
-import { PlusCircle, X, ShoppingCart } from "lucide-react";
+import { PlusCircle, X, ShoppingCart, Pencil } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from "@/components/ui/form";
-import {
-	Dialog,
-	DialogContent,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog";
-import UploadImageComponent from "@/components/custom/UploadImageComponent";
+import { ItemDialog } from "@/app/seller/fundraiser/[id]/components/ItemDialog";
+
+const EMPTY_ITEM = {
+	name: "",
+	description: "",
+	price: 0,
+	imageUrl: undefined,
+	offsale: false,
+	limit: undefined,
+};
 
 export function FundraiserAddItemsForm({
 	items,
@@ -51,22 +42,45 @@ export function FundraiserAddItemsForm({
 	isSubmitting: boolean;
 }) {
 	const [open, setOpen] = useState(false);
+	const [mode, setMode] = useState<"add" | "edit">("add");
+	const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
 	const form = useForm<z.infer<typeof CreateFundraiserItemBody>>({
 		resolver: zodResolver(CreateFundraiserItemBody),
-		defaultValues: {
-			name: "",
-			description: "",
-			price: 0,
-			imageUrl: undefined,
-			offsale: false, // Always set to false
-		},
+		defaultValues: EMPTY_ITEM,
 	});
 
-	const handleAddItem = (data: z.infer<typeof CreateFundraiserItemBody>) => {
+	const openAddDialog = () => {
+		setMode("add");
+		setEditingIndex(null);
+		form.reset(EMPTY_ITEM);
+		setOpen(true);
+	};
+
+	const openEditDialog = (index: number) => {
+		const item = items[index];
+		setMode("edit");
+		setEditingIndex(index);
+		form.reset({
+			name: item.name,
+			description: item.description,
+			price: Number(item.price),
+			imageUrl: item.imageUrl,
+			offsale: item.offsale,
+			limit: item.limit,
+		});
+		setOpen(true);
+	};
+
+	const handleSubmitItem = (data: z.infer<typeof CreateFundraiserItemBody>) => {
+		if (mode === "edit" && editingIndex !== null) {
+			setItems((prev) =>
+				prev.map((item, index) => (index === editingIndex ? data : item))
+			);
+			return;
+		}
+
 		setItems((prev) => [...prev, data]);
-		setOpen(false);
-		form.reset();
 	};
 
 	const handleRemoveItem = (index: number) => {
@@ -79,117 +93,23 @@ export function FundraiserAddItemsForm({
 				<CardTitle>Add Items to Your Fundraiser</CardTitle>
 				<CardDescription>
 					Add items that people can purchase to support your fundraiser. You can
-					always add more items after the creation of this fundraiser.
+					edit these items now, and again after the fundraiser is created.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
 				<div className="flex justify-end mb-4">
-					<Dialog open={open} onOpenChange={setOpen}>
-						<DialogTrigger asChild>
-							<Button>
-								<PlusCircle className="mr-2 h-4 w-4" />
-								Add Item
-							</Button>
-						</DialogTrigger>
-						<DialogContent>
-							<Form {...form}>
-								<form onSubmit={form.handleSubmit(handleAddItem)}>
-									<DialogHeader>
-										<DialogTitle>Add Fundraiser Item</DialogTitle>
-									</DialogHeader>
-									<div className="grid gap-4 py-4">
-										<FormField
-											control={form.control}
-											name="name"
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Item Name</FormLabel>
-													<FormControl>
-														<Input
-															placeholder="T-Shirt, Cookie Box, etc."
-															{...field}
-														/>
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-
-										<FormField
-											control={form.control}
-											name="description"
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Description</FormLabel>
-													<FormControl>
-														<Textarea
-															placeholder="Describe your item..."
-															{...field}
-															className="min-h-20"
-														/>
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-										<FormField
-											control={form.control}
-											name="imageUrl"
-											render={() => (
-												<FormItem>
-													<FormLabel>Image</FormLabel>
-													<UploadImageComponent
-														imageUrls={
-															form.getValues("imageUrl")
-																? [form.getValues("imageUrl")!]
-																: []
-														}
-														setImageUrls={(imageUrls: string[]) => {
-															if (imageUrls.length > 0) {
-																form.setValue("imageUrl", imageUrls[0]);
-															} else {
-																form.setValue("imageUrl", undefined);
-															}
-														}}
-														folder="items"
-													/>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-
-										<FormField
-											control={form.control}
-											name="price"
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Price</FormLabel>
-													<FormControl>
-														<Input
-															type="number"
-															step="0.01"
-															placeholder="0.00"
-															value={field.value?.toString() || "0"}
-															onChange={(e) => {
-																// Convert string value to number for the form state
-																const numericValue =
-																	parseFloat(e.target.value) || 0;
-																field.onChange(numericValue);
-															}}
-														/>
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-									</div>
-									<DialogFooter>
-										<Button type="submit">Add Item</Button>
-									</DialogFooter>
-								</form>
-							</Form>
-						</DialogContent>
-					</Dialog>
+					<Button onClick={openAddDialog}>
+						<PlusCircle className="mr-2 h-4 w-4" />
+						Add Item
+					</Button>
+					<ItemDialog
+						persistence="local"
+						open={open}
+						setOpen={setOpen}
+						form={form}
+						mode={mode}
+						onLocalSubmit={handleSubmitItem}
+					/>
 				</div>
 
 				{items.length === 0 ? (
@@ -213,16 +133,33 @@ export function FundraiserAddItemsForm({
 									<p className="text-sm text-gray-500 mt-1">
 										{item.description}
 									</p>
-									<p className="text-sm font-medium mt-2">
-										${Number(item.price).toFixed(2)}
-									</p>
+									<div className="flex items-center gap-3 mt-2">
+										<p className="text-sm font-medium">
+											${Number(item.price).toFixed(2)}
+										</p>
+										{item.limit != null && (
+											<p className="text-sm text-gray-500">
+												Cap: {item.limit}
+											</p>
+										)}
+									</div>
 								</div>
-								<Button
-									variant="ghost"
-									size="icon"
-									onClick={() => handleRemoveItem(index)}>
-									<X className="h-4 w-4" />
-								</Button>
+								<div className="flex items-center gap-1">
+									<Button
+										variant="ghost"
+										size="icon"
+										onClick={() => openEditDialog(index)}
+										aria-label="Edit item">
+										<Pencil className="h-4 w-4" />
+									</Button>
+									<Button
+										variant="ghost"
+										size="icon"
+										onClick={() => handleRemoveItem(index)}
+										aria-label="Remove item">
+										<X className="h-4 w-4" />
+									</Button>
+								</div>
 							</div>
 						))}
 					</div>
