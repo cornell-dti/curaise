@@ -43,3 +43,36 @@ export function detectVenmoPlatform(
   const isSafari = /Safari\//.test(userAgent) && !isOtherBrowser;
   return isSafari ? "ios-safari" : "ios-other";
 }
+
+// how long to wait for the app to take over before falling back to the web link
+export const APP_OPEN_TIMEOUT_MS = 2000;
+
+// Navigates to appUrl, then to fallbackUrl if the page is still in the foreground
+// after timeoutMs (app not installed, or the browser ignored the link).
+export function openVenmoWithFallback(
+  appUrl: string,
+  fallbackUrl: string,
+  timeoutMs = APP_OPEN_TIMEOUT_MS,
+) {
+  const cleanup = () => {
+    window.clearTimeout(timer);
+    document.removeEventListener("visibilitychange", onHide);
+    window.removeEventListener("pagehide", cancel);
+    window.removeEventListener("blur", cancel);
+  };
+  const cancel = () => cleanup();
+  const onHide = () => {
+    if (document.visibilityState === "hidden") cleanup();
+  };
+  const timer = window.setTimeout(() => {
+    cleanup();
+    window.location.href = fallbackUrl;
+  }, timeoutMs);
+
+  // the page goes to the background (or shows the "Open in Venmo?" prompt) once the app takes over
+  document.addEventListener("visibilitychange", onHide);
+  window.addEventListener("pagehide", cancel);
+  window.addEventListener("blur", cancel);
+
+  window.location.href = appUrl;
+}

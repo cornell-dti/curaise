@@ -3,42 +3,16 @@
 import type { ComponentProps, MouseEvent } from "react";
 import {
   detectVenmoPlatform,
+  openVenmoWithFallback,
   venmoAndroidIntentUrl,
   venmoAppUrl,
   venmoWebUrl,
   type VenmoPayment,
 } from "@/lib/venmo";
 
-// how long to wait for the app to take over before falling back to the web link
-const APP_OPEN_TIMEOUT_MS = 2000;
-
 // extra anchor props are forwarded so this works as a <Button asChild> child
 type VenmoPayButtonProps = VenmoPayment &
   Omit<ComponentProps<"a">, "href" | "target" | "rel">;
-
-function openWithFallback(appUrl: string, fallbackUrl: string) {
-  const cleanup = () => {
-    window.clearTimeout(timer);
-    document.removeEventListener("visibilitychange", onHide);
-    window.removeEventListener("pagehide", cancel);
-    window.removeEventListener("blur", cancel);
-  };
-  const cancel = () => cleanup();
-  const onHide = () => {
-    if (document.visibilityState === "hidden") cleanup();
-  };
-  const timer = window.setTimeout(() => {
-    cleanup();
-    window.location.href = fallbackUrl;
-  }, APP_OPEN_TIMEOUT_MS);
-
-  // the page goes to the background (or shows the "Open in Venmo?" prompt) once the app takes over
-  document.addEventListener("visibilitychange", onHide);
-  window.addEventListener("pagehide", cancel);
-  window.addEventListener("blur", cancel);
-
-  window.location.href = appUrl;
-}
 
 export function VenmoPayButton({
   username,
@@ -63,7 +37,7 @@ export function VenmoPayButton({
     if (platform === "desktop" || platform === "ios-safari") return;
 
     e.preventDefault();
-    openWithFallback(
+    openVenmoWithFallback(
       platform === "android"
         ? venmoAndroidIntentUrl(payment)
         : venmoAppUrl(payment),
