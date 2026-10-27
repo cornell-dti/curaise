@@ -8,6 +8,7 @@ import { Plus, Minus, Trash } from "lucide-react";
 import type { z } from "zod";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { ItemCategoryBadge } from "@/app/buyer/fundraiser/[id]/components/ItemCategoryBadge";
 
 export function FundraiserItemCard({
   item,
@@ -108,6 +109,11 @@ export function FundraiserItemCard({
               <span className="text-white font-semibold text-lg">Out of Stock</span>
             </div>
           )}
+          <ItemCategoryBadge
+            category={item.category}
+            size="sm"
+            className="absolute top-2 left-2"
+          />
         </div>
 
         {/* Title and Price */}
@@ -140,6 +146,10 @@ export function FundraiserItemCard({
               <span className="text-white font-semibold text-lg">Out of Stock</span>
             </div>
           )}
+          <ItemCategoryBadge
+            category={item.category}
+            className="absolute top-3 left-3"
+          />
         </div>
 
         <div className="flex-1 p-4">

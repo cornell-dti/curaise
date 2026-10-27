@@ -19,6 +19,7 @@ type Referral = z.infer<typeof ReferralSchema>;
 
 export interface ReferralWithQuantities extends Referral {
 	orderCount: number;
+	amountRaised: number;
 }
 
 // Create a function that returns columns with the token (access token)
@@ -79,6 +80,25 @@ export const getReferralsColumns = (): ColumnDef<ReferralWithQuantities>[] => [
 		cell: ({ row }) => (
 			<div className="flex items-center justify-center">
 				{row.original.orderCount}
+			</div>
+		),
+	},
+	{
+		accessorKey: "amountRaised",
+		header: ({ column }) => {
+			return (
+				<Button
+					variant="ghost"
+					className="flex justify-center w-full px-2"
+					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+					Amount Raised
+					<ArrowUpDown className="ml-1 h-3 w-3" />
+				</Button>
+			);
+		},
+		cell: ({ row }) => (
+			<div className="flex items-center justify-center">
+				${row.original.amountRaised.toFixed(2)}
 			</div>
 		),
 	},
