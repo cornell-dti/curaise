@@ -160,7 +160,7 @@ All API contracts defined in `/common/schemas/` using Zod:
   └── /page.tsx       # Landing page
 ```
 
-**Protected routes**: `/buyer/**`, `/seller/**`, and `/admin/**` require authentication (enforced by middleware). `/admin/**` additionally requires the user's email to be in the `ADMIN_EMAILS` backend env var.
+**Protected routes**: `/buyer`, `/buyer/order/**`, `/account`, `/account-actions`, `/seller/**`, and `/admin/**` require authentication (enforced by the matcher in `frontend/src/middleware.ts`). Other buyer pages, such as `/buyer/browse`, are public. `/admin/**` additionally requires the user's email to be in the `ADMIN_EMAILS` backend env var.
 
 ### State Management
 
