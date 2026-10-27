@@ -226,7 +226,11 @@ Backend tests use Jest:
 cd backend && pnpm test
 ```
 
+## CI
+
+`.github/workflows/ci.yml` runs on every PR and on pushes to main. It mirrors `heroku-postbuild` (install, build common, generate Prisma client, build backend), then runs backend Jest tests, frontend lint, and `tsc --noEmit` on common and frontend. A PR that fails CI should not be merged.
+
 ## Deployment
 
-**Backend**: Heroku (automatic via `heroku-postbuild` script in root `package.json`)
+**Backend**: Heroku, automatic on push to main. Build runs the `heroku-postbuild` script in root `package.json`. The `release:` line in `Procfile` then runs `prisma migrate deploy` before the new code starts, so any migration committed under `backend/prisma/migrations` is applied automatically. Do not run `pnpm migrate:prod` by hand for normal deploys. `prisma` lives in backend `dependencies` (not devDependencies) so the CLI survives Heroku's devDependency prune and is available in the release phase.
 **Frontend**: Vercel
