@@ -23,11 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
-import {
-  BasicFundraiserSchema,
-  BasicOrganizationSchema,
-  CompleteItemSchema,
-} from "common";
+import { BasicFundraiserSchema, BasicOrganizationSchema } from "common";
 import {
   Sheet,
   SheetContent,
@@ -113,9 +109,7 @@ function CalendarMonthDateHeader({
   );
 }
 
-type FundraiserWithItems = z.infer<typeof BasicFundraiserSchema> & {
-  items: z.infer<typeof CompleteItemSchema>[];
-};
+type Fundraiser = z.infer<typeof BasicFundraiserSchema>;
 
 const localizer = momentLocalizer(moment);
 const MOBILE_BREAKPOINT = 768;
@@ -127,7 +121,7 @@ export function CalendarView({
   onSelectedDateChange,
 }: {
   organizations: z.infer<typeof BasicOrganizationSchema>[];
-  fundraisers: FundraiserWithItems[];
+  fundraisers: Fundraiser[];
   selectedDate: Date;
   onSelectedDateChange: (date: Date) => void;
 }) {
@@ -455,7 +449,6 @@ export function CalendarView({
             >
               <EventDetailsCard
                 fundraiser={selectedFundraiser}
-                items={selectedFundraiser.items}
                 color={selectedFundraiserColor}
                 onClose={closeEventDetails}
               />
@@ -482,7 +475,6 @@ export function CalendarView({
           >
             <EventDetailsCard
               fundraiser={selectedFundraiser}
-              items={selectedFundraiser.items}
               color={selectedFundraiserColor}
               onClose={closeEventDetails}
             />

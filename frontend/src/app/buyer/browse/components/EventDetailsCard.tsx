@@ -1,8 +1,11 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Tag, X, type LucideIcon } from "lucide-react";
 import { z } from "zod";
 import { BasicFundraiserSchema, CompleteItemSchema } from "common";
+import { useFundraiserItems } from "@/hooks/useFundraiserItems";
 import { formatTimeRange } from "./browse-utils";
 
 type Fundraiser = z.infer<typeof BasicFundraiserSchema>;
@@ -62,16 +65,19 @@ function DetailRow({
 
 export function EventDetailsCard({
   fundraiser,
-  items,
   color,
   onClose,
 }: {
   fundraiser: Fundraiser;
-  items: Item[];
   color: string;
   onClose: () => void;
 }) {
   const fundraiserUrl = `/buyer/fundraiser/${fundraiser.id}`;
+  // Items are only needed once the card opens, so fetch them on demand.
+  const { items: fetchedItems, isLoading: isLoadingItems } = useFundraiserItems(
+    fundraiser.id,
+  );
+  const items = fetchedItems ?? [];
   const priceRange = getPriceRange(items);
   const visibleItems = items.slice(0, VISIBLE_ITEM_COUNT);
   const hiddenItemCount = items.length - visibleItems.length;
@@ -120,6 +126,17 @@ export function EventDetailsCard({
         <Section label="Price">
           <DetailRow icon={Tag}>{priceRange}</DetailRow>
         </Section>
+      )}
+
+      {isLoadingItems && (
+        <>
+          <Divider />
+          <Section label="Items">
+            <p className="text-[12px] leading-[16px] text-[#989898]">
+              Loading items...
+            </p>
+          </Section>
+        </>
       )}
 
       {items.length > 0 && (

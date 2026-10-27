@@ -3,11 +3,9 @@
 import { useContext, useMemo, useState } from "react";
 import { startOfToday } from "date-fns";
 import { z } from "zod";
-import {
-  BasicFundraiserSchema,
-  CompleteItemSchema,
-} from "common";
+import { BasicFundraiserSchema } from "common";
 import { cn } from "@/lib/utils";
+import { CalendarIcon, GridIcon } from "./BrowseIcons";
 import { CalendarView } from "./CalendarView";
 import { FilterBar } from "./FilterBar";
 import { GridView } from "./GridView";
@@ -20,40 +18,6 @@ import {
 
 import { BrowseViewContext } from "./BrowseViewContext";
 type Fundraiser = z.infer<typeof BasicFundraiserSchema>;
-type FundraiserWithItems = Fundraiser & {
-  items: z.infer<typeof CompleteItemSchema>[];
-};
-
-export function GridIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M3 3h4v4H3zM10 3h4v4h-4zM17 3h4v4h-4zM3 10h4v4H3zM10 10h4v4h-4zM17 10h4v4h-4zM3 17h4v4H3zM10 17h4v4h-4zM17 17h4v4h-4z" />
-    </svg>
-  );
-}
-
-function CalendarIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <rect x="2" y="4" width="20" height="18" rx="4" />
-      <path d="M8 2v4M16 2v4M2 10h20" />
-    </svg>
-  );
-}
 
 const viewOptions = [
   { value: "grid", label: "Grid view", icon: GridIcon },
@@ -63,12 +27,10 @@ const viewOptions = [
 export function BrowseView({
   organizations,
   fundraisers,
-  fundraisersWithItems,
   searchQuery,
 }: {
   organizations: Organization[];
   fundraisers: Fundraiser[];
-  fundraisersWithItems: FundraiserWithItems[];
   searchQuery: string;
 }) {
   const { view, setView } = useContext(BrowseViewContext);
@@ -79,12 +41,12 @@ export function BrowseView({
     () => filterFundraisers(fundraisers, searchQuery, filters),
     [fundraisers, searchQuery, filters],
   );
-  const filteredFundraisersWithItems = useMemo(
+  const filteredCalendarFundraisers = useMemo(
     () =>
-      filterFundraisers(fundraisersWithItems, searchQuery, filters, {
+      filterFundraisers(fundraisers, searchQuery, filters, {
         includeEnded: true,
       }),
-    [fundraisersWithItems, searchQuery, filters],
+    [fundraisers, searchQuery, filters],
   );
 
   const hasActiveFilters =
@@ -133,7 +95,7 @@ export function BrowseView({
       <div className={cn("flex flex-col gap-6", view === "calendar" && "max-md:min-h-0 max-md:flex-1")}>
         {view === "calendar" ? (
           <div className="max-md:flex max-md:min-h-0 max-md:flex-1 max-md:flex-col md:pb-[53px]">
-            {isFiltered && filteredFundraisersWithItems.length === 0 && (
+            {isFiltered && filteredCalendarFundraisers.length === 0 && (
               <div className="mb-3 rounded-[6px] border-[0.5px] border-[#BABABA] bg-white px-3 py-2">
                 <p className="text-[14px] leading-[21px] text-black">
                   No events match your filters
@@ -142,7 +104,7 @@ export function BrowseView({
             )}
             <CalendarView
               organizations={organizations}
-              fundraisers={filteredFundraisersWithItems}
+              fundraisers={filteredCalendarFundraisers}
               selectedDate={selectedDate}
               onSelectedDateChange={setSelectedDate}
             />
