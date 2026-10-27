@@ -52,26 +52,22 @@ export type OnUpdatePendingItem = (
 	item: z.infer<typeof CreateFundraiserItemBody>
 ) => void;
 
-export function ItemDialog({
-	token,
-	fundraiserId,
-	open,
-	setOpen,
-	form,
-	mode,
-	items,
-	setItems,
-	editingIndex,
-	isPublished,
-	onAddPendingItem,
-	onUpdatePendingItem,
-}: {
-	token: string;
-	fundraiserId: string;
+type ItemDialogSharedProps = {
 	open: boolean;
 	setOpen: React.Dispatch<SetStateAction<boolean>>;
 	form: UseFormReturn<z.infer<typeof CreateFundraiserItemBody>>;
 	mode: "add" | "edit";
+};
+
+type LocalItemDialogProps = ItemDialogSharedProps & {
+	persistence: "local";
+	onLocalSubmit: (item: z.infer<typeof CreateFundraiserItemBody>) => void;
+};
+
+type FundraiserItemDialogProps = ItemDialogSharedProps & {
+	persistence?: "fundraiser";
+	token: string;
+	fundraiserId: string;
 	items: z.infer<typeof CompleteItemSchema>[];
 	setItems: React.Dispatch<
 		SetStateAction<z.infer<typeof CompleteItemSchema>[]>
@@ -80,7 +76,12 @@ export function ItemDialog({
 	isPublished?: boolean;
 	onAddPendingItem?: OnAddPendingItem;
 	onUpdatePendingItem?: OnUpdatePendingItem;
-}) {
+};
+
+export function ItemDialog(
+	props: LocalItemDialogProps | FundraiserItemDialogProps
+) {
+	const { open, setOpen, form, mode } = props;
 	const getPublishedLimitValidationError = (
 		existingLimit: number | null,
 		nextLimit: number | undefined
@@ -110,6 +111,25 @@ export function ItemDialog({
 			...data,
 			offsale: false,
 		};
+
+		// Creation wizard keeps items in parent state until the fundraiser exists.
+		if (props.persistence === "local") {
+			props.onLocalSubmit(item);
+			setOpen(false);
+			form.reset(DEFAULT_ITEM_VALUES);
+			return;
+		}
+
+		const {
+			token,
+			fundraiserId,
+			items,
+			setItems,
+			editingIndex,
+			isPublished,
+			onAddPendingItem,
+			onUpdatePendingItem,
+		} = props;
 
 		// Always store changes locally
 		if (mode === "add" || editingIndex === null) {
@@ -209,7 +229,11 @@ export function ItemDialog({
 		form.reset(DEFAULT_ITEM_VALUES);
 	};
 
-	const currentItem = editingIndex !== null ? items[editingIndex] : null;
+	const currentItem =
+		props.persistence === "local" || props.editingIndex === null
+			? null
+			: props.items[props.editingIndex];
+	const isPublished = props.persistence === "local" ? false : props.isPublished;
 	const isRealPublishedItem =
 		isPublished && currentItem && !currentItem.id.startsWith("temp-");
 	// For published items with no existing limit, the limit field is locked

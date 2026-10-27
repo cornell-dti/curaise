@@ -136,6 +136,9 @@ export function ReviewFundraiserForm({
         {items.length > 0 && (
           <div className="space-y-2">
             <h3 className="text-lg font-medium">Items ({items.length})</h3>
+            <p className="text-sm text-gray-500">
+              You can edit these items after the fundraiser is created.
+            </p>
             <div className="space-y-2">
               {items.map((item, index) => (
                 <div
@@ -166,8 +169,8 @@ export function ReviewFundraiserForm({
 
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-sm text-yellow-800">
-            <strong>Note:</strong> Once created, you&apos;ll be able to edit
-            fundraiser info, add more items, and send announcements to buyers.
+            <strong>Note:</strong> Once created, you can edit fundraiser info
+            and these items, add more items, and send announcements to buyers.
           </p>
         </div>
       </CardContent>
