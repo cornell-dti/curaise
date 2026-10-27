@@ -1,6 +1,5 @@
 import { X } from "lucide-react";
 import {
-  categories,
   getOrganizationColor,
   type Filters,
   type Organization,
@@ -63,9 +62,6 @@ export function FilterChips({
     .filter(({ organization }) =>
       filters.organizations.includes(organization.id),
     );
-  const selectedCategories = categories.filter(({ id }) =>
-    filters.categories.includes(id),
-  );
 
   return (
     <>
@@ -94,23 +90,7 @@ export function FilterChips({
         </ChipGroup>
       )}
 
-      {selectedCategories.length > 0 && (
-        <ChipGroup label="Items">
-          {selectedCategories.map(({ id, label, icon: Icon }) => (
-            <Chip
-              key={id}
-              label={label}
-              leading={<Icon className="size-[13px] shrink-0 text-black" />}
-              onRemove={() =>
-                onFiltersChange({
-                  ...filters,
-                  categories: filters.categories.filter((c) => c !== id),
-                })
-              }
-            />
-          ))}
-        </ChipGroup>
-      )}
+      {/* Category (Items) chips are hidden until the filter is wired to item.category. */}
     </>
   );
 }
