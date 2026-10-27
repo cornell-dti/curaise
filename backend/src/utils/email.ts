@@ -9,6 +9,7 @@ import {
   CompleteOrganizationSchema,
 } from "common";
 import { addDays, format, isSameDay } from "date-fns";
+import { TZDate } from "@date-fns/tz";
 import { escapeHtml } from "./html";
 
 type Order = z.infer<typeof BasicOrderSchema>;
@@ -16,6 +17,7 @@ type Order = z.infer<typeof BasicOrderSchema>;
 // Configuration
 const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN || "curaise.app";
 const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY || "";
+const FUNDRAISER_TIME_ZONE = "America/New_York";
 
 // Initialize Mailgun client
 const initMailgun = async () => {
@@ -437,15 +439,18 @@ export const sendPaymentReminderEmail = async (order: Order): Promise<any> => {
 export const sendPickupReminderEmail = async (order: Order): Promise<any> => {
   const { buyer, fundraiser } = order;
 
-  const tomorrow = addDays(new Date(), 1);
+  const tomorrow = addDays(TZDate.tz(FUNDRAISER_TIME_ZONE), 1);
   const pickupEvent =
-    fundraiser.pickupEvents.find((event) => isSameDay(event.startsAt, tomorrow)) ??
-    fundraiser.pickupEvents[0];
+    fundraiser.pickupEvents.find((event) =>
+      isSameDay(new TZDate(event.startsAt, FUNDRAISER_TIME_ZONE), tomorrow)
+    ) ?? fundraiser.pickupEvents[0];
   const subject = `Pickup Reminder - ${fundraiser.name}`;
 
-  const pickupTimeFormatted = format(pickupEvent.startsAt, "h:mm a");
-  const pickupEndTimeFormatted = format(pickupEvent.endsAt, "h:mm a");
-  const pickupDateFormatted = format(pickupEvent.startsAt, "EEEE, MMMM d, yyyy");
+  const pickupStart = new TZDate(pickupEvent.startsAt, FUNDRAISER_TIME_ZONE);
+  const pickupEnd = new TZDate(pickupEvent.endsAt, FUNDRAISER_TIME_ZONE);
+  const pickupTimeFormatted = format(pickupStart, "h:mm a");
+  const pickupEndTimeFormatted = format(pickupEnd, "h:mm a");
+  const pickupDateFormatted = format(pickupStart, "EEEE, MMMM d, yyyy");
 
   const text = `
     Hi ${buyer.name},
@@ -461,9 +466,9 @@ export const sendPickupReminderEmail = async (order: Order): Promise<any> => {
   const html = `
     <h1>Pickup Reminder</h1>
 
-    <p>Hi ${buyer.name},</p>
+    <p>Hi ${escapeHtml(buyer.name)},</p>
 
-    <p>This is a friendly reminder that pickup for your order <strong>#${order.id}</strong> from <strong>${fundraiser.name}</strong> is tomorrow, <strong>${pickupDateFormatted}</strong>, from <strong>${pickupTimeFormatted}</strong> to <strong>${pickupEndTimeFormatted}</strong> at <strong>${pickupEvent.location}</strong>.</p>
+    <p>This is a friendly reminder that pickup for your order <strong>#${order.id}</strong> from <strong>${escapeHtml(fundraiser.name)}</strong> is tomorrow, <strong>${pickupDateFormatted}</strong>, from <strong>${pickupTimeFormatted}</strong> to <strong>${pickupEndTimeFormatted}</strong> at <strong>${escapeHtml(pickupEvent.location)}</strong>.</p>
 
     <p>If you have already picked up your order, please disregard this email.</p>
 

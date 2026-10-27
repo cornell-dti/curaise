@@ -80,6 +80,8 @@ export const createMockOrder = (overrides?: Partial<Order>): Order => ({
   paymentMethod: "VENMO" as const,
   paymentStatus: "PENDING" as const,
   pickedUp: false,
+  paymentRemindedAt: null,
+  pickupRemindedAt: null,
   buyerId: "123e4567-e89b-12d3-a456-426614174000",
   fundraiserId: "423e4567-e89b-12d3-a456-426614174000",
   referralId: null,
