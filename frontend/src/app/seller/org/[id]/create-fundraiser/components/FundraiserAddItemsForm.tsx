@@ -14,17 +14,8 @@ import { PlusCircle, X, ShoppingCart, Pencil } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { ItemDialog } from "@/app/seller/fundraiser/[id]/components/ItemDialog";
+import { DEFAULT_ITEM_VALUES } from "@/app/seller/fundraiser/[id]/components/EditItems";
 import { itemCategoryInfo } from "@/lib/item-categories";
-
-const EMPTY_ITEM = {
-	name: "",
-	description: "",
-	price: 0,
-	imageUrl: undefined,
-	offsale: false,
-	limit: undefined,
-	category: undefined,
-};
 
 export function FundraiserAddItemsForm({
 	items,
@@ -49,13 +40,13 @@ export function FundraiserAddItemsForm({
 
 	const form = useForm<z.infer<typeof CreateFundraiserItemBody>>({
 		resolver: zodResolver(CreateFundraiserItemBody),
-		defaultValues: EMPTY_ITEM,
+		defaultValues: DEFAULT_ITEM_VALUES,
 	});
 
 	const openAddDialog = () => {
 		setMode("add");
 		setEditingIndex(null);
-		form.reset(EMPTY_ITEM);
+		form.reset(DEFAULT_ITEM_VALUES);
 		setOpen(true);
 	};
 
