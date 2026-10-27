@@ -8,7 +8,8 @@ import {
   AnnouncementSchema,
   CompleteOrganizationSchema,
 } from "common";
-import { format } from "date-fns";
+import { addDays, format, isSameDay } from "date-fns";
+import { TZDate } from "@date-fns/tz";
 import { escapeHtml } from "./html";
 
 type Order = z.infer<typeof BasicOrderSchema>;
@@ -16,6 +17,7 @@ type Order = z.infer<typeof BasicOrderSchema>;
 // Configuration
 const MAILGUN_DOMAIN = process.env.MAILGUN_DOMAIN || "curaise.app";
 const MAILGUN_API_KEY = process.env.MAILGUN_API_KEY || "";
+const FUNDRAISER_TIME_ZONE = "America/New_York";
 
 // Initialize Mailgun client
 const initMailgun = async () => {
@@ -418,6 +420,57 @@ export const sendPaymentReminderEmail = async (order: Order): Promise<any> => {
     <p>Please complete your payment via Venmo to finalize your order.</p>
 
     <p>If you have already paid, please disregard this email — it may take some time for us to verify your payment.</p>
+
+    <p>Thank you,<br>
+    The CURaise Team</p>
+  `;
+
+  return sendEmail({
+    to: buyer.email,
+    subject,
+    text,
+    html,
+  });
+};
+
+/**
+ * Send pickup reminder emails to buyers of fundraisers that are occurring tomorrow
+ */
+export const sendPickupReminderEmail = async (order: Order): Promise<any> => {
+  const { buyer, fundraiser } = order;
+
+  const tomorrow = addDays(TZDate.tz(FUNDRAISER_TIME_ZONE), 1);
+  const pickupEvent =
+    fundraiser.pickupEvents.find((event) =>
+      isSameDay(new TZDate(event.startsAt, FUNDRAISER_TIME_ZONE), tomorrow)
+    ) ?? fundraiser.pickupEvents[0];
+  const subject = `Pickup Reminder - ${fundraiser.name}`;
+
+  const pickupStart = new TZDate(pickupEvent.startsAt, FUNDRAISER_TIME_ZONE);
+  const pickupEnd = new TZDate(pickupEvent.endsAt, FUNDRAISER_TIME_ZONE);
+  const pickupTimeFormatted = format(pickupStart, "h:mm a");
+  const pickupEndTimeFormatted = format(pickupEnd, "h:mm a");
+  const pickupDateFormatted = format(pickupStart, "EEEE, MMMM d, yyyy");
+
+  const text = `
+    Hi ${buyer.name},
+
+    This is a friendly reminder that pickup for your order #${order.id} from ${fundraiser.name} is tomorrow, ${pickupDateFormatted}, from ${pickupTimeFormatted} to ${pickupEndTimeFormatted} at ${pickupEvent.location}.
+
+    If you have already picked up your order, please disregard this email.
+
+    Thank you,
+    The CURaise Team
+  `;
+
+  const html = `
+    <h1>Pickup Reminder</h1>
+
+    <p>Hi ${escapeHtml(buyer.name)},</p>
+
+    <p>This is a friendly reminder that pickup for your order <strong>#${order.id}</strong> from <strong>${escapeHtml(fundraiser.name)}</strong> is tomorrow, <strong>${pickupDateFormatted}</strong>, from <strong>${pickupTimeFormatted}</strong> to <strong>${pickupEndTimeFormatted}</strong> at <strong>${escapeHtml(pickupEvent.location)}</strong>.</p>
+
+    <p>If you have already picked up your order, please disregard this email.</p>
 
     <p>Thank you,<br>
     The CURaise Team</p>
