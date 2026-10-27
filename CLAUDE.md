@@ -78,7 +78,7 @@ The backend follows a **modular router pattern** with consistent file organizati
   └── index.ts              # Module exports
 ```
 
-**Current modules**: email, fundraiser, order, organization, referral, user
+**Current modules**: admin, email, fundraiser, order, organization, referral, user
 
 **Request flow**:
 1. Route matched in router
@@ -146,6 +146,7 @@ All API contracts defined in `/common/schemas/` using Zod:
 
 ```
 /app/
+  ├── /admin          # Platform admin (org approval, gated by ADMIN_EMAILS)
   ├── /auth           # Login/logout
   ├── /buyer          # Customer-facing routes
   │   ├── /browse     # Browse fundraisers
@@ -159,7 +160,7 @@ All API contracts defined in `/common/schemas/` using Zod:
   └── /page.tsx       # Landing page
 ```
 
-**Protected routes**: `/buyer`, `/buyer/order/**`, `/account`, `/account-actions` and `/seller/**` require authentication (enforced by the matcher in `frontend/src/middleware.ts`). Other buyer pages, such as `/buyer/browse`, are public.
+**Protected routes**: `/buyer`, `/buyer/order/**`, `/account`, `/account-actions`, `/seller/**`, and `/admin/**` require authentication (enforced by the matcher in `frontend/src/middleware.ts`). Other buyer pages, such as `/buyer/browse`, are public. `/admin/**` additionally requires the user's email to be in the `ADMIN_EMAILS` backend env var.
 
 ### State Management
 
@@ -216,6 +217,7 @@ Each package has environment files:
 - `SUPABASE_URL`, `SUPABASE_ANON_KEY`: Supabase project config
 - `SUPABASE_SERVICE_ROLE_KEY`: Backend-only (for JWT validation)
 - `MAILGUN_API_KEY`, `MAILGUN_DOMAIN`: Email service
+- `ADMIN_EMAILS`: Comma-separated list of admin email addresses (backend-only)
 
 ## Testing
 
@@ -224,7 +226,11 @@ Backend tests use Jest:
 cd backend && pnpm test
 ```
 
+## CI
+
+`.github/workflows/ci.yml` runs on every PR and on pushes to main. It mirrors `heroku-postbuild` (install, build common, generate Prisma client, build backend), then runs backend Jest tests, frontend lint, and `tsc --noEmit` on common and frontend. A PR that fails CI should not be merged.
+
 ## Deployment
 
-**Backend**: Heroku (automatic via `heroku-postbuild` script in root `package.json`)
+**Backend**: Heroku, automatic on push to main. Build runs the `heroku-postbuild` script in root `package.json`. The `release:` line in `Procfile` then runs `prisma migrate deploy` before the new code starts, so any migration committed under `backend/prisma/migrations` is applied automatically. Do not run `pnpm migrate:prod` by hand for normal deploys. `prisma` lives in backend `dependencies` (not devDependencies) so the CLI survives Heroku's devDependency prune and is available in the release phase.
 **Frontend**: Vercel

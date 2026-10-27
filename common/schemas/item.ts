@@ -1,12 +1,23 @@
 import { z } from "zod";
 import { MoneySchema } from "./decimal";
 
+export const ItemCategorySchema = z.enum([
+  "DESSERTS",
+  "FOOD",
+  "DRINKS",
+  "APPAREL",
+  "OTHER",
+]);
+
+export type ItemCategory = z.infer<typeof ItemCategorySchema>;
+
 export const BasicItemSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   description: z.string(),
   price: MoneySchema,
   limit: z.number().int().positive().nullish(),
+  category: ItemCategorySchema.default("OTHER"),
 });
 
 export const CompleteItemSchema = BasicItemSchema.extend({
