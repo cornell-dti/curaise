@@ -10,6 +10,7 @@ import {
 import { LocalDate } from "@/components/ui/LocalDate";
 import { CreateFundraiserBody, CreateFundraiserItemBody } from "common";
 import { z } from "zod";
+import { itemCategoryInfo } from "@/lib/item-categories";
 
 export function ReviewFundraiserForm({
   formData,
@@ -145,7 +146,13 @@ export function ReviewFundraiserForm({
                   className="p-4 border rounded-lg flex justify-between items-start"
                 >
                   <div>
-                    <p className="font-medium">{item.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">{item.name}</p>
+                      <span className="text-gray-400">·</span>
+                      <span className="text-sm text-gray-500">
+                        {itemCategoryInfo[item.category].label}
+                      </span>
+                    </div>
                     <p className="text-sm text-gray-500">{item.description}</p>
                   </div>
                   <p className="font-medium">

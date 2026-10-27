@@ -2,6 +2,7 @@ import { z } from "zod";
 import { BasicOrganizationSchema } from "./organization";
 import { MoneySchema } from "./decimal";
 import { UserSchema } from "./user";
+import { ItemCategorySchema } from "./item";
 
 export const AnnouncementSchema = z.object({
   id: z.string().uuid(),
@@ -113,6 +114,7 @@ export const CreateFundraiserItemBody = z.object({
   imageUrl: z.string().url().optional(),
   offsale: z.boolean(),
   limit: z.number().int().positive().optional(),
+  category: ItemCategorySchema,
 });
 
 export const UpdateFundraiserItemBody = z.object({
@@ -122,6 +124,7 @@ export const UpdateFundraiserItemBody = z.object({
   imageUrl: z.string().url().optional(),
   offsale: z.boolean(),
   limit: z.number().int().positive().nullable().optional(),
+  category: ItemCategorySchema,
 });
 
 export const CreateAnnouncementBody = z.object({

@@ -24,6 +24,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { SetStateAction } from "react";
 import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { itemCategories } from "@/lib/item-categories";
 import { Decimal } from "decimal.js";
 import { mutationFetch } from "@/lib/fetcher";
 
@@ -135,6 +143,7 @@ export function ItemDialog(
 				imageUrl: item.imageUrl,
 				offsale: false,
 				limit: item.limit ?? null,
+				category: item.category,
 			};
 			setItems((prev) => [...prev, tempItem]);
 
@@ -178,6 +187,7 @@ export function ItemDialog(
 								imageUrl: item.imageUrl,
 								offsale: editingItem.offsale,
 								limit: item.limit !== undefined ? item.limit : null,
+								category: item.category,
 							},
 						}
 					);
@@ -197,6 +207,7 @@ export function ItemDialog(
 				price: new Decimal(item.price),
 				imageUrl: item.imageUrl,
 				limit: item.limit !== undefined ? item.limit : null,
+				category: item.category,
 			};
 			setItems((prev) =>
 				prev.map((it, idx) => (idx === editingIndex ? updatedItem : it))
@@ -255,6 +266,36 @@ export function ItemDialog(
 												{...field}
 											/>
 										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={form.control}
+								name="category"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Category</FormLabel>
+										<Select
+											value={field.value ?? ""}
+											onValueChange={field.onChange}>
+											<FormControl>
+												<SelectTrigger>
+													<SelectValue placeholder="Select a category" />
+												</SelectTrigger>
+											</FormControl>
+											<SelectContent>
+												{itemCategories.map(({ id, label, icon: Icon }) => (
+													<SelectItem key={id} value={id}>
+														<span className="flex items-center gap-2">
+															<Icon className="h-4 w-4" />
+															{label}
+														</span>
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
 										<FormMessage />
 									</FormItem>
 								)}

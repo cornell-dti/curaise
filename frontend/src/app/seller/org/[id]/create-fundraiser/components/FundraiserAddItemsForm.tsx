@@ -14,6 +14,7 @@ import { PlusCircle, X, ShoppingCart, Pencil } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { ItemDialog } from "@/app/seller/fundraiser/[id]/components/ItemDialog";
+import { itemCategoryInfo } from "@/lib/item-categories";
 
 const EMPTY_ITEM = {
 	name: "",
@@ -22,6 +23,7 @@ const EMPTY_ITEM = {
 	imageUrl: undefined,
 	offsale: false,
 	limit: undefined,
+	category: undefined,
 };
 
 export function FundraiserAddItemsForm({
@@ -68,6 +70,7 @@ export function FundraiserAddItemsForm({
 			imageUrl: item.imageUrl,
 			offsale: item.offsale,
 			limit: item.limit,
+			category: item.category,
 		});
 		setOpen(true);
 	};
@@ -129,6 +132,10 @@ export function FundraiserAddItemsForm({
 								<div className="flex-1">
 									<div className="flex items-center gap-2">
 										<h4 className="font-medium">{item.name}</h4>
+										<span className="text-gray-400">·</span>
+										<span className="text-sm text-gray-500">
+											{itemCategoryInfo[item.category].label}
+										</span>
 									</div>
 									<p className="text-sm text-gray-500 mt-1">
 										{item.description}
