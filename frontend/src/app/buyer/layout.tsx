@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Calendar } from "lucide-react";
 import { BrowseViewContext, type BrowseViewType } from "./browse/components/BrowseViewContext";
-import { GridIcon } from "./browse/components/BrowseView";
+import { GridIcon } from "./browse/components/BrowseIcons";
 import { usePathname } from "next/navigation";
 import { Suspense, useState } from "react";
 
