@@ -14,6 +14,7 @@ const fundraiserId = "423e4567-e89b-12d3-a456-426614174000";
 
 describe("Order Services", () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     // $transaction just runs the callback against the same mocked client
     prismaMock.$transaction.mockImplementation(((callback: any) =>
       callback(prismaMock)) as any);
@@ -60,6 +61,27 @@ describe("Order Services", () => {
       }
     );
 
+    it("should not update or re-count the cache when the order is already confirmed", async () => {
+      prismaMock.order.findUnique.mockResolvedValue({
+        ...createMockOrder({ id: orderId, paymentStatus: "CONFIRMED" }),
+        items: [],
+      } as any);
+      const existingOrder = {
+        ...createMockOrder({ id: orderId, paymentStatus: "CONFIRMED" }),
+        buyer: createMockUser(),
+        fundraiser: { id: fundraiserId },
+      };
+      prismaMock.order.findUniqueOrThrow.mockResolvedValue(existingOrder as any);
+
+      const result = await confirmOrderPayment(orderId, "VENMO");
+
+      expect(result).toEqual(existingOrder);
+      expect(prismaMock.order.update).not.toHaveBeenCalled();
+      expect(
+        fundraiserServices.updateCacheForOrderConfirmation
+      ).not.toHaveBeenCalled();
+    });
+
     it("should reject when a limited item is already sold out", async () => {
       prismaMock.order.findUnique.mockResolvedValue({
         ...createMockOrder({ id: orderId }),
@@ -95,7 +117,7 @@ describe("Order Services", () => {
 
       expect(prismaMock.order.update).toHaveBeenCalledWith({
         where: { id: orderId },
-        data: { paidAmount: 15.5, paymentMismatchAt: expect.any(Date) },
+        data: { paidAmount: "15.50", paymentMismatchAt: expect.any(Date) },
         include: {
           buyer: true,
           fundraiser: { select: { id: true, name: true } },

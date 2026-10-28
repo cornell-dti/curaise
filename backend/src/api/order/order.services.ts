@@ -460,10 +460,56 @@ export const undoOrderPickup = async (orderId: string) => {
   return order;
 };
 
+const confirmedOrderInclude = {
+  buyer: true,
+  items: {
+    include: {
+      item: {
+        select: {
+          name: true,
+          price: true,
+        },
+      },
+    },
+  },
+  fundraiser: {
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      published: true,
+      goalAmount: true,
+      imageUrls: true,
+      buyingStartsAt: true,
+      buyingEndsAt: true,
+      organization: {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          authorized: true,
+          logoUrl: true,
+        },
+      },
+      pickupEvents: {
+        orderBy: {
+          startsAt: "asc",
+        },
+      },
+    },
+  },
+  referral: {
+    include: {
+      referrer: true,
+    },
+  },
+} satisfies Prisma.OrderInclude;
+
 export const confirmOrderPayment = async (
   orderId: string,
   paymentMethod?: PaymentMethod,
 ) => {
+  let alreadyConfirmed = false;
   const order = await prisma.$transaction(
     async (tx) => {
       const existingOrder = await tx.order.findUnique({
@@ -482,6 +528,16 @@ export const confirmOrderPayment = async (
         throw new Error("Order not found");
       }
 
+      // Already confirmed: return it unchanged so the analytics cache
+      // isn't updated a second time for the same order.
+      if (existingOrder.paymentStatus === "CONFIRMED") {
+        alreadyConfirmed = true;
+        return tx.order.findUniqueOrThrow({
+          where: { id: orderId },
+          include: confirmedOrderInclude,
+        });
+      }
+
       await assertInventoryAvailable(
         tx,
         existingOrder.items.map((item) => ({
@@ -497,57 +553,16 @@ export const confirmOrderPayment = async (
           paymentStatus: "CONFIRMED",
           ...(paymentMethod && { paymentMethod }),
         },
-        include: {
-          buyer: true,
-          items: {
-            include: {
-              item: {
-                select: {
-                  name: true,
-                  price: true,
-                },
-              },
-            },
-          },
-          fundraiser: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-              published: true,
-              goalAmount: true,
-              imageUrls: true,
-              buyingStartsAt: true,
-              buyingEndsAt: true,
-              organization: {
-                select: {
-                  id: true,
-                  name: true,
-                  description: true,
-                  authorized: true,
-                  logoUrl: true,
-                },
-              },
-              pickupEvents: {
-                orderBy: {
-                  startsAt: "asc",
-                },
-              },
-            },
-          },
-          referral: {
-            include: {
-              referrer: true,
-            },
-          },
-        },
+        include: confirmedOrderInclude,
       });
     },
     { isolationLevel: "Serializable" }
   );
 
   // Update analytics cache for the fundraiser when payment is confirmed
-  await updateCacheForOrderConfirmation(order.fundraiser.id, order);
+  if (!alreadyConfirmed) {
+    await updateCacheForOrderConfirmation(order.fundraiser.id, order);
+  }
 
   return order;
 };
@@ -650,7 +665,7 @@ export const recordOrderPaymentMismatch = async (
   return prisma.order.update({
     where: { id: orderId },
     data: {
-      paidAmount: paidAmount.toNumber(),
+      paidAmount: paidAmount.toFixed(2),
       paymentMismatchAt: new Date(),
     },
     include: {

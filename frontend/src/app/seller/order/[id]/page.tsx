@@ -15,7 +15,13 @@ import {
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
 import { OrderActionButtons } from "@/components/custom/OrderActionButtons";
-import { CreditCard, ShoppingBag, User, CalendarIcon } from "lucide-react";
+import {
+  CreditCard,
+  ShoppingBag,
+  User,
+  CalendarIcon,
+  TriangleAlert,
+} from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { serverFetch } from "@/lib/fetcher";
 
@@ -123,6 +129,33 @@ export default async function OrderPage({
             <OrderActionButtons order={order} token={session.access_token} />
           </CardContent>
         </Card>
+
+        {/* Payment Mismatch Warning */}
+        {order.paymentMismatchAt && order.paidAmount != null && (
+          <Card className="border-2 border-amber-500 bg-amber-50 dark:bg-amber-950">
+            <CardContent className="pt-4">
+              <div className="flex items-start gap-2">
+                <TriangleAlert className="h-5 w-5 flex-shrink-0 text-amber-600 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold">Payment Amount Mismatch</h3>
+                  <p className="text-sm mt-0.5">
+                    Buyer paid ${Decimal(order.paidAmount).toFixed(2)} via
+                    Venmo, but the order total is ${orderTotal}.
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Flagged{" "}
+                    <LocalDate
+                      date={order.paymentMismatchAt}
+                      formatStr="MMM d, yyyy h:mm a"
+                    />
+                    {order.paymentStatus !== "CONFIRMED" &&
+                      ". Confirm payment manually once the difference is resolved."}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Order Status Card*/}
         <Card className="border-2">
