@@ -71,7 +71,7 @@ export default function PrivacyPolicyPage() {
               and mouse movement, and what is shown on the page, along with
               technical details such as errors and load times. Text you type
               into form fields is hidden in these recordings. We use them to
-              understand how people navigate CURaise and to fix problems.
+              understand how people navigate CURaise and to improve the product.
             </li>
           </ul>
         </section>
@@ -99,8 +99,7 @@ export default function PrivacyPolicyPage() {
               organizations
             </li>
             <li>
-              To improve and maintain the platform, including by reviewing usage
-              analytics and session recordings
+              To improve and maintain the platform
             </li>
           </ul>
         </section>
