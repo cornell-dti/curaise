@@ -38,6 +38,10 @@ export const BasicFundraiserSchema = z.object({
   pickupEvents: z.array(PickupEventSchema),
 });
 
+export const BrowseFundraiserSchema = BasicFundraiserSchema.extend({
+  itemCategories: z.array(ItemCategorySchema).default([]),
+});
+
 export const CompleteFundraiserSchema = BasicFundraiserSchema.extend({
   announcements: z.array(AnnouncementSchema),
   referrals: z.array(ReferralSchema),
