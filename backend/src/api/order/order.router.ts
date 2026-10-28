@@ -5,6 +5,7 @@ import {
   createOrderHandler,
   getOrderHandler,
   sendPaymentRemindersHandler,
+  sendPickupRemindersHandler,
   undoOrderPickupHandler,
 } from "./order.handlers";
 import validate from "../../middleware/validate";
@@ -64,6 +65,19 @@ orderRouter.post(
     next();
   },
   asyncHandler(sendPaymentRemindersHandler),
+);
+
+orderRouter.post(
+  "/cron/pickup-reminders",
+  (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader !== `Bearer ${process.env.SUPABASE_SERVICE_KEY}`) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+    next();
+  },
+  asyncHandler(sendPickupRemindersHandler),
 );
 
 orderRouter.use(handlePrismaErrors);

@@ -3,6 +3,19 @@ import { CreateOrganizationBody, UpdateOrganizationBody } from "common";
 import { z } from "zod";
 import { findUserByEmail } from "../user/user.services";
 
+export const getAllOrganizations = async () => {
+  const organizations = await prisma.organization.findMany({
+    orderBy: {
+      name: "asc",
+    },
+    where: {
+      authorized: true,
+    },
+  });
+
+  return organizations;
+};
+
 export const getOrganization = async (organizationId: string) => {
   const organization = await prisma.organization.findUnique({
     where: { id: organizationId },

@@ -7,6 +7,7 @@ import {
   getOrganizationHandler,
   createOrganizationHandler,
   updateOrganizationHandler,
+  getAllOrganizationsHandler,
 } from "./organization.handlers";
 import {
   authenticate,
@@ -19,32 +20,34 @@ import {
 
 const organizationRouter = Router();
 
+organizationRouter.get("/", asyncHandler(getAllOrganizationsHandler));
+
 organizationRouter.get(
   "/:id",
   validate({ params: OrganizationRouteParams }),
   authenticateOptional,
-  asyncHandler(getOrganizationHandler)
+  asyncHandler(getOrganizationHandler),
 );
 
 organizationRouter.get(
   "/:id/fundraisers",
   validate({ params: OrganizationRouteParams }),
   authenticateOptional,
-  asyncHandler(getOrganizationFundraisersHandler)
+  asyncHandler(getOrganizationFundraisersHandler),
 );
 
 organizationRouter.post(
   "/create",
   validate({ body: CreateOrganizationBody }),
   authenticate,
-  asyncHandler(createOrganizationHandler)
+  asyncHandler(createOrganizationHandler),
 );
 
 organizationRouter.post(
   "/:id/update",
   validate({ params: OrganizationRouteParams, body: UpdateOrganizationBody }),
   authenticate,
-  asyncHandler(updateOrganizationHandler)
+  asyncHandler(updateOrganizationHandler),
 );
 
 organizationRouter.use(handlePrismaErrors);

@@ -17,6 +17,17 @@ export const CompleteOrganizationSchema = BasicOrganizationSchema.extend({
   pendingAdmins: z.array(PendingUserSchema),
 });
 
+export const AdminOrganizationSchema = BasicOrganizationSchema.extend({
+  createdAt: z.coerce.date(),
+  websiteUrl: z.string().url().nullish(),
+  instagramUsername: z.string().min(1).max(255).nullish(),
+  admins: z.array(UserSchema),
+});
+
+export const UpdateOrganizationAuthorizedBody = z.object({
+  authorized: z.boolean(),
+});
+
 // CRUD BODIES:
 
 export const CreateOrganizationBody = z.object({

@@ -117,6 +117,7 @@ export function OrdersTable<TValue>({
 						title="Payment Type"
 						options={[
 							{ label: "VENMO", value: "VENMO" },
+							{ label: "ZELLE", value: "ZELLE" },
 							{ label: "OTHER", value: "OTHER" },
 						]}
 					/>
@@ -126,10 +127,9 @@ export function OrdersTable<TValue>({
 						column={table.getColumn("paymentStatus")}
 						title="Payment Status"
 						options={[
-							{ label: "Picked Up", value: "Picked Up" },
-							{ label: "Not Picked Up", value: "Not Picked Up" },
-							{ label: "Pending", value: "Pending" },
-							{ label: "Unverifiable", value: "Unverifiable" },
+							{ label: "Received", value: "Received" },
+							{ label: "Not Received", value: "Not Received" },
+							{ label: "Unverified", value: "Unverified" },
 						]}
 					/>
 				)}
