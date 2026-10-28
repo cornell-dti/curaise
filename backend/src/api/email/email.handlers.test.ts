@@ -138,4 +138,22 @@ describe("verifyDkim", () => {
     ];
     expect(verifyDkim(headersJson(headers))).toBe(false);
   });
+
+  it("rejects a forged venmo.com header planted alongside a real signature from another domain", () => {
+    const headers: [string, string][] = [
+      ["X-Mailgun-Dkim-Check-Result", "Pass"],
+      ["Dkim-Signature", "v=1; a=rsa-sha256; d=venmo.com; s=selector;"],
+      ["Dkim-Signature", "v=1; a=rsa-sha256; d=attacker.com; s=selector;"],
+    ];
+    expect(verifyDkim(headersJson(headers))).toBe(false);
+  });
+
+  it("accepts multiple DKIM-Signature headers when all are venmo.com", () => {
+    const headers: [string, string][] = [
+      ["X-Mailgun-Dkim-Check-Result", "Pass"],
+      ["Dkim-Signature", "v=1; a=rsa-sha256; d=venmo.com; s=selector1;"],
+      ["Dkim-Signature", "v=1; a=rsa-sha256; d=venmo.com; s=selector2;"],
+    ];
+    expect(verifyDkim(headersJson(headers))).toBe(true);
+  });
 });

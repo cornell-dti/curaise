@@ -60,17 +60,17 @@ export function verifyDkim(messageHeaders: string | undefined): boolean {
       return false;
     }
 
-    // Verify the DKIM signature domain is venmo.com
-    const dkimSig = headers.find(
+    // Verify every DKIM-Signature header is for venmo.com.
+    const dkimSigs = headers.filter(
       ([name]) => name.toLowerCase() === "dkim-signature",
     );
-    if (!dkimSig) {
+    if (dkimSigs.length === 0) {
       console.error("No DKIM-Signature header found");
       return false;
     }
-    const domainMatch = dkimSig[1].match(/\bd=([^;\s]+)/);
-    if (!domainMatch || domainMatch[1].toLowerCase() !== "venmo.com") {
-      console.error("DKIM signature domain is not venmo.com:", domainMatch?.[1]);
+    const domains = dkimSigs.map(([, value]) => value.match(/\bd=([^;\s]+)/)?.[1]);
+    if (domains.some((domain) => domain?.toLowerCase() !== "venmo.com")) {
+      console.error("DKIM signature domain is not venmo.com:", domains);
       return false;
     }
 
