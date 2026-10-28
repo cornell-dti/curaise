@@ -106,7 +106,7 @@ export const parseEmailHandler = async (
     // Verify the email was actually signed by Venmo (DKIM); the "From" header
     // alone is attacker-controlled and cannot be trusted on its own
     if (!verifyDkim(messageHeaders)) {
-      res.status(401).json({ message: "DKIM verification failed" });
+      res.status(406).json({ message: "DKIM verification failed" });
       return;
     }
 
