@@ -218,6 +218,8 @@ export const createOrder = async (
           paymentStatus:
             orderBody.payment_method === "VENMO" ? "PENDING" : "UNVERIFIABLE",
           pickedUp: orderBody.markAsPickedUp === true,
+          buyerName: orderBody.buyerName,
+          buyerNetId: orderBody.buyerNetId,
           buyer: { connect: { id: orderBody.buyerId } },
           fundraiser: { connect: { id: orderBody.fundraiserId } },
           items: {

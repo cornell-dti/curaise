@@ -11,6 +11,8 @@ export const BasicOrderSchema = z.object({
   pickedUp: z.boolean(),
   paidAmount: MoneySchema.nullish(),
   paymentMismatchAt: z.coerce.date().nullish(),
+  buyerName: z.string().nullish(),
+  buyerNetId: z.string().nullish(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 
@@ -43,7 +45,23 @@ export const CreateOrderBody = z.object({
   payment_method: z.enum(["VENMO", "ZELLE", "OTHER"]),
   referralId: z.string().uuid().optional(),
   markAsPickedUp: z.boolean().optional(),
+  // Seller-entered buyer for manual orders (Zelle, cash, on someone's behalf)
+  buyerName: z.string().trim().min(1).max(255).optional(),
+  buyerNetId: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z]+[0-9]+$/, "Invalid NetID")
+    .optional(),
 }).superRefine((body, ctx) => {
+  if ((body.buyerName === undefined) !== (body.buyerNetId === undefined)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Buyer name and NetID must be provided together",
+      path: [body.buyerName === undefined ? "buyerName" : "buyerNetId"],
+    });
+  }
+
   const seenItemIds = new Set<string>();
 
   body.items.forEach((item, index) => {
