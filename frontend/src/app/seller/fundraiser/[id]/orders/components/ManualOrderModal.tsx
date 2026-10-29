@@ -11,6 +11,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { FundraiserItemCard } from "@/app/buyer/fundraiser/[id]/components/FundraiserItemCard";
 import { mutationFetch } from "@/lib/fetcher";
@@ -34,6 +36,12 @@ interface ItemQuantity {
   [itemId: string]: number;
 }
 
+const NETID_PATTERN = /^[a-z]+[0-9]+$/;
+
+// Accept "abc123" or a pasted "abc123@cornell.edu"
+const normalizeNetId = (value: string) =>
+  value.trim().toLowerCase().split("@")[0];
+
 export function ManualOrderModal({
   fundraiserId,
   items,
@@ -43,6 +51,8 @@ export function ManualOrderModal({
 }: ManualOrderModalProps) {
   const [open, setOpen] = useState(false);
   const [quantities, setQuantities] = useState<ItemQuantity>({});
+  const [buyerName, setBuyerName] = useState("");
+  const [buyerNetId, setBuyerNetId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     items: availabilityItems,
@@ -112,11 +122,26 @@ export function ManualOrderModal({
     : [];
   const hasCapacityIssues = capacityIssues.length > 0;
   const isAvailabilityPending = isAvailabilityLoading || !availabilityItems;
+  const normalizedNetId = normalizeNetId(buyerNetId);
+  const isNetIdInvalid =
+    normalizedNetId.length > 0 && !NETID_PATTERN.test(normalizedNetId);
+  const hasBuyer = buyerName.trim().length > 0 && normalizedNetId.length > 0;
+
+  const resetForm = () => {
+    setQuantities({});
+    setBuyerName("");
+    setBuyerNetId("");
+  };
 
   const handleSaveOrder = async () => {
     // Check that at least one item is selected to place the manual order
     if (Object.keys(quantities).length === 0) {
       toast.error("Please select at least one item");
+      return;
+    }
+
+    if (!hasBuyer || isNetIdInvalid) {
+      toast.error("Please enter the buyer's name and a valid NetID");
       return;
     }
 
@@ -149,12 +174,14 @@ export function ManualOrderModal({
           items: orderItems,
           payment_method: "OTHER",
           markAsPickedUp: true,
+          buyerName: buyerName.trim(),
+          buyerNetId: normalizedNetId,
         },
       });
 
       toast.success("Manual order created successfully");
       setOpen(false);
-      setQuantities({}); // Refresh all local states of item quantities
+      resetForm(); // Refresh all local states of buyer and item quantities
       onOrderCreated(); // Will refresh the page
     } catch (error) {
       console.error("Error creating order:", error);
@@ -171,9 +198,9 @@ export function ManualOrderModal({
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
-    // Clear quantities when closing the modal
+    // Clear buyer and quantities when closing the modal
     if (!newOpen) {
-      setQuantities({});
+      resetForm();
     }
   };
 
@@ -192,6 +219,37 @@ export function ManualOrderModal({
         </DialogHeader>
 
         <div className="space-y-6">
+          <div>
+            <h3 className="text-2xl font-semibold mb-4">Buyer</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="manual-order-buyer-name">Name</Label>
+                <Input
+                  id="manual-order-buyer-name"
+                  placeholder="Jane Doe"
+                  value={buyerName}
+                  onChange={(e) => setBuyerName(e.target.value)}
+                  maxLength={255}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="manual-order-buyer-netid">NetID</Label>
+                <Input
+                  id="manual-order-buyer-netid"
+                  placeholder="abc123"
+                  value={buyerNetId}
+                  onChange={(e) => setBuyerNetId(e.target.value)}
+                  aria-invalid={isNetIdInvalid}
+                />
+                {isNetIdInvalid && (
+                  <p className="text-sm text-[#9f1239]">
+                    Enter a NetID like abc123
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div>
             <h3 className="text-2xl font-semibold mb-4">Items</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -260,6 +318,8 @@ export function ManualOrderModal({
               onClick={handleSaveOrder}
               disabled={
                 !hasItems ||
+                !hasBuyer ||
+                isNetIdInvalid ||
                 isSubmitting ||
                 isAvailabilityPending ||
                 hasCapacityIssues

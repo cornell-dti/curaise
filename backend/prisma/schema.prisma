@@ -147,6 +147,10 @@ model Order {
   paymentRemindedAt DateTime? @map("payment_reminded_at")
   pickupRemindedAt  DateTime? @map("pickup_reminded_at")
 
+  // Real buyer for seller-entered (manual) orders, where buyerId is the admin
+  buyerName  String? @map("buyer_name")
+  buyerNetId String? @map("buyer_net_id")
+
   buyer        User         @relation(fields: [buyerId], references: [id])
   buyerId      String       @map("buyer_id") @db.Uuid
   fundraiser   Fundraiser   @relation(fields: [fundraiserId], references: [id])
