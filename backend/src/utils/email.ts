@@ -10,6 +10,7 @@ import {
 } from "common";
 import { addDays, format, isSameDay } from "date-fns";
 import { TZDate } from "@date-fns/tz";
+import { Decimal } from "decimal.js";
 import { escapeHtml } from "./html";
 
 type Order = z.infer<typeof BasicOrderSchema>;
@@ -420,6 +421,58 @@ export const sendPaymentReminderEmail = async (order: Order): Promise<any> => {
     <p>Please complete your payment via Venmo to finalize your order.</p>
 
     <p>If you have already paid, please disregard this email — it may take some time for us to verify your payment.</p>
+
+    <p>Thank you,<br>
+    The CURaise Team</p>
+  `;
+
+  return sendEmail({
+    to: buyer.email,
+    subject,
+    text,
+    html,
+  });
+};
+
+/**
+ * Notify a buyer that their Venmo payment didn't match the order total
+ */
+export const sendPaymentMismatchEmail = async (options: {
+  buyer: { name: string; email: string };
+  fundraiserName: string;
+  orderId: string;
+  expectedAmount: Decimal;
+  paidAmount: Decimal;
+}): Promise<any> => {
+  const { buyer, fundraiserName, orderId, expectedAmount, paidAmount } =
+    options;
+
+  const subject = `Payment Amount Mismatch - ${fundraiserName}`;
+  const expectedFormatted = expectedAmount.toFixed(2);
+  const paidFormatted = paidAmount.toFixed(2);
+  const instruction = paidAmount.lessThan(expectedAmount)
+    ? "Please send the remaining balance via Venmo so we can confirm your order."
+    : "You paid more than the order total, so the organization will follow up with you about the difference.";
+
+  const text = `
+    Hi ${buyer.name},
+
+    We received your Venmo payment of $${paidFormatted} for order #${orderId} (${fundraiserName}), but your order total is $${expectedFormatted}.
+
+    ${instruction} If you believe this is a mistake, reply to this email or contact the organization directly.
+
+    Thank you,
+    The CURaise Team
+  `;
+
+  const html = `
+    <h1>Payment Amount Mismatch</h1>
+
+    <p>Hi ${escapeHtml(buyer.name)},</p>
+
+    <p>We received your Venmo payment of <strong>$${paidFormatted}</strong> for order <strong>#${orderId}</strong> (${escapeHtml(fundraiserName)}), but your order total is <strong>$${expectedFormatted}</strong>.</p>
+
+    <p>${instruction} If you believe this is a mistake, reply to this email or contact the organization directly.</p>
 
     <p>Thank you,<br>
     The CURaise Team</p>

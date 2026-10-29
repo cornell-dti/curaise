@@ -1,4 +1,4 @@
-import { Prisma } from "../../generated/client";
+import { Prisma, PaymentMethod } from "../../generated/client";
 import { prisma } from "../../utils/prisma";
 import { CreateOrderBody } from "common";
 import { z } from "zod";
@@ -469,7 +469,56 @@ export const undoOrderPickup = async (orderId: string) => {
   return order;
 };
 
-export const confirmOrderPayment = async (orderId: string) => {
+const confirmedOrderInclude = {
+  buyer: true,
+  items: {
+    include: {
+      item: {
+        select: {
+          name: true,
+          price: true,
+        },
+      },
+    },
+  },
+  fundraiser: {
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      published: true,
+      goalAmount: true,
+      imageUrls: true,
+      buyingStartsAt: true,
+      buyingEndsAt: true,
+      organization: {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          authorized: true,
+          logoUrl: true,
+        },
+      },
+      pickupEvents: {
+        orderBy: {
+          startsAt: "asc",
+        },
+      },
+    },
+  },
+  referral: {
+    include: {
+      referrer: true,
+    },
+  },
+} satisfies Prisma.OrderInclude;
+
+export const confirmOrderPayment = async (
+  orderId: string,
+  paymentMethod?: PaymentMethod,
+) => {
+  let alreadyConfirmed = false;
   const order = await prisma.$transaction(
     async (tx) => {
       const existingOrder = await tx.order.findUnique({
@@ -488,6 +537,16 @@ export const confirmOrderPayment = async (orderId: string) => {
         throw new Error("Order not found");
       }
 
+      // Already confirmed: return it unchanged so the analytics cache
+      // isn't updated a second time for the same order.
+      if (existingOrder.paymentStatus === "CONFIRMED") {
+        alreadyConfirmed = true;
+        return tx.order.findUniqueOrThrow({
+          where: { id: orderId },
+          include: confirmedOrderInclude,
+        });
+      }
+
       await assertInventoryAvailable(
         tx,
         existingOrder.items.map((item) => ({
@@ -501,58 +560,18 @@ export const confirmOrderPayment = async (orderId: string) => {
         where: { id: orderId },
         data: {
           paymentStatus: "CONFIRMED",
+          ...(paymentMethod && { paymentMethod }),
         },
-        include: {
-          buyer: true,
-          items: {
-            include: {
-              item: {
-                select: {
-                  name: true,
-                  price: true,
-                },
-              },
-            },
-          },
-          fundraiser: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-              published: true,
-              goalAmount: true,
-              imageUrls: true,
-              buyingStartsAt: true,
-              buyingEndsAt: true,
-              organization: {
-                select: {
-                  id: true,
-                  name: true,
-                  description: true,
-                  authorized: true,
-                  logoUrl: true,
-                },
-              },
-              pickupEvents: {
-                orderBy: {
-                  startsAt: "asc",
-                },
-              },
-            },
-          },
-          referral: {
-            include: {
-              referrer: true,
-            },
-          },
-        },
+        include: confirmedOrderInclude,
       });
     },
     { isolationLevel: "Serializable" }
   );
 
   // Update analytics cache for the fundraiser when payment is confirmed
-  await updateCacheForOrderConfirmation(order.fundraiser.id, order);
+  if (!alreadyConfirmed) {
+    await updateCacheForOrderConfirmation(order.fundraiser.id, order);
+  }
 
   return order;
 };
@@ -567,6 +586,7 @@ export const getUnremindedUnpaidOrders = async () => {
     where: {
       paymentStatus: "PENDING",
       paymentMethod: "VENMO",
+      paymentMismatchAt: null,
       createdAt: {
         lte: oneHourAgo,
       },
@@ -714,4 +734,31 @@ export const calculateOrderTotal = async (
   );
 
   return total;
+};
+
+/**
+ * Flag an order as having received a Venmo payment that doesn't match its
+ * expected total. Leaves paymentStatus as-is (PENDING) so an admin can
+ * resolve it manually via confirmOrderPayment once the discrepancy is sorted out.
+ */
+export const recordOrderPaymentMismatch = async (
+  orderId: string,
+  paidAmount: Decimal,
+) => {
+  return prisma.order.update({
+    where: { id: orderId },
+    data: {
+      paidAmount: paidAmount.toFixed(2),
+      paymentMismatchAt: new Date(),
+    },
+    include: {
+      buyer: true,
+      fundraiser: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
 };

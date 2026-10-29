@@ -2,12 +2,15 @@ import { z } from "zod";
 import { UserSchema } from "./user";
 import { BasicFundraiserSchema, ReferralSchema } from "./fundraiser";
 import { CompleteItemSchema } from "./item";
+import { MoneySchema } from "./decimal";
 
 export const BasicOrderSchema = z.object({
   id: z.string().uuid(),
   paymentMethod: z.enum(["VENMO", "ZELLE", "OTHER"]),
   paymentStatus: z.enum(["UNVERIFIABLE", "PENDING", "CONFIRMED"]),
   pickedUp: z.boolean(),
+  paidAmount: MoneySchema.nullish(),
+  paymentMismatchAt: z.coerce.date().nullish(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 

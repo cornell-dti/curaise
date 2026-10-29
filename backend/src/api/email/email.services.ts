@@ -1,7 +1,11 @@
 import { load } from "cheerio";
 import { Decimal } from "decimal.js";
-import { prisma } from "../../utils/prisma";
-import { calculateOrderTotal } from "../order/order.services";
+import { sendPaymentMismatchEmail } from "../../utils/email";
+import {
+  calculateOrderTotal,
+  confirmOrderPayment,
+  recordOrderPaymentMismatch,
+} from "../order/order.services";
 
 export const parseUnverifiedVenmoEmail = (raw: string) => {
   let parsedAmount: Decimal | null = null;
@@ -57,36 +61,33 @@ export const updateOrderPaymentStatus = async (
   orderId: string,
   paidAmount: Decimal
 ) => {
-  try {
-    // Calculate expected order total
-    const expectedAmount = await calculateOrderTotal(orderId);
+  // Calculate expected order total
+  const expectedAmount = await calculateOrderTotal(orderId);
 
-    // Validate that paid amount matches expected amount using Decimal comparison
-    const tolerance = new Decimal(0.01);
-    const difference = paidAmount.minus(expectedAmount).abs();
+  // Validate that paid amount matches expected amount using Decimal comparison
+  const tolerance = new Decimal(0.01);
+  const difference = paidAmount.minus(expectedAmount).abs();
 
-    if (difference.greaterThan(tolerance)) {
-      // TODO: Handle amount mismatch (e.g., log, alert, etc.)
+  if (difference.greaterThan(tolerance)) {
+    // Record the mismatch and let the buyer know, rather than silently
+    // leaving the order PENDING (which would keep sending them payment reminders).
+    const order = await recordOrderPaymentMismatch(orderId, paidAmount);
 
-      throw new Error(
-        `Payment amount mismatch: expected $${expectedAmount.toFixed(
-          2
-        )}, received $${paidAmount.toFixed(2)}`
-      );
-    }
-
-    // Update order with Venmo payment confirmation
-    const order = await prisma.order.update({
-      where: {
-        id: orderId,
-      },
-      data: {
-        paymentMethod: "VENMO",
-        paymentStatus: "CONFIRMED",
-      },
+    await sendPaymentMismatchEmail({
+      buyer: order.buyer,
+      fundraiserName: order.fundraiser.name,
+      orderId: order.id,
+      expectedAmount,
+      paidAmount,
     });
 
     return order;
+  }
+
+  try {
+    // Route through confirmOrderPayment so the inventory check and
+    // analytics cache refresh that manual confirmation gets also apply here.
+    return await confirmOrderPayment(orderId, "VENMO");
   } catch (error) {
     throw new Error(
       `Failed to update order payment status: ${
