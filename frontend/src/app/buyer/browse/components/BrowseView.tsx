@@ -3,7 +3,7 @@
 import { useContext, useMemo, useState } from "react";
 import { startOfToday } from "date-fns";
 import { z } from "zod";
-import { BasicFundraiserSchema } from "common";
+import { BrowseFundraiserSchema } from "common";
 import { cn } from "@/lib/utils";
 import { CalendarIcon, GridIcon } from "./BrowseIcons";
 import { CalendarView } from "./CalendarView";
@@ -17,7 +17,7 @@ import {
 } from "./browse-utils";
 
 import { BrowseViewContext } from "./BrowseViewContext";
-type Fundraiser = z.infer<typeof BasicFundraiserSchema>;
+type Fundraiser = z.infer<typeof BrowseFundraiserSchema>;
 
 const viewOptions = [
   { value: "grid", label: "Grid view", icon: GridIcon },
