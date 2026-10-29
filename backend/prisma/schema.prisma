@@ -116,15 +116,16 @@ model Referral {
 }
 
 model Item {
-  id          String   @id @default(uuid()) @db.Uuid
+  id          String       @id @default(uuid()) @db.Uuid
   name        String
   description String
-  imageUrl    String?  @map("image_url")
-  offsale     Boolean  @default(false)
+  imageUrl    String?      @map("image_url")
+  offsale     Boolean      @default(false)
   limit       Int?
-  price       Decimal  @db.Money
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  price       Decimal      @db.Money
+  category    ItemCategory @default(OTHER)
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
 
   fundraiser   Fundraiser   @relation(fields: [fundraiserId], references: [id])
   fundraiserId String       @map("fundraiser_id") @db.Uuid
@@ -142,6 +143,9 @@ model Order {
   paymentMismatchAt DateTime?     @map("payment_mismatch_at")
   createdAt         DateTime      @default(now()) @map("created_at")
   updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  paymentRemindedAt DateTime? @map("payment_reminded_at")
+  pickupRemindedAt  DateTime? @map("pickup_reminded_at")
 
   buyer        User         @relation(fields: [buyerId], references: [id])
   buyerId      String       @map("buyer_id") @db.Uuid
@@ -169,6 +173,15 @@ model OrderItems {
 
 enum PaymentMethod {
   VENMO
+  ZELLE
+  OTHER
+}
+
+enum ItemCategory {
+  DESSERTS
+  FOOD
+  DRINKS
+  APPAREL
   OTHER
 }
 

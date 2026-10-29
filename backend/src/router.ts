@@ -1,4 +1,5 @@
 import { Router } from "express";
+import adminRouter from "./api/admin";
 import emailRouter from "./api/email";
 import fundraiserRouter from "./api/fundraiser";
 import orderRouter from "./api/order";
@@ -11,6 +12,7 @@ router.get("/api/", (_, res) => {
   res.status(200).json({ message: "Hello, World!" });
 });
 
+router.use("/api/admin", adminRouter);
 router.use("/api/email", emailRouter);
 router.use("/api/fundraiser", fundraiserRouter);
 router.use("/api/order", orderRouter);

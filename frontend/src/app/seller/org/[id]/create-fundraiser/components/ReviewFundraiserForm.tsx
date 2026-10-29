@@ -10,6 +10,7 @@ import {
 import { LocalDate } from "@/components/ui/LocalDate";
 import { CreateFundraiserBody, CreateFundraiserItemBody } from "common";
 import { z } from "zod";
+import { itemCategoryInfo } from "@/lib/item-categories";
 
 export function ReviewFundraiserForm({
   formData,
@@ -135,6 +136,9 @@ export function ReviewFundraiserForm({
         {items.length > 0 && (
           <div className="space-y-2">
             <h3 className="text-lg font-medium">Items ({items.length})</h3>
+            <p className="text-sm text-gray-500">
+              You can edit these items after the fundraiser is created.
+            </p>
             <div className="space-y-2">
               {items.map((item, index) => (
                 <div
@@ -142,7 +146,13 @@ export function ReviewFundraiserForm({
                   className="p-4 border rounded-lg flex justify-between items-start"
                 >
                   <div>
-                    <p className="font-medium">{item.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">{item.name}</p>
+                      <span className="text-gray-400">·</span>
+                      <span className="text-sm text-gray-500">
+                        {itemCategoryInfo[item.category].label}
+                      </span>
+                    </div>
                     <p className="text-sm text-gray-500">{item.description}</p>
                   </div>
                   <p className="font-medium">
@@ -159,8 +169,8 @@ export function ReviewFundraiserForm({
 
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-sm text-yellow-800">
-            <strong>Note:</strong> Once created, you&apos;ll be able to edit
-            fundraiser info, add more items, and send announcements to buyers.
+            <strong>Note:</strong> Once created, you can edit fundraiser info
+            and these items, add more items, and send announcements to buyers.
           </p>
         </div>
       </CardContent>

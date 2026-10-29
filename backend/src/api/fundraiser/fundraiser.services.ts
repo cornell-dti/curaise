@@ -280,6 +280,7 @@ export const createFundraiserItem = async (
       price: itemBody.price,
       imageUrl: itemBody.imageUrl,
       limit: itemBody.limit ?? null,
+      category: itemBody.category,
       fundraiser: {
         connect: {
           id: itemBody.fundraiserId,
@@ -326,6 +327,7 @@ export const updateFundraiserItem = async (
       imageUrl: itemBody.imageUrl ?? null,
       offsale: itemBody.offsale,
       limit: itemBody.limit !== undefined ? itemBody.limit : undefined,
+      category: itemBody.category,
     },
   });
 

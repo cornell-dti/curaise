@@ -27,12 +27,14 @@ import {
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/custom/CopyButton";
+import { VenmoPayButton } from "@/components/custom/VenmoPayButton";
 import { Separator } from "@/components/ui/separator";
 import { LocalDate } from "@/components/ui/LocalDate";
 import { ConfettiWrapper } from "@/components/custom/ConfettiWrapper";
 import { OrderQRCodeDisplay } from "@/components/custom/OrderQRCodeDisplay";
 import { serverFetch } from "@/lib/fetcher";
 import { formatCapacityIssueMessage, getCapacityIssues } from "@/lib/capacity";
+import { venmoWebUrl } from "@/lib/venmo";
 
 export default async function OrderPage({
   params,
@@ -123,22 +125,28 @@ export default async function OrderPage({
       };
     }
 
-    // If unverifiable AND venmo, show unverifiable message
-    if (
-      order.paymentStatus === "UNVERIFIABLE" &&
-      order.paymentMethod === "VENMO"
-    ) {
+    // Zelle and cash are not verified online. Zelle may be sent ahead of pickup.
+    if (order.paymentMethod === "ZELLE") {
       return {
         borderColor: "border-blue-500",
         textColor: "text-blue-800 dark:text-blue-200",
-        title: "Order Processed",
+        title: "Order Received",
         message:
-          "Your order has been received. Payment will have to be manually verified by the fundraiser managers.",
+          "Your order has been received. Zelle payments aren't verified automatically, so your order isn't guaranteed to be held if the fundraiser sells out.",
       };
     }
 
-    // For OTHER payment method (PENDING or UNVERIFIABLE), show unverifiable messaging
-    if (order.paymentMethod === "OTHER") {
+    if (order.paymentMethod !== "VENMO") {
+      return {
+        borderColor: "border-blue-500",
+        textColor: "text-blue-800 dark:text-blue-200",
+        title: "Pay at Pickup",
+        message:
+          "Your order has been received. Remember to bring your payment method to pickup.",
+      };
+    }
+
+    if (order.paymentStatus === "UNVERIFIABLE") {
       return {
         borderColor: "border-blue-500",
         textColor: "text-blue-800 dark:text-blue-200",
@@ -236,14 +244,10 @@ export default async function OrderPage({
                         asChild
                         className="flex items-center gap-2 bg-[#008CFF] hover:bg-[#2E7BB8] text-white font-semibold px-4 py-3 text-md"
                       >
-                        <a
-                          href={`https://venmo.com/${
-                            fundraiser.venmoUsername
-                          }?txn=pay&note=${encodeURIComponent(
-                            orderIdForPayment,
-                          )}&amount=${encodeURIComponent(orderTotal)}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <VenmoPayButton
+                          username={fundraiser.venmoUsername}
+                          amount={orderTotal}
+                          note={orderIdForPayment}
                         >
                           <span className="flex items-center gap-2">
                             <svg
@@ -268,10 +272,14 @@ export default async function OrderPage({
                             </svg>
                             <span>Pay with Venmo</span>
                           </span>
-                        </a>
+                        </VenmoPayButton>
                       </Button>
                       <CopyButton
-                        text={`https://venmo.com/${fundraiser.venmoUsername}?txn=pay&note=${encodeURIComponent(orderIdForPayment)}&amount=${encodeURIComponent(orderTotal)}`}
+                        text={venmoWebUrl({
+                          username: fundraiser.venmoUsername,
+                          amount: orderTotal,
+                          note: orderIdForPayment,
+                        })}
                         label="Copy Link"
                         variant="outline"
                       />

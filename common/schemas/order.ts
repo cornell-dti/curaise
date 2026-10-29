@@ -6,7 +6,7 @@ import { MoneySchema } from "./decimal";
 
 export const BasicOrderSchema = z.object({
   id: z.string().uuid(),
-  paymentMethod: z.enum(["VENMO", "OTHER"]),
+  paymentMethod: z.enum(["VENMO", "ZELLE", "OTHER"]),
   paymentStatus: z.enum(["UNVERIFIABLE", "PENDING", "CONFIRMED"]),
   pickedUp: z.boolean(),
   paidAmount: MoneySchema.nullish(),
@@ -40,7 +40,7 @@ export const CreateOrderBody = z.object({
       })
     )
     .min(1),
-  payment_method: z.enum(["VENMO", "OTHER"]),
+  payment_method: z.enum(["VENMO", "ZELLE", "OTHER"]),
   referralId: z.string().uuid().optional(),
   markAsPickedUp: z.boolean().optional(),
 }).superRefine((body, ctx) => {

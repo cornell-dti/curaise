@@ -117,6 +117,7 @@ export function OrdersTable<TValue>({
 						title="Payment Type"
 						options={[
 							{ label: "VENMO", value: "VENMO" },
+							{ label: "ZELLE", value: "ZELLE" },
 							{ label: "OTHER", value: "OTHER" },
 						]}
 					/>
@@ -126,9 +127,9 @@ export function OrdersTable<TValue>({
 						column={table.getColumn("paymentStatus")}
 						title="Payment Status"
 						options={[
-							{ label: "CONFIRMED", value: "CONFIRMED" },
-							{ label: "UNVERIFIABLE", value: "UNVERIFIABLE" },
-							{ label: "PENDING", value: "PENDING" },
+							{ label: "Received", value: "Received" },
+							{ label: "Not Received", value: "Not Received" },
+							{ label: "Unverified", value: "Unverified" },
 						]}
 					/>
 				)}
@@ -162,8 +163,8 @@ export function OrdersTable<TValue>({
 												? null
 												: flexRender(
 														header.column.columnDef.header,
-														header.getContext()
-												  )}
+														header.getContext(),
+													)}
 										</TableHead>
 									);
 								})}
@@ -180,7 +181,7 @@ export function OrdersTable<TValue>({
 										<TableCell key={cell.id}>
 											{flexRender(
 												cell.column.columnDef.cell,
-												cell.getContext()
+												cell.getContext(),
 											)}
 										</TableCell>
 									))}
