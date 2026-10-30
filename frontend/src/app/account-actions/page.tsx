@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { signInWithGoogle, signOut } from "@/lib/auth-actions";
 import { ChevronRight, Building2, Settings, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 
 export default function AccountPage() {
 	const [loggedIn, setLoggedIn] = useState(true);
@@ -28,6 +29,7 @@ export default function AccountPage() {
 	};
 
 	const handleLogout = () => {
+		posthog.reset();
 		signOut();
 	};
 
