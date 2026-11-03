@@ -237,9 +237,7 @@ export function CalendarView({
   }, [currentView]);
 
   useEffect(() => {
-    if (currentView === Views.MONTH) {
-      setSelectedFundraiserId(null);
-    }
+    setSelectedFundraiserId(null);
   }, [currentView]);
 
   const calendarFilters = (
@@ -271,7 +269,7 @@ export function CalendarView({
     }
   }, [selectedFundraiserId, selectedFundraiser]);
 
-  const showEventDetails = currentView !== Views.MONTH && !!selectedFundraiser;
+  const showEventDetails = !!selectedFundraiser;
 
   if (isMobile) {
     return (
@@ -381,13 +379,11 @@ export function CalendarView({
             date={selectedDate}
             onNavigate={onSelectedDateChange}
             onSelectEvent={(event, domEvent) => {
-              if (currentView !== Views.MONTH) {
-                selectedEventRef.current = createClickAnchor(
-                  domEvent.currentTarget as HTMLElement,
-                  domEvent.nativeEvent,
-                );
-                setSelectedFundraiserId((event as CalendarEvent).id);
-              }
+              selectedEventRef.current = createClickAnchor(
+                domEvent.currentTarget as HTMLElement,
+                domEvent.nativeEvent,
+              );
+              setSelectedFundraiserId((event as CalendarEvent).id);
             }}
             dayLayoutAlgorithm="overlap"
             eventPropGetter={(event) =>
