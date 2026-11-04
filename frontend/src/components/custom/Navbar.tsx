@@ -38,7 +38,7 @@ import { useState } from "react";
 import Image from "next/image";
 import TutorialModal from "./TutorialModal";
 import { useLoggedIn } from "@/lib/useLoggedIn";
-import posthog from "posthog-js";
+import { resetPostHog } from "@/lib/posthog";
 
 export default function Navbar() {
 	const pathname = usePathname();
@@ -208,7 +208,7 @@ export default function Navbar() {
 														<DropdownMenuItem
 															className="text-red-600 cursor-pointer"
 															onClick={() => {
-																posthog.reset();
+																resetPostHog();
 																signOut();
 															}}>
 															Sign out
