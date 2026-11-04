@@ -1,5 +1,5 @@
 import { BrowseView } from "./components/BrowseView";
-import { BasicFundraiserSchema, BasicOrganizationSchema } from "common";
+import { BrowseFundraiserSchema, BasicOrganizationSchema } from "common";
 import { connection } from "next/server";
 import { serverFetch } from "@/lib/fetcher";
 
@@ -11,7 +11,7 @@ export default async function BrowseFundraisersPage({
   await connection(); // ensures server component is dynamically rendered at runtime
 
   const fundraisers = await serverFetch("/fundraiser", {
-    schema: BasicFundraiserSchema.array(),
+    schema: BrowseFundraiserSchema.array(),
   });
   const organizations = await serverFetch("/organization", {
     schema: BasicOrganizationSchema.array(),

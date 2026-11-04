@@ -1,20 +1,17 @@
 import { z } from "zod";
-import { BasicFundraiserSchema, BasicOrganizationSchema } from "common";
+import {
+  BasicFundraiserSchema,
+  BasicOrganizationSchema,
+  type ItemCategory,
+} from "common";
 import { format, isPast } from "date-fns";
-import { CupSoda, Hamburger, Lollipop, Scissors } from "lucide-react";
+
+export { itemCategories as categories } from "@/lib/item-categories";
 
 type Fundraiser = z.infer<typeof BasicFundraiserSchema>;
 
 export type Organization = z.infer<typeof BasicOrganizationSchema>;
-export type CategoryType = "desserts" | "food" | "crafts" | "drinks";
 export type OrganizationId = Organization["id"];
-
-export const categories = [
-  { id: "desserts" as CategoryType, label: "Desserts", icon: Lollipop },
-  { id: "food" as CategoryType, label: "Food", icon: Hamburger },
-  { id: "drinks" as CategoryType, label: "Drinks", icon: CupSoda },
-  { id: "crafts" as CategoryType, label: "Crafts", icon: Scissors },
-];
 
 const organizationColors = [
   "#f74545ff", // red
@@ -50,7 +47,7 @@ export function formatTimeRange(start: Date, end: Date): string {
 
 export type Filters = {
   organizations: OrganizationId[]; // Stored as unique ID instead of name
-  categories: CategoryType[];
+  categories: ItemCategory[];
 }
 
 export const emptyFilters: Filters = { organizations: [], categories: [] };
@@ -61,7 +58,9 @@ export function toggleFilter<T>(filterList: T[], filter: T): T[] {
     : [...filterList, filter];
 }
 
-export function filterFundraisers<T extends Fundraiser>(
+export function filterFundraisers<
+  T extends Fundraiser & { itemCategories: ItemCategory[] },
+>(
   fundraisers: T[],
   searchQuery: string,
   filters: Filters,
@@ -92,6 +91,14 @@ export function filterFundraisers<T extends Fundraiser>(
   if (filters.organizations.length > 0) {
     filtered = filtered.filter((fundraiser) =>
       filters.organizations.includes(fundraiser.organization.id),
+    );
+  }
+
+  if (filters.categories.length > 0) {
+    filtered = filtered.filter((fundraiser) =>
+      fundraiser.itemCategories.some((category) =>
+        filters.categories.includes(category),
+      ),
     );
   }
 

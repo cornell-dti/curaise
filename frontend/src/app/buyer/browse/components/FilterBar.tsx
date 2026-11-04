@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { FilterChips } from "./FilterChips";
 import type { Filters, Organization } from "./browse-utils";
 import {
+  categories,
   emptyFilters,
   getOrganizationColor,
   toggleFilter,
@@ -155,7 +156,29 @@ export function FilterBar({
         </button>
       )}
 
-      {/* Category (Items) filter is hidden until it is wired to item.category in filterFundraisers. */}
+      <div className="h-px w-full bg-[#DDDDDD]" />
+
+      <p className="text-lg font-semibold md:text-[12px] md:font-bold md:leading-[18px] text-black">
+        Items
+      </p>
+
+      <div className="flex flex-col gap-2">
+        {categories.map(({ id, label, icon: Icon }) => (
+          <label
+            key={id}
+            className="flex flex-row items-center gap-2 cursor-pointer"
+          >
+            <Checkbox
+              checked={activeFilters.categories.includes(id)}
+              onChange={() => updateFilters({ ...activeFilters, categories: toggleFilter(activeFilters.categories, id) })}
+            />
+            <Icon className="size-[13px] shrink-0 text-black" />
+            <span className="text-base font-normal md:text-[12px] md:leading-[18px] text-black">
+              {label}
+            </span>
+          </label>
+        ))}
+      </div>
     </div>
   );
 

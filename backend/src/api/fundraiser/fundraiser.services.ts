@@ -124,6 +124,11 @@ export const getAllFundraisers = async () => {
           startsAt: "asc",
         },
       },
+      items: {
+        select: {
+          category: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
@@ -133,7 +138,10 @@ export const getAllFundraisers = async () => {
     },
   });
 
-  return fundraisers;
+  return fundraisers.map(({ items, ...fundraiser }) => ({
+    ...fundraiser,
+    itemCategories: [...new Set(items.map((item) => item.category))],
+  }));
 };
 
 export const createFundraiser = async (

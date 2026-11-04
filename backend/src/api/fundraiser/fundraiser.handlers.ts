@@ -36,6 +36,7 @@ import {
 import {
   AnnouncementSchema,
   BasicFundraiserSchema,
+  BrowseFundraiserSchema,
   CompleteOrderSchema,
   CompleteFundraiserSchema,
   CompleteItemSchema,
@@ -61,7 +62,7 @@ export const getAllFundraisersHandler = async (req: Request, res: Response) => {
   }
 
   const parsedFundraisers =
-    BasicFundraiserSchema.array().safeParse(fundraisers);
+    BrowseFundraiserSchema.array().safeParse(fundraisers);
   if (!parsedFundraisers.success) {
     res.status(500).json({ message: "Couldn't parse fundraisers" });
     return;
