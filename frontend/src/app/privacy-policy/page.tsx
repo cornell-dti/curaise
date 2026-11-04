@@ -3,7 +3,7 @@ export default function PrivacyPolicyPage() {
     <div className="flex flex-col px-4 py-12 max-w-4xl mx-auto">
       <h1 className="text-4xl font-bold mb-2">Privacy Policy</h1>
       <p className="text-sm text-muted-foreground mb-8">
-        Last updated: February 26, 2026
+        Last updated: October 28, 2026
       </p>
 
       <div className="space-y-8 text-base leading-relaxed">
@@ -45,6 +45,10 @@ export default function PrivacyPolicyPage() {
               collect the items purchased, quantities, and your chosen payment
               method (Venmo or other).
             </li>
+            <li>
+              <strong>Survey responses:</strong> If you answer a survey shown
+              in the platform, we collect your responses.
+            </li>
           </ul>
 
           <h3 className="text-lg font-medium mt-4 mb-2">
@@ -60,6 +64,14 @@ export default function PrivacyPolicyPage() {
               <strong>Device information:</strong> We may collect browser type,
               operating system, and IP address for security and analytics
               purposes.
+            </li>
+            <li>
+              <strong>Session recordings:</strong> We record how you use the
+              platform, including the pages you open, your clicks, scrolling
+              and mouse movement, and what is shown on the page, along with
+              technical details such as errors and load times. Text you type
+              into form fields is hidden in these recordings. We use them to
+              understand how people navigate CURaise and to improve the product.
             </li>
           </ul>
         </section>
@@ -86,7 +98,9 @@ export default function PrivacyPolicyPage() {
               To allow organization admins to invite members and manage their
               organizations
             </li>
-            <li>To improve and maintain the platform</li>
+            <li>
+              To improve and maintain the platform
+            </li>
           </ul>
         </section>
 
@@ -108,7 +122,8 @@ export default function PrivacyPolicyPage() {
             <li>
               <strong>Service providers:</strong> We use trusted third-party
               services including Supabase (authentication and database
-              infrastructure), Mailgun (email delivery), Heroku (backend
+              infrastructure), Mailgun (email delivery), PostHog (product
+              analytics, session recordings, and surveys), Heroku (backend
               hosting), and Vercel (frontend hosting). These providers process
               data only as necessary to provide their services.
             </li>
@@ -125,8 +140,9 @@ export default function PrivacyPolicyPage() {
           <p>
             We retain your account information and order history for as long as
             your account is active or as needed to provide you with our
-            services. You may request deletion of your account and associated
-            data by contacting us at the email address below.
+            services. Session recordings are deleted after 30 days. You may
+            request deletion of your account and associated data by contacting
+            us at the email address below.
           </p>
         </section>
 

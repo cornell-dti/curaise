@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/auth-actions";
 import { LogOut } from "lucide-react";
+import { resetPostHog } from "@/lib/posthog";
 
 export default function AdminLayout({
   children,
@@ -32,7 +33,10 @@ export default function AdminLayout({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => signOut()}
+            onClick={() => {
+              resetPostHog();
+              signOut();
+            }}
             className="gap-2"
           >
             <LogOut className="h-4 w-4" />

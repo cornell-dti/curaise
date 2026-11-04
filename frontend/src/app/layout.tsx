@@ -10,6 +10,7 @@ import {
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -43,8 +44,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${dm_sans.variable} font-sans`}>
-        <TooltipProvider>{children}</TooltipProvider>
-        <Toaster />
+        <PostHogProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+          <Toaster />
+        </PostHogProvider>
       </body>
     </html>
   );

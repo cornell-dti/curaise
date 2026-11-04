@@ -44,14 +44,14 @@ git checkout dev
 
 Env files are gitignored. TPM should have sent them in Slack. Download them and drop them in place:
 
-| File                 | Purpose                                | Keys                                                                                                                  |
-| -------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `backend/.env.dev`   | backend, dev Supabase project          | `DATABASE_URL`, `DIRECT_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `MAILGUN_DOMAIN`, `MAILGUN_API_KEY`, `PORT`     |
-| `backend/.env.prod`  | backend, prod Supabase project         | same keys, prod values                                                                                                |
-| `frontend/.env.dev`  | frontend, dev Supabase project         | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_UNSPLASH_ACCESS_KEY`, `NEXT_PUBLIC_API_URL` |
-| `frontend/.env.prod` | frontend, prod Supabase project        | same keys, prod values                                                                                                |
+| File                 | Purpose                         | Keys                                                                                                                                                                         |
+| -------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `backend/.env.dev`   | backend, dev Supabase project   | `DATABASE_URL`, `DIRECT_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `MAILGUN_DOMAIN`, `MAILGUN_API_KEY`, `PORT`                                                            |
+| `backend/.env.prod`  | backend, prod Supabase project  | same keys, prod values                                                                                                                                                       |
+| `frontend/.env.dev`  | frontend, dev Supabase project  | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_UNSPLASH_ACCESS_KEY`, `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` |
+| `frontend/.env.prod` | frontend, prod Supabase project | same keys, prod values                                                                                                                                                       |
 
-You only need the two `.env.dev` files to run locally. `pnpm dev` copies `.env.dev` to `.env` (backend) and `.env.local` (frontend); `pnpm prod` does the same with `.env.prod` and points your local app at the production database, so only use it when you mean to. `PORT` is `3000` and `NEXT_PUBLIC_API_URL` is `http://localhost:3000/api`. Never commit any `.env*` file.
+You only need the two `.env.dev` files to run locally. `pnpm dev` copies `.env.dev` to `.env` (backend) and `.env.local` (frontend); `pnpm prod` does the same with `.env.prod` and points your local app at the production database, so only use it when you mean to. `PORT` is `3000` and `NEXT_PUBLIC_API_URL` is `http://localhost:3000/api`. `NEXT_PUBLIC_POSTHOG_HOST` is `https://us.i.posthog.com`. The PostHog keys are optional: without `NEXT_PUBLIC_POSTHOG_KEY` the frontend runs normally and sends no analytics. Never commit any `.env*` file.
 
 ## 4. Install and run
 

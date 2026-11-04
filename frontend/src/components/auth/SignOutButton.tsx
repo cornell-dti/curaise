@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/auth-actions";
+import { resetPostHog } from "@/lib/posthog";
 
 const SignOutButton = () => {
   return (
@@ -10,6 +11,7 @@ const SignOutButton = () => {
       variant="outline"
       className="w-full"
       onClick={() => {
+        resetPostHog();
         signOut();
       }}
     >
