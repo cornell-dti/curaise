@@ -87,6 +87,8 @@ export const createMockOrder = (overrides?: Partial<Order>): Order => ({
   referralId: null,
   paidAmount: null,
   paymentMismatchAt: null,
+  buyerName: null,
+  buyerNetId: null,
   createdAt: new Date("2024-01-01T00:00:00.000Z"),
   updatedAt: new Date("2024-01-01T00:00:00.000Z"),
   ...overrides,

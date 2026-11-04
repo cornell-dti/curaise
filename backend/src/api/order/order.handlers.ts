@@ -82,6 +82,12 @@ export const createOrderHandler = async (
     return;
   }
 
+  // Only sellers entering a manual order may record a different buyer
+  if ((req.body.buyerName || req.body.buyerNetId) && !isFundraiserAdmin) {
+    res.status(403).json({ message: "Unauthorized to set buyer details" });
+    return;
+  }
+
   let order;
   try {
     order = await createOrder({

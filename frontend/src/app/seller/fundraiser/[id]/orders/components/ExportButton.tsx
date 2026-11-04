@@ -5,6 +5,7 @@ import { Download } from "lucide-react";
 import { useState } from "react";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { z } from "zod";
+import { getOrderBuyer } from "@/lib/order-buyer";
 
 type Order = z.infer<typeof CompleteOrderSchema>;
 
@@ -49,10 +50,12 @@ export function ExportButton({
 					.map((item) => `${item.quantity} ${item.item.name}`)
 					.join(", ");
 
+				const buyer = getOrderBuyer(order);
+
 				return [
-					order.buyer?.name || "Unknown",
-					order.buyer?.email || "Unknown",
-					order.buyer?.email?.split("@")[0] || "Unknown",
+					buyer.name || "Unknown",
+					buyer.email || "Unknown",
+					buyer.netId || "Unknown",
 					orderDetails,
 					order.paymentMethod || "Unknown",
 					paymentStatusLabel(order.paymentStatus),

@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { serverFetch } from "@/lib/fetcher";
+import { getOrderBuyer } from "@/lib/order-buyer";
 
 export default async function OrderPage({
   params,
@@ -59,6 +60,7 @@ export default async function OrderPage({
     token: session.access_token,
     schema: CompleteOrderSchema,
   });
+  const buyer = getOrderBuyer(order);
 
   const orderTotal = order.items
     .reduce(
@@ -187,7 +189,7 @@ export default async function OrderPage({
                   <User className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
                   <div>
                     <h3 className="font-semibold">Customer</h3>
-                    <p className="text-sm mt-0.5">{order.buyer.name}</p>
+                    <p className="text-sm mt-0.5">{buyer.name}</p>
                   </div>
                 </div>
               </div>
@@ -284,9 +286,9 @@ export default async function OrderPage({
             <CardContent>
               <div className="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
                 <div>
-                  <p className="font-medium">{order.buyer.name}</p>
+                  <p className="font-medium">{buyer.name}</p>
                   <p className="text-sm text-muted-foreground break-all">
-                    {order.buyer.email}
+                    {buyer.email}
                   </p>
                 </div>
               </div>

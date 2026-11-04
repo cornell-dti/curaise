@@ -1,6 +1,8 @@
 import { Decimal } from "decimal.js";
 import { prismaMock, createMockUser, createMockOrder } from "../../../__tests__";
+import { CreateOrderBody } from "common";
 import {
+  createOrder,
   confirmOrderPayment,
   recordOrderPaymentMismatch,
   getUnremindedUnpaidOrders,
@@ -18,6 +20,92 @@ describe("Order Services", () => {
     // $transaction just runs the callback against the same mocked client
     prismaMock.$transaction.mockImplementation(((callback: any) =>
       callback(prismaMock)) as any);
+  });
+
+  describe("createOrder", () => {
+    const itemId = "523e4567-e89b-12d3-a456-426614174000";
+    const adminId = "123e4567-e89b-12d3-a456-426614174000";
+
+    beforeEach(() => {
+      prismaMock.item.findMany.mockResolvedValue([
+        { id: itemId, limit: null, name: "Cookie" },
+      ] as any);
+      (prismaMock.orderItems.groupBy as unknown as jest.Mock).mockResolvedValue(
+        []
+      );
+      prismaMock.order.create.mockResolvedValue(
+        createMockOrder({ id: orderId }) as any
+      );
+    });
+
+    it("should record the seller-entered buyer on a manual order", async () => {
+      await createOrder({
+        fundraiserId,
+        items: [{ itemId, quantity: 2 }],
+        payment_method: "OTHER",
+        markAsPickedUp: true,
+        buyerName: "Jane Doe",
+        buyerNetId: "jd123",
+        buyerId: adminId,
+      });
+
+      expect(prismaMock.order.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            buyerName: "Jane Doe",
+            buyerNetId: "jd123",
+            buyer: { connect: { id: adminId } },
+          }),
+        })
+      );
+    });
+
+    it("should leave buyer details empty for a regular order", async () => {
+      await createOrder({
+        fundraiserId,
+        items: [{ itemId, quantity: 1 }],
+        payment_method: "VENMO",
+        buyerId: adminId,
+      });
+
+      expect(prismaMock.order.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            buyerName: undefined,
+            buyerNetId: undefined,
+          }),
+        })
+      );
+    });
+  });
+
+  describe("CreateOrderBody buyer fields", () => {
+    const body = {
+      fundraiserId,
+      items: [{ itemId: "523e4567-e89b-12d3-a456-426614174000", quantity: 1 }],
+      payment_method: "OTHER" as const,
+    };
+
+    it("should normalize the NetID", () => {
+      const parsed = CreateOrderBody.parse({
+        ...body,
+        buyerName: " Jane Doe ",
+        buyerNetId: " JD123 ",
+      });
+
+      expect(parsed.buyerName).toBe("Jane Doe");
+      expect(parsed.buyerNetId).toBe("jd123");
+    });
+
+    it.each([
+      [{ buyerName: "Jane Doe" }],
+      [{ buyerNetId: "jd123" }],
+      [{ buyerName: "Jane Doe", buyerNetId: "jd123@cornell.edu" }],
+    ])("should reject incomplete or invalid buyer details (%o)", (fields) => {
+      expect(CreateOrderBody.safeParse({ ...body, ...fields }).success).toBe(
+        false
+      );
+    });
   });
 
   describe("confirmOrderPayment", () => {

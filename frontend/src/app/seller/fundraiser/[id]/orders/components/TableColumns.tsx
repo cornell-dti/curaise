@@ -35,6 +35,7 @@ import {
 } from "@/components/custom/PickupUndoToast";
 import { authFetcher, mutationFetch } from "@/lib/fetcher";
 import { useState } from "react";
+import { getOrderBuyer } from "@/lib/order-buyer";
 
 type Order = z.infer<typeof CompleteOrderSchema>;
 
@@ -231,7 +232,7 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
   },
   {
     accessorKey: "name",
-    accessorFn: (row) => row.buyer.name,
+    accessorFn: (row) => getOrderBuyer(row).name,
     header: ({ column }) => {
       return (
         <Button
@@ -246,13 +247,13 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
     },
     cell: ({ row }) => (
       <div className="flex items-center justify-center whitespace-nowrap">
-        {row.original.buyer.name}
+        {getOrderBuyer(row.original).name}
       </div>
     ),
   },
   {
     accessorKey: "netid",
-    accessorFn: (row) => row.buyer.email,
+    accessorFn: (row) => getOrderBuyer(row).netId,
     header: ({ column }) => {
       return (
         <Button
@@ -267,7 +268,7 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
     },
     cell: ({ row }) => (
       <div className="flex items-center justify-center">
-        {row.original.buyer.email.split("@")[0]}
+        {getOrderBuyer(row.original).netId}
       </div>
     ),
   },
