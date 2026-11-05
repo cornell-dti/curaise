@@ -24,6 +24,7 @@ import {
 } from "./EditPickupEvents";
 import { PendingItemChanges } from "./ItemDialog";
 import { PickupEventSchema } from "common";
+import { diffSavedItems } from "@/lib/item-changes";
 
 export function EditFundraiserModal({
   token,
@@ -172,6 +173,46 @@ export function EditFundraiserModal({
         errors.push(`Failed to create pickup event: ${result.reason.message}`);
       }
     });
+
+    // Unpublished fundraisers only edit saved items locally, so send those
+    // edits and removals now. Published fundraisers already save item edits
+    // immediately in ItemDialog and cannot delete items.
+    if (!fundraiser.published) {
+      const { deleted, updated } = diffSavedItems(
+        currentFundraiserItems,
+        fundraiserItems,
+      );
+      const savedItemResults = await Promise.allSettled([
+        ...deleted.map((itemId) =>
+          mutationFetch(
+            `/fundraiser/${fundraiser.id}/items/${itemId}/delete`,
+            { method: "DELETE", token },
+          ),
+        ),
+        ...updated.map((item) =>
+          mutationFetch(
+            `/fundraiser/${fundraiser.id}/items/${item.id}/update`,
+            {
+              token,
+              body: {
+                name: item.name,
+                description: item.description,
+                price: item.price,
+                imageUrl: item.imageUrl ?? undefined,
+                offsale: item.offsale,
+                limit: item.limit ?? null,
+                category: item.category,
+              },
+            },
+          ),
+        ),
+      ]);
+      savedItemResults.forEach((result) => {
+        if (result.status === "rejected") {
+          errors.push(`Failed to save item change: ${result.reason.message}`);
+        }
+      });
+    }
 
     // Submit pending new items concurrently and collect created items with real IDs
     const createItemResults = await Promise.allSettled(
