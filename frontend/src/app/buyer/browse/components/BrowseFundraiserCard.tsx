@@ -9,13 +9,15 @@ import { formatTimeRange } from "./browse-utils";
 interface BrowseFundraiserCardProps {
   fundraiser: z.infer<typeof BasicFundraiserSchema>;
   calendarPickups?: z.infer<typeof BasicFundraiserSchema>["pickupEvents"];
+  openInNewTab?: boolean;
 }
 
-export function BrowseFundraiserCard({ fundraiser, calendarPickups }: BrowseFundraiserCardProps) {
+export function BrowseFundraiserCard({ fundraiser, calendarPickups, openInNewTab = false }: BrowseFundraiserCardProps) {
   const isPreorder = calendarPickups?.every((pickup) => fundraiser.buyingEndsAt < pickup.startsAt);
   return (
     <Link
       href={`/buyer/fundraiser/${fundraiser.id}`}
+      {...(openInNewTab && { target: "_blank", rel: "noopener noreferrer" })}
       className={cn("flex flex-col gap-[15px] w-full", calendarPickups && "gap-3 rounded-[8px] bg-white p-[10px] transition-shadow hover:shadow-md active:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring shadow-[2px_2px_5px_0px_rgba(140,140,140,0.25)]")}
     >
       <div className={cn("bg-white aspect-[16/9] w-full rounded-md shadow-[2px_2px_5px_0px_rgba(140,140,140,0.25)] overflow-hidden relative", calendarPickups && "aspect-[2/1]")}>

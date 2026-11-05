@@ -67,12 +67,17 @@ export function EventDetailsCard({
   fundraiser,
   color,
   onClose,
+  openLinksInNewTab = false,
 }: {
   fundraiser: Fundraiser;
   color: string;
   onClose: () => void;
+  openLinksInNewTab?: boolean;
 }) {
   const fundraiserUrl = `/buyer/fundraiser/${fundraiser.id}`;
+  const linkTarget = openLinksInNewTab
+    ? { target: "_blank", rel: "noopener noreferrer" }
+    : {};
   // Items are only needed once the card opens, so fetch them on demand.
   const { items: fetchedItems, isLoading: isLoadingItems } = useFundraiserItems(
     fundraiser.id,
@@ -172,6 +177,7 @@ export function EventDetailsCard({
             {hiddenItemCount > 0 && (
               <Link
                 href={fundraiserUrl}
+                {...linkTarget}
                 className="self-start text-[12px] font-bold leading-[16px] text-black underline"
               >
                 +{hiddenItemCount} more {hiddenItemCount === 1 ? "item" : "items"}
@@ -183,6 +189,7 @@ export function EventDetailsCard({
 
       <Link
         href={fundraiserUrl}
+        {...linkTarget}
         className="mt-[6px] flex h-[34px] w-full items-center justify-center rounded-[8px] bg-black px-5 text-[16px] font-semibold leading-[24px] text-[#FEFDFD] hover:bg-black/80"
       >
         View Fundraiser

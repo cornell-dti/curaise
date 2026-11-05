@@ -1,14 +1,19 @@
 "use client";
 
 import { redirect } from "next/navigation";
-import { CreateFundraiserBody, CreateFundraiserItemBody } from "common";
+import {
+	BasicFundraiserSchema,
+	BasicOrganizationSchema,
+	CreateFundraiserBody,
+	CreateFundraiserItemBody,
+} from "common";
 import { toast } from "sonner";
 import { z } from "zod";
 import MultiStepForm from "../../../../../../components/custom/MultiStepForm";
 import { useState } from "react";
 import { mutationFetch } from "@/lib/fetcher";
 import { FundraiserBasicInfoForm } from "./FundraiserBasicInfoForm";
-import { FundraiserPickupEventsForm } from "./FundraiserPickupEventsForm";
+import { FundraiserScheduleForm } from "./FundraiserScheduleForm";
 import { FundraiserAddItemsForm } from "./FundraiserAddItemsForm";
 import { ReviewFundraiserForm } from "./ReviewFundraiserForm";
 import { FundraiserVenmoInfoForm } from "./FundraiserVenmoInfoForm";
@@ -42,9 +47,13 @@ const getDefaultDates = () => {
 export function CreateFundraiserForm({
 	token,
 	organizationId,
+	otherFundraisers,
+	organizations,
 }: {
 	token: string;
 	organizationId: string;
+	otherFundraisers: z.infer<typeof BasicFundraiserSchema>[];
+	organizations: z.infer<typeof BasicOrganizationSchema>[];
 }) {
 	const defaultDates = getDefaultDates();
 	const [currentStep, setCurrentStep] = useState(0);
@@ -75,13 +84,15 @@ export function CreateFundraiserForm({
 		z.infer<typeof CreateFundraiserItemBody>[]
 	>([]);
 
-	async function onSave() {
+	async function onSave(
+		stepData: Partial<z.infer<typeof CreateFundraiserBody>> = {},
+	) {
 		// Guard against duplicated saved fundraisers
 		if (isSubmitting) return;
 		setIsSubmitting(true);
 
 		// Add pickupEvents into formData before submission
-		const completeFormData = { ...formData, pickupEvents };
+		const completeFormData = { ...formData, ...stepData, pickupEvents };
 
 		// First create the fundraiser
 		let result;
@@ -157,7 +168,7 @@ export function CreateFundraiserForm({
 			<MultiStepForm
 				labels={[
 					"Basic Information",
-					"Pickup Events",
+					"Schedule Times",
 					"Add Items",
 					"Venmo Information",
 					"Review Fundraiser",
@@ -171,16 +182,25 @@ export function CreateFundraiserForm({
 					}}
 					onSave={(data) => {
 						setFormData((prev) => ({ ...prev, ...data }));
-						onSave();
+						onSave(data);
 					}}
 					isSubmitting={isSubmitting}
 				/>
-				<FundraiserPickupEventsForm
+				<FundraiserScheduleForm
+					defaultValues={formData}
 					events={pickupEvents}
 					setEvents={setPickupEvents}
-					onNext={() => setCurrentStep(2)}
+					otherFundraisers={otherFundraisers}
+					organizations={organizations}
+					onNext={(data) => {
+						setFormData((prev) => ({ ...prev, ...data }));
+						setCurrentStep(2);
+					}}
 					onBack={() => setCurrentStep(0)}
-					onSave={onSave}
+					onSave={(data) => {
+						setFormData((prev) => ({ ...prev, ...data }));
+						onSave(data);
+					}}
 					isSubmitting={isSubmitting}
 				/>
 				<FundraiserAddItemsForm
@@ -188,7 +208,7 @@ export function CreateFundraiserForm({
 					setItems={setFundraiserItems}
 					onNext={() => setCurrentStep(3)}
 					onBack={() => setCurrentStep(1)}
-					onSave={onSave}
+					onSave={() => onSave()}
 					isSubmitting={isSubmitting}
 				/>
 				<FundraiserVenmoInfoForm
@@ -200,14 +220,14 @@ export function CreateFundraiserForm({
 					onBack={() => setCurrentStep(2)}
 					onSave={(data) => {
 						setFormData((prev) => ({ ...prev, ...data }));
-						onSave();
+						onSave(data);
 					}}
 					isSubmitting={isSubmitting}
 				/>
 				<ReviewFundraiserForm
 					formData={{ ...formData, pickupEvents }}
 					items={fundraiserItems}
-					onSave={onSave}
+					onSave={() => onSave()}
 					onBack={() => setCurrentStep(3)}
 					isSubmitting={isSubmitting}
 				/>

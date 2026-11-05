@@ -11,6 +11,11 @@ export default function MultiStepForm({
   currentStep: number;
 }>) {
   const childrenArray = Children.toArray(children);
+  const progress = currentStep / (labels.length - 1);
+  const desktopProgressWidth =
+    currentStep === labels.length - 1
+      ? "calc(100% - 100px)"
+      : `max(0px, calc(${progress * 100}% - 48px))`;
 
   return (
     <div className="space-y-8">
@@ -33,17 +38,13 @@ export default function MultiStepForm({
 
           {/* Progress bar - desktop */}
           <div
-            className="absolute top-4 h-0.5 -translate-y-1/2 z-0 hidden md:block"
+            className="absolute top-4 h-0.5 -translate-y-1/2 z-0 hidden md:block bg-gray-200"
             style={{ left: '48px', width: 'calc(100% - 100px)' }}
-          >
-            <div className="w-full h-full bg-gray-200"></div>
-            <div
-              className="absolute top-0 left-0 h-full bg-black transition-all duration-300"
-              style={{
-                width: `${(currentStep / (labels.length - 1)) * 100}%`,
-              }}
-            ></div>
-          </div>
+          ></div>
+          <div
+            className="absolute top-4 h-0.5 -translate-y-1/2 z-0 hidden md:block bg-black transition-all duration-300"
+            style={{ left: '48px', width: desktopProgressWidth }}
+          ></div>
 
           {/* Steps with labels container */}
           <div className="flex relative z-10">

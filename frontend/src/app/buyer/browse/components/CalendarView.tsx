@@ -77,9 +77,20 @@ function createClickAnchor(
   };
 }
 
-function CalendarDayHeader({ date }: { date: Date }) {
+function CalendarDayHeader({
+  date,
+  compact = false,
+}: {
+  date: Date;
+  compact?: boolean;
+}) {
   return (
-    <div className="flex flex-col items-center leading-tight h-[70px]">
+    <div
+      className={cn(
+        "flex flex-col items-center leading-tight",
+        !compact && "h-[70px]",
+      )}
+    >
       <span className="text-[12px] font-normal uppercase text-muted-foreground">
         {moment(date).format("ddd")}
       </span>
@@ -88,6 +99,10 @@ function CalendarDayHeader({ date }: { date: Date }) {
       </span>
     </div>
   );
+}
+
+function CompactCalendarDayHeader({ date }: { date: Date }) {
+  return <CalendarDayHeader date={date} compact />;
 }
 
 function CalendarMonthDateHeader({
@@ -119,15 +134,22 @@ export function CalendarView({
   fundraisers,
   selectedDate,
   onSelectedDateChange,
+  variant = "page",
+  initialView = Views.MONTH,
+  openLinksInNewTab = false,
 }: {
   organizations: z.infer<typeof BasicOrganizationSchema>[];
   fundraisers: Fundraiser[];
   selectedDate: Date;
   onSelectedDateChange: (date: Date) => void;
+  variant?: "page" | "embedded";
+  initialView?: View;
+  openLinksInNewTab?: boolean;
 }) {
+  const isEmbedded = variant === "embedded";
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const [currentView, setCurrentView] = useState<View>(Views.MONTH);
+  const [currentView, setCurrentView] = useState<View>(initialView);
 
   const organizationNames = organizations.map((org) => org.name);
   const [isMobile, setIsMobile] = useState(false);
@@ -271,12 +293,13 @@ export function CalendarView({
 
   const showEventDetails = !!selectedFundraiser;
 
-  if (isMobile) {
+  if (isMobile && !isEmbedded) {
     return (
       <MobileCalendarView
         fundraisers={fundraisers}
         selectedDate={selectedDate}
         onSelectedDateChange={onSelectedDateChange}
+        openLinksInNewTab={openLinksInNewTab}
       />
     );
   }
@@ -284,11 +307,28 @@ export function CalendarView({
   return (
     <div className="size-full">
       <div
-        className="flex flex-col gap-3 bg-white rounded-[8px] md:grid md:grid-cols-[minmax(0,1fr)] xl:grid-cols-[200px_minmax(0,1fr)] md:grid-rows-[auto_1fr] md:gap-x-[19px] md:gap-y-6 md:shadow-[0_1px_4px_rgba(0,0,0,0.2)] md:pt-[19px] md:px-[30px] md:pb-[30px]"
+        className={
+          isEmbedded
+            ? "flex flex-col gap-3 rounded-[8px] bg-[#F7F7F8] p-3 md:p-5"
+            : "flex flex-col gap-3 bg-white rounded-[8px] md:grid md:grid-cols-[minmax(0,1fr)] xl:grid-cols-[200px_minmax(0,1fr)] md:grid-rows-[auto_1fr] md:gap-x-[19px] md:gap-y-6 md:shadow-[0_1px_4px_rgba(0,0,0,0.2)] md:pt-[19px] md:px-[30px] md:pb-[30px]"
+        }
       >
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 md:px-0 md:col-start-1 md:row-start-1 xl:col-start-2 xl:flex-nowrap xl:gap-0">
+        <div
+          className={
+            isEmbedded
+              ? "flex items-center justify-between gap-3"
+              : "flex flex-wrap items-center justify-between gap-3 px-4 md:px-0 md:col-start-1 md:row-start-1 xl:col-start-2 xl:flex-nowrap xl:gap-0"
+          }
+        >
           <div className="flex gap-[8px] items-center">
-            <p className="font-semibold leading-[42px] text-[20px] md:text-[28px] text-black whitespace-nowrap">
+            <p
+              className={cn(
+                "font-semibold text-black whitespace-nowrap",
+                isEmbedded
+                  ? "text-[18px] leading-[28px] md:text-[20px]"
+                  : "leading-[42px] text-[20px] md:text-[28px]",
+              )}
+            >
               {moment(selectedDate).format("MMMM YYYY")}
             </p>
             <div className="flex gap-1">
@@ -305,7 +345,7 @@ export function CalendarView({
                 <ChevronDown className="size-[16px] md:size-[24px]" />
               </button>
             </div>
-            {isMobile && (
+            {isMobile && !isEmbedded && (
               <Sheet
                 open={isCalendarFiltersOpen}
                 onOpenChange={setIsCalendarFiltersOpen}
@@ -332,21 +372,30 @@ export function CalendarView({
           </div>
 
           <div className="flex gap-3 relative">
-            <Button
-              type="button"
-              onClick={() => {
-                onSelectedDateChange(new Date(today));
-                setCurrentView(Views.WEEK);
-              }}
-              className="text-xs h-8 md:text-[16px] md:h-10 bg-[#265B34] hover:bg-[#1f4a2b]"
-            >
-              Today
-            </Button>
+            {!isEmbedded && (
+              <Button
+                type="button"
+                onClick={() => {
+                  onSelectedDateChange(new Date(today));
+                  setCurrentView(Views.WEEK);
+                }}
+                className="text-xs h-8 md:text-[16px] md:h-10 bg-[#265B34] hover:bg-[#1f4a2b]"
+              >
+                Today
+              </Button>
+            )}
             <Select
               value={currentView}
               onValueChange={(value) => setCurrentView(value as View)}
             >
-              <SelectTrigger className="gap-2 text-xs h-8 md:text-[16px] md:h-10 text-[#265B34] border border-[#265B34] rounded-[6px] bg-white cursor-pointer hover:bg-[#e6f0ea]">
+              <SelectTrigger
+                className={cn(
+                  "gap-2 text-[#265B34] border border-[#265B34] rounded-[6px] bg-white cursor-pointer hover:bg-[#e6f0ea]",
+                  isEmbedded
+                    ? "h-8 text-sm"
+                    : "text-xs h-8 md:text-[16px] md:h-10",
+                )}
+              >
                 <SelectValue placeholder="Select view" />
               </SelectTrigger>
               <SelectContent>
@@ -361,7 +410,11 @@ export function CalendarView({
         </div>
 
         <div
-          className="h-[630px] min-w-0 px-4 md:px-0 md:col-start-1 md:row-start-2 xl:col-start-2"
+          className={
+            isEmbedded
+              ? "h-[300px] min-w-0 overflow-x-auto rounded-lg bg-white"
+              : "h-[630px] min-w-0 px-4 md:px-0 md:col-start-1 md:row-start-2 xl:col-start-2"
+          }
         >
           <BigCalendar
             localizer={localizer}
@@ -392,15 +445,23 @@ export function CalendarView({
             scrollToTime={SCROLL_TO_TIME}
             showMultiDayTimes
             popup
-            style={{ height: "100%", overflow: "auto" }}
+            style={{
+              height: "100%",
+              overflow: "auto",
+              minWidth: isEmbedded ? 640 : undefined,
+            }}
             views={[Views.MONTH, Views.WEEK, Views.DAY]}
             components={{
               toolbar: () => <></>,
               week: {
-                header: CalendarDayHeader,
+                header: isEmbedded
+                  ? CompactCalendarDayHeader
+                  : CalendarDayHeader,
               },
               day: {
-                header: CalendarDayHeader,
+                header: isEmbedded
+                  ? CompactCalendarDayHeader
+                  : CalendarDayHeader,
               },
               month: {
                 dateHeader: CalendarMonthDateHeader,
@@ -410,6 +471,7 @@ export function CalendarView({
                   event={event}
                   currentView={currentView}
                   organizationNames={organizationNames}
+                  compact={isEmbedded}
                 />
               ),
             }}
@@ -422,17 +484,19 @@ export function CalendarView({
               dayRangeHeaderFormat: ({ start, end }) =>
                 `${moment(start).format("MMM DD")} - ${moment(end).format("MMM DD")}`,
             }}
-            className="my-calendar"
+            className={cn("my-calendar", isEmbedded && "my-calendar-compact")}
           />
         </div>
 
-        <div className="hidden flex-col items-center gap-[20px] w-full xl:flex xl:col-start-1 xl:row-start-2">
-          <SmallCalendar
-            onSelected={onSelectedDateChange}
-            date={selectedDate}
-            handleDateSelect={(date) => handleDateSelect(date)}
-          />
-        </div>
+        {!isEmbedded && (
+          <div className="hidden flex-col items-center gap-[20px] w-full xl:flex xl:col-start-1 xl:row-start-2">
+            <SmallCalendar
+              onSelected={onSelectedDateChange}
+              date={selectedDate}
+              handleDateSelect={(date) => handleDateSelect(date)}
+            />
+          </div>
+        )}
 
         {showEventDetails && selectedFundraiser && isMobile && (
           <div
@@ -447,6 +511,7 @@ export function CalendarView({
                 fundraiser={selectedFundraiser}
                 color={selectedFundraiserColor}
                 onClose={closeEventDetails}
+                openLinksInNewTab={openLinksInNewTab}
               />
             </div>
           </div>
@@ -473,6 +538,7 @@ export function CalendarView({
               fundraiser={selectedFundraiser}
               color={selectedFundraiserColor}
               onClose={closeEventDetails}
+              openLinksInNewTab={openLinksInNewTab}
             />
           </PopoverContent>
         )}
