@@ -128,7 +128,10 @@ describe("User Services", () => {
 
       expect(result).toEqual(mockOrders);
       expect(prismaMock.order.findMany).toHaveBeenCalledWith({
-        where: { buyerId: "123e4567-e89b-12d3-a456-426614174000" },
+        where: {
+          buyerId: "123e4567-e89b-12d3-a456-426614174000",
+          buyerName: null,
+        },
         include: {
           buyer: true,
           fundraiser: {
@@ -177,6 +180,18 @@ describe("User Services", () => {
       );
 
       expect(result).toEqual([]);
+    });
+
+    it("should leave out manual orders the user entered for another buyer", async () => {
+      prismaMock.order.findMany.mockResolvedValue([]);
+
+      await getUserOrders("123e4567-e89b-12d3-a456-426614174000");
+
+      expect(prismaMock.order.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ buyerName: null }),
+        })
+      );
     });
   });
 

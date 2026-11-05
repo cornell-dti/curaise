@@ -31,7 +31,7 @@ export const getUsersByIds = async (userIds: string[]) => {
 
 export const getUserOrders = async (userId: string) => {
   const orders = await prisma.order.findMany({
-    where: { buyerId: userId },
+    where: { buyerId: userId, buyerName: null },
     include: {
       buyer: true,
       fundraiser: {
