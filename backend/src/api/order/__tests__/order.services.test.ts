@@ -1,6 +1,6 @@
 import { Decimal } from "decimal.js";
 import { prismaMock, createMockUser, createMockOrder } from "../../../__tests__";
-import { CreateOrderBody } from "common";
+import { CreateOrderBody, NetIdSchema, normalizeNetId } from "common";
 import {
   createOrder,
   confirmOrderPayment,
@@ -106,6 +106,29 @@ describe("Order Services", () => {
         false
       );
     });
+  });
+
+  describe("normalizeNetId", () => {
+    it.each([
+      ["jd123", "jd123"],
+      [" JD123 ", "jd123"],
+      ["jd123@cornell.edu", "jd123"],
+      [" JD123@Cornell.EDU ", "jd123"],
+    ])("should turn %p into a valid NetID", (input, expected) => {
+      const netId = normalizeNetId(input);
+
+      expect(netId).toBe(expected);
+      expect(NetIdSchema.safeParse(netId).success).toBe(true);
+    });
+
+    it.each(["jd123@gmail.com", "jdoe7@ithaca.edu"])(
+      "should not accept a non-Cornell email (%p)",
+      (input) => {
+        expect(NetIdSchema.safeParse(normalizeNetId(input)).success).toBe(
+          false
+        );
+      }
+    );
   });
 
   describe("confirmOrderPayment", () => {

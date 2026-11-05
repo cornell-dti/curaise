@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { z } from "zod";
-import { CompleteItemSchema } from "common";
+import { CompleteItemSchema, NetIdSchema, normalizeNetId } from "common";
 import {
   Dialog,
   DialogContent,
@@ -35,12 +35,6 @@ interface ManualOrderModalProps {
 interface ItemQuantity {
   [itemId: string]: number;
 }
-
-const NETID_PATTERN = /^[a-z]+[0-9]+$/;
-
-// Accept "abc123" or a pasted "abc123@cornell.edu"
-const normalizeNetId = (value: string) =>
-  value.trim().toLowerCase().split("@")[0];
 
 export function ManualOrderModal({
   fundraiserId,
@@ -124,7 +118,8 @@ export function ManualOrderModal({
   const isAvailabilityPending = isAvailabilityLoading || !availabilityItems;
   const normalizedNetId = normalizeNetId(buyerNetId);
   const isNetIdInvalid =
-    normalizedNetId.length > 0 && !NETID_PATTERN.test(normalizedNetId);
+    normalizedNetId.length > 0 &&
+    !NetIdSchema.safeParse(normalizedNetId).success;
   const hasBuyer = buyerName.trim().length > 0 && normalizedNetId.length > 0;
 
   const resetForm = () => {
@@ -145,21 +140,24 @@ export function ManualOrderModal({
       return;
     }
 
-    const latestItems = (await refreshAvailability()) ?? availabilityItems;
-    if (!latestItems) {
-      toast.error("Unable to verify item availability. Please try again.");
-      return;
-    }
-
-    const latestCapacityIssues = getCapacityIssues(requestedItems, latestItems);
-    if (latestCapacityIssues.length > 0) {
-      toast.error(formatCapacityIssueMessage(latestCapacityIssues[0]));
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
+      const latestItems = (await refreshAvailability()) ?? availabilityItems;
+      if (!latestItems) {
+        toast.error("Unable to verify item availability. Please try again.");
+        return;
+      }
+
+      const latestCapacityIssues = getCapacityIssues(
+        requestedItems,
+        latestItems,
+      );
+      if (latestCapacityIssues.length > 0) {
+        toast.error(formatCapacityIssueMessage(latestCapacityIssues[0]));
+        return;
+      }
+
       const orderItems = Object.entries(quantities).map(
         ([itemId, quantity]) => ({
           itemId,

@@ -62,20 +62,22 @@ export const createOrderHandler = async (
     res.status(404).json({ message: "Fundraiser not found" });
     return;
   }
+
+  const isFundraiserAdmin = fundraiser.organization.admins.some(
+    (admin) => admin.id === res.locals.user!.id,
+  );
+  const isManualOrder = isFundraiserAdmin && req.body.buyerName !== undefined;
+
   if (fundraiser.buyingStartsAt > new Date()) {
     res
       .status(400)
       .json({ message: "Fundraiser buying period has not started" });
     return;
   }
-  if (fundraiser.buyingEndsAt < new Date()) {
+  if (fundraiser.buyingEndsAt < new Date() && !isManualOrder) {
     res.status(400).json({ message: "Fundraiser buying period has ended" });
     return;
   }
-
-  const isFundraiserAdmin = fundraiser.organization.admins.some(
-    (admin) => admin.id === res.locals.user!.id,
-  );
 
   if (req.body.markAsPickedUp && !isFundraiserAdmin) {
     res.status(403).json({ message: "Unauthorized to mark order as picked up" });

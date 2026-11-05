@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { UserSchema } from "./user";
+import { NetIdSchema, UserSchema } from "./user";
 import { BasicFundraiserSchema, ReferralSchema } from "./fundraiser";
 import { CompleteItemSchema } from "./item";
 import { MoneySchema } from "./decimal";
@@ -47,12 +47,7 @@ export const CreateOrderBody = z.object({
   markAsPickedUp: z.boolean().optional(),
   // Seller-entered buyer for manual orders (Zelle, cash, on someone's behalf)
   buyerName: z.string().trim().min(1).max(255).optional(),
-  buyerNetId: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .regex(/^[a-z]+[0-9]+$/, "Invalid NetID")
-    .optional(),
+  buyerNetId: NetIdSchema.optional(),
 }).superRefine((body, ctx) => {
   if ((body.buyerName === undefined) !== (body.buyerNetId === undefined)) {
     ctx.addIssue({
