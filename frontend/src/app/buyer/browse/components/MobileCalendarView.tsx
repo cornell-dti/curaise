@@ -20,10 +20,11 @@ function pickupsOnDate(fundraiser: Fundraiser, date: Date) {
   );
 }
 
-export function MobileCalendarView({ fundraisers, selectedDate, onSelectedDateChange }: {
+export function MobileCalendarView({ fundraisers, selectedDate, onSelectedDateChange, openLinksInNewTab = false }: {
   fundraisers: Fundraiser[];
   selectedDate: Date;
   onSelectedDateChange: (date: Date) => void;
+  openLinksInNewTab?: boolean;
 }) {
   const [expanded, setExpanded] = useState(true);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
@@ -120,7 +121,7 @@ export function MobileCalendarView({ fundraisers, selectedDate, onSelectedDateCh
         </button>
         <h2 aria-live="polite" className="mb-1 text-lg font-semibold">{format(selectedDate, "EEEE, MMMM d")}</h2>
         {selectedFundraisers.length ? selectedFundraisers.map(({ fundraiser, pickups }) => (
-          <BrowseFundraiserCard key={fundraiser.id} fundraiser={fundraiser} calendarPickups={pickups} />
+          <BrowseFundraiserCard key={fundraiser.id} fundraiser={fundraiser} calendarPickups={pickups} openInNewTab={openLinksInNewTab} />
         )) : <p className="text-base text-muted-foreground">No fundraisers scheduled for this day.</p>}
       </section>
     </div>

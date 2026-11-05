@@ -1,6 +1,7 @@
 import { View, Views } from "react-big-calendar";
 import { CalendarEvent } from "./CalendarView";
 import { Clock3, FileText, MapPin, ShoppingBag } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   formatCompactTime,
   formatTimeRange,
@@ -127,10 +128,12 @@ export function CalendarEventComponent({
   event,
   currentView,
   organizationNames,
+  compact = false,
 }: {
   event: CalendarEvent;
   currentView: View;
   organizationNames: string[];
+  compact?: boolean;
 }) {
   const color = getOrganizationColor(
     organizationNames.indexOf(event.organization),
@@ -165,8 +168,15 @@ export function CalendarEventComponent({
   }
 
   return (
-    <div className="flex flex-col gap-[13px] text-black">
-      <div className="flex flex-col gap-[5px]">
+    <div
+      className={cn(
+        "flex flex-col text-black",
+        compact ? "gap-[6px]" : "gap-[13px]",
+      )}
+    >
+      <div
+        className={cn("flex flex-col", compact ? "gap-[2px]" : "gap-[5px]")}
+      >
         <div className="flex min-w-0 items-center gap-[3px] text-[12px] leading-[15px]">
           <ShoppingBag className="size-3 shrink-0" />
           <span className="truncate">Pick Up</span>
@@ -175,7 +185,12 @@ export function CalendarEventComponent({
           {event.title}
         </p>
       </div>
-      <div className="flex flex-col gap-[5px] text-[10px] leading-[13px]">
+      <div
+        className={cn(
+          "flex flex-col text-[10px] leading-[13px]",
+          compact ? "gap-[2px]" : "gap-[5px]",
+        )}
+      >
         <PickupDetailRow
           icon={
             <span

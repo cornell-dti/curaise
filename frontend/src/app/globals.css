@@ -134,6 +134,26 @@ body {
   min-height: 80px;
 }
 
+.my-calendar.my-calendar-compact .rbc-time-slot {
+  min-height: 15px;
+}
+
+.my-calendar.my-calendar-compact .rbc-timeslot-group {
+  min-height: 30px;
+}
+
+.my-calendar.my-calendar-compact .rbc-time-column .rbc-event {
+  padding: 5px 6px !important;
+}
+
+.my-calendar.my-calendar-compact .rbc-time-header-cell {
+  flex-shrink: 0;
+}
+
+.my-calendar.my-calendar-compact .rbc-allday-cell {
+  height: auto;
+}
+
 /* Header styling */
 .my-calendar .rbc-header {
   padding: 8px 10px;

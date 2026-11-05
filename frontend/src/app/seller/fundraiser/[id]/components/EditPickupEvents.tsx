@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { PickupEventSchema, CreatePickupEventBody } from "common";
 import { Dispatch, SetStateAction, useState, useEffect } from "react";
 import { PickupEventWarningModal } from "../../../org/[id]/create-fundraiser/components/PickupEventWarningModal";
+import { timeRangesOverlap } from "@/lib/pickup-overlap";
 import { z } from "zod";
 import { PlusCircle, X, MapPin, Pencil } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -147,18 +148,6 @@ export function EditPickupEventsForm({
 		}
 	}, [onPendingChanges, pendingChanges]);
 
-	type PickupEventDuration = { startsAt: Date; endsAt: Date };
-	const isPickupTimeValid = (
-		d1: PickupEventDuration,
-		d2: PickupEventDuration,
-	) => {
-		const start1 = new Date(d1.startsAt).getTime();
-		const end1 = new Date(d1.endsAt).getTime();
-		const start2 = new Date(d2.startsAt).getTime();
-		const end2 = new Date(d2.endsAt).getTime();
-		return !(start1 < end2 && start2 < end1);
-	};
-
 	const commitEvent = (data: z.infer<typeof CreatePickupEventBody>) => {
 		if (mode === "add") {
 			const tempId = `temp-${Date.now()}`;
@@ -227,10 +216,7 @@ export function EditPickupEventsForm({
 		const conflicts = events.filter((evt) => {
 			if (mode === "edit" && editingEvent && evt.id === editingEvent.id)
 				return false;
-			return !isPickupTimeValid(
-				{ startsAt: new Date(data.startsAt), endsAt: new Date(data.endsAt) },
-				{ startsAt: new Date(evt.startsAt), endsAt: new Date(evt.endsAt) },
-			);
+			return timeRangesOverlap(data, evt);
 		});
 
 		if (conflicts.length > 0) {

@@ -3,7 +3,11 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { connection } from "next/server";
 import { CreateFundraiserForm } from "@/app/seller/org/[id]/create-fundraiser/components/CreateFundraiserForm";
-import { CompleteOrganizationSchema } from "common";
+import {
+  BasicFundraiserSchema,
+  BasicOrganizationSchema,
+  CompleteOrganizationSchema,
+} from "common";
 import { serverFetch } from "@/lib/fetcher";
 
 export default async function CreateFundraiserPage({
@@ -34,10 +38,18 @@ export default async function CreateFundraiserPage({
   }
 
   const id = (await params).id;
-  const org = await serverFetch(`/organization/${id}`, {
-    token: session.access_token,
-    schema: CompleteOrganizationSchema,
-  });
+  const [org, fundraisers, organizations] = await Promise.all([
+    serverFetch(`/organization/${id}`, {
+      token: session.access_token,
+      schema: CompleteOrganizationSchema,
+    }),
+    serverFetch("/fundraiser", {
+      schema: BasicFundraiserSchema.array(),
+    }),
+    serverFetch("/organization", {
+      schema: BasicOrganizationSchema.array(),
+    }),
+  ]);
 
   // Check if user is an admin of the organization
   if (!org.admins.map((admin) => admin.id).includes(user.id)) {
@@ -46,7 +58,14 @@ export default async function CreateFundraiserPage({
 
   return (
     <div>
-      <CreateFundraiserForm token={session.access_token} organizationId={id} />
+      <CreateFundraiserForm
+        token={session.access_token}
+        organizationId={id}
+        otherFundraisers={fundraisers.filter(
+          (fundraiser) => fundraiser.organization.authorized,
+        )}
+        organizations={organizations}
+      />
     </div>
   );
 }
