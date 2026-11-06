@@ -28,6 +28,11 @@ import { Input } from "@/components/ui/input";
 import { PickupEventSchema, CreatePickupEventBody } from "common";
 import { Dispatch, SetStateAction, useState, useEffect } from "react";
 import { PickupEventWarningModal } from "../../../org/[id]/create-fundraiser/components/PickupEventWarningModal";
+import {
+	BuyingPeriod,
+	BuyingPeriodFields,
+	BuyingPeriodSchema,
+} from "../../../org/[id]/create-fundraiser/components/BuyingPeriodFields";
 import { timeRangesOverlap } from "@/lib/pickup-overlap";
 import { z } from "zod";
 import { PlusCircle, X, MapPin, Pencil } from "lucide-react";
@@ -79,7 +84,8 @@ export type PendingPickupEventChanges = {
 	deleted: string[];
 };
 
-export function EditPickupEventsForm({
+export function EditScheduleTimesForm({
+	defaultValues,
 	events,
 	setEvents,
 	onPendingChanges,
@@ -89,13 +95,19 @@ export function EditPickupEventsForm({
 }: {
 	token: string;
 	fundraiserId: string;
+	defaultValues: BuyingPeriod;
 	events: z.infer<typeof PickupEventSchema>[];
 	setEvents: Dispatch<SetStateAction<z.infer<typeof PickupEventSchema>[]>>;
 	onPendingChanges?: (changes: PendingPickupEventChanges) => void;
-	onSubmit: () => void;
-	onBack: () => void;
-	onSave: () => void;
+	onSubmit: (data: BuyingPeriod) => void;
+	onBack: (data: BuyingPeriod) => void;
+	onSave: (data: BuyingPeriod) => void;
 }) {
+	const buyingPeriodForm = useForm<BuyingPeriod>({
+		resolver: zodResolver(BuyingPeriodSchema),
+		defaultValues,
+	});
+
 	// Track pending changes for published fundraisers
 	const [pendingChanges, setPendingChanges] =
 		useState<PendingPickupEventChanges>({
@@ -261,14 +273,19 @@ export function EditPickupEventsForm({
 		<>
 			<Card>
 				<CardHeader>
-					<CardTitle>Pickup Events</CardTitle>
+					<CardTitle>Schedule Times</CardTitle>
 					<CardDescription>
-						Manage when and where buyers can pick up their orders. You must have
-						at least one pickup event.
+						Manage when buyers can order, and when and where they can pick up
+						their orders. You must have at least one pickup event.
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div className="flex justify-end mb-4">
+					<div className="mb-8">
+						<BuyingPeriodFields form={buyingPeriodForm} />
+					</div>
+
+					<div className="flex items-center justify-between gap-4 mb-4">
+						<p className="font-medium">Pickup Events</p>
 						<Button onClick={openAddDialog}>
 							<PlusCircle className="mr-2 h-4 w-4" />
 							Add Pickup Event
@@ -399,16 +416,18 @@ export function EditPickupEventsForm({
 					</Dialog>
 				</CardContent>
 				<CardFooter className="flex justify-between">
-					<Button variant="outline" onClick={onBack}>
+					<Button
+						variant="outline"
+						onClick={() => onBack(buyingPeriodForm.getValues())}>
 						Back
 					</Button>
 					<div className="flex gap-2">
 						<Button
-							onClick={onSave}
+							onClick={buyingPeriodForm.handleSubmit(onSave)}
 							className="text-[#333F37] border border-current bg-transparent hover:bg-[#e6f0ea]">
 							Save
 						</Button>
-						<Button type="button" onClick={onSubmit}>
+						<Button type="button" onClick={buyingPeriodForm.handleSubmit(onSubmit)}>
 							Next
 						</Button>
 					</div>

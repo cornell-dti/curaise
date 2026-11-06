@@ -45,10 +45,10 @@ export default async function CreateFundraiserPage({
     }),
     serverFetch("/fundraiser", {
       schema: BasicFundraiserSchema.array(),
-    }),
+    }).catch(() => []),
     serverFetch("/organization", {
       schema: BasicOrganizationSchema.array(),
-    }),
+    }).catch(() => []),
   ]);
 
   // Check if user is an admin of the organization
