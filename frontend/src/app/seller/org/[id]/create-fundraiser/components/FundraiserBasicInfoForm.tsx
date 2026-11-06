@@ -24,11 +24,11 @@ import { z } from "zod";
 import UploadImageComponent from "@/components/custom/UploadImageComponent";
 import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
 
-const BasicInformationSchema = CreateFundraiserBody.omit({
-  organizationId: true,
-  pickupEvents: true,
-  buyingStartsAt: true,
-  buyingEndsAt: true,
+const BasicInformationSchema = CreateFundraiserBody.pick({
+  name: true,
+  description: true,
+  imageUrls: true,
+  goalAmount: true,
 });
 
 export function FundraiserBasicInfoForm({
