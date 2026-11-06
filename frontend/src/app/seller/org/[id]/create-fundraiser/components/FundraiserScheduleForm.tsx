@@ -29,13 +29,17 @@ import { Input } from "@/components/ui/input";
 import { PickupEventWarningModal } from "./PickupEventWarningModal";
 import { PickupOverlapWarning } from "./PickupOverlapWarning";
 import {
+  BuyingPeriod,
+  BuyingPeriodFields,
+  BuyingPeriodSchema,
+} from "./BuyingPeriodFields";
+import {
   findOverlappingFundraisers,
   timeRangesOverlap,
 } from "@/lib/pickup-overlap";
 import {
   BasicFundraiserSchema,
   BasicOrganizationSchema,
-  CreateFundraiserBody,
   CreatePickupEventBody,
 } from "common";
 import {
@@ -49,7 +53,6 @@ import { z } from "zod";
 import { Calendar, PlusCircle, X, MapPin, Pencil } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Views } from "react-big-calendar";
 import { DateTimePicker } from "@/components/custom/DateTimePicker";
 import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
 import { CalendarView } from "@/app/buyer/browse/components/CalendarView";
@@ -66,18 +69,6 @@ const DateTimeFieldAdapter = ({
   return <DateTimePicker value={field.value} onChange={field.onChange} />;
 };
 
-const BuyingPeriodSchema = CreateFundraiserBody.pick({
-  buyingStartsAt: true,
-  buyingEndsAt: true,
-}).refine(
-  (data) => new Date(data.buyingEndsAt) > new Date(data.buyingStartsAt),
-  {
-    message: "Buying end date must be after buying start date",
-    path: ["buyingEndsAt"],
-  },
-);
-
-type BuyingPeriod = z.infer<typeof BuyingPeriodSchema>;
 type PickupEvent = z.infer<typeof CreatePickupEventBody>;
 
 // This enhances the original schema, prevents users from putting invalid end time
@@ -293,49 +284,11 @@ export function FundraiserScheduleForm({
                 selectedDate={calendarDate}
                 onSelectedDateChange={setCalendarDate}
                 variant="embedded"
-                initialView={Views.WEEK}
-                openLinksInNewTab
               />
             </div>
           )}
 
-          <Form {...buyingPeriodForm}>
-            <div>
-              <p className="mb-2 font-medium flex items-center">
-                Buying Period{" "}
-                <InfoTooltip content="This is the time period you want customers to be able to order an item for this fundraiser. After this time period is past, users will NOT be able to order from this fundraiser." />
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={buyingPeriodForm.control}
-                  name="buyingStartsAt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Start Date</FormLabel>
-                      <FormControl>
-                        <DateTimeFieldAdapter field={field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={buyingPeriodForm.control}
-                  name="buyingEndsAt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>End Date</FormLabel>
-                      <FormControl>
-                        <DateTimeFieldAdapter field={field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-          </Form>
+          <BuyingPeriodFields form={buyingPeriodForm} />
 
           <div>
             <div className="flex items-center justify-between gap-4 mb-4">

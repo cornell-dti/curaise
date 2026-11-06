@@ -19,9 +19,9 @@ import {
 } from "@/components/ui/dialog";
 import { FundraiserEditItemsForm } from "./EditItems";
 import {
-  EditPickupEventsForm,
+  EditScheduleTimesForm,
   PendingPickupEventChanges,
-} from "./EditPickupEvents";
+} from "./EditScheduleTimes";
 import { PendingItemChanges } from "./ItemDialog";
 import { PickupEventSchema } from "common";
 
@@ -260,7 +260,7 @@ export function EditFundraiserModal({
           <MultiStepForm
             labels={[
               "Basic Information",
-              "Pickup Events",
+              "Schedule Times",
               "Add Items",
               "Venmo Information",
               "Review Fundraiser",
@@ -281,15 +281,23 @@ export function EditFundraiserModal({
               isSubmitting={isSubmitting}
             />
 
-            <EditPickupEventsForm
+            <EditScheduleTimesForm
               token={token}
               fundraiserId={fundraiser.id}
+              defaultValues={formData}
               events={pickupEvents}
               setEvents={setPickupEvents}
               onPendingChanges={setPendingPickupEventChanges}
-              onSubmit={() => setCurrentStep(2)}
-              onBack={() => setCurrentStep(0)}
-              onSave={() => {
+              onSubmit={(data) => {
+                setFormData((prev) => ({ ...prev, ...data }));
+                setCurrentStep(2);
+              }}
+              onBack={(data) => {
+                setFormData((prev) => ({ ...prev, ...data }));
+                setCurrentStep(0);
+              }}
+              onSave={(data) => {
+                setFormData((prev) => ({ ...prev, ...data }));
                 setSaveRequested(true);
                 setOpen(false);
               }}

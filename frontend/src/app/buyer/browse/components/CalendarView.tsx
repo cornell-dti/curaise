@@ -135,21 +135,19 @@ export function CalendarView({
   selectedDate,
   onSelectedDateChange,
   variant = "page",
-  initialView = Views.MONTH,
-  openLinksInNewTab = false,
 }: {
   organizations: z.infer<typeof BasicOrganizationSchema>[];
   fundraisers: Fundraiser[];
   selectedDate: Date;
   onSelectedDateChange: (date: Date) => void;
   variant?: "page" | "embedded";
-  initialView?: View;
-  openLinksInNewTab?: boolean;
 }) {
   const isEmbedded = variant === "embedded";
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const [currentView, setCurrentView] = useState<View>(initialView);
+  const [currentView, setCurrentView] = useState<View>(
+    isEmbedded ? Views.WEEK : Views.MONTH,
+  );
 
   const organizationNames = organizations.map((org) => org.name);
   const [isMobile, setIsMobile] = useState(false);
@@ -299,7 +297,6 @@ export function CalendarView({
         fundraisers={fundraisers}
         selectedDate={selectedDate}
         onSelectedDateChange={onSelectedDateChange}
-        openLinksInNewTab={openLinksInNewTab}
       />
     );
   }
@@ -511,7 +508,7 @@ export function CalendarView({
                 fundraiser={selectedFundraiser}
                 color={selectedFundraiserColor}
                 onClose={closeEventDetails}
-                openLinksInNewTab={openLinksInNewTab}
+                openLinksInNewTab={isEmbedded}
               />
             </div>
           </div>
@@ -538,7 +535,7 @@ export function CalendarView({
               fundraiser={selectedFundraiser}
               color={selectedFundraiserColor}
               onClose={closeEventDetails}
-              openLinksInNewTab={openLinksInNewTab}
+              openLinksInNewTab={isEmbedded}
             />
           </PopoverContent>
         )}
