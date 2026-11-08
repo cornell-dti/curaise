@@ -39,17 +39,21 @@ import { getOrderBuyer } from "@/lib/order-buyer";
 
 type Order = z.infer<typeof CompleteOrderSchema>;
 
+export type PickupChangeHandler = (orderId: string, pickedUp: boolean) => void;
+
 // Component for the pickup status cell
 export function PickupStatusCell({
   order,
   token,
+  onPickupChange,
 }: {
   order: z.infer<typeof CompleteOrderSchema>;
   token: string;
+  onPickupChange: PickupChangeHandler;
 }) {
   const [showWarning, setShowWarning] = useState(false);
 
-  const { data, mutate } = useSWR(`/order/${order.id}`, authFetcher(CompleteOrderSchema), {
+  const { data } = useSWR(`/order/${order.id}`, authFetcher(CompleteOrderSchema), {
     fallbackData: order, // Use the original order data as fallback (default)
     revalidateOnFocus: false, // Don't revalidate on focus
   });
@@ -82,16 +86,10 @@ export function PickupStatusCell({
   // Triggers pickup status update when checkbox is clicked
   const togglePickedUp = async () => {
     try {
-      await completePickup(order.id, token);
-
-      // Mutate the cached data to reflect the updated status
-      mutate(
-        {
-          ...data,
-          pickedUp: true,
-        },
-        false, // Without revalidation
+      await completePickup(order.id, token, () =>
+        onPickupChange(order.id, false),
       );
+      onPickupChange(order.id, true);
       return true;
     } catch (error) {
       toast.error(getErrorMessage(error));
@@ -205,13 +203,20 @@ const PickupStatusBadgeCell = ({ order }: { order: Order }) => {
 
 // API call to complete pickup
 // This function posts to the API to update the pickup status of an order
-const completePickup = async (orderId: string, token: string) => {
+const completePickup = async (
+  orderId: string,
+  token: string,
+  onUndone: () => void,
+) => {
   await mutationFetch(`/order/${orderId}/complete-pickup`, { token });
-  showPickupUndoToast(orderId, token);
+  showPickupUndoToast(orderId, token, onUndone);
 };
 
 // Create a function that returns columns with the token (access token)
-export const getColumns = (token: string): ColumnDef<Order>[] => [
+export const getColumns = (
+  token: string,
+  onPickupChange: PickupChangeHandler,
+): ColumnDef<Order>[] => [
   {
     accessorKey: "pickedUp",
     header: () => {
@@ -227,7 +232,13 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
     },
     cell: ({ row }) => {
       const order = row.original;
-      return <PickupStatusCell order={order} token={token} />;
+      return (
+        <PickupStatusCell
+          order={order}
+          token={token}
+          onPickupChange={onPickupChange}
+        />
+      );
     },
   },
   {

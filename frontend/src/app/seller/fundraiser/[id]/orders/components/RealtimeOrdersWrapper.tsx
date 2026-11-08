@@ -26,6 +26,19 @@ export function RealtimeOrdersWrapper({
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const supabase = useMemo(() => createClient(), []);
 
+  const setOrderPickedUp = (orderId: string, pickedUp: boolean) => {
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === orderId ? { ...order, pickedUp } : order
+      )
+    );
+    mutate<Order>(
+      `/order/${orderId}`,
+      (current) => current && { ...current, pickedUp },
+      false
+    );
+  };
+
   useEffect(() => {
     const fetchSingleOrder = async (orderId: string): Promise<Order | null> => {
       try {
@@ -133,6 +146,7 @@ export function RealtimeOrdersWrapper({
       orders={orders}
       token={token}
       fundraiserName={fundraiserName}
+      onPickupChange={setOrderPickedUp}
     />
   );
 }
