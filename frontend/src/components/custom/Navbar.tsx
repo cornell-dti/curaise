@@ -111,7 +111,7 @@ export default function Navbar() {
 							: "h-16 md:h-20"
 					}`}>
 					{/* Logo - Desktop */}
-					<div className="hidden md:flex items-center flex-shrink-0">
+					<div className="hidden md:flex items-center flex-shrink-0 min-[1440px]:flex-1">
 						<Link href={isBuyer ? "/buyer" : "/seller"}>
 							<Image
 								src="/images/curaise-logo.svg"
@@ -138,9 +138,9 @@ export default function Navbar() {
 						</div>
 					)}
 
-					{/* Desktop Search Bar - Centered */}
+					{/* Desktop Search Bar - centered by the flex-1 logo and nav on either side */}
 					{showSearchBar && (
-						<div className="hidden min-[1440px]:flex absolute left-1/2 transform -translate-x-1/2 w-40 xl:w-64 2xl:w-96 pointer-events-auto">
+						<div className="hidden min-[1440px]:flex min-w-0 w-64 2xl:w-96 mx-6">
 							<SearchBar onSearchChange={handleSearchChange} />
 						</div>
 					)}
@@ -161,7 +161,7 @@ export default function Navbar() {
 					)}
 
 					{/* Desktop Navigation - With even spacing */}
-					<div className="hidden md:flex ml-auto gap-4 flex-shrink-0">
+					<div className="hidden md:flex ml-auto gap-4 flex-shrink-0 min-[1440px]:flex-1 min-[1440px]:justify-end">
 						{showSearchBar ? (
 							<>
 								{/* Dropdown menu for small screens only */}
