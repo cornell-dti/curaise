@@ -2,7 +2,7 @@
 
 "use client";
 import Link from "next/link";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Table } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MoreHorizontal, TriangleAlert } from "lucide-react";
@@ -34,12 +34,51 @@ import {
   showPickupUndoToast,
 } from "@/components/custom/PickupUndoToast";
 import { authFetcher, mutationFetch } from "@/lib/fetcher";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { LocalDate } from "@/components/ui/LocalDate";
 import { getOrderBuyer } from "@/lib/order-buyer";
+import { ORDER_CREATED_AT_FORMAT } from "./ordersCsv";
 
 type Order = z.infer<typeof CompleteOrderSchema>;
 
 export type PickupChangeHandler = (orderId: string, pickedUp: boolean) => void;
+
+const orderItemLineClass =
+  "flex min-h-10 items-center justify-center whitespace-nowrap px-2 py-1 text-center";
+
+function OrderItemLines({ lines }: { lines: { key: string; text: string }[] }) {
+  return (
+    <div className="flex flex-col">
+      {lines.map((line) => (
+        <div key={line.key} className={orderItemLineClass}>
+          {line.text}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SelectAllCheckbox({ table }: { table: Table<Order> }) {
+  const ref = useRef<HTMLInputElement>(null);
+  const allSelected = table.getIsAllRowsSelected();
+  const someSelected = table.getIsSomeRowsSelected();
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.indeterminate = someSelected && !allSelected;
+    }
+  }, [allSelected, someSelected]);
+
+  return (
+    <Checkbox
+      ref={ref}
+      checked={allSelected}
+      onChange={table.getToggleAllRowsSelectedHandler()}
+      aria-label="Select all orders"
+      disabled={table.getRowModel().rows.length === 0}
+    />
+  );
+}
 
 // Component for the pickup status cell
 export function PickupStatusCell({
@@ -218,6 +257,25 @@ export const getColumns = (
   onPickupChange: PickupChangeHandler,
 ): ColumnDef<Order>[] => [
   {
+    id: "select",
+    header: ({ table }) => (
+      <div className="flex items-center justify-center">
+        <SelectAllCheckbox table={table} />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="flex items-center justify-center">
+        <Checkbox
+          checked={row.getIsSelected()}
+          onChange={row.getToggleSelectedHandler()}
+          aria-label={`Select order for ${getOrderBuyer(row.original).name}`}
+        />
+      </div>
+    ),
+    enableSorting: false,
+    enableColumnFilter: false,
+  },
+  {
     accessorKey: "pickedUp",
     header: () => {
       return <div className="flex justify-center w-full px-2">Picked Up</div>;
@@ -285,6 +343,7 @@ export const getColumns = (
   },
   {
     accessorKey: "createdAt",
+    sortingFn: "datetime",
     header: ({ column }) => {
       return (
         <Button
@@ -297,21 +356,14 @@ export const getColumns = (
         </Button>
       );
     },
-    cell: ({ row }) => {
-      const createdAt = new Date(row.original.createdAt);
-      const createdAtStr = `${createdAt.getFullYear()}-${String(
-        createdAt.getMonth() + 1,
-      ).padStart(2, "0")}-${String(createdAt.getDate()).padStart(
-        2,
-        "0",
-      )} ${String(createdAt.getHours()).padStart(2, "0")}:${String(
-        createdAt.getMinutes(),
-      ).padStart(2, "0")}`;
-
-      return (
-        <div className="flex items-center justify-center whitespace-nowrap">{createdAtStr}</div>
-      );
-    },
+    cell: ({ row }) => (
+      <div className="flex items-center justify-center whitespace-nowrap">
+        <LocalDate
+          date={row.original.createdAt}
+          formatStr={ORDER_CREATED_AT_FORMAT}
+        />
+      </div>
+    ),
   },
   {
     accessorKey: "orderDetails",
@@ -338,40 +390,26 @@ export const getColumns = (
         filterValue.some((val: string) => items.includes(val))
       );
     },
-    cell: ({ row }) => {
-      const items = row.original.items;
-      return (
-        <div className="flex flex-col items-center justify-center">
-          {items.map((item) => (
-            <div
-              key={`${item.item.id}-name`}
-              className="h-[2.5rem] flex items-center justify-center w-full text-center leading-tight"
-            >
-              {item.item.name}
-            </div>
-          ))}
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <OrderItemLines
+        lines={row.original.items.map((item) => ({
+          key: `${item.item.id}-name`,
+          text: item.item.name,
+        }))}
+      />
+    ),
   },
   {
     accessorKey: "quantity",
     header: "Quantity",
-    cell: ({ row }) => {
-      const items = row.original.items;
-      return (
-        <div className="flex flex-col items-center justify-center">
-          {items.map((item) => (
-            <div
-              key={`${item.item.id}-name`}
-              className="h-[2.5rem] flex items-center justify-center w-full text-center"
-            >
-              {item.quantity}
-            </div>
-          ))}
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <OrderItemLines
+        lines={row.original.items.map((item) => ({
+          key: `${item.item.id}-qty`,
+          text: String(item.quantity),
+        }))}
+      />
+    ),
   },
   {
     accessorKey: "orderTotal",
