@@ -140,7 +140,7 @@ export default function Navbar() {
 
 					{/* Desktop Search Bar - centered by the flex-1 logo and nav on either side */}
 					{showSearchBar && (
-						<div className="hidden min-[1440px]:flex min-w-0 w-64 2xl:w-96 mx-6">
+						<div className="hidden min-[1440px]:flex min-w-0 w-56 mx-4 2xl:w-80 min-[1603px]:w-96">
 							<SearchBar onSearchChange={handleSearchChange} />
 						</div>
 					)}
