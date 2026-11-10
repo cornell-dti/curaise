@@ -13,6 +13,7 @@ export function FundraiserGallerySlider({
 	const [direction, setDirection] = useState("forward");
 
 	useEffect(() => {
+		if (images.length <= 1) return;
 		const interval = setInterval(() => {
 			if (direction === "forward") {
 				// If the current index is the last image, set slider direction to backward else

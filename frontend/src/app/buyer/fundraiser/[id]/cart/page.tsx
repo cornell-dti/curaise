@@ -1,3 +1,4 @@
+import { LOCAL_MOCK_FUNDRAISER_ID } from "@/lib/local-mocks/fundraiser";
 import { connection } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
@@ -11,8 +12,10 @@ export default async function CartPage({
 }) {
   await connection();
 
-  const supabase = await createClient();
   const id = (await params).id;
+  // Reserved fixture ID can never enter a real purchase flow, even if disabled.
+  if (id === LOCAL_MOCK_FUNDRAISER_ID) redirect(`/buyer/fundraiser/${id}`);
+  const supabase = await createClient();
   const { code } = await searchParams;
 
   const nextPath =

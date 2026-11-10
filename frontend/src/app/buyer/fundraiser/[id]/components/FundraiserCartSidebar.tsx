@@ -12,10 +12,12 @@ export function FundraiserCartSidebar({
   fundraiserId,
   referralId,
   isPast,
+  localMock = false,
 }: {
   fundraiserId: string;
   referralId: string;
   isPast: boolean;
+  localMock?: boolean;
 }) {
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -38,7 +40,7 @@ export function FundraiserCartSidebar({
   }, [cartItems]);
 
   const handleCheckout = () => {
-    if (isEmpty) return;
+    if (isEmpty || localMock) return;
 
     // On mobile, go to cart page first; on desktop, go directly to login which
     // will auto-start Google sign-in and return to the checkout page
@@ -59,6 +61,7 @@ export function FundraiserCartSidebar({
         <div className="flex flex-col">
           <h2 className="text-xl font-semibold mb-2">Items</h2>
 
+          {localMock && <p className="mb-3 text-sm text-amber-800">Test prices only. Checkout disabled for this local mock.</p>}
           {isEmpty ? (
             <div className="flex flex-col">
               <p className="text-[#767676] text-lg mb-2">Your cart is empty.</p>
@@ -102,7 +105,7 @@ export function FundraiserCartSidebar({
                   </span>
                 </div>
                 <Button
-                  disabled={isPast}
+                  disabled={isPast || localMock}
                   onClick={handleCheckout}
                   className="w-full h-[50px] rounded-lg"
                 >

@@ -2,6 +2,8 @@ import { BrowseView } from "./components/BrowseView";
 import { BasicFundraiserSchema, BasicOrganizationSchema } from "common";
 import { connection } from "next/server";
 import { serverFetch } from "@/lib/fetcher";
+import { headers } from "next/headers";
+import { getLocalMockFundraiser } from "@/lib/local-mocks/fundraiser";
 
 export default async function BrowseFundraisersPage({
   searchParams,
@@ -16,6 +18,13 @@ export default async function BrowseFundraisersPage({
   const organizations = await serverFetch("/organization", {
     schema: BasicOrganizationSchema.array(),
   });
+
+  // Temporary local UI fixture: shared by grid, calendar, and organization filters.
+  const mockFundraiser = getLocalMockFundraiser((await headers()).get("host") ?? "");
+  if (mockFundraiser) {
+    fundraisers.unshift(mockFundraiser);
+    organizations.push(mockFundraiser.organization);
+  }
 
   const params = await searchParams;
   const searchQuery = params.search || "";

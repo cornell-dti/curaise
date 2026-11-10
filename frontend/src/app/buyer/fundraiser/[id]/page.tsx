@@ -1,3 +1,5 @@
+import { headers } from "next/headers";
+import { getLocalMockFundraiser, getLocalMockItems } from "@/lib/local-mocks/fundraiser";
 import { connection } from "next/server";
 import { CompleteFundraiserSchema, ItemWithAvailabilitySchema } from "common";
 import { MapPin, Calendar, ChevronLeft, UserStar } from "lucide-react";
@@ -37,10 +39,12 @@ export default async function FundraiserPage({
   const { code, preview } = await searchParams;
   const codeValue = typeof code === "string" ? code : "";
 
-  const fundraiser = await serverFetch(`/fundraiser/${id}`, {
+  const localFixture = getLocalMockFundraiser((await headers()).get("host") ?? "");
+  const mockFundraiser = localFixture?.id === id ? localFixture : null;
+  const fundraiser = mockFundraiser ?? await serverFetch(`/fundraiser/${id}`, {
     schema: CompleteFundraiserSchema,
   });
-  const fundraiserItems = await serverFetch(`/fundraiser/${id}/items/availability`, {
+  const fundraiserItems = mockFundraiser ? getLocalMockItems() : await serverFetch(`/fundraiser/${id}/items/availability`, {
     schema: ItemWithAvailabilitySchema.array(),
   });
   const matchedReferral = fundraiser.referrals.find((r) => r.id === codeValue);
@@ -97,7 +101,7 @@ export default async function FundraiserPage({
             </p>
           </div>
           <div className="w-full">
-            {codeValue == "" && user && session?.access_token && (
+            {!mockFundraiser && codeValue == "" && user && session?.access_token && (
               <FundraiserReferralCard
                 token={session.access_token}
                 fundraiser={fundraiser}
@@ -184,6 +188,7 @@ export default async function FundraiserPage({
               <FundraiserCartSidebar
                 fundraiserId={fundraiser.id}
                 referralId={codeValue}
+                localMock={!!mockFundraiser}
                 isPast={past}
               />
             </div>
