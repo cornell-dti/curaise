@@ -3,6 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   images: {
+    // Serve images directly instead of through Vercel's image optimizer.
+    // The plan's optimization quota ran out and uncached images returned
+    // 402 OPTIMIZED_IMAGE_REQUEST_PAYMENT_REQUIRED (broken fundraiser banners).
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
