@@ -26,8 +26,11 @@ const loggingMiddleware = (req: any, _res: any, next: any) => {
   next();
 };
 
+// "/parse-mime" is the same handler. Mailgun decides the payload format from
+// the forward URL: a URL ending in "mime" gets the raw message in body-mime,
+// which is what lets us verify Venmo's DKIM signature ourselves.
 emailRouter.post(
-  "/parse",
+  ["/parse", "/parse-mime"],
   mailgunMiddleware,
   loggingMiddleware,
   validate({ body: MailgunInboundEmailBody }),

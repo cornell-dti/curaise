@@ -17,6 +17,9 @@ export const MailgunInboundEmailBody = z.object({
   token: z.string(),
   signature: z.string(),
   "message-headers": z.string().optional(),
+  // Raw MIME message. Only sent when the Mailgun route's forward URL ends in
+  // "mime", in which case body-plain and body-html are omitted.
+  "body-mime": z.string().optional(),
   "content-id-map": z.string().optional(),
 });
 
