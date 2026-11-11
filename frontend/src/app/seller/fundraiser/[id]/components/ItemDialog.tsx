@@ -34,6 +34,7 @@ import {
 import { itemCategories } from "@/lib/item-categories";
 import { Decimal } from "decimal.js";
 import { mutationFetch } from "@/lib/fetcher";
+import { useRouter } from "next/navigation";
 
 // Type for tracking pending new items
 export type PendingItemChanges = {
@@ -82,6 +83,7 @@ export function ItemDialog(
 	props: LocalItemDialogProps | FundraiserItemDialogProps
 ) {
 	const { open, setOpen, form, mode } = props;
+	const router = useRouter();
 	const getPublishedLimitValidationError = (
 		existingLimit: number | null,
 		nextLimit: number | undefined
@@ -191,6 +193,7 @@ export function ItemDialog(
 							},
 						}
 					);
+					router.refresh();
 				} catch (error) {
 					toast.error(
 						`Failed to update item: ${error instanceof Error ? error.message : "Unknown error"}`

@@ -1,6 +1,6 @@
 "use client";
 
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { CreateFundraiserBody, CreateFundraiserItemBody } from "common";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -41,6 +41,7 @@ export function EditFundraiserModal({
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   step: number;
 }) {
+  const router = useRouter();
   const [formData, setFormData] = useState<
     z.infer<typeof CreateFundraiserBody>
   >({
@@ -127,7 +128,22 @@ export function EditFundraiserModal({
     const errors: string[] = []; // Tracks all errors from failed API calls
 
     // Submit pending pickup event changes concurrently
-    // 1. Delete events
+    // 1. Create events
+    const createEventResults = await Promise.allSettled(
+      pendingPickupEventChanges.created.map(async (pending) => {
+        await mutationFetch(
+          `/fundraiser/${fundraiser.id}/pickup-events/create`,
+          { token, body: pending.data },
+        );
+      }),
+    );
+    createEventResults.forEach((result) => {
+      if (result.status === "rejected") {
+        errors.push(`Failed to create pickup event: ${result.reason.message}`);
+      }
+    });
+
+    // 2. Delete events
     const deleteResults = await Promise.allSettled(
       pendingPickupEventChanges.deleted.map(async (eventId) => {
         await mutationFetch(
@@ -144,7 +160,7 @@ export function EditFundraiserModal({
       }
     });
 
-    // 2. Update events
+    // 3. Update events
     const updateResults = await Promise.allSettled(
       pendingPickupEventChanges.updated.map(async (update) => {
         await mutationFetch(
@@ -156,21 +172,6 @@ export function EditFundraiserModal({
     updateResults.forEach((result) => {
       if (result.status === "rejected") {
         errors.push(`Failed to update pickup event: ${result.reason.message}`);
-      }
-    });
-
-    // 3. Create events
-    const createEventResults = await Promise.allSettled(
-      pendingPickupEventChanges.created.map(async (pending) => {
-        await mutationFetch(
-          `/fundraiser/${fundraiser.id}/pickup-events/create`,
-          { token, body: pending.data },
-        );
-      }),
-    );
-    createEventResults.forEach((result) => {
-      if (result.status === "rejected") {
-        errors.push(`Failed to create pickup event: ${result.reason.message}`);
       }
     });
 
@@ -255,17 +256,10 @@ export function EditFundraiserModal({
     }
 
     toast.success("Fundraiser saved successfully");
-    redirect("/seller/fundraiser/" + fundraiser.id);
+    router.refresh();
   }
   const [currentStep, setCurrentStep] = useState(step);
   const [saveRequested, setSaveRequested] = useState(false);
-
-  useEffect(() => {
-    if (open) {
-      setCurrentStep(step);
-      setIsSubmitting(false);
-    }
-  }, [open, step]);
 
   useEffect(() => {
     if (saveRequested) {
@@ -273,10 +267,6 @@ export function EditFundraiserModal({
       setSaveRequested(false);
     }
   }, [saveRequested, onSubmit]);
-
-  useEffect(() => {
-    if (open) setCurrentStep(step);
-  }, [open, step]);
 
   useEffect(() => {
     setFormFundraiserItems(

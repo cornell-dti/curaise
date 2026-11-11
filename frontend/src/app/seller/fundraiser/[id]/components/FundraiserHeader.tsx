@@ -31,8 +31,10 @@ export function FundraiserHeader({
   const [openEdit, setOpenEdit] = useState(false);
   const [openReferral, setOpenReferral] = useState(false);
   const [step, setStep] = useState(0);
+  const [editKey, setEditKey] = useState(0);
   const openStepAt = (step: number) => {
     setStep(step);
+    setEditKey((key) => key + 1);
     setOpenEdit(true);
   };
   // Sort pickup events by start time and group by day
@@ -70,6 +72,7 @@ export function FundraiserHeader({
   return (
     <div>
       <EditFundraiserModal
+        key={editKey}
         token={token}
         fundraiser={fundraiser}
         currentFundraiserItems={fundraiserItems}
@@ -95,10 +98,7 @@ export function FundraiserHeader({
                 </Button>
               </Link>
               <Button
-                onClick={() => {
-                  setStep(0);
-                  setOpenEdit(true);
-                }}
+                onClick={() => openStepAt(0)}
                 className="w-[100px] bg-[#265B34] text-white hover:bg-[#1f4a2b]"
               >
                 Edit
