@@ -3,6 +3,7 @@ import { Request, Response } from "express-serve-static-core";
 import { load } from "cheerio";
 import { Decimal } from "decimal.js";
 import { MailgunInboundEmailBody } from "./email.types";
+import { extractEmailContent, verifyVenmoDkim } from "./email.dkim";
 import {
   parseUnverifiedVenmoEmail,
   parseVerifiedVenmoEmail,
@@ -41,6 +42,10 @@ export function verifyMailgunSignature(
  * Verifies the email was cryptographically signed by venmo.com
  * (Mailgun signature above only proves Mailgun sent the webhook, not that the email
  * it forwarded really came from Venmo).
+ *
+ * Legacy path for webhooks without a raw MIME body: it relies on Mailgun's
+ * X-Mailgun-Dkim-Check-Result header, which Mailgun only adds when its spam
+ * filter runs. Webhooks that carry body-mime use verifyVenmoDkim instead.
  */
 export function verifyDkim(messageHeaders: string | undefined): boolean {
   if (!messageHeaders) {
@@ -92,6 +97,7 @@ export const parseEmailHandler = async (
       "body-html": bodyHtml,
       "body-plain": bodyPlain,
       "message-headers": messageHeaders,
+      "body-mime": bodyMime,
       timestamp,
       token,
       signature,
@@ -103,22 +109,38 @@ export const parseEmailHandler = async (
       return;
     }
 
-    // Verify the email was actually signed by Venmo (DKIM); the "From" header
-    // alone is attacker-controlled and cannot be trusted on its own
-    if (!verifyDkim(messageHeaders)) {
-      res.status(406).json({ message: "DKIM verification failed" });
-      return;
-    }
-
-    // Cheap secondary filter only — the From header is attacker-controlled
-    // and is not what actually proves the sender is Venmo (DKIM above does)
+    // Cheap filter first so unrelated mail to the catch-all route is dropped
+    // without any DKIM work. The From header is attacker-controlled and is
+    // not what proves the sender is Venmo (DKIM below does).
     if (from !== "Venmo <venmo@venmo.com>") {
       res.status(406).json({ message: "ignored sender" });
       return;
     }
 
-    // Choose content
-    const emailContent = bodyHtml || bodyPlain || "";
+    // Verify the email was actually signed by Venmo (DKIM), and choose content
+    let emailContent: string;
+    if (bodyMime) {
+      // Raw MIME webhook: check Venmo's signature ourselves
+      const verdict = await verifyVenmoDkim(bodyMime);
+      if (verdict === "temperror") {
+        // Could not fetch Venmo's key (DNS). Mailgun retries on any status
+        // other than 200 and 406, so this payment is not lost.
+        res.status(503).json({ message: "DKIM check unavailable, retry" });
+        return;
+      }
+      if (verdict !== "pass") {
+        res.status(406).json({ message: "DKIM verification failed" });
+        return;
+      }
+      emailContent = await extractEmailContent(bodyMime);
+    } else {
+      if (!verifyDkim(messageHeaders)) {
+        res.status(406).json({ message: "DKIM verification failed" });
+        return;
+      }
+      emailContent = bodyHtml || bodyPlain || "";
+    }
+
     if (!emailContent) {
       // Nothing to parse; treat as processed to avoid retry storms
       res.status(200).json({ message: "no content" });
