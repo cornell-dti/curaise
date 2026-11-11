@@ -65,32 +65,32 @@ async function sign(message: string, ...domains: string[]): Promise<string> {
 describe("verifyVenmoDkim", () => {
   it("accepts a message with a valid venmo.com signature", async () => {
     const raw = await sign(buildMessage(), "venmo.com");
-    expect(await verifyVenmoDkim(raw, resolver)).toBe(true);
+    expect(await verifyVenmoDkim(raw, resolver)).toBe("pass");
   });
 
   it("accepts a real Venmo message that Amazon SES also signed", async () => {
     const raw = await sign(buildMessage(), "venmo.com", "amazonses.com");
-    expect(await verifyVenmoDkim(raw, resolver)).toBe(true);
+    expect(await verifyVenmoDkim(raw, resolver)).toBe("pass");
   });
 
   it("accepts a message whose line endings were normalized to LF in transit", async () => {
     const raw = await sign(buildMessage(), "venmo.com");
-    expect(await verifyVenmoDkim(raw.replace(/\r\n/g, "\n"), resolver)).toBe(true);
+    expect(await verifyVenmoDkim(raw.replace(/\r\n/g, "\n"), resolver)).toBe("pass");
   });
 
   it("rejects an unsigned message", async () => {
-    expect(await verifyVenmoDkim(buildMessage(), resolver)).toBe(false);
+    expect(await verifyVenmoDkim(buildMessage(), resolver)).toBe("fail");
   });
 
   it("rejects when the body was changed after Venmo signed it", async () => {
     const raw = await sign(buildMessage(), "venmo.com");
     const tampered = raw.replace(ORDER_ID, "11111111-2222-3333-4444-555555555555");
-    expect(await verifyVenmoDkim(tampered, resolver)).toBe(false);
+    expect(await verifyVenmoDkim(tampered, resolver)).toBe("fail");
   });
 
   it("rejects a From: venmo.com message that only another domain signed", async () => {
     const raw = await sign(buildMessage(), "attacker.com");
-    expect(await verifyVenmoDkim(raw, resolver)).toBe(false);
+    expect(await verifyVenmoDkim(raw, resolver)).toBe("fail");
   });
 
   it("rejects a forged venmo.com signature next to a valid one from another domain", async () => {
@@ -102,30 +102,52 @@ describe("verifyVenmoDkim", () => {
       "11111111-2222-3333-4444-555555555555",
     );
     const raw = await sign(forged, "attacker.com");
-    expect(await verifyVenmoDkim(raw, resolver)).toBe(false);
+    expect(await verifyVenmoDkim(raw, resolver)).toBe("fail");
   });
 
   it("rejects a venmo.com-signed message whose From is another address", async () => {
     const raw = await sign(buildMessage("Mallory <mallory@venmo.com>"), "venmo.com");
-    expect(await verifyVenmoDkim(raw, resolver)).toBe(false);
+    expect(await verifyVenmoDkim(raw, resolver)).toBe("fail");
   });
 
   it("rejects a message with a second From header added", async () => {
     const raw = await sign(buildMessage(), "venmo.com");
     const twoFroms = "From: Mallory <mallory@attacker.com>\r\n" + raw;
-    expect(await verifyVenmoDkim(twoFroms, resolver)).toBe(false);
+    expect(await verifyVenmoDkim(twoFroms, resolver)).toBe("fail");
   });
 
-  it("rejects when the DKIM key cannot be looked up", async () => {
+  it("reports temperror when Venmo's key lookup fails with a DNS error", async () => {
     const raw = await sign(buildMessage(), "venmo.com");
     const failing = async () => {
-      throw new Error("SERVFAIL");
+      const err = new Error("queryTxt ESERVFAIL") as NodeJS.ErrnoException;
+      err.code = "ESERVFAIL";
+      throw err;
     };
-    expect(await verifyVenmoDkim(raw, failing)).toBe(false);
+    expect(await verifyVenmoDkim(raw, failing)).toBe("temperror");
+  });
+
+  it("fails, not temperror, when only another domain's key lookup fails", async () => {
+    const raw = await sign(buildMessage(), "attacker.com");
+    const failing = async () => {
+      const err = new Error("queryTxt ESERVFAIL") as NodeJS.ErrnoException;
+      err.code = "ESERVFAIL";
+      throw err;
+    };
+    expect(await verifyVenmoDkim(raw, failing)).toBe("fail");
+  });
+
+  it("fails when Venmo publishes no key for the selector", async () => {
+    const raw = await sign(buildMessage(), "venmo.com");
+    const missing = async () => {
+      const err = new Error("queryTxt ENOTFOUND") as NodeJS.ErrnoException;
+      err.code = "ENOTFOUND";
+      throw err;
+    };
+    expect(await verifyVenmoDkim(raw, missing)).toBe("fail");
   });
 
   it("rejects empty input instead of throwing", async () => {
-    expect(await verifyVenmoDkim("", resolver)).toBe(false);
+    expect(await verifyVenmoDkim("", resolver)).toBe("fail");
   });
 });
 

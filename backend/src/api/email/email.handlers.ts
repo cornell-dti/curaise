@@ -121,7 +121,14 @@ export const parseEmailHandler = async (
     let emailContent: string;
     if (bodyMime) {
       // Raw MIME webhook: check Venmo's signature ourselves
-      if (!(await verifyVenmoDkim(bodyMime))) {
+      const verdict = await verifyVenmoDkim(bodyMime);
+      if (verdict === "temperror") {
+        // Could not fetch Venmo's key (DNS). Mailgun retries on any status
+        // other than 200 and 406, so this payment is not lost.
+        res.status(503).json({ message: "DKIM check unavailable, retry" });
+        return;
+      }
+      if (verdict !== "pass") {
         res.status(406).json({ message: "DKIM verification failed" });
         return;
       }

@@ -11,6 +11,8 @@ type DnsResolver = (
 
 // DKIM is defined over CRLF line endings. Normalize in case a hop between
 // Mailgun and us delivered the raw message with bare LFs.
+export type DkimVerdict = "pass" | "fail" | "temperror";
+
 const toCrlf = (rawMime: string) => rawMime.replace(/\r?\n/g, "\r\n");
 
 /**
@@ -27,14 +29,18 @@ const toCrlf = (rawMime: string) => rawMime.replace(/\r?\n/g, "\r\n");
  *  - at least one DKIM signature with d=venmo.com verifies against Venmo's
  *    published key, covers the From header, and covers the whole body
  * Signatures from other domains are ignored, valid or not.
+ *
+ * Returns "temperror" when Venmo's key could not be fetched because of a
+ * DNS failure, so the caller can ask Mailgun to retry instead of dropping a
+ * real payment.
  */
 export async function verifyVenmoDkim(
   rawMime: string,
   resolver?: DnsResolver,
-): Promise<boolean> {
+): Promise<DkimVerdict> {
   if (!rawMime) {
     console.error("No raw MIME present to verify DKIM");
-    return false;
+    return "fail";
   }
 
   try {
@@ -43,29 +49,33 @@ export async function verifyVenmoDkim(
     const fromAddresses = (result.headerFrom ?? []).map((a) => a.toLowerCase());
     if (fromAddresses.length !== 1 || fromAddresses[0] !== VENMO_ADDRESS) {
       console.error("DKIM: From header is not venmo@venmo.com:", result.headerFrom);
-      return false;
+      return "fail";
     }
 
-    const venmoSignature = (result.results ?? []).find(
+    const venmoSignatures = (result.results ?? []).filter(
+      (sig) => sig.signingDomain?.toLowerCase() === VENMO_DOMAIN,
+    );
+    const venmoSignature = venmoSignatures.find(
       (sig) =>
         sig.status?.result === "pass" &&
-        sig.signingDomain?.toLowerCase() === VENMO_DOMAIN &&
         String(sig.status?.aligned || "").toLowerCase() === VENMO_DOMAIN &&
         // An l= tag would let content be appended after the signed part
         !sig.canonBodyLengthLimited,
     );
-    if (!venmoSignature) {
-      console.error(
-        "DKIM: no valid venmo.com signature:",
-        (result.results ?? []).map((sig) => sig.info),
-      );
-      return false;
+    if (venmoSignature) {
+      return "pass";
     }
 
-    return true;
+    console.error(
+      "DKIM: no valid venmo.com signature:",
+      (result.results ?? []).map((sig) => sig.info),
+    );
+    return venmoSignatures.some((sig) => sig.status?.result === "temperror")
+      ? "temperror"
+      : "fail";
   } catch (err) {
     console.error("DKIM verification threw:", err);
-    return false;
+    return "fail";
   }
 }
 

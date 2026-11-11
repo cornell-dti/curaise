@@ -70,7 +70,7 @@ describe("parseEmailHandler with a raw MIME webhook", () => {
   });
 
   it("confirms the order when Venmo's DKIM signature verifies, with no Mailgun DKIM header", async () => {
-    (emailDkim.verifyVenmoDkim as jest.Mock).mockResolvedValue(true);
+    (emailDkim.verifyVenmoDkim as jest.Mock).mockResolvedValue("pass");
 
     const result = await run(mailgunBody({ "body-mime": "raw mime" }));
 
@@ -83,7 +83,7 @@ describe("parseEmailHandler with a raw MIME webhook", () => {
   });
 
   it("rejects with 406 and leaves the order alone when the signature does not verify", async () => {
-    (emailDkim.verifyVenmoDkim as jest.Mock).mockResolvedValue(false);
+    (emailDkim.verifyVenmoDkim as jest.Mock).mockResolvedValue("fail");
 
     const result = await run(mailgunBody({ "body-mime": "raw mime" }));
 
@@ -92,6 +92,15 @@ describe("parseEmailHandler with a raw MIME webhook", () => {
       json: { message: "DKIM verification failed" },
     });
     expect(emailDkim.extractEmailContent).not.toHaveBeenCalled();
+    expect(orderServices.confirmOrderPayment).not.toHaveBeenCalled();
+  });
+
+  it("answers 503 so Mailgun retries when Venmo's key could not be fetched", async () => {
+    (emailDkim.verifyVenmoDkim as jest.Mock).mockResolvedValue("temperror");
+
+    const result = await run(mailgunBody({ "body-mime": "raw mime" }));
+
+    expect(result.status).toBe(503);
     expect(orderServices.confirmOrderPayment).not.toHaveBeenCalled();
   });
 
