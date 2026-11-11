@@ -1,6 +1,6 @@
 "use client";
 
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { CreateFundraiserBody, CreateFundraiserItemBody } from "common";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -41,6 +41,7 @@ export function EditFundraiserModal({
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   step: number;
 }) {
+  const router = useRouter();
   const [formData, setFormData] = useState<
     z.infer<typeof CreateFundraiserBody>
   >({
@@ -255,7 +256,7 @@ export function EditFundraiserModal({
     }
 
     toast.success("Fundraiser saved successfully");
-    redirect("/seller/fundraiser/" + fundraiser.id);
+    router.refresh();
   }
   const [currentStep, setCurrentStep] = useState(step);
   const [saveRequested, setSaveRequested] = useState(false);
