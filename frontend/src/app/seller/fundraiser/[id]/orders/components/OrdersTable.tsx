@@ -6,10 +6,10 @@ import { useState } from "react";
 import {
 	ColumnDef,
 	ColumnFiltersState,
+	RowSelectionState,
 	SortingState,
 	flexRender,
 	getCoreRowModel,
-	getPaginationRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
 	getFacetedRowModel,
@@ -47,31 +47,52 @@ export function OrdersTable<TValue>({
 }: OrderTableProps<TValue>) {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const [globalFilter, setGlobalFilter] = useState<any>([]);
+	const [globalFilter, setGlobalFilter] = useState("");
+	const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
 	const table = useReactTable({
 		data,
 		columns,
+		getRowId: (row) => row.id,
+		enableRowSelection: true,
 		getCoreRowModel: getCoreRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
+		// Every matching order stays on one list. Ten-row pages made Next/Previous
+		// jump, and marking a pickup reset the seller to page 1.
+		autoResetPageIndex: false,
 		onSortingChange: setSorting,
 		getSortedRowModel: getSortedRowModel(),
 		onColumnFiltersChange: setColumnFilters,
 		getFilteredRowModel: getFilteredRowModel(),
 		getFacetedRowModel: getFacetedRowModel(),
 		getFacetedUniqueValues: getFacetedUniqueValues(),
+		onGlobalFilterChange: setGlobalFilter,
+		onRowSelectionChange: setRowSelection,
 		state: {
 			sorting,
 			columnFilters,
 			globalFilter,
+			rowSelection,
 		},
 	});
 
 	const resetFilters = () => {
 		setColumnFilters([]);
 		setGlobalFilter("");
+		setRowSelection({});
 	};
+
+	const filteredRows = table.getFilteredRowModel().rows;
+	const selectedRows = table.getFilteredSelectedRowModel().rows;
+	const exportRows = selectedRows.length > 0 ? selectedRows : filteredRows;
+	const filteredCount = filteredRows.length;
+	const selectedCount = selectedRows.length;
+	const totalCount = data.length;
+	const matchLabel =
+		filteredCount === totalCount
+			? `${totalCount} ${totalCount === 1 ? "order" : "orders"}`
+			: `${filteredCount} of ${totalCount} orders`;
+	const countLabel =
+		selectedCount > 0 ? `${selectedCount} selected · ${matchLabel}` : matchLabel;
 
 	// Get all unique items
 	const getUniqueItems = (orders: Order[]) => {
@@ -92,15 +113,12 @@ export function OrdersTable<TValue>({
 			<div className="flex items-center py-4">
 				<Input
 					placeholder="Filter by name or netID"
-					value={globalFilter ?? ""}
-					onChange={(e) => {
-						setGlobalFilter(e.target.value);
-						table.setGlobalFilter(String(e.target.value));
-					}}
+					value={globalFilter}
+					onChange={(e) => setGlobalFilter(e.target.value)}
 					className="max-w-sm rounded-lg border border-solid border-[#68b0ab]"
 				/>
 			</div>
-			<div className="flex flex-wrap gap-4">
+			<div className="flex flex-wrap items-center gap-4">
 				{table.getColumn("pickedUp") && (
 					<DataTableFacetedFilter
 						column={table.getColumn("pickedUp")}
@@ -140,8 +158,19 @@ export function OrdersTable<TValue>({
 						options={getUniqueItems(data)}
 					/>
 				)}
+				<p className="text-sm text-muted-foreground" aria-live="polite">
+					{countLabel}
+				</p>
 				<div className="ml-auto space-x-2">
-					<ExportButton orders={data} fundraiserName={fundraiserName} />
+					<ExportButton
+						orders={exportRows.map((row) => row.original)}
+						fundraiserName={fundraiserName}
+						label={
+							selectedCount > 0
+								? `Export ${selectedCount} selected`
+								: "Export"
+						}
+					/>
 					<Button
 						variant="outline"
 						onClick={resetFilters}
@@ -152,7 +181,7 @@ export function OrdersTable<TValue>({
 			</div>
 
 			<div className="rounded-md border">
-				<Table className="min-w-[1150px]">
+				<Table className="min-w-[1200px]">
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
@@ -178,7 +207,14 @@ export function OrdersTable<TValue>({
 									key={row.id}
 									data-state={row.getIsSelected() && "selected"}>
 									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id}>
+										<TableCell
+											key={cell.id}
+											className={
+												cell.column.id === "orderDetails" ||
+												cell.column.id === "quantity"
+													? "align-top"
+													: undefined
+											}>
 											{flexRender(
 												cell.column.columnDef.cell,
 												cell.getContext(),
@@ -198,22 +234,6 @@ export function OrdersTable<TValue>({
 						)}
 					</TableBody>
 				</Table>
-			</div>
-			<div className="flex items-center justify-end space-x-2 py-4">
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={() => table.previousPage()}
-					disabled={!table.getCanPreviousPage()}>
-					Previous
-				</Button>
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={() => table.nextPage()}
-					disabled={!table.getCanNextPage()}>
-					Next
-				</Button>
 			</div>
 		</div>
 	);

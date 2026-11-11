@@ -3,7 +3,7 @@
 "use client";
 
 import { OrdersTable } from "./OrdersTable";
-import { getColumns } from "./TableColumns";
+import { getColumns, PickupChangeHandler } from "./TableColumns";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { z } from "zod";
 
@@ -13,14 +13,16 @@ interface OrdersClientWrapperProps {
 	orders: Order[];
 	token: string;
 	fundraiserName: string;
+	onPickupChange: PickupChangeHandler;
 }
 
 export function OrdersTableWrapper({
 	orders,
 	token,
 	fundraiserName,
+	onPickupChange,
 }: OrdersClientWrapperProps) {
-	const tableColumns = getColumns(token);
+	const tableColumns = getColumns(token, onPickupChange);
 
 	return (
 		<OrdersTable
