@@ -100,7 +100,7 @@ export function EditScheduleTimesForm({
 	setEvents: Dispatch<SetStateAction<z.infer<typeof PickupEventSchema>[]>>;
 	onPendingChanges?: (changes: PendingPickupEventChanges) => void;
 	onSubmit: (data: BuyingPeriod) => void;
-	onBack: (data: BuyingPeriod) => void;
+	onBack: (data?: BuyingPeriod) => void;
 	onSave: (data: BuyingPeriod) => void;
 }) {
 	const buyingPeriodForm = useForm<BuyingPeriod>({
@@ -418,7 +418,7 @@ export function EditScheduleTimesForm({
 				<CardFooter className="flex justify-between">
 					<Button
 						variant="outline"
-						onClick={() => onBack(buyingPeriodForm.getValues())}>
+						onClick={buyingPeriodForm.handleSubmit(onBack, () => onBack())}>
 						Back
 					</Button>
 					<div className="flex gap-2">

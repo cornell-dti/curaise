@@ -315,7 +315,10 @@ export function EditFundraiserModal({
             <EditScheduleTimesForm
               token={token}
               fundraiserId={fundraiser.id}
-              defaultValues={formData}
+              defaultValues={{
+                buyingStartsAt: formData.buyingStartsAt,
+                buyingEndsAt: formData.buyingEndsAt,
+              }}
               events={pickupEvents}
               setEvents={setPickupEvents}
               onPendingChanges={setPendingPickupEventChanges}
@@ -379,7 +382,10 @@ export function EditFundraiserModal({
                 setFormData((prev) => ({ ...prev, ...data }));
                 setCurrentStep(4);
               }}
-              onBack={() => setCurrentStep(2)}
+              onBack={(data) => {
+                setFormData((prev) => ({ ...prev, ...data }));
+                setCurrentStep(2);
+              }}
               onSave={(data) => {
                 setFormData((prev) => ({ ...prev, ...data }));
                 setSaveRequested(true);

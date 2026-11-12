@@ -118,7 +118,7 @@ export function FundraiserScheduleForm({
   otherFundraisers: z.infer<typeof BasicFundraiserSchema>[];
   organizations: z.infer<typeof BasicOrganizationSchema>[];
   onNext: (data: BuyingPeriod) => void;
-  onBack: () => void;
+  onBack: (data?: BuyingPeriod) => void;
   onSave: (data: BuyingPeriod) => void;
   isSubmitting: boolean;
 }) {
@@ -448,7 +448,10 @@ export function FundraiserScheduleForm({
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button variant="outline" onClick={onBack}>
+          <Button
+            variant="outline"
+            onClick={buyingPeriodForm.handleSubmit(onBack, () => onBack())}
+          >
             Back
           </Button>
           <div className="flex gap-2">

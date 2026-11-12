@@ -187,7 +187,10 @@ export function CreateFundraiserForm({
 					isSubmitting={isSubmitting}
 				/>
 				<FundraiserScheduleForm
-					defaultValues={formData}
+					defaultValues={{
+						buyingStartsAt: formData.buyingStartsAt,
+						buyingEndsAt: formData.buyingEndsAt,
+					}}
 					events={pickupEvents}
 					setEvents={setPickupEvents}
 					otherFundraisers={otherFundraisers}
@@ -196,7 +199,10 @@ export function CreateFundraiserForm({
 						setFormData((prev) => ({ ...prev, ...data }));
 						setCurrentStep(2);
 					}}
-					onBack={() => setCurrentStep(0)}
+					onBack={(data) => {
+						setFormData((prev) => ({ ...prev, ...data }));
+						setCurrentStep(0);
+					}}
 					onSave={(data) => {
 						setFormData((prev) => ({ ...prev, ...data }));
 						onSave(data);
@@ -217,7 +223,10 @@ export function CreateFundraiserForm({
 						setFormData((prev) => ({ ...prev, ...data }));
 						setCurrentStep(4);
 					}}
-					onBack={() => setCurrentStep(2)}
+					onBack={(data) => {
+						setFormData((prev) => ({ ...prev, ...data }));
+						setCurrentStep(2);
+					}}
 					onSave={(data) => {
 						setFormData((prev) => ({ ...prev, ...data }));
 						onSave(data);
