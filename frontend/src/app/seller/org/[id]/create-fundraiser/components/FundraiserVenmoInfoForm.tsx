@@ -53,7 +53,10 @@ export function FundraiserVenmoInfoForm({
 }) {
 	const form = useForm<z.infer<typeof VenmoFormSchema>>({
 		resolver: zodResolver(VenmoFormSchema),
-		defaultValues: defaultValues,
+		defaultValues: {
+			venmoUsername: defaultValues.venmoUsername,
+			venmoEmail: defaultValues.venmoEmail,
+		},
 	});
 	return (
 		<Card>
@@ -125,6 +128,7 @@ export function FundraiserVenmoInfoForm({
 						</Button>
 						<div className="flex gap-2">
 							<Button
+								type="button"
 								onClick={form.handleSubmit(onSave)}
 								className="text-[#333F37] border border-current bg-transparent hover:bg-[#e6f0ea]"
 								disabled={isSubmitting}

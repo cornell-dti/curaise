@@ -140,7 +140,10 @@ export function FundraiserScheduleForm({
 
   const buyingPeriodForm = useForm<BuyingPeriod>({
     resolver: zodResolver(BuyingPeriodSchema),
-    defaultValues,
+    defaultValues: {
+      buyingStartsAt: defaultValues.buyingStartsAt,
+      buyingEndsAt: defaultValues.buyingEndsAt,
+    },
   });
 
   const form = useForm<PickupEvent>({
@@ -450,12 +453,14 @@ export function FundraiserScheduleForm({
         <CardFooter className="flex justify-between">
           <Button
             variant="outline"
+            type="button"
             onClick={buyingPeriodForm.handleSubmit(onBack, () => onBack())}
           >
             Back
           </Button>
           <div className="flex gap-2">
             <Button
+              type="button"
               onClick={buyingPeriodForm.handleSubmit(onSave)}
               className="text-[#333F37] border border-current bg-transparent hover:bg-[#e6f0ea]"
               disabled={isSubmitting}

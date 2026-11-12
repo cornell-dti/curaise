@@ -187,10 +187,7 @@ export function CreateFundraiserForm({
 					isSubmitting={isSubmitting}
 				/>
 				<FundraiserScheduleForm
-					defaultValues={{
-						buyingStartsAt: formData.buyingStartsAt,
-						buyingEndsAt: formData.buyingEndsAt,
-					}}
+					defaultValues={formData}
 					events={pickupEvents}
 					setEvents={setPickupEvents}
 					otherFundraisers={otherFundraisers}

@@ -44,7 +44,12 @@ export function FundraiserBasicInfoForm({
 }) {
   const form = useForm<z.infer<typeof BasicInformationSchema>>({
     resolver: zodResolver(BasicInformationSchema),
-    defaultValues: defaultValues,
+    defaultValues: {
+      name: defaultValues.name,
+      description: defaultValues.description,
+      imageUrls: defaultValues.imageUrls,
+      goalAmount: defaultValues.goalAmount,
+    },
   });
 
   return (
@@ -143,6 +148,7 @@ export function FundraiserBasicInfoForm({
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
             <Button
+              type="button"
               onClick={form.handleSubmit(onSave)}
               className="text-[#333F37] border border-current bg-transparent hover:bg-[#e6f0ea]"
               disabled={isSubmitting}
