@@ -442,7 +442,7 @@ export function CalendarView({
             scrollToTime={SCROLL_TO_TIME}
             showMultiDayTimes
             popup
-            allDayMaxRows={isEmbedded ? 2 : Infinity}
+            allDayMaxRows={isEmbedded ? 2 : 4}
             style={{
               height: "100%",
               overflowX: "hidden",

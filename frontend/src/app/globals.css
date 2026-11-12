@@ -236,7 +236,15 @@ body {
   max-width: 300px;
   max-height: 240px;
   overflow-y: auto;
+  overscroll-behavior: none;
   z-index: 40 !important;
+}
+
+.rbc-overlay-header {
+  position: sticky;
+  top: -10px;
+  z-index: 20;
+  background-color: #fff;
 }
 
 .my-calendar .rbc-month-view .rbc-event.calendar-month-pickup-event,

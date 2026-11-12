@@ -4,7 +4,7 @@ import {
   BasicOrganizationSchema,
   type ItemCategory,
 } from "common";
-import { format, isPast } from "date-fns";
+import { format, isPast, isSameDay } from "date-fns";
 
 export { itemCategories as categories } from "@/lib/item-categories";
 
@@ -43,6 +43,14 @@ export function formatCompactTime(date: Date): string {
 
 export function formatTimeRange(start: Date, end: Date): string {
   return `${formatTime(start)} - ${formatTime(end)}`;
+}
+
+export function formatDateTimeRange(start: Date, end: Date): string {
+  const startDay = format(start, "EEE, MMM d");
+  if (isSameDay(start, end)) {
+    return `${startDay}, ${formatTimeRange(start, end)}`;
+  }
+  return `${startDay}, ${formatTime(start)} - ${format(end, "EEE, MMM d")}, ${formatTime(end)}`;
 }
 
 export type Filters = {

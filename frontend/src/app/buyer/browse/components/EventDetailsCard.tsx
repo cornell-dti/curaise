@@ -6,7 +6,7 @@ import { MapPin, Tag, X, type LucideIcon } from "lucide-react";
 import { z } from "zod";
 import { BasicFundraiserSchema, CompleteItemSchema } from "common";
 import { useFundraiserItems } from "@/hooks/useFundraiserItems";
-import { formatTimeRange } from "./browse-utils";
+import { formatDateTimeRange } from "./browse-utils";
 
 type Fundraiser = z.infer<typeof BasicFundraiserSchema>;
 type Item = z.infer<typeof CompleteItemSchema>;
@@ -122,7 +122,8 @@ export function EventDetailsCard({
       <Section label="Pickup Details">
         {fundraiser.pickupEvents.map((pickup) => (
           <DetailRow key={pickup.id} icon={MapPin}>
-            {pickup.location}, {formatTimeRange(pickup.startsAt, pickup.endsAt)}
+            {pickup.location},{" "}
+            {formatDateTimeRange(pickup.startsAt, pickup.endsAt)}
           </DetailRow>
         ))}
       </Section>
