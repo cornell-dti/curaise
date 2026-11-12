@@ -234,6 +234,9 @@ body {
 
 .rbc-overlay {
   max-width: 300px;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 40 !important;
 }
 
 .my-calendar .rbc-month-view .rbc-event.calendar-month-pickup-event,

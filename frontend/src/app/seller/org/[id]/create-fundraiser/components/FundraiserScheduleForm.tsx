@@ -268,12 +268,12 @@ export function FundraiserScheduleForm({
             onClick={toggleCalendar}
             aria-expanded={calendarOpen}
             className={cn(
-              "shrink-0 self-start border border-[#265B34]",
+              "h-auto shrink-0 gap-1.5 self-start rounded border border-[#265B34] px-2 py-1 font-semibold leading-[21px] [&_svg]:size-3.5",
               calendarOpen
                 ? "bg-[#265B34] text-white hover:bg-[#1f4a2b]"
                 : "bg-transparent text-[#265B34] hover:bg-[#e6f0ea]",
             )}>
-            <Calendar className="mr-2 h-4 w-4" />
+            <Calendar />
             {calendarOpen ? "Close Calendar" : "Open Calendar"}
           </Button>
         </CardHeader>
