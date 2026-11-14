@@ -195,6 +195,12 @@ export default async function OrderPage({
           </span>
           <span className="hidden md:inline">|</span>
           <span>Order Id: {order.id}</span>
+          {order.referral && (
+            <>
+              <span className="hidden md:inline">|</span>
+              <span>Referred by {order.referral.referrer.name}</span>
+            </>
+          )}
         </div>
       </div>
 
