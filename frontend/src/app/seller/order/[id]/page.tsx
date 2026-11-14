@@ -21,6 +21,7 @@ import {
   CreditCard,
   ShoppingBag,
   User,
+  UserPlus,
   CalendarIcon,
   TriangleAlert,
 } from "lucide-react";
@@ -190,6 +191,26 @@ export default async function OrderPage({
                   <div>
                     <h3 className="font-semibold">Customer</h3>
                     <p className="text-sm mt-0.5">{buyer.name}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <UserPlus className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold">Referred By</h3>
+                    {order.referral ? (
+                      <>
+                        <p className="text-sm mt-0.5">
+                          {order.referral.referrer.name}
+                        </p>
+                        <p className="text-sm text-muted-foreground break-all">
+                          {order.referral.referrer.email}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-muted-foreground mt-0.5">
+                        No referral
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
