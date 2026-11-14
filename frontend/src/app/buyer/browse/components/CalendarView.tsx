@@ -145,9 +145,12 @@ export function CalendarView({
   const isEmbedded = variant === "embedded";
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const [currentView, setCurrentView] = useState<View>(
-    isEmbedded ? Views.WEEK : Views.MONTH,
-  );
+  const [currentView, setCurrentView] = useState<View>(() => {
+    if (!isEmbedded) return Views.MONTH;
+    const isPhone =
+      typeof window !== "undefined" && window.innerWidth < MOBILE_BREAKPOINT;
+    return isPhone ? Views.DAY : Views.WEEK;
+  });
 
   const organizationNames = organizations.map((org) => org.name);
   const [isMobile, setIsMobile] = useState(false);
@@ -326,7 +329,9 @@ export function CalendarView({
                   : "leading-[42px] text-[20px] md:text-[28px]",
               )}
             >
-              {moment(selectedDate).format("MMMM YYYY")}
+              {moment(selectedDate).format(
+                currentView === Views.DAY ? "ddd, MMM D" : "MMMM YYYY",
+              )}
             </p>
             <div className="flex gap-1">
               <button
@@ -447,7 +452,8 @@ export function CalendarView({
               height: "100%",
               overflowX: "hidden",
               overflowY: "auto",
-              minWidth: isEmbedded ? 640 : undefined,
+              minWidth:
+                isEmbedded && currentView !== Views.DAY ? 640 : undefined,
             }}
             views={[Views.MONTH, Views.WEEK, Views.DAY]}
             components={{

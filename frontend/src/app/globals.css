@@ -318,6 +318,7 @@ body {
 
 .my-calendar .rbc-time-content {
   border-top: none;
+  overscroll-behavior: none;
 }
 
 .my-calendar .rbc-time-header {
