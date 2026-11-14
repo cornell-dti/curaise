@@ -326,7 +326,7 @@ export function CalendarView({
                 "font-semibold text-black whitespace-nowrap",
                 isEmbedded
                   ? "text-[18px] leading-[28px] md:text-[20px]"
-                  : "leading-[42px] text-[20px] md:text-[28px]",
+                  : "text-[20px] leading-[42px] md:text-[28px]",
               )}
             >
               {moment(selectedDate).format(
