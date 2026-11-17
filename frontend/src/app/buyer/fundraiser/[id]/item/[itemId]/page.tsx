@@ -148,10 +148,12 @@ export default function ItemPage() {
         ) : (
           <div className="w-full h-full bg-gray-200" />
         )}
-        <ItemCategoryBadge
-          category={item.category}
-          className="absolute bottom-4 left-5"
-        />
+        {item.category !== "OTHER" && (
+          <ItemCategoryBadge
+            category={item.category}
+            className="absolute bottom-4 left-5"
+          />
+        )}
       </div>
 
       {/* Content */}
