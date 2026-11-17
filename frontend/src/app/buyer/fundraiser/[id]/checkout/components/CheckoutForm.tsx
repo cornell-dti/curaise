@@ -380,10 +380,13 @@ export function CheckoutForm({
                     )}
                     {selectedReferralName}
                   </p>
+                  {approvedReferrals.length > 0 && (
+                    <ChevronRight
+                      className="h-5 w-5 -ml-2 text-black"
+                      aria-hidden="true"
+                    />
+                  )}
                 </div>
-                {approvedReferrals.length > 0 && (
-                  <ChevronRight className="h-5 w-5 text-black" />
-                )}
               </button>
             </div>
           </div>
@@ -787,10 +790,13 @@ export function CheckoutForm({
                             )}
                             {selectedReferralName}
                           </p>
+                          {approvedReferrals.length > 0 && (
+                            <ChevronRight
+                              className="h-5 w-5 -ml-2 text-black"
+                              aria-hidden="true"
+                            />
+                          )}
                         </div>
-                        {approvedReferrals.length > 0 && (
-                          <ChevronRight className="h-5 w-5 text-black" />
-                        )}
                       </button>
 
                       <ReferrersModal
