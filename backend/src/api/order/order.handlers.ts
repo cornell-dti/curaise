@@ -96,6 +96,7 @@ export const createOrderHandler = async (
       ...req.body,
       buyerId: res.locals.user!.id,
       markAsPickedUp: req.body.markAsPickedUp === true && isFundraiserAdmin,
+      allowOverLimit: isManualOrder,
     });
   } catch (error) {
     res.status(400).json({

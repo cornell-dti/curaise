@@ -83,6 +83,7 @@ describe("Order Handlers", () => {
           buyerName: "Jane Doe",
           buyerNetId: "jd123",
           markAsPickedUp: true,
+          allowOverLimit: true,
         })
       );
       expect(mockRes.status).toHaveBeenCalledWith(201);

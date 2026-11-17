@@ -503,9 +503,10 @@ export const getFundraiserItemsWithAvailability = async (
   return items.map((item) => ({
     ...item,
     confirmedCount: confirmedCounts.get(item.id) ?? 0,
+    // Manual orders can push the confirmed count past the cap, so floor at 0
     available:
       item.limit !== null
-        ? item.limit - (confirmedCounts.get(item.id) ?? 0)
+        ? Math.max(0, item.limit - (confirmedCounts.get(item.id) ?? 0))
         : null,
   }));
 };

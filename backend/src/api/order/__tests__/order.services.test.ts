@@ -60,6 +60,44 @@ describe("Order Services", () => {
       );
     });
 
+    describe("when the item is already sold out", () => {
+      beforeEach(() => {
+        prismaMock.item.findMany.mockResolvedValue([
+          { id: itemId, limit: 5, name: "Cookie" },
+        ] as any);
+        (
+          prismaMock.orderItems.groupBy as unknown as jest.Mock
+        ).mockResolvedValue([{ itemId, _sum: { quantity: 5 } }]);
+      });
+
+      it("should reject a regular order", async () => {
+        await expect(
+          createOrder({
+            fundraiserId,
+            items: [{ itemId, quantity: 1 }],
+            payment_method: "VENMO",
+            buyerId: adminId,
+          })
+        ).rejects.toThrow("Insufficient stock for Cookie");
+        expect(prismaMock.order.create).not.toHaveBeenCalled();
+      });
+
+      it("should let a manual order go over the cap", async () => {
+        await createOrder({
+          fundraiserId,
+          items: [{ itemId, quantity: 2 }],
+          payment_method: "OTHER",
+          markAsPickedUp: true,
+          buyerName: "Jane Doe",
+          buyerNetId: "jd123",
+          buyerId: adminId,
+          allowOverLimit: true,
+        });
+
+        expect(prismaMock.order.create).toHaveBeenCalled();
+      });
+    });
+
     it("should leave buyer details empty for a regular order", async () => {
       await createOrder({
         fundraiserId,

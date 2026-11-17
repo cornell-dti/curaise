@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { CompleteItemSchema, CompleteOrderSchema } from "common";
 import { z } from "zod";
 
@@ -110,32 +110,32 @@ export function ItemsSoldCard({
 								</span>
 							</div>
 
-							<div className="flex-1 space-y-1.5">
-								<div className="flex items-start justify-between gap-3">
-									<div className="min-w-0">
-										<div className="flex flex-wrap items-center gap-2">
-											<span className="text-sm font-medium text-foreground">
-												{item.name}
-											</span>
-											{limit !== null && isOutOfStock ? (
-												<Badge className="bg-red-100 text-red-700 hover:bg-red-100">
-													Out of Stock
-												</Badge>
-											) : limit !== null && isLowStock ? (
-												<Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100">
-													Low Stock
-												</Badge>
-											) : null}
-										</div>
-									</div>
-
-									<div className="flex items-center gap-2">
-										<span className="text-sm font-semibold whitespace-nowrap">
-											{limit !== null
-												? `${item.unitsSold} / ${limit} sold`
-												: `${item.unitsSold} sold`}
-										</span>
-									</div>
+							<div className="min-w-0 flex-1 space-y-1.5">
+								<div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-0.5">
+									<span
+										className="line-clamp-2 min-w-[7rem] flex-1 break-words text-sm font-medium text-foreground"
+										title={item.name}
+									>
+										{item.name}
+									</span>
+									<span
+										className={cn(
+											"shrink-0 whitespace-nowrap text-sm font-semibold",
+											isOutOfStock && "text-red-700",
+											isLowStock && "text-yellow-700"
+										)}
+										title={
+											isOutOfStock
+												? "Out of stock"
+												: isLowStock
+													? "Low stock"
+													: undefined
+										}
+									>
+										{limit !== null
+											? `${item.unitsSold} / ${limit} sold`
+											: `${item.unitsSold} sold`}
+									</span>
 								</div>
 
 								<Progress
