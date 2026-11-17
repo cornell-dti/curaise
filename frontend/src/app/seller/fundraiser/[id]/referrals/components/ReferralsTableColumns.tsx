@@ -20,10 +20,15 @@ type Referral = z.infer<typeof ReferralSchema>;
 export interface ReferralWithQuantities extends Referral {
 	orderCount: number;
 	amountRaised: number;
+	// Every order credited to this referrer, including unpaid ones
+	attributedOrderCount: number;
 }
 
-// Create a function that returns columns with the token (access token)
-export const getReferralsColumns = (): ColumnDef<ReferralWithQuantities>[] => [
+export const getReferralsColumns = ({
+	onRemove,
+}: {
+	onRemove: (referral: ReferralWithQuantities) => void;
+}): ColumnDef<ReferralWithQuantities>[] => [
 	{
 		accessorKey: "name",
 		accessorFn: (row) => row.referrer.name,
@@ -129,7 +134,8 @@ export const getReferralsColumns = (): ColumnDef<ReferralWithQuantities>[] => [
 		cell: ({ row }) => {
 			const referral = row.original;
 			return (
-				<DropdownMenu>
+				// Non-modal so the confirm dialog it opens keeps the page clickable after closing
+				<DropdownMenu modal={false}>
 					<DropdownMenuTrigger asChild>
 						<Button variant="ghost" className="h-8 w-8 p-0">
 							<span className="sr-only">Open menu</span>
@@ -143,6 +149,11 @@ export const getReferralsColumns = (): ColumnDef<ReferralWithQuantities>[] => [
 								toast.success("Referral ID copied to clipboard");
 							}}>
 							Copy referral ID
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							className="text-[#f74545] focus:text-[#f74545]"
+							onClick={() => onRemove(referral)}>
+							Remove referrer
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>

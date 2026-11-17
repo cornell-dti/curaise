@@ -80,12 +80,7 @@ export function FundraiserHeader({
         setOpen={setOpenEdit}
         step={step}
       />
-      <ReferralApprovalModal
-        fundraiser={fundraiser}
-        token={token}
-        open={openReferral}
-        setOpen={setOpenReferral}
-      />
+      <ReferralApprovalModal open={openReferral} setOpen={setOpenReferral} />
 
       <div>
         <div className="w-full flex flex-wrap justify-between gap-3">
@@ -103,10 +98,7 @@ export function FundraiserHeader({
               >
                 Edit
               </Button>
-              <ReferralButton
-                fundraiser={fundraiser}
-                onClick={() => setOpenReferral(true)}
-              />
+              <ReferralButton onClick={() => setOpenReferral(true)} />
             </div>
           </div>
         </div>

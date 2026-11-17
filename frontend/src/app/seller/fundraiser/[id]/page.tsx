@@ -9,7 +9,8 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { OrdersSectionHeader } from "@/app/seller/fundraiser/[id]/orders/components/OrdersSectionHeader";
 import { RealtimeOrdersWrapper } from "@/app/seller/fundraiser/[id]/orders/components/RealtimeOrdersWrapper";
-import { RealtimeReferralsWrapper } from "@/app/seller/fundraiser/[id]/referrals/components/RealtimeReferralsWrapper";
+import { ReferralsProvider } from "@/app/seller/fundraiser/[id]/referrals/components/ReferralsProvider";
+import { ReferralsTableWrapper } from "@/app/seller/fundraiser/[id]/referrals/components/ReferralsTableWrapper";
 import { RealtimeAnalyticsWrapper } from "@/app/seller/fundraiser/[id]/analytics/components/RealtimeAnalyticsWrapper";
 import { FundraiserHeader } from "./components/FundraiserHeader";
 import { serverFetch } from "@/lib/fetcher";
@@ -75,6 +76,11 @@ export default async function FundraiserAnalyticsPage({
   ]);
 
   return (
+    <ReferralsProvider
+      initialReferrals={fundraiser.referrals}
+      fundraiserId={fundraiserId}
+      token={session.access_token}
+    >
     <div className="px-4 md:px-[157px] min-h-screen bg-gray-50 p-6">
       <div className="mx-auto">
         <div className="mb-6">
@@ -131,16 +137,15 @@ export default async function FundraiserAnalyticsPage({
           <h2 className="text-xl font-bold mb-6">Referrals</h2>
           <div className="bg-white rounded-lg shadow-sm">
             <div className="p-6">
-              <RealtimeReferralsWrapper
-                initialReferrals={fundraiser.referrals}
-                fundraiserId={fundraiserId}
+              <ReferralsTableWrapper
                 orders={orders}
-                token={session.access_token}
+                fundraiserName={fundraiser.name}
               />
             </div>
           </div>
         </div>
       </div>
     </div>
+    </ReferralsProvider>
   );
 }
