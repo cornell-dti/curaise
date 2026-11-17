@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   ChevronDown,
   Copy,
+  ExternalLink,
   MoreHorizontal,
   TriangleAlert,
 } from "lucide-react";
@@ -727,7 +728,10 @@ export const getColumns = (
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link href={`/seller/order/${order.id}`}>View Order</Link>
+              <Link href={`/seller/order/${order.id}`}>
+                View Order
+                <ExternalLink className="ml-auto h-3 w-3 text-muted-foreground" />
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuLabel className="pb-0 text-sm font-normal">
