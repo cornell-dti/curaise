@@ -208,7 +208,7 @@ const PickupStatusBadgeCell = ({ order }: { order: Order }) => {
   );
 };
 
-// Compact order ID shown under the buyer's name. Shows a short prefix so the
+// Compact order ID shown under the order's created time. Shows a short prefix so the
 // table does not get wider, the full ID in a tooltip, and copies the full ID
 // on click so sellers can match it against the ID in a Venmo or Zelle note.
 const OrderIdCell = ({ orderId }: { orderId: string }) => {
@@ -227,7 +227,7 @@ const OrderIdCell = ({ orderId }: { orderId: string }) => {
           aria-label={`Copy order ID ${orderId}`}
           className="h-4 gap-1 px-1 py-0 font-mono text-[11px] font-normal leading-none text-muted-foreground [&_svg]:size-2.5"
         >
-          {orderId.slice(0, 8)}
+          Order {orderId.slice(0, 8)}
           <Copy />
         </Button>
       </TooltipTrigger>
@@ -281,9 +281,8 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
       );
     },
     cell: ({ row }) => (
-      <div className="flex flex-col items-center justify-center whitespace-nowrap">
+      <div className="flex items-center justify-center whitespace-nowrap">
         {getOrderBuyer(row.original).name}
-        <OrderIdCell orderId={row.original.id} />
       </div>
     ),
   },
@@ -309,7 +308,7 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
     ),
   },
   // Hidden column (see columnVisibility in OrdersTable). It only exists so the
-  // search box can match on the full order ID, which is shown under the name.
+  // search box can match on the full order ID, which is shown under Created At.
   {
     accessorKey: "id",
     enableSorting: false,
@@ -341,7 +340,10 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
       ).padStart(2, "0")}`;
 
       return (
-        <div className="flex items-center justify-center whitespace-nowrap">{createdAtStr}</div>
+        <div className="flex flex-col items-center justify-center whitespace-nowrap">
+          {createdAtStr}
+          <OrderIdCell orderId={row.original.id} />
+        </div>
       );
     },
   },
