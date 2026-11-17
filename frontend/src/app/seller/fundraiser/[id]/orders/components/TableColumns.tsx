@@ -5,7 +5,12 @@ import Link from "next/link";
 import { ColumnDef, Table } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronDown, MoreHorizontal, TriangleAlert } from "lucide-react";
+import {
+  ChevronDown,
+  Copy,
+  MoreHorizontal,
+  TriangleAlert,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
@@ -13,6 +18,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
@@ -723,10 +729,20 @@ export const getColumns = (
             <DropdownMenuItem asChild>
               <Link href={`/seller/order/${order.id}`}>View Order</Link>
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="pb-0 text-xs font-normal text-muted-foreground">
+              Order ID
+            </DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(order.id)}
+              aria-label={`Copy order ID ${order.id}`}
+              className="gap-2 font-mono text-xs"
+              onClick={() => {
+                navigator.clipboard.writeText(order.id);
+                toast.success("Order ID copied");
+              }}
             >
-              Copy order ID
+              {order.id}
+              <Copy className="ml-auto h-3 w-3 text-muted-foreground" />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
