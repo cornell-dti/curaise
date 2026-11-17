@@ -7,6 +7,7 @@ import {
   ItemWithAvailabilitySchema,
 } from "common";
 import Decimal from "decimal.js";
+import { isPast } from "date-fns";
 import Link from "next/link";
 import {
   Card,
@@ -27,6 +28,7 @@ import {
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/custom/CopyButton";
+import { GoogleCalendarButton } from "@/components/custom/GoogleCalendarButton";
 import { VenmoPayButton } from "@/components/custom/VenmoPayButton";
 import { Separator } from "@/components/ui/separator";
 import { LocalDate } from "@/components/ui/LocalDate";
@@ -358,14 +360,24 @@ export default async function OrderPage({
                 )}
                 <div className="flex flex-col gap-2">
                   {order.fundraiser.pickupEvents.map((event) => (
-                    <div key={event.id} className="flex items-start gap-2">
-                      <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      <span className="text-sm">
-                        <span className="font-medium">{event.location}</span>
-                        <br />
-                        <LocalDate date={event.startsAt} formatStr="h:mm a" /> to{" "}
-                        <LocalDate date={event.endsAt} formatStr="h:mm a" />
-                      </span>
+                    <div
+                      key={event.id}
+                      className="flex flex-wrap items-center justify-between gap-2"
+                    >
+                      <div className="flex items-start gap-2">
+                        <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="text-sm">
+                          <span className="font-medium">{event.location}</span>
+                          <br />
+                          <LocalDate date={event.startsAt} formatStr="h:mm a" /> to{" "}
+                          <LocalDate date={event.endsAt} formatStr="h:mm a" />
+                        </span>
+                      </div>
+                      <GoogleCalendarButton
+                        fundraiser={order.fundraiser}
+                        pickupEvent={event}
+                        isPast={isPast(event.endsAt)}
+                      />
                     </div>
                   ))}
                 </div>

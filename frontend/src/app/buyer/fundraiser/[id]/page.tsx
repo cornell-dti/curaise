@@ -12,7 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { FundraiserReferralCard } from "./components/FundraiserReferralCard";
 import { createClient } from "@/utils/supabase/server";
-import { GoogleCalendarButton } from "./components/GoogleCalendarButton";
+import { GoogleCalendarButton } from "@/components/custom/GoogleCalendarButton";
 import { serverFetch } from "@/lib/fetcher";
 
 export default async function FundraiserPage({

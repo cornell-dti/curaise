@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { CompleteFundraiserSchema, PickupEventSchema } from "common";
+import { BasicFundraiserSchema, PickupEventSchema } from "common";
 import { Calendar } from "lucide-react";
 import { z } from "zod";
 
@@ -29,7 +29,7 @@ export function GoogleCalendarButton({
   pickupEvent,
   isPast,
 }: {
-  fundraiser: z.infer<typeof CompleteFundraiserSchema>;
+  fundraiser: z.infer<typeof BasicFundraiserSchema>;
   pickupEvent: z.infer<typeof PickupEventSchema>;
   isPast: boolean;
 }) {
