@@ -189,7 +189,11 @@ export function OrdersTable<TValue>({
 									return (
 										<TableHead
 											key={header.id}
-											className="whitespace-normal px-1">
+											className={
+												header.column.id === "select"
+													? "pl-4 pr-2"
+													: "whitespace-normal px-1"
+											}>
 											{header.isPlaceholder
 												? null
 												: flexRender(
@@ -209,7 +213,11 @@ export function OrdersTable<TValue>({
 									key={row.id}
 									data-state={row.getIsSelected() && "selected"}>
 									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id} className="px-1">
+										<TableCell
+											key={cell.id}
+											className={
+												cell.column.id === "select" ? "pl-4 pr-2" : "px-1"
+											}>
 											{flexRender(
 												cell.column.columnDef.cell,
 												cell.getContext(),
