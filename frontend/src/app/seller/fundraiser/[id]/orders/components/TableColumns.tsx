@@ -730,12 +730,12 @@ export const getColumns = (
               <Link href={`/seller/order/${order.id}`}>View Order</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuLabel className="pb-0 text-xs font-normal text-muted-foreground">
+            <DropdownMenuLabel className="pb-0 text-sm font-normal">
               Order ID
             </DropdownMenuLabel>
             <DropdownMenuItem
               aria-label={`Copy order ID ${order.id}`}
-              className="gap-2 font-mono text-xs"
+              className="gap-2 font-mono text-xs text-muted-foreground"
               onClick={() => {
                 navigator.clipboard.writeText(order.id);
                 toast.success("Order ID copied");
