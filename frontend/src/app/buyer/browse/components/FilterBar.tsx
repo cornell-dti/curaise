@@ -238,7 +238,7 @@ export function FilterBar({
         <PopoverContent
           align="start"
           sideOffset={8}
-          className="w-[255px] rounded-[6px] border border-[#265B34] bg-white px-4 py-3 shadow-[0_1px_4px_rgba(0,0,0,0.25)]"
+          className="max-h-[var(--radix-popover-content-available-height)] w-[255px] overflow-y-auto overscroll-contain rounded-[6px] border border-[#265B34] bg-white px-4 py-3 shadow-[0_1px_4px_rgba(0,0,0,0.25)]"
         >
           {filterControls}
         </PopoverContent>
