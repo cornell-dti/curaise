@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MoreHorizontal, TriangleAlert } from "lucide-react";
+import { Copy, MoreHorizontal, TriangleAlert } from "lucide-react";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +26,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ArrowUpDown } from "lucide-react";
 import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { z } from "zod";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { toast } from "sonner";
@@ -203,6 +208,38 @@ const PickupStatusBadgeCell = ({ order }: { order: Order }) => {
   );
 };
 
+// Component for the order ID cell. Shows a short prefix to keep the table
+// narrow, the full ID in a tooltip, and copies the full ID on click so sellers
+// can match it against the ID in a Venmo or Zelle note.
+const OrderIdCell = ({ orderId }: { orderId: string }) => {
+  const copyOrderId = () => {
+    navigator.clipboard.writeText(orderId);
+    toast.success("Copied to clipboard!");
+  };
+
+  return (
+    <div className="flex items-center justify-center">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={copyOrderId}
+            aria-label={`Copy order ID ${orderId}`}
+            className="h-7 gap-1.5 px-2 font-mono text-xs"
+          >
+            {orderId.slice(0, 8)}
+            <Copy className="h-3 w-3 text-muted-foreground" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <span className="font-mono">{orderId}</span>
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  );
+};
+
 // API call to complete pickup
 // This function posts to the API to update the pickup status of an order
 const completePickup = async (orderId: string, token: string) => {
@@ -271,6 +308,14 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
         {getOrderBuyer(row.original).netId}
       </div>
     ),
+  },
+  {
+    accessorKey: "id",
+    header: () => {
+      return <div className="flex justify-center w-full px-2">Order ID</div>;
+    },
+    enableSorting: false,
+    cell: ({ row }) => <OrderIdCell orderId={row.original.id} />,
   },
   {
     accessorKey: "createdAt",

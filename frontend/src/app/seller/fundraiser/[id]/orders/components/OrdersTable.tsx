@@ -91,7 +91,7 @@ export function OrdersTable<TValue>({
 		<div className="space-y-4">
 			<div className="flex items-center py-4">
 				<Input
-					placeholder="Filter by name or netID"
+					placeholder="Filter by name, netID, or order ID"
 					value={globalFilter ?? ""}
 					onChange={(e) => {
 						setGlobalFilter(e.target.value);
@@ -152,7 +152,7 @@ export function OrdersTable<TValue>({
 			</div>
 
 			<div className="rounded-md border">
-				<Table className="min-w-[1150px]">
+				<Table className="min-w-[1250px]">
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
