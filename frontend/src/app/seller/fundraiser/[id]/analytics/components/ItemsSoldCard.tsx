@@ -84,7 +84,11 @@ export function ItemsSoldCard({
 				{rankedItems.map((item) => {
 					const limit = item.limit;
 					const progressValue =
-						totalRealUnits > 0 ? (item.unitsSold / totalRealUnits) * 100 : 0;
+						limit !== null && limit > 0
+							? (item.unitsSold / limit) * 100
+							: totalRealUnits > 0
+								? (item.unitsSold / totalRealUnits) * 100
+								: 0;
 					const remainingPercent =
 						limit !== null && item.available !== null && limit > 0
 							? (item.available / limit) * 100
