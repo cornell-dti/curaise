@@ -369,7 +369,7 @@ export const getColumns = (
             formatStr={ORDER_CREATED_DATE_FORMAT}
           />
         </span>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-muted-foreground">
           <LocalDate
             date={row.original.createdAt}
             formatStr={ORDER_CREATED_TIME_FORMAT}
