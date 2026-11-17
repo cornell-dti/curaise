@@ -37,6 +37,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ArrowUpDown } from "lucide-react";
 import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
+import {
+  PaymentMethodIcon,
+  type PaymentMethod,
+} from "@/components/custom/PaymentMethodIcon";
 import { z } from "zod";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { toast } from "sonner";
@@ -96,6 +100,12 @@ function SelectAllCheckbox({ table }: { table: Table<Order> }) {
     />
   );
 }
+
+const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  VENMO: "Venmo",
+  ZELLE: "Zelle",
+  OTHER: "Cash",
+};
 
 const statusBadgeClass =
   "flex items-center justify-center gap-0.5 whitespace-nowrap rounded-full py-1 pl-2.5 pr-1.5 font-[700] text-md";
@@ -633,8 +643,9 @@ export const getColumns = (
     },
     filterFn: "arrIncludesSome",
     cell: ({ row }) => (
-      <div className="flex items-center justify-center">
-        {row.getValue("paymentMethod")}
+      <div className="flex items-center justify-center gap-1.5">
+        <PaymentMethodIcon method={row.original.paymentMethod} size="sm" />
+        {PAYMENT_METHOD_LABELS[row.original.paymentMethod]}
       </div>
     ),
   },
@@ -730,7 +741,7 @@ export const getColumns = (
             <DropdownMenuItem asChild>
               <Link href={`/seller/order/${order.id}`}>
                 View Order
-                <ExternalLink className="ml-auto h-3 w-3 text-muted-foreground" />
+                <ExternalLink className="h-3 w-3 text-muted-foreground" />
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
