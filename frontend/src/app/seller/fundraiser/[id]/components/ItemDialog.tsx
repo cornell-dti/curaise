@@ -246,17 +246,20 @@ export function ItemDialog(
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogContent className="max-w-2xl">
+			<DialogContent className="flex max-h-[90vh] max-w-2xl flex-col">
 				<Form {...form}>
-					<form onSubmit={form.handleSubmit(handleSubmitItem)}>
-						<DialogHeader>
+					<form
+						onSubmit={form.handleSubmit(handleSubmitItem)}
+						className="flex min-h-0 flex-1 flex-col">
+						<DialogHeader className="shrink-0">
 							<DialogTitle>
 								{mode === "add"
 									? "Add Fundraiser Item"
 									: "Edit Fundraiser Item"}
 							</DialogTitle>
 						</DialogHeader>
-						<div className="grid gap-4 py-4">
+						{/* -mx-1 px-1 keeps input focus rings from being clipped by the scroll container */}
+						<div className="-mx-1 grid min-h-0 flex-1 gap-4 overflow-y-auto overscroll-contain px-1 pt-4">
 							<FormField
 								control={form.control}
 								name="name"
@@ -433,7 +436,7 @@ export function ItemDialog(
 								)}
 							/>
 						</div>
-						<DialogFooter>
+						<DialogFooter className="shrink-0 pt-4">
 							<Button type="submit">
 								{mode === "add" ? "Add Item" : "Save Changes"}
 							</Button>
