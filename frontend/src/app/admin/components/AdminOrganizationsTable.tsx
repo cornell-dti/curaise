@@ -16,7 +16,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ShieldCheck, ShieldX } from "lucide-react";
 
@@ -32,6 +42,7 @@ export default function AdminOrganizationsTable({
   const router = useRouter();
   const supabase = createClient();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [orgToRevoke, setOrgToRevoke] = useState<Organization | null>(null);
 
   const handleAuthorize = async (orgId: string, authorized: boolean) => {
     setLoadingId(orgId);
@@ -112,7 +123,7 @@ export default function AdminOrganizationsTable({
                       variant="outline"
                       size="sm"
                       disabled={loadingId === org.id}
-                      onClick={() => handleAuthorize(org.id, false)}
+                      onClick={() => setOrgToRevoke(org)}
                       className="gap-1.5"
                     >
                       <ShieldX className="h-4 w-4" />
@@ -139,21 +150,54 @@ export default function AdminOrganizationsTable({
   };
 
   return (
-    <Tabs defaultValue="pending">
-      <TabsList>
-        <TabsTrigger value="pending">
-          Pending ({pending.length})
-        </TabsTrigger>
-        <TabsTrigger value="approved">
-          Approved ({approved.length})
-        </TabsTrigger>
-        <TabsTrigger value="all">
-          All ({organizations.length})
-        </TabsTrigger>
-      </TabsList>
-      <TabsContent value="pending">{renderTable(pending)}</TabsContent>
-      <TabsContent value="approved">{renderTable(approved)}</TabsContent>
-      <TabsContent value="all">{renderTable(organizations)}</TabsContent>
-    </Tabs>
+    <>
+      <Tabs defaultValue="pending">
+        <TabsList>
+          <TabsTrigger value="pending">
+            Pending ({pending.length})
+          </TabsTrigger>
+          <TabsTrigger value="approved">
+            Approved ({approved.length})
+          </TabsTrigger>
+          <TabsTrigger value="all">
+            All ({organizations.length})
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="pending">{renderTable(pending)}</TabsContent>
+        <TabsContent value="approved">{renderTable(approved)}</TabsContent>
+        <TabsContent value="all">{renderTable(organizations)}</TabsContent>
+      </Tabs>
+
+      <AlertDialog
+        open={orgToRevoke !== null}
+        onOpenChange={(open) => {
+          if (!open) setOrgToRevoke(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Are you sure you want to revoke {orgToRevoke?.name}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Its fundraisers will disappear from Browse and buyers will no
+              longer be able to place orders. This lasts until you approve the
+              organization again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className={buttonVariants({ variant: "destructive" })}
+              onClick={() => {
+                if (orgToRevoke) handleAuthorize(orgToRevoke.id, false);
+              }}
+            >
+              Revoke
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
