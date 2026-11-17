@@ -27,6 +27,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -44,6 +45,8 @@ import { CompleteOrderSchema } from "common/schemas/order";
 type Order = z.infer<typeof CompleteOrderSchema>;
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+// Page size used for the "All" option: larger than any fundraiser's order list
+const ALL_ROWS_PAGE_SIZE = 100_000;
 
 interface OrderTableProps<TValue> {
 	columns: ColumnDef<Order, TValue>[];
@@ -292,12 +295,19 @@ export function OrdersTable<TValue>({
 				<div className="flex items-center gap-2 text-sm text-muted-foreground">
 					<span id="orders-page-size-label">Rows per page</span>
 					<Select
-						value={String(pagination.pageSize)}
+						value={
+							pagination.pageSize === ALL_ROWS_PAGE_SIZE
+								? "all"
+								: String(pagination.pageSize)
+						}
 						onValueChange={(value) =>
-							setPagination({ pageIndex: 0, pageSize: Number(value) })
+							setPagination({
+								pageIndex: 0,
+								pageSize: value === "all" ? ALL_ROWS_PAGE_SIZE : Number(value),
+							})
 						}>
 						<SelectTrigger
-							className="h-8 w-[72px]"
+							className="h-8 w-[76px]"
 							aria-labelledby="orders-page-size-label">
 							<SelectValue />
 						</SelectTrigger>
@@ -307,6 +317,7 @@ export function OrdersTable<TValue>({
 									{size}
 								</SelectItem>
 							))}
+							<SelectItem value="all">All</SelectItem>
 						</SelectContent>
 					</Select>
 				</div>
@@ -315,6 +326,15 @@ export function OrdersTable<TValue>({
 						Page {pageCount === 0 ? 0 : pagination.pageIndex + 1} of{" "}
 						{pageCount}
 					</span>
+					<Button
+						variant="outline"
+						size="sm"
+						className="px-2"
+						aria-label="First page"
+						onClick={() => table.setPageIndex(0)}
+						disabled={!table.getCanPreviousPage()}>
+						<ChevronsLeft />
+					</Button>
 					<Button
 						variant="outline"
 						size="sm"
@@ -328,6 +348,15 @@ export function OrdersTable<TValue>({
 						onClick={() => table.nextPage()}
 						disabled={!table.getCanNextPage()}>
 						Next
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						className="px-2"
+						aria-label="Last page"
+						onClick={() => table.setPageIndex(pageCount - 1)}
+						disabled={!table.getCanNextPage()}>
+						<ChevronsRight />
 					</Button>
 				</div>
 			</div>
