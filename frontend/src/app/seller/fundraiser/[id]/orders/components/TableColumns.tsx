@@ -5,12 +5,7 @@ import Link from "next/link";
 import { ColumnDef, Table } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  ChevronDown,
-  Copy,
-  MoreHorizontal,
-  TriangleAlert,
-} from "lucide-react";
+import { ChevronDown, MoreHorizontal, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
@@ -35,11 +30,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ArrowUpDown } from "lucide-react";
 import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { z } from "zod";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { toast } from "sonner";
@@ -418,35 +408,6 @@ const PickupStatusBadgeCell = ({
   );
 };
 
-// Compact order ID. Shows a short prefix to keep the column narrow, the full
-// ID in a tooltip, and copies the full ID on click so sellers can match it
-// against the ID in a Venmo or Zelle note.
-const OrderIdCell = ({ orderId }: { orderId: string }) => {
-  const copyOrderId = () => {
-    navigator.clipboard.writeText(orderId);
-    toast.success("Copied to clipboard!");
-  };
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant="ghost"
-          onClick={copyOrderId}
-          aria-label={`Copy order ID ${orderId}`}
-          className="h-6 gap-1 px-1 py-0 font-mono text-xs font-normal text-muted-foreground [&_svg]:size-3"
-        >
-          {orderId.slice(0, 8)}
-          <Copy />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>
-        <span className="font-mono">{orderId}</span>
-      </TooltipContent>
-    </Tooltip>
-  );
-};
-
 // API call to complete pickup
 // This function posts to the API to update the pickup status of an order
 const completePickup = async (
@@ -549,20 +510,12 @@ export const getColumns = (
       </div>
     ),
   },
-  // The accessor is the full ID, so the search box matches on it too
+  // Hidden column (see columnVisibility in OrdersTable). It only exists so the
+  // search box can match on the full order ID.
   {
     accessorKey: "id",
     enableSorting: false,
-    header: () => (
-      <div className="flex justify-center px-1 text-center leading-tight">
-        Order ID
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <OrderIdCell orderId={row.original.id} />
-      </div>
-    ),
+    enableHiding: false,
   },
   {
     accessorKey: "createdAt",

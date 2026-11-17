@@ -72,6 +72,8 @@ export function OrdersTable<TValue>({
 			setRowSelection({});
 		},
 		onRowSelectionChange: setRowSelection,
+		// The id column is only there so the search box can match order IDs
+		initialState: { columnVisibility: { id: false } },
 		state: {
 			sorting,
 			columnFilters,
