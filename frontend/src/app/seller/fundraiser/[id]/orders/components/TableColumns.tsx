@@ -5,13 +5,22 @@ import Link from "next/link";
 import { ColumnDef, Table } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MoreHorizontal, TriangleAlert } from "lucide-react";
+import {
+  ChevronDown,
+  Copy,
+  MoreHorizontal,
+  TriangleAlert,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import useSWR from "swr";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -26,6 +35,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ArrowUpDown } from "lucide-react";
 import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { z } from "zod";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { toast } from "sonner";
@@ -45,6 +59,7 @@ import {
 type Order = z.infer<typeof CompleteOrderSchema>;
 
 export type PickupChangeHandler = (orderId: string, pickedUp: boolean) => void;
+export type PaymentConfirmedHandler = (orderId: string) => void;
 
 // Quantity sits next to the item name so names can wrap without drifting out
 // of line with a separate quantity column.
@@ -85,16 +100,55 @@ function SelectAllCheckbox({ table }: { table: Table<Order> }) {
   );
 }
 
-// Component for the pickup status cell
-export function PickupStatusCell({
-  order,
-  token,
-  onPickupChange,
-}: {
-  order: z.infer<typeof CompleteOrderSchema>;
-  token: string;
-  onPickupChange: PickupChangeHandler;
-}) {
+const statusBadgeClass =
+  "flex items-center justify-center gap-0.5 whitespace-nowrap rounded-full py-1 pl-2.5 pr-1.5 font-[700] text-md";
+
+const statusTriggerClass =
+  "rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60";
+
+const PAYMENT_STATUS_OPTIONS = [
+  {
+    status: "CONFIRMED",
+    label: "Received",
+    className:
+      "bg-[#DCEBDE] text-[#086A19] hover:bg-[#c5e0c6] hover:text-[#065a13]",
+  },
+  {
+    status: "PENDING",
+    label: "Not Received",
+    className:
+      "bg-[#FBE6E6] text-[#E1080B] hover:bg-[#f5c6c6] hover:text-[#b30607]",
+  },
+  {
+    status: "UNVERIFIABLE",
+    label: "Unverified",
+    className:
+      "bg-[#F7F7F7] text-[#959494] hover:bg-[#e5e5e5] hover:text-[#6e6e6e]",
+  },
+] as const;
+
+const PICKUP_STATUS_OPTIONS = [
+  {
+    value: "true",
+    label: "Picked Up",
+    className:
+      "bg-[#DCE8FB] text-[#1D5FAD] hover:bg-[#c2daf7] hover:text-[#174a87]",
+  },
+  {
+    value: "false",
+    label: "Not Picked Up",
+    className:
+      "bg-[#FFEEC2] text-[#FEA839] hover:bg-[#fddc9e] hover:text-[#d97a2b]",
+  },
+] as const;
+
+// Shared by the Picked Up checkbox and the Pickup Status dropdown: marks an
+// order picked up (warning first if payment is still pending) or undoes it.
+function usePickupActions(
+  order: Order,
+  token: string,
+  onPickupChange: PickupChangeHandler,
+) {
   const [showWarning, setShowWarning] = useState(false);
 
   const { data } = useSWR(`/order/${order.id}`, authFetcher(CompleteOrderSchema), {
@@ -102,33 +156,9 @@ export function PickupStatusCell({
     revalidateOnFocus: false, // Don't revalidate on focus
   });
 
-  // Check if the order is picked up
   const isPickedUp = data?.pickedUp === true;
 
-  // Handle checkbox changes only if its not checked off yet
-  function handleCheckboxChange() {
-    if (order.paymentStatus == "PENDING") {
-      setShowWarning(true);
-    } else {
-      void togglePickedUp();
-    }
-  }
-
-  // Check off the box, ignoring the warning
-  function handleIgnore() {
-    void (async () => {
-      const succeeded = await togglePickedUp();
-      if (succeeded) {
-        setShowWarning(false);
-      }
-    })();
-  }
-  function handleCancel() {
-    setShowWarning(false);
-  }
-
-  // Triggers pickup status update when checkbox is clicked
-  const togglePickedUp = async () => {
+  const markPickedUp = async () => {
     try {
       await completePickup(order.id, token, () =>
         onPickupChange(order.id, false),
@@ -141,107 +171,276 @@ export function PickupStatusCell({
     }
   };
 
+  // Asks for confirmation first when the payment hasn't been received
+  const requestPickup = () => {
+    if (order.paymentStatus == "PENDING") {
+      setShowWarning(true);
+    } else {
+      void markPickedUp();
+    }
+  };
+
+  // The backend only allows this for a minute after the order was picked up
+  const undoPickup = async () => {
+    try {
+      await mutationFetch(`/order/${order.id}/undo-pickup`, { token });
+      onPickupChange(order.id, false);
+      toast.success("Pickup undone");
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    }
+  };
+
+  const handleIgnore = () => {
+    void (async () => {
+      const succeeded = await markPickedUp();
+      if (succeeded) {
+        setShowWarning(false);
+      }
+    })();
+  };
+
+  const warningDialog = (
+    <AlertDialog open={showWarning} onOpenChange={setShowWarning}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+              <TriangleAlert className="size-5" />
+            </div>
+            <AlertDialogTitle>Payment Not Confirmed</AlertDialogTitle>
+          </div>
+          <AlertDialogDescription className="pt-2">
+            This order&apos;s payment must be confirmed before it can be
+            checked off. Are you sure you want to proceed without confirming
+            payment?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setShowWarning(false)}>
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleIgnore}
+            className="bg-green-600 text-white hover:bg-green-700"
+          >
+            Ignore &amp; Check Off
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+
+  return { isPickedUp, requestPickup, undoPickup, warningDialog };
+}
+
+// Component for the pickup status cell
+export function PickupStatusCell({
+  order,
+  token,
+  onPickupChange,
+}: {
+  order: Order;
+  token: string;
+  onPickupChange: PickupChangeHandler;
+}) {
+  const { isPickedUp, requestPickup, warningDialog } = usePickupActions(
+    order,
+    token,
+    onPickupChange,
+  );
+
   return (
     <div className="flex items-center justify-center">
       <div className="flex items-center gap-3">
         <Checkbox
           id={order.id}
           checked={isPickedUp}
-          onChange={!isPickedUp ? handleCheckboxChange : undefined}
+          onChange={!isPickedUp ? requestPickup : undefined}
           disabled={isPickedUp}
           className="cursor-pointer"
         />
       </div>
-
-      <AlertDialog open={showWarning} onOpenChange={setShowWarning}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
-                <TriangleAlert className="size-5" />
-              </div>
-              <AlertDialogTitle>Payment Not Confirmed</AlertDialogTitle>
-            </div>
-            <AlertDialogDescription className="pt-2">
-              This order&apos;s payment must be confirmed before it can be
-              checked off. Are you sure you want to proceed without confirming
-              payment?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancel}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleIgnore}
-              className="bg-green-600 text-white hover:bg-green-700"
-            >
-              Ignore &amp; Check Off
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {warningDialog}
     </div>
   );
 }
 
-// Component for the payment status cell (received / not received / unverified)
-const PaymentStatusCell = ({ order }: { order: Order }) => {
+// Payment status badge. Clicking it opens a menu to mark the payment received.
+const PaymentStatusCell = ({
+  order,
+  token,
+  onPaymentConfirmed,
+}: {
+  order: Order;
+  token: string;
+  onPaymentConfirmed: PaymentConfirmedHandler;
+}) => {
+  const [isSaving, setIsSaving] = useState(false);
   const { data } = useSWR(`/order/${order.id}`, authFetcher(CompleteOrderSchema), {
     fallbackData: order,
     revalidateOnFocus: false,
   });
 
-  const paymentStatus = data?.paymentStatus as string;
+  const status = data?.paymentStatus ?? order.paymentStatus;
+  const current =
+    PAYMENT_STATUS_OPTIONS.find((option) => option.status === status) ??
+    PAYMENT_STATUS_OPTIONS[1];
 
-  if (paymentStatus === "CONFIRMED") {
-    return (
-      <div className="flex justify-center">
-        <Badge className="flex justify-center items-center whitespace-nowrap bg-[#DCEBDE] text-[#086A19] rounded-full px-2.5 py-1 hover:bg-[#c5e0c6] hover:text-[#065a13] font-[700] text-md">
-          Received
-        </Badge>
-      </div>
-    );
-  } else if (paymentStatus === "UNVERIFIABLE") {
-    return (
-      <div className="flex justify-center">
-        <Badge className="flex justify-center items-center whitespace-nowrap bg-[#F7F7F7] text-[#959494] rounded-full px-2.5 py-1 hover:bg-[#e5e5e5] hover:text-[#6e6e6e] font-[700] text-md">
-          Unverified
-        </Badge>
-      </div>
-    );
-  }
+  const confirmPayment = async () => {
+    setIsSaving(true);
+    try {
+      await mutationFetch(`/order/${order.id}/confirm-payment`, { token });
+      onPaymentConfirmed(order.id);
+      toast.success("Payment marked as received");
+    } catch (error) {
+      toast.error(
+        error instanceof Error && error.message
+          ? error.message
+          : "Failed to confirm payment",
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="flex justify-center">
-      <Badge className="flex justify-center items-center whitespace-nowrap bg-[#FBE6E6] text-[#E1080B] rounded-full px-2.5 py-1 hover:bg-[#f5c6c6] hover:text-[#b30607] font-[700] text-md">
-        Not Received
-      </Badge>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild disabled={isSaving}>
+          <button
+            type="button"
+            aria-label={`Payment status: ${current.label}. Change`}
+            className={statusTriggerClass}
+          >
+            <Badge className={cn(statusBadgeClass, current.className)}>
+              {current.label}
+              <ChevronDown className="h-3 w-3" aria-hidden="true" />
+            </Badge>
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="center">
+          <DropdownMenuRadioGroup
+            value={current.status}
+            onValueChange={(value) => {
+              if (value === "CONFIRMED" && status !== "CONFIRMED") {
+                void confirmPayment();
+              }
+            }}
+          >
+            {PAYMENT_STATUS_OPTIONS.map((option) => (
+              <DropdownMenuRadioItem
+                key={option.status}
+                value={option.status}
+                // The backend only moves a payment forward to Received
+                disabled={
+                  option.status !== status && option.status !== "CONFIRMED"
+                }
+              >
+                {option.label}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+          <DropdownMenuSeparator />
+          <p className="max-w-48 px-2 py-1.5 text-xs text-muted-foreground">
+            {status === "CONFIRMED"
+              ? "A received payment can't be changed back."
+              : "A payment can only be marked as received."}
+          </p>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };
 
-// Component for the pickup status badge cell (picked up / not picked up)
-const PickupStatusBadgeCell = ({ order }: { order: Order }) => {
-  const { data } = useSWR(`/order/${order.id}`, authFetcher(CompleteOrderSchema), {
-    fallbackData: order,
-    revalidateOnFocus: false,
-  });
+// Pickup status badge. Clicking it opens a menu to change the pickup status.
+const PickupStatusBadgeCell = ({
+  order,
+  token,
+  onPickupChange,
+}: {
+  order: Order;
+  token: string;
+  onPickupChange: PickupChangeHandler;
+}) => {
+  const { isPickedUp, requestPickup, undoPickup, warningDialog } =
+    usePickupActions(order, token, onPickupChange);
+  const current = PICKUP_STATUS_OPTIONS[isPickedUp ? 0 : 1];
 
-  const isPickedUp = data?.pickedUp === true;
-
-  if (isPickedUp) {
-    return (
-      <div className="flex justify-center">
-        <Badge className="flex justify-center items-center whitespace-nowrap bg-[#DCE8FB] text-[#1D5FAD] rounded-full px-2.5 py-1 hover:bg-[#c2daf7] hover:text-[#174a87] font-[700] text-md">
-          Picked Up
-        </Badge>
-      </div>
-    );
-  }
   return (
     <div className="flex justify-center">
-      <Badge className="flex justify-center items-center whitespace-nowrap bg-[#FFEEC2] text-[#FEA839] rounded-full px-2.5 py-1 hover:bg-[#fddc9e] hover:text-[#d97a2b] font-[700] text-md">
-        Not Picked Up
-      </Badge>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label={`Pickup status: ${current.label}. Change`}
+            className={statusTriggerClass}
+          >
+            <Badge className={cn(statusBadgeClass, current.className)}>
+              {current.label}
+              <ChevronDown className="h-3 w-3" aria-hidden="true" />
+            </Badge>
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="center">
+          <DropdownMenuRadioGroup
+            value={current.value}
+            onValueChange={(value) => {
+              if (value === current.value) return;
+              if (value === "true") {
+                requestPickup();
+              } else {
+                void undoPickup();
+              }
+            }}
+          >
+            {PICKUP_STATUS_OPTIONS.map((option) => (
+              <DropdownMenuRadioItem key={option.value} value={option.value}>
+                {option.label}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+          {isPickedUp && (
+            <>
+              <DropdownMenuSeparator />
+              <p className="max-w-48 px-2 py-1.5 text-xs text-muted-foreground">
+                A pickup can be undone for 1 minute after it&apos;s marked.
+              </p>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {warningDialog}
     </div>
+  );
+};
+
+// Compact order ID. Shows a short prefix to keep the column narrow, the full
+// ID in a tooltip, and copies the full ID on click so sellers can match it
+// against the ID in a Venmo or Zelle note.
+const OrderIdCell = ({ orderId }: { orderId: string }) => {
+  const copyOrderId = () => {
+    navigator.clipboard.writeText(orderId);
+    toast.success("Copied to clipboard!");
+  };
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          onClick={copyOrderId}
+          aria-label={`Copy order ID ${orderId}`}
+          className="h-6 gap-1 px-1 py-0 font-mono text-xs font-normal text-muted-foreground [&_svg]:size-3"
+        >
+          {orderId.slice(0, 8)}
+          <Copy />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <span className="font-mono">{orderId}</span>
+      </TooltipContent>
+    </Tooltip>
   );
 };
 
@@ -260,6 +459,7 @@ const completePickup = async (
 export const getColumns = (
   token: string,
   onPickupChange: PickupChangeHandler,
+  onPaymentConfirmed: PaymentConfirmedHandler,
 ): ColumnDef<Order>[] => [
   {
     id: "select",
@@ -343,6 +543,21 @@ export const getColumns = (
     cell: ({ row }) => (
       <div className="flex items-center justify-center">
         {getOrderBuyer(row.original).netId}
+      </div>
+    ),
+  },
+  // The accessor is the full ID, so the search box matches on it too
+  {
+    accessorKey: "id",
+    enableSorting: false,
+    header: () => (
+      <div className="flex justify-center px-1 text-center leading-tight">
+        Order ID
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <OrderIdCell orderId={row.original.id} />
       </div>
     ),
   },
@@ -499,7 +714,13 @@ export const getColumns = (
     filterFn: "arrIncludesSome",
     cell: ({ row }) => {
       const order = row.original;
-      return <PaymentStatusCell order={order} />;
+      return (
+        <PaymentStatusCell
+          order={order}
+          token={token}
+          onPaymentConfirmed={onPaymentConfirmed}
+        />
+      );
     },
   },
   {
@@ -521,7 +742,13 @@ export const getColumns = (
     filterFn: "arrIncludesSome",
     cell: ({ row }) => {
       const order = row.original;
-      return <PickupStatusBadgeCell order={order} />;
+      return (
+        <PickupStatusBadgeCell
+          order={order}
+          token={token}
+          onPickupChange={onPickupChange}
+        />
+      );
     },
   },
   {

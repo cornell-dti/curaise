@@ -112,7 +112,7 @@ export function OrdersTable<TValue>({
 		<div className="space-y-4">
 			<div className="flex items-center py-4">
 				<Input
-					placeholder="Filter by name or netID"
+					placeholder="Filter by name, netID, or order ID"
 					value={globalFilter}
 					onChange={(e) => setGlobalFilter(e.target.value)}
 					className="max-w-sm rounded-lg border border-solid border-[#68b0ab]"

@@ -6,6 +6,7 @@ import { buildOrdersCsv, formatOrderCreatedAt } from "./ordersCsv";
 type Order = z.infer<typeof CompleteOrderSchema>;
 
 const order = {
+	id: "0b0897d3-085d-5c1c-a6c2-d05c2eac6890",
 	createdAt: new Date(2026, 9, 7, 14, 5),
 	paymentMethod: "VENMO",
 	paymentStatus: "CONFIRMED",
@@ -39,6 +40,7 @@ describe("buildOrdersCsv", () => {
 			"Name",
 			"Email",
 			"NetID",
+			"Order ID",
 			"Created At",
 			"Order Details",
 			"Payment Method",
@@ -48,6 +50,7 @@ describe("buildOrdersCsv", () => {
 		]);
 		expect(row).toContain('"Oct 7, 2026 2:05 PM"');
 		expect(row).toContain('"Ada Lovelace"');
+		expect(row).toContain('"0b0897d3-085d-5c1c-a6c2-d05c2eac6890"');
 		expect(row).toContain('"$11.00"');
 		expect(csv.split("\n")).toHaveLength(2);
 	});

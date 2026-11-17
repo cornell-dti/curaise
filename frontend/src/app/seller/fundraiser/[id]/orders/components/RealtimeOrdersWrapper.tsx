@@ -39,6 +39,19 @@ export function RealtimeOrdersWrapper({
     );
   };
 
+  const setOrderPaymentConfirmed = (orderId: string) => {
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === orderId ? { ...order, paymentStatus: "CONFIRMED" } : order
+      )
+    );
+    mutate<Order>(
+      `/order/${orderId}`,
+      (current) => current && { ...current, paymentStatus: "CONFIRMED" },
+      false
+    );
+  };
+
   useEffect(() => {
     const fetchSingleOrder = async (orderId: string): Promise<Order | null> => {
       try {
@@ -147,6 +160,7 @@ export function RealtimeOrdersWrapper({
       token={token}
       fundraiserName={fundraiserName}
       onPickupChange={setOrderPickedUp}
+      onPaymentConfirmed={setOrderPaymentConfirmed}
     />
   );
 }
