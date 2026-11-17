@@ -39,7 +39,7 @@ import {
   showPickupUndoToast,
 } from "@/components/custom/PickupUndoToast";
 import { authFetcher, mutationFetch } from "@/lib/fetcher";
-import { useState } from "react";
+import { type MouseEvent, useState } from "react";
 import { getOrderBuyer } from "@/lib/order-buyer";
 
 type Order = z.infer<typeof CompleteOrderSchema>;
@@ -208,35 +208,33 @@ const PickupStatusBadgeCell = ({ order }: { order: Order }) => {
   );
 };
 
-// Component for the order ID cell. Shows a short prefix to keep the table
-// narrow, the full ID in a tooltip, and copies the full ID on click so sellers
-// can match it against the ID in a Venmo or Zelle note.
+// Compact order ID shown under the buyer's name. Shows a short prefix so the
+// table does not get wider, the full ID in a tooltip, and copies the full ID
+// on click so sellers can match it against the ID in a Venmo or Zelle note.
 const OrderIdCell = ({ orderId }: { orderId: string }) => {
-  const copyOrderId = () => {
+  const copyOrderId = (e: MouseEvent) => {
+    e.stopPropagation();
     navigator.clipboard.writeText(orderId);
     toast.success("Copied to clipboard!");
   };
 
   return (
-    <div className="flex items-center justify-center">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={copyOrderId}
-            aria-label={`Copy order ID ${orderId}`}
-            className="h-7 gap-1.5 px-2 font-mono text-xs"
-          >
-            {orderId.slice(0, 8)}
-            <Copy className="h-3 w-3 text-muted-foreground" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <span className="font-mono">{orderId}</span>
-        </TooltipContent>
-      </Tooltip>
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          onClick={copyOrderId}
+          aria-label={`Copy order ID ${orderId}`}
+          className="h-4 gap-1 px-1 py-0 font-mono text-[11px] font-normal leading-none text-muted-foreground [&_svg]:size-2.5"
+        >
+          {orderId.slice(0, 8)}
+          <Copy />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <span className="font-mono">{orderId}</span>
+      </TooltipContent>
+    </Tooltip>
   );
 };
 
@@ -283,8 +281,9 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
       );
     },
     cell: ({ row }) => (
-      <div className="flex items-center justify-center whitespace-nowrap">
+      <div className="flex flex-col items-center justify-center whitespace-nowrap">
         {getOrderBuyer(row.original).name}
+        <OrderIdCell orderId={row.original.id} />
       </div>
     ),
   },
@@ -309,13 +308,12 @@ export const getColumns = (token: string): ColumnDef<Order>[] => [
       </div>
     ),
   },
+  // Hidden column (see columnVisibility in OrdersTable). It only exists so the
+  // search box can match on the full order ID, which is shown under the name.
   {
     accessorKey: "id",
-    header: () => {
-      return <div className="flex justify-center w-full px-2">Order ID</div>;
-    },
     enableSorting: false,
-    cell: ({ row }) => <OrderIdCell orderId={row.original.id} />,
+    enableHiding: false,
   },
   {
     accessorKey: "createdAt",

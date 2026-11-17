@@ -61,6 +61,8 @@ export function OrdersTable<TValue>({
 		getFilteredRowModel: getFilteredRowModel(),
 		getFacetedRowModel: getFacetedRowModel(),
 		getFacetedUniqueValues: getFacetedUniqueValues(),
+		// The id column is only there so the search box can match order IDs
+		initialState: { columnVisibility: { id: false } },
 		state: {
 			sorting,
 			columnFilters,
@@ -152,7 +154,7 @@ export function OrdersTable<TValue>({
 			</div>
 
 			<div className="rounded-md border">
-				<Table className="min-w-[1250px]">
+				<Table className="min-w-[1150px]">
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
