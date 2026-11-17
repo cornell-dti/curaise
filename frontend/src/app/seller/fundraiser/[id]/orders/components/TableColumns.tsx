@@ -2,7 +2,7 @@
 
 "use client";
 import Link from "next/link";
-import { ColumnDef, Table } from "@tanstack/react-table";
+import { ColumnDef, FilterFn, Table } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -436,6 +436,15 @@ const completePickup = async (
   showPickupUndoToast(orderId, token, onUndone);
 };
 
+// Faceted filter: keep rows whose value is exactly one of the selected options.
+// The built-in "arrIncludesSome" does a substring check on string values, so
+// selecting "Received" also matched "Not Received".
+const matchesSelectedOption: FilterFn<Order> = (row, columnId, filterValue) => {
+  const selected = filterValue as string[] | undefined;
+  if (!selected || selected.length === 0) return true;
+  return selected.includes(String(row.getValue(columnId)));
+};
+
 // Create a function that returns columns with the token (access token)
 export const getColumns = (
   token: string,
@@ -641,7 +650,7 @@ export const getColumns = (
         </Button>
       );
     },
-    filterFn: "arrIncludesSome",
+    filterFn: matchesSelectedOption,
     cell: ({ row }) => (
       <div className="flex items-center justify-center gap-1.5">
         <PaymentMethodIcon method={row.original.paymentMethod} size="sm" />
@@ -685,7 +694,7 @@ export const getColumns = (
         </div>
       );
     },
-    filterFn: "arrIncludesSome",
+    filterFn: matchesSelectedOption,
     cell: ({ row }) => {
       const order = row.original;
       return (
@@ -713,7 +722,7 @@ export const getColumns = (
         </Button>
       );
     },
-    filterFn: "arrIncludesSome",
+    filterFn: matchesSelectedOption,
     cell: ({ row }) => {
       const order = row.original;
       return (
