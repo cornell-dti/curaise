@@ -181,13 +181,15 @@ export function OrdersTable<TValue>({
 			</div>
 
 			<div className="rounded-md border">
-				<Table className="min-w-[1200px]">
+				<Table>
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => {
 									return (
-										<TableHead key={header.id}>
+										<TableHead
+											key={header.id}
+											className="whitespace-normal px-1">
 											{header.isPlaceholder
 												? null
 												: flexRender(
@@ -207,14 +209,7 @@ export function OrdersTable<TValue>({
 									key={row.id}
 									data-state={row.getIsSelected() && "selected"}>
 									{row.getVisibleCells().map((cell) => (
-										<TableCell
-											key={cell.id}
-											className={
-												cell.column.id === "orderDetails" ||
-												cell.column.id === "quantity"
-													? "align-top"
-													: undefined
-											}>
+										<TableCell key={cell.id} className="px-1">
 											{flexRender(
 												cell.column.columnDef.cell,
 												cell.getContext(),

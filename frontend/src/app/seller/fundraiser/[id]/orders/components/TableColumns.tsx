@@ -37,21 +37,26 @@ import { authFetcher, mutationFetch } from "@/lib/fetcher";
 import { useEffect, useRef, useState } from "react";
 import { LocalDate } from "@/components/ui/LocalDate";
 import { getOrderBuyer } from "@/lib/order-buyer";
-import { ORDER_CREATED_AT_FORMAT } from "./ordersCsv";
+import {
+  ORDER_CREATED_DATE_FORMAT,
+  ORDER_CREATED_TIME_FORMAT,
+} from "./ordersCsv";
 
 type Order = z.infer<typeof CompleteOrderSchema>;
 
 export type PickupChangeHandler = (orderId: string, pickedUp: boolean) => void;
 
-const orderItemLineClass =
-  "flex min-h-10 items-center justify-center whitespace-nowrap px-2 py-1 text-center";
-
-function OrderItemLines({ lines }: { lines: { key: string; text: string }[] }) {
+// Quantity sits next to the item name so names can wrap without drifting out
+// of line with a separate quantity column.
+function OrderItemLines({ items }: { items: Order["items"] }) {
   return (
-    <div className="flex flex-col">
-      {lines.map((line) => (
-        <div key={line.key} className={orderItemLineClass}>
-          {line.text}
+    <div className="flex flex-col gap-1.5 py-1 text-center leading-tight">
+      {items.map((item) => (
+        <div key={item.item.id}>
+          <span className="tabular-nums text-muted-foreground">
+            {item.quantity} ×
+          </span>{" "}
+          {item.item.name}
         </div>
       ))}
     </div>
@@ -190,7 +195,7 @@ const PaymentStatusCell = ({ order }: { order: Order }) => {
   if (paymentStatus === "CONFIRMED") {
     return (
       <div className="flex justify-center">
-        <Badge className="flex justify-center items-center min-w-[90px] bg-[#DCEBDE] text-[#086A19] rounded-full px-3 py-1 hover:bg-[#c5e0c6] hover:text-[#065a13] font-[700] text-md">
+        <Badge className="flex justify-center items-center whitespace-nowrap bg-[#DCEBDE] text-[#086A19] rounded-full px-2.5 py-1 hover:bg-[#c5e0c6] hover:text-[#065a13] font-[700] text-md">
           Received
         </Badge>
       </div>
@@ -198,7 +203,7 @@ const PaymentStatusCell = ({ order }: { order: Order }) => {
   } else if (paymentStatus === "UNVERIFIABLE") {
     return (
       <div className="flex justify-center">
-        <Badge className="flex justify-center items-center min-w-[90px] bg-[#F7F7F7] text-[#959494] rounded-full px-3 py-1 hover:bg-[#e5e5e5] hover:text-[#6e6e6e] font-[700] text-md">
+        <Badge className="flex justify-center items-center whitespace-nowrap bg-[#F7F7F7] text-[#959494] rounded-full px-2.5 py-1 hover:bg-[#e5e5e5] hover:text-[#6e6e6e] font-[700] text-md">
           Unverified
         </Badge>
       </div>
@@ -206,7 +211,7 @@ const PaymentStatusCell = ({ order }: { order: Order }) => {
   }
   return (
     <div className="flex justify-center">
-      <Badge className="flex justify-center items-center min-w-[90px] bg-[#FBE6E6] text-[#E1080B] rounded-full px-3 py-1 hover:bg-[#f5c6c6] hover:text-[#b30607] font-[700] text-md">
+      <Badge className="flex justify-center items-center whitespace-nowrap bg-[#FBE6E6] text-[#E1080B] rounded-full px-2.5 py-1 hover:bg-[#f5c6c6] hover:text-[#b30607] font-[700] text-md">
         Not Received
       </Badge>
     </div>
@@ -225,7 +230,7 @@ const PickupStatusBadgeCell = ({ order }: { order: Order }) => {
   if (isPickedUp) {
     return (
       <div className="flex justify-center">
-        <Badge className="flex justify-center items-center min-w-[90px] bg-[#DCE8FB] text-[#1D5FAD] rounded-full px-3 py-1 hover:bg-[#c2daf7] hover:text-[#174a87] font-[700] text-md">
+        <Badge className="flex justify-center items-center whitespace-nowrap bg-[#DCE8FB] text-[#1D5FAD] rounded-full px-2.5 py-1 hover:bg-[#c2daf7] hover:text-[#174a87] font-[700] text-md">
           Picked Up
         </Badge>
       </div>
@@ -233,7 +238,7 @@ const PickupStatusBadgeCell = ({ order }: { order: Order }) => {
   }
   return (
     <div className="flex justify-center">
-      <Badge className="flex justify-center items-center min-w-[90px] bg-[#FFEEC2] text-[#FEA839] rounded-full px-3 py-1 hover:bg-[#fddc9e] hover:text-[#d97a2b] font-[700] text-md">
+      <Badge className="flex justify-center items-center whitespace-nowrap bg-[#FFEEC2] text-[#FEA839] rounded-full px-2.5 py-1 hover:bg-[#fddc9e] hover:text-[#d97a2b] font-[700] text-md">
         Not Picked Up
       </Badge>
     </div>
@@ -278,7 +283,7 @@ export const getColumns = (
   {
     accessorKey: "pickedUp",
     header: () => {
-      return <div className="flex justify-center w-full px-2">Picked Up</div>;
+      return <div className="flex h-auto w-full justify-center whitespace-normal px-1 py-1 text-center leading-tight">Picked Up</div>;
     },
     // filterFn params:
     // row: The current row being processed
@@ -306,7 +311,7 @@ export const getColumns = (
       return (
         <Button
           variant="ghost"
-          className="flex justify-center w-full px-2"
+          className="flex h-auto w-full justify-center whitespace-normal px-1 py-1 text-center leading-tight"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Name
@@ -315,7 +320,7 @@ export const getColumns = (
       );
     },
     cell: ({ row }) => (
-      <div className="flex items-center justify-center whitespace-nowrap">
+      <div className="flex items-center justify-center text-center leading-tight">
         {getOrderBuyer(row.original).name}
       </div>
     ),
@@ -327,7 +332,7 @@ export const getColumns = (
       return (
         <Button
           variant="ghost"
-          className="flex justify-center w-full px-2"
+          className="flex h-auto w-full justify-center whitespace-normal px-1 py-1 text-center leading-tight"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           NetID
@@ -348,7 +353,7 @@ export const getColumns = (
       return (
         <Button
           variant="ghost"
-          className="flex justify-center w-full px-2"
+          className="flex h-auto w-full justify-center whitespace-normal px-1 py-1 text-center leading-tight"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Created At
@@ -357,11 +362,19 @@ export const getColumns = (
       );
     },
     cell: ({ row }) => (
-      <div className="flex items-center justify-center whitespace-nowrap">
-        <LocalDate
-          date={row.original.createdAt}
-          formatStr={ORDER_CREATED_AT_FORMAT}
-        />
+      <div className="flex flex-col items-center whitespace-nowrap leading-tight">
+        <span>
+          <LocalDate
+            date={row.original.createdAt}
+            formatStr={ORDER_CREATED_DATE_FORMAT}
+          />
+        </span>
+        <span className="text-xs text-muted-foreground">
+          <LocalDate
+            date={row.original.createdAt}
+            formatStr={ORDER_CREATED_TIME_FORMAT}
+          />
+        </span>
       </div>
     ),
   },
@@ -369,7 +382,7 @@ export const getColumns = (
     accessorKey: "orderDetails",
     header: () => {
       return (
-        <div className="flex justify-center w-full px-2">Order Details</div>
+        <div className="flex h-auto w-full justify-center whitespace-normal px-1 py-1 text-center leading-tight">Order Details</div>
       );
     },
     // This function is used to extract the item names from the nested items
@@ -390,26 +403,7 @@ export const getColumns = (
         filterValue.some((val: string) => items.includes(val))
       );
     },
-    cell: ({ row }) => (
-      <OrderItemLines
-        lines={row.original.items.map((item) => ({
-          key: `${item.item.id}-name`,
-          text: item.item.name,
-        }))}
-      />
-    ),
-  },
-  {
-    accessorKey: "quantity",
-    header: "Quantity",
-    cell: ({ row }) => (
-      <OrderItemLines
-        lines={row.original.items.map((item) => ({
-          key: `${item.item.id}-qty`,
-          text: String(item.quantity),
-        }))}
-      />
-    ),
+    cell: ({ row }) => <OrderItemLines items={row.original.items} />,
   },
   {
     accessorKey: "orderTotal",
@@ -424,7 +418,7 @@ export const getColumns = (
       return (
         <Button
           variant="ghost"
-          className="flex justify-center w-full px-2"
+          className="flex h-auto w-full justify-center whitespace-normal px-1 py-1 text-center leading-tight"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Order Total
@@ -451,7 +445,7 @@ export const getColumns = (
       return (
         <Button
           variant="ghost"
-          className="flex justify-center w-full px-2"
+          className="flex h-auto w-full justify-center whitespace-normal px-1 py-1 text-center leading-tight"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Payment Method
@@ -476,10 +470,10 @@ export const getColumns = (
     },
     header: ({ column }) => {
       return (
-        <div className="flex items-center justify-center w-full px-2 gap-1">
+        <div className="flex w-full items-center justify-center">
           <Button
             variant="ghost"
-            className="px-2"
+            className="h-auto whitespace-normal px-1 py-1 text-center leading-tight"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Payment Status
@@ -488,9 +482,13 @@ export const getColumns = (
           <InfoTooltip
             content={
               <>
-                • <strong>Received:</strong> Payment confirmed
-                <br />• <strong>Not Received:</strong> Payment not yet verified
-                <br />• <strong>Unverified:</strong> Payment can&apos;t be verified (cash/manual order), but can be picked up
+                • <strong>Received:</strong> Payment confirmed, either
+                matched from Venmo or confirmed by a seller
+                <br />• <strong>Not Received:</strong> Venmo payment not
+                matched yet
+                <br />• <strong>Unverified:</strong> Zelle or other payment
+                that CURaise can&apos;t check. Confirm it from the order page
+                once you&apos;ve been paid.
               </>
             }
             size={18}
@@ -512,7 +510,7 @@ export const getColumns = (
       return (
         <Button
           variant="ghost"
-          className="flex justify-center w-full px-2"
+          className="flex h-auto w-full justify-center whitespace-normal px-1 py-1 text-center leading-tight"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Pickup Status

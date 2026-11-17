@@ -5,7 +5,9 @@ import { getOrderBuyer } from "@/lib/order-buyer";
 
 type Order = z.infer<typeof CompleteOrderSchema>;
 
-export const ORDER_CREATED_AT_FORMAT = "MMM d, yyyy h:mm a";
+export const ORDER_CREATED_DATE_FORMAT = "MMM d, yyyy";
+export const ORDER_CREATED_TIME_FORMAT = "h:mm a";
+export const ORDER_CREATED_AT_FORMAT = `${ORDER_CREATED_DATE_FORMAT} ${ORDER_CREATED_TIME_FORMAT}`;
 
 export function formatOrderCreatedAt(value: Date | string) {
 	return format(new Date(value), ORDER_CREATED_AT_FORMAT);
