@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { OrdersTableWrapper } from "./OrdersTableWrapper";
 import { CompleteOrderSchema } from "common/schemas/order";
@@ -26,7 +26,7 @@ export function RealtimeOrdersWrapper({
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const supabase = useMemo(() => createClient(), []);
 
-  const setOrderPickedUp = (orderId: string, pickedUp: boolean) => {
+  const setOrderPickedUp = useCallback((orderId: string, pickedUp: boolean) => {
     setOrders((prev) =>
       prev.map((order) =>
         order.id === orderId ? { ...order, pickedUp } : order
@@ -37,9 +37,9 @@ export function RealtimeOrdersWrapper({
       (current) => current && { ...current, pickedUp },
       false
     );
-  };
+  }, []);
 
-  const setOrderPaymentConfirmed = (orderId: string) => {
+  const setOrderPaymentConfirmed = useCallback((orderId: string) => {
     setOrders((prev) =>
       prev.map((order) =>
         order.id === orderId ? { ...order, paymentStatus: "CONFIRMED" } : order
@@ -50,7 +50,7 @@ export function RealtimeOrdersWrapper({
       (current) => current && { ...current, paymentStatus: "CONFIRMED" },
       false
     );
-  };
+  }, []);
 
   useEffect(() => {
     const fetchSingleOrder = async (orderId: string): Promise<Order | null> => {

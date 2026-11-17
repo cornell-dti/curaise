@@ -56,16 +56,21 @@ export function OrdersTable<TValue>({
 		getRowId: (row) => row.id,
 		enableRowSelection: true,
 		getCoreRowModel: getCoreRowModel(),
-		// Every matching order stays on one list. Ten-row pages made Next/Previous
-		// jump, and marking a pickup reset the seller to page 1.
-		autoResetPageIndex: false,
 		onSortingChange: setSorting,
 		getSortedRowModel: getSortedRowModel(),
-		onColumnFiltersChange: setColumnFilters,
+		// Changing a filter or the search clears the selection. Otherwise rows the
+		// filter hides drop out of it and Export falls back to every visible row.
+		onColumnFiltersChange: (updater) => {
+			setColumnFilters(updater);
+			setRowSelection({});
+		},
 		getFilteredRowModel: getFilteredRowModel(),
 		getFacetedRowModel: getFacetedRowModel(),
 		getFacetedUniqueValues: getFacetedUniqueValues(),
-		onGlobalFilterChange: setGlobalFilter,
+		onGlobalFilterChange: (updater) => {
+			setGlobalFilter(updater);
+			setRowSelection({});
+		},
 		onRowSelectionChange: setRowSelection,
 		state: {
 			sorting,
@@ -114,7 +119,7 @@ export function OrdersTable<TValue>({
 				<Input
 					placeholder="Filter by name, netID, or order ID"
 					value={globalFilter}
-					onChange={(e) => setGlobalFilter(e.target.value)}
+					onChange={(e) => table.setGlobalFilter(e.target.value)}
 					className="max-w-sm rounded-lg border border-solid border-[#68b0ab]"
 				/>
 			</div>

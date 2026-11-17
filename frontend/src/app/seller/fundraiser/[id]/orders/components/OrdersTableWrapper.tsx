@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useMemo } from "react";
 import { OrdersTable } from "./OrdersTable";
 import {
 	getColumns,
@@ -28,7 +29,12 @@ export function OrdersTableWrapper({
 	onPickupChange,
 	onPaymentConfirmed,
 }: OrdersClientWrapperProps) {
-	const tableColumns = getColumns(token, onPickupChange, onPaymentConfirmed);
+	// Stable columns keep the table from rebuilding and re-sorting every order
+	// on each render.
+	const tableColumns = useMemo(
+		() => getColumns(token, onPickupChange, onPaymentConfirmed),
+		[token, onPickupChange, onPaymentConfirmed],
+	);
 
 	return (
 		<OrdersTable

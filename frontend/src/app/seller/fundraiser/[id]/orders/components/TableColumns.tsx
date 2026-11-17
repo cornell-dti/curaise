@@ -154,6 +154,8 @@ function usePickupActions(
   const { data } = useSWR(`/order/${order.id}`, authFetcher(CompleteOrderSchema), {
     fallbackData: order, // Use the original order data as fallback (default)
     revalidateOnFocus: false, // Don't revalidate on focus
+    // The page already loaded every order, so don't refetch one per row
+    revalidateOnMount: false,
   });
 
   const isPickedUp = data?.pickedUp === true;
@@ -280,6 +282,7 @@ const PaymentStatusCell = ({
   const { data } = useSWR(`/order/${order.id}`, authFetcher(CompleteOrderSchema), {
     fallbackData: order,
     revalidateOnFocus: false,
+    revalidateOnMount: false,
   });
 
   const status = data?.paymentStatus ?? order.paymentStatus;
