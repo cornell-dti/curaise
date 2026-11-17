@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { CompleteItemSchema, CompleteOrderSchema } from "common";
 import { z } from "zod";
@@ -110,28 +111,33 @@ export function ItemsSoldCard({
 								</span>
 							</div>
 
-							<div className="min-w-0 flex-1 space-y-1.5">
-								<div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-0.5">
+							<div className="min-w-0 flex-1 space-y-1.5 [container-type:inline-size]">
+								{/*
+									Name left, count right. The stock badge sits beside the count
+									when the row is wide enough, and always on its own line under
+									the name when it is not, so it never wraps depending on the
+									name's length.
+								*/}
+								<div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1 [@container(min-width:22rem)]:grid-cols-[minmax(0,1fr)_auto_auto] [@container(min-width:22rem)]:gap-x-2">
 									<span
-										className="line-clamp-2 min-w-[7rem] flex-1 break-words text-sm font-medium text-foreground"
+										className="col-start-1 row-start-1 line-clamp-2 break-words text-sm font-medium text-foreground"
 										title={item.name}
 									>
 										{item.name}
 									</span>
-									<span
-										className={cn(
-											"shrink-0 whitespace-nowrap text-sm font-semibold",
-											isOutOfStock && "text-red-700",
-											isLowStock && "text-yellow-700"
-										)}
-										title={
-											isOutOfStock
-												? "Out of stock"
-												: isLowStock
-													? "Low stock"
-													: undefined
-										}
-									>
+									{isOutOfStock || isLowStock ? (
+										<Badge
+											className={cn(
+												"col-span-2 col-start-1 row-start-2 justify-self-start whitespace-nowrap [@container(min-width:22rem)]:col-span-1 [@container(min-width:22rem)]:col-start-2 [@container(min-width:22rem)]:row-start-1",
+												isOutOfStock
+													? "bg-red-100 text-red-700 hover:bg-red-100"
+													: "bg-yellow-100 text-yellow-700 hover:bg-yellow-100"
+											)}
+										>
+											{isOutOfStock ? "Out of Stock" : "Low Stock"}
+										</Badge>
+									) : null}
+									<span className="col-start-2 row-start-1 whitespace-nowrap text-sm font-semibold [@container(min-width:22rem)]:col-start-3">
 										{limit !== null
 											? `${item.unitsSold} / ${limit} sold`
 											: `${item.unitsSold} sold`}
