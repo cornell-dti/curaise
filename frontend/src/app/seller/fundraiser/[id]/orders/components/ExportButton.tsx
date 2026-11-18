@@ -5,23 +5,18 @@ import { Download } from "lucide-react";
 import { useState } from "react";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { z } from "zod";
-import { getOrderBuyer } from "@/lib/order-buyer";
+import { buildOrdersCsv } from "./ordersCsv";
 
 type Order = z.infer<typeof CompleteOrderSchema>;
-
-const paymentStatusLabel = (status: string | undefined) => {
-	if (status === "CONFIRMED") return "Received";
-	if (status === "UNVERIFIABLE") return "Unverified";
-	if (status === "PENDING") return "Not Received";
-	return "Unknown";
-};
 
 export function ExportButton({
 	orders,
 	fundraiserName,
+	label = "Export",
 }: {
 	orders: Order[];
 	fundraiserName: string;
+	label?: string;
 }) {
 	const [isExporting, setIsExporting] = useState(false);
 
@@ -29,47 +24,7 @@ export function ExportButton({
 		setIsExporting(true);
 
 		try {
-			const headers = [
-				"Name",
-				"Email",
-				"NetID",
-				"Order Details",
-				"Payment Method",
-				"Payment Status",
-				"Pickup Status",
-				"Order Total",
-			];
-
-			const rows = orders.map((order) => {
-				const orderTotal = order.items.reduce(
-					(total, item) => total + item.quantity * Number(item.item.price),
-					0
-				);
-
-				const orderDetails = order.items
-					.map((item) => `${item.quantity} ${item.item.name}`)
-					.join(", ");
-
-				const buyer = getOrderBuyer(order);
-
-				return [
-					buyer.name || "Unknown",
-					buyer.email || "Unknown",
-					buyer.netId || "Unknown",
-					orderDetails,
-					order.paymentMethod || "Unknown",
-					paymentStatusLabel(order.paymentStatus),
-					order.pickedUp ? "Picked Up" : "Not Picked Up",
-					`$${orderTotal.toFixed(2)}`,
-				];
-			});
-
-			const csvContent = [
-				headers.join(","),
-				...rows.map((row) =>
-					row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(",")
-				),
-			].join("\n");
+			const csvContent = buildOrdersCsv(orders);
 
 			// Create blob and download link
 			const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -101,8 +56,8 @@ export function ExportButton({
 			variant="outline"
 			className="font-[400] px-3 shadow-none rounded-lg border border-solid border-[#68b0ab]"
 			onClick={handleExport}
-			disabled={isExporting}>
-			{isExporting ? "Exporting..." : "Export"}
+			disabled={isExporting || orders.length === 0}>
+			{isExporting ? "Exporting..." : label}
 			<Download className="ml-2 h-5 w-5" />
 		</Button>
 	);

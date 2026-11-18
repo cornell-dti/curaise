@@ -2,8 +2,13 @@
 
 "use client";
 
+import { useMemo } from "react";
 import { OrdersTable } from "./OrdersTable";
-import { getColumns } from "./TableColumns";
+import {
+	getColumns,
+	PaymentConfirmedHandler,
+	PickupChangeHandler,
+} from "./TableColumns";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { z } from "zod";
 
@@ -13,14 +18,23 @@ interface OrdersClientWrapperProps {
 	orders: Order[];
 	token: string;
 	fundraiserName: string;
+	onPickupChange: PickupChangeHandler;
+	onPaymentConfirmed: PaymentConfirmedHandler;
 }
 
 export function OrdersTableWrapper({
 	orders,
 	token,
 	fundraiserName,
+	onPickupChange,
+	onPaymentConfirmed,
 }: OrdersClientWrapperProps) {
-	const tableColumns = getColumns(token);
+	// Stable columns keep the table from rebuilding and re-sorting every order
+	// on each render.
+	const tableColumns = useMemo(
+		() => getColumns(token, onPickupChange, onPaymentConfirmed),
+		[token, onPickupChange, onPaymentConfirmed],
+	);
 
 	return (
 		<OrdersTable
