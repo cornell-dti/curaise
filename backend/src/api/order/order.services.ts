@@ -199,13 +199,17 @@ export const createOrder = async (
   orderBody: z.infer<typeof CreateOrderBody> & {
     buyerId: string;
     markAsPickedUp?: boolean;
+    // Seller manual orders may go over an item's cap (extra stock on hand)
+    allowOverLimit?: boolean;
   },
 ) => {
   const mergedOrderItems = mergeRequestedItemsByItemId(orderBody.items);
 
   const order = await prisma.$transaction(
     async (tx) => {
-      await assertInventoryAvailable(tx, mergedOrderItems);
+      if (!orderBody.allowOverLimit) {
+        await assertInventoryAvailable(tx, mergedOrderItems);
+      }
       await assertReferralValidForFundraiser(
         tx,
         orderBody.fundraiserId,
@@ -286,6 +290,7 @@ export const completeOrderPickup = async (orderId: string) => {
           id: true,
           paymentStatus: true,
           pickedUp: true,
+          buyerName: true,
           items: {
             select: {
               quantity: true,
@@ -302,7 +307,11 @@ export const completeOrderPickup = async (orderId: string) => {
       const isAlreadyCountedAgainstCap =
         existingOrder.paymentStatus === "CONFIRMED" || existingOrder.pickedUp;
 
-      if (!isAlreadyCountedAgainstCap) {
+      // Manual orders were allowed past the cap when created, so re-marking
+      // one as picked up (after an undo) must not be blocked by the cap.
+      const isManualOrder = existingOrder.buyerName !== null;
+
+      if (!isAlreadyCountedAgainstCap && !isManualOrder) {
         await assertInventoryAvailable(
           tx,
           existingOrder.items.map((item) => ({

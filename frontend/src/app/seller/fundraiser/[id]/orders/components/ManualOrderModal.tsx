@@ -56,24 +56,9 @@ export function ManualOrderModal({
 
   // Updates the quantity for a specific item
   // delta is how many quantities are beign changes (e.g +1, -1)
+  // Going over an item's stock limit is allowed here (the seller may have
+  // extra stock on hand); it is surfaced as a warning above the save button.
   const handleQuantityChange = (itemId: string, delta: number) => {
-    if (delta > 0) {
-      const currentQty = quantities[itemId] || 0;
-      const newQty = currentQty + delta;
-      const availabilityItem = availabilityItems?.find((item) => item.id === itemId);
-
-      if (
-        availabilityItem?.available !== null &&
-        availabilityItem?.available !== undefined &&
-        newQty > availabilityItem.available
-      ) {
-        toast.error(
-          `Only ${availabilityItem.available} available for ${availabilityItem.name}`,
-        );
-        return;
-      }
-    }
-
     setQuantities((prev) => {
       const currentQty = prev[itemId] || 0;
 
@@ -114,7 +99,14 @@ export function ManualOrderModal({
   const capacityIssues = availabilityItems
     ? getCapacityIssues(requestedItems, availabilityItems)
     : [];
-  const hasCapacityIssues = capacityIssues.length > 0;
+  // Items taken off sale block the order; going over a stock limit only warns
+  const blockingIssues = capacityIssues.filter(
+    (issue) => issue.reason === "ITEM_UNAVAILABLE",
+  );
+  const overLimitIssues = capacityIssues.filter(
+    (issue) => issue.reason === "CAPACITY_EXCEEDED",
+  );
+  const hasBlockingIssues = blockingIssues.length > 0;
   const isAvailabilityPending = isAvailabilityLoading || !availabilityItems;
   const normalizedNetId = normalizeNetId(buyerNetId);
   const isNetIdInvalid =
@@ -149,12 +141,12 @@ export function ManualOrderModal({
         return;
       }
 
-      const latestCapacityIssues = getCapacityIssues(
+      const latestBlockingIssue = getCapacityIssues(
         requestedItems,
         latestItems,
-      );
-      if (latestCapacityIssues.length > 0) {
-        toast.error(formatCapacityIssueMessage(latestCapacityIssues[0]));
+      ).find((issue) => issue.reason === "ITEM_UNAVAILABLE");
+      if (latestBlockingIssue) {
+        toast.error(formatCapacityIssueMessage(latestBlockingIssue));
         return;
       }
 
@@ -256,11 +248,9 @@ export function ManualOrderModal({
                 const availabilityItem = availabilityItems?.find(
                   (candidate) => candidate.id === item.id,
                 );
-                const isOutOfStock =
-                  !availabilityItem ||
-                  availabilityItem.offsale ||
-                  (availabilityItem.available !== null &&
-                    availabilityItem.available <= 0);
+                // Sold-out items stay orderable here; only off-sale ones lock
+                const isUnavailable =
+                  !availabilityItem || availabilityItem.offsale;
 
                 return (
                   <FundraiserItemCard
@@ -269,8 +259,8 @@ export function ManualOrderModal({
                     amount={quantity}
                     increment={() => handleQuantityChange(item.id, 1)}
                     decrement={() => handleQuantityChange(item.id, -1)}
-                    isOutOfStock={isOutOfStock}
-                    disableIncrement={isOutOfStock}
+                    isOutOfStock={isUnavailable}
+                    disableIncrement={isUnavailable}
                     isPast={isPast}
                   />
                 );
@@ -289,18 +279,37 @@ export function ManualOrderModal({
                 Checking live item availability...
               </p>
             )}
-            {hasCapacityIssues && (
+            {hasBlockingIssues && (
               <div className="rounded-[8px] border border-[#f5c2c7] bg-[#fdf2f2] px-3 py-2 mb-3">
                 <p className="text-sm font-semibold text-[#9f1239]">
                   You can&apos;t place this order right now:
                 </p>
                 <div className="mt-1 space-y-1">
-                  {capacityIssues.map((issue) => (
+                  {blockingIssues.map((issue) => (
                     <p
                       key={`${issue.itemId}-${issue.reason}`}
                       className="text-sm text-[#9f1239]"
                     >
                       • {formatCapacityIssueMessage(issue)}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
+            {overLimitIssues.length > 0 && (
+              <div
+                role="alert"
+                className="rounded-[8px] border border-yellow-300 bg-yellow-50 px-3 py-2 mb-3"
+              >
+                <p className="text-sm font-semibold text-yellow-800">
+                  This order goes over the stock limit. Only save it if you
+                  have extra stock on hand.
+                </p>
+                <div className="mt-1 space-y-1">
+                  {overLimitIssues.map((issue) => (
+                    <p key={issue.itemId} className="text-sm text-yellow-800">
+                      • {issue.itemName}: {issue.requested} in this order,{" "}
+                      {issue.available} left in stock
                     </p>
                   ))}
                 </div>
@@ -320,7 +329,7 @@ export function ManualOrderModal({
                 isNetIdInvalid ||
                 isSubmitting ||
                 isAvailabilityPending ||
-                hasCapacityIssues
+                hasBlockingIssues
               }
               className="w-full bg-black hover:bg-gray-800 text-white h-12 text-base"
             >
