@@ -5,6 +5,7 @@ import {
   DeleteAnnouncementRouteParams,
   PickupEventRouteParams,
   ApproveReferralRouteParams,
+  ReferrerDetailRouteParams,
   AnalyticsQueryParams,
 } from "./fundraiser.types";
 import {
@@ -37,6 +38,8 @@ import {
   createReferralHandler,
   approveReferralHandler,
   deleteReferralHandler,
+  getReferrerOrdersHandler,
+  getReferrerOtherFundraisersHandler,
   getFundraiserItemsAvailabilityHandler,
 } from "./fundraiser.handlers";
 import { authenticate } from "../../middleware/authenticate";
@@ -185,6 +188,22 @@ fundraiserRouter.delete(
   validate({ params: ApproveReferralRouteParams }),
   authenticate,
   asyncHandler(deleteReferralHandler)
+);
+
+// Referrer detail: orders for this fundraiser (admin only)
+fundraiserRouter.get(
+  "/:fundraiserId/referrals/:referrerId/orders",
+  validate({ params: ReferrerDetailRouteParams }),
+  authenticate,
+  asyncHandler(getReferrerOrdersHandler)
+);
+
+// Referrer detail: other org fundraisers (admin only)
+fundraiserRouter.get(
+  "/:fundraiserId/referrals/:referrerId/other-fundraisers",
+  validate({ params: ReferrerDetailRouteParams }),
+  authenticate,
+  asyncHandler(getReferrerOtherFundraisersHandler)
 );
 
 fundraiserRouter.use(handlePrismaErrors);

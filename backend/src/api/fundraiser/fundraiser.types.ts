@@ -35,6 +35,14 @@ export type ApproveReferralRouteParams = z.infer<
   typeof ApproveReferralRouteParams
 >;
 
+export const ReferrerDetailRouteParams = z.object({
+  fundraiserId: z.string().uuid(),
+  referrerId: z.string().uuid(),
+});
+export type ReferrerDetailRouteParams = z.infer<
+  typeof ReferrerDetailRouteParams
+>;
+
 export const AnalyticsQueryParams = z.object({
   refresh: z.string().optional(),
 });

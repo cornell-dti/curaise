@@ -134,3 +134,13 @@ export const UpdateFundraiserItemBody = z.object({
 export const CreateAnnouncementBody = z.object({
   message: z.string(),
 });
+
+export const ReferrerOtherFundraiserSchema = z.object({
+  fundraiserId: z.string().uuid(),
+  fundraiserName: z.string(),
+  orderCount: z.number().int().nonnegative(),
+});
+
+export const ReferrerOtherFundraisersResponseSchema = z.array(
+  ReferrerOtherFundraiserSchema
+);

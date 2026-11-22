@@ -30,6 +30,11 @@ export const CompleteOrderSchema = BasicOrderSchema.extend({
   ),
 });
 
+export const ReferrerOrdersResponseSchema = z.object({
+  referrer: UserSchema,
+  orders: CompleteOrderSchema.array(),
+});
+
 // CRUD BODIES:
 
 export const CreateOrderBody = z.object({
