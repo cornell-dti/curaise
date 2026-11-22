@@ -85,6 +85,8 @@ export const createMockOrder = (overrides?: Partial<Order>): Order => ({
   buyerId: "123e4567-e89b-12d3-a456-426614174000",
   fundraiserId: "423e4567-e89b-12d3-a456-426614174000",
   referralId: null,
+  referralUpdatedAt: null,
+  referralUpdatedById: null,
   paidAmount: null,
   paymentMismatchAt: null,
   buyerName: null,

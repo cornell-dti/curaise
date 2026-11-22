@@ -10,8 +10,15 @@ import {
   markOrderPaymentReminded,
   markOrderPickupReminded,
   undoOrderPickup,
+  updateOrderReferral,
+  InvalidOrderReferralError,
 } from "./order.services";
-import { BasicOrderSchema, CompleteOrderSchema, CreateOrderBody } from "common";
+import {
+  BasicOrderSchema,
+  CompleteOrderSchema,
+  CreateOrderBody,
+  UpdateOrderReferralBody,
+} from "common";
 import { getFundraiser } from "../fundraiser/fundraiser.services";
 import { z } from "zod";
 import {
@@ -275,6 +282,57 @@ export const confirmOrderPaymentHandler = async (
   res
     .status(200)
     .json({ message: "Order payment confirmed", data: cleanedOrder });
+};
+
+export const updateOrderReferralHandler = async (
+  req: Request<
+    OrderRouteParams,
+    any,
+    z.infer<typeof UpdateOrderReferralBody>,
+    {}
+  >,
+  res: Response,
+) => {
+  const order = await getOrder(req.params.id);
+  if (!order) {
+    res.status(404).json({ message: "Order not found" });
+    return;
+  }
+
+  if (
+    // Only admins of the fundraiser's organization may re-attribute an order
+    !order.fundraiser.organization.admins.some(
+      (admin) => admin.id === res.locals.user!.id,
+    )
+  ) {
+    res.status(403).json({ message: "Unauthorized to update order referral" });
+    return;
+  }
+
+  let updatedOrder;
+  try {
+    updatedOrder = await updateOrderReferral(
+      req.params.id,
+      req.body.referralId,
+      res.locals.user!.id,
+    );
+  } catch (error) {
+    if (error instanceof InvalidOrderReferralError) {
+      res.status(400).json({ message: error.message });
+      return;
+    }
+    throw error;
+  }
+
+  const parsedOrder = CompleteOrderSchema.safeParse(updatedOrder);
+  if (!parsedOrder.success) {
+    res.status(500).json({ message: "Couldn't parse order" });
+    return;
+  }
+
+  res
+    .status(200)
+    .json({ message: "Order referral updated", data: parsedOrder.data });
 };
 
 export const sendPaymentRemindersHandler = async (

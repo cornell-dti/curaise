@@ -6,6 +6,8 @@ import {
   confirmOrderPayment,
   recordOrderPaymentMismatch,
   getUnremindedUnpaidOrders,
+  updateOrderReferral,
+  InvalidOrderReferralError,
 } from "../order.services";
 import * as fundraiserServices from "../../fundraiser/fundraiser.services";
 
@@ -273,6 +275,144 @@ describe("Order Services", () => {
         },
       });
       expect(result).toEqual(mismatchedOrder);
+    });
+  });
+
+  describe("updateOrderReferral", () => {
+    const adminId = "123e4567-e89b-12d3-a456-426614174000";
+    const referralId = "623e4567-e89b-12d3-a456-426614174000";
+    const otherReferralId = "623e4567-e89b-12d3-a456-426614174001";
+
+    const mockExistingOrder = (currentReferralId: string | null) =>
+      prismaMock.order.findUnique.mockResolvedValue({
+        id: orderId,
+        fundraiserId,
+        referralId: currentReferralId,
+      } as any);
+
+    const mockReferral = (
+      referral: { fundraiserId: string; approved: boolean } | null
+    ) => prismaMock.referral.findUnique.mockResolvedValue(referral as any);
+
+    beforeEach(() => {
+      prismaMock.order.update.mockResolvedValue(
+        createMockOrder({ id: orderId }) as any
+      );
+      prismaMock.order.findUniqueOrThrow.mockResolvedValue(
+        createMockOrder({ id: orderId }) as any
+      );
+    });
+
+    it("should attach a referrer to an order that had none and record who did it", async () => {
+      mockExistingOrder(null);
+      mockReferral({ fundraiserId, approved: true });
+
+      await updateOrderReferral(orderId, referralId, adminId);
+
+      expect(prismaMock.order.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: orderId },
+          data: {
+            referral: { connect: { id: referralId } },
+            referralUpdatedAt: expect.any(Date),
+            referralUpdatedBy: { connect: { id: adminId } },
+          },
+        })
+      );
+    });
+
+    it("should change an existing referrer to another one", async () => {
+      mockExistingOrder(otherReferralId);
+      mockReferral({ fundraiserId, approved: true });
+
+      await updateOrderReferral(orderId, referralId, adminId);
+
+      expect(prismaMock.order.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            referral: { connect: { id: referralId } },
+          }),
+        })
+      );
+    });
+
+    it("should clear the referrer when referralId is null", async () => {
+      mockExistingOrder(referralId);
+
+      await updateOrderReferral(orderId, null, adminId);
+
+      expect(prismaMock.referral.findUnique).not.toHaveBeenCalled();
+      expect(prismaMock.order.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            referral: { disconnect: true },
+            referralUpdatedBy: { connect: { id: adminId } },
+          }),
+        })
+      );
+    });
+
+    it("should not touch the order or audit fields when the referrer is unchanged", async () => {
+      mockExistingOrder(referralId);
+      mockReferral({ fundraiserId, approved: true });
+
+      await updateOrderReferral(orderId, referralId, adminId);
+
+      expect(prismaMock.order.update).not.toHaveBeenCalled();
+      expect(prismaMock.order.findUniqueOrThrow).toHaveBeenCalled();
+    });
+
+    it("should leave a checkout referrer that is still pending approval in place when unchanged", async () => {
+      mockExistingOrder(referralId);
+      mockReferral({ fundraiserId, approved: false });
+
+      await expect(
+        updateOrderReferral(orderId, referralId, adminId)
+      ).resolves.toBeDefined();
+      expect(prismaMock.order.update).not.toHaveBeenCalled();
+    });
+
+    it("should not touch the order when clearing an order that has no referrer", async () => {
+      mockExistingOrder(null);
+
+      await updateOrderReferral(orderId, null, adminId);
+
+      expect(prismaMock.order.update).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [
+        "belongs to another fundraiser",
+        { fundraiserId: "999e4567-e89b-12d3-a456-426614174000", approved: true },
+        "Referrer is not part of this fundraiser",
+      ],
+      ["does not exist", null, "Referrer is not part of this fundraiser"],
+      [
+        "has not been approved",
+        { fundraiserId, approved: false },
+        "Referrer has not been approved",
+      ],
+    ])(
+      "should reject a referral that %s",
+      async (_, referral, expectedMessage) => {
+        mockExistingOrder(null);
+        mockReferral(referral);
+
+        const promise = updateOrderReferral(orderId, referralId, adminId);
+
+        await expect(promise).rejects.toBeInstanceOf(InvalidOrderReferralError);
+        await expect(promise).rejects.toThrow(expectedMessage);
+        expect(prismaMock.order.update).not.toHaveBeenCalled();
+      }
+    );
+
+    it("should reject when the order does not exist", async () => {
+      prismaMock.order.findUnique.mockResolvedValue(null);
+
+      await expect(
+        updateOrderReferral(orderId, referralId, adminId)
+      ).rejects.toThrow("Order not found");
+      expect(prismaMock.order.update).not.toHaveBeenCalled();
     });
   });
 

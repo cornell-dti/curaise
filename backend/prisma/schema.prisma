@@ -16,8 +16,10 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
 
   organizations Organization[]
-  orders        Order[]
+  orders        Order[]  @relation("OrderBuyer")
   referrals     Referral[]
+  // Orders whose referrer this user last changed by hand
+  referralEdits Order[]  @relation("OrderReferralUpdatedBy")
 
   @@map("users")
 }
@@ -151,13 +153,19 @@ model Order {
   buyerName  String? @map("buyer_name")
   buyerNetId String? @map("buyer_net_id")
 
-  buyer        User         @relation(fields: [buyerId], references: [id])
+  buyer        User         @relation("OrderBuyer", fields: [buyerId], references: [id])
   buyerId      String       @map("buyer_id") @db.Uuid
   fundraiser   Fundraiser   @relation(fields: [fundraiserId], references: [id])
   fundraiserId String       @map("fundraiser_id") @db.Uuid
   items        OrderItems[]
   referral     Referral?    @relation(fields: [referralId], references: [id], onDelete: SetNull)
   referralId   String?      @map("referral_id") @db.Uuid
+
+  // Set when a fundraiser admin changes the referrer after checkout.
+  // Both null = the referrer (or lack of one) came from checkout.
+  referralUpdatedAt   DateTime? @map("referral_updated_at")
+  referralUpdatedBy   User?     @relation("OrderReferralUpdatedBy", fields: [referralUpdatedById], references: [id], onDelete: SetNull)
+  referralUpdatedById String?   @map("referral_updated_by_id") @db.Uuid
 
   @@map("orders")
 }

@@ -19,6 +19,9 @@ export const BasicOrderSchema = z.object({
   buyer: UserSchema,
   fundraiser: BasicFundraiserSchema,
   referral: ReferralSchema.nullish(),
+  // Set when a fundraiser admin changed the referrer after checkout
+  referralUpdatedAt: z.coerce.date().nullish(),
+  referralUpdatedBy: UserSchema.nullish(),
 });
 
 export const CompleteOrderSchema = BasicOrderSchema.extend({
@@ -31,6 +34,11 @@ export const CompleteOrderSchema = BasicOrderSchema.extend({
 });
 
 // CRUD BODIES:
+
+// null clears the referrer
+export const UpdateOrderReferralBody = z.object({
+  referralId: z.string().uuid().nullable(),
+});
 
 export const CreateOrderBody = z.object({
   fundraiserId: z.string().uuid(),
