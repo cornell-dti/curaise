@@ -5,6 +5,7 @@ import {
   DeleteAnnouncementRouteParams,
   PickupEventRouteParams,
   ApproveReferralRouteParams,
+  ReferrerDetailRouteParams,
   AnalyticsQueryParams,
 } from "./fundraiser.types";
 import {
@@ -31,6 +32,9 @@ import {
   getReferral,
   approveReferral,
   deleteReferral,
+  getReferrerOrdersForFundraiser,
+  getReferralByFundraiserAndReferrer,
+  getReferrerOrderCountsForOrganization,
   getFundraiserItemsWithAvailability,
 } from "./fundraiser.services";
 import {
@@ -48,6 +52,8 @@ import {
   CreatePickupEventBody,
   UpdatePickupEventBody,
   ReferralSchema,
+  ReferrerOrdersResponseSchema,
+  ReferrerOtherFundraisersResponseSchema,
   ItemWithAvailabilitySchema,
 } from "common";
 import { getOrganization } from "../organization/organization.services";
@@ -885,6 +891,89 @@ export const deleteReferralHandler = async (
   }
 
   res.status(200).json({ message: "Referral deleted successfully" });
+};
+
+export const getReferrerOrdersHandler = async (
+  req: Request<ReferrerDetailRouteParams, any, {}, {}>,
+  res: Response
+) => {
+  const result = await getReferrerOrdersForFundraiser(
+    req.params.fundraiserId,
+    req.params.referrerId
+  );
+  if (!result) {
+    res.status(404).json({ message: "Referral not found" });
+    return;
+  }
+
+  if (
+    !result.fundraiser.organization.admins.some(
+      (admin) => admin.id === res.locals.user!.id
+    )
+  ) {
+    res.status(403).json({ message: "Unauthorized to view referrer orders" });
+    return;
+  }
+
+  const parsed = ReferrerOrdersResponseSchema.safeParse({
+    referrer: result.referrer,
+    orders: result.orders,
+  });
+  if (!parsed.success) {
+    res.status(500).json({ message: "Couldn't parse referrer orders" });
+    return;
+  }
+
+  res.status(200).json({ message: "Referrer orders retrieved", data: parsed.data });
+};
+
+export const getReferrerOtherFundraisersHandler = async (
+  req: Request<ReferrerDetailRouteParams, any, {}, {}>,
+  res: Response
+) => {
+  const referral = await getReferralByFundraiserAndReferrer(
+    req.params.fundraiserId,
+    req.params.referrerId
+  );
+  if (!referral) {
+    res.status(404).json({ message: "Referral not found" });
+    return;
+  }
+
+  if (
+    !referral.fundraiser.organization.admins.some(
+      (admin) => admin.id === res.locals.user!.id
+    )
+  ) {
+    res
+      .status(403)
+      .json({ message: "Unauthorized to view referrer fundraisers" });
+    return;
+  }
+
+  const orgCounts = await getReferrerOrderCountsForOrganization(
+    referral.fundraiser.organization.id,
+    req.params.referrerId
+  );
+
+  const otherFundraisers = orgCounts
+    .filter((row) => row.fundraiserId !== req.params.fundraiserId)
+    .map(({ fundraiserId, fundraiserName, orderCount }) => ({
+      fundraiserId,
+      fundraiserName,
+      orderCount,
+    }));
+
+  const parsed =
+    ReferrerOtherFundraisersResponseSchema.safeParse(otherFundraisers);
+  if (!parsed.success) {
+    res.status(500).json({ message: "Couldn't parse referrer fundraisers" });
+    return;
+  }
+
+  res
+    .status(200)
+    .json({ message: "Referrer fundraisers retrieved", data: parsed.data });
 };
 
 export const getFundraiserItemsAvailabilityHandler = async (

@@ -10,6 +10,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ArrowUpDown } from "lucide-react";
+import Link from "next/link";
 import { z } from "zod";
 import { ReferralSchema } from "common/schemas/fundraiser";
 import { toast } from "sonner";
@@ -25,8 +26,10 @@ export interface ReferralWithQuantities extends Referral {
 }
 
 export const getReferralsColumns = ({
+	fundraiserId,
 	onRemove,
 }: {
+	fundraiserId: string;
 	onRemove: (referral: ReferralWithQuantities) => void;
 }): ColumnDef<ReferralWithQuantities>[] => [
 	{
@@ -45,7 +48,12 @@ export const getReferralsColumns = ({
 		},
 		cell: ({ row }) => (
 			<div className="flex items-center justify-center">
-				{row.original.referrer.name}
+				<Link
+					href={`/seller/fundraiser/${fundraiserId}/referrals/${row.original.referrer.id}`}
+					className="font-medium underline underline-offset-4 hover:text-foreground"
+				>
+					{row.original.referrer.name}
+				</Link>
 			</div>
 		),
 	},

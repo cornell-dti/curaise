@@ -493,6 +493,159 @@ export const deleteReferral = async (referralId: string) => {
   return referral;
 };
 
+/** Orders that count toward referral totals (matches seller referrals table). */
+export const PAID_OR_PICKED_UP = {
+  OR: [{ paymentStatus: "CONFIRMED" as const }, { pickedUp: true }],
+};
+
+const fundraiserOrderInclude = {
+  buyer: true,
+  fundraiser: {
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      published: true,
+      goalAmount: true,
+      imageUrls: true,
+      buyingStartsAt: true,
+      buyingEndsAt: true,
+      organization: {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          authorized: true,
+          logoUrl: true,
+        },
+      },
+      pickupEvents: {
+        orderBy: {
+          startsAt: "asc" as const,
+        },
+      },
+    },
+  },
+  items: {
+    select: { quantity: true, item: true },
+  },
+  referral: {
+    include: {
+      referrer: true,
+    },
+  },
+};
+
+export const getReferralByFundraiserAndReferrer = async (
+  fundraiserId: string,
+  referrerId: string
+) => {
+  return prisma.referral.findUnique({
+    where: {
+      fundraiserId_referrerId: { fundraiserId, referrerId },
+    },
+    include: {
+      referrer: true,
+      fundraiser: {
+        select: {
+          id: true,
+          organizationId: true,
+          organization: {
+            select: {
+              id: true,
+              admins: {
+                select: { id: true },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
+export const getReferrerOrdersForFundraiser = async (
+  fundraiserId: string,
+  referrerId: string
+) => {
+  const referral = await getReferralByFundraiserAndReferrer(
+    fundraiserId,
+    referrerId
+  );
+  if (!referral) {
+    return null;
+  }
+
+  const orders = await prisma.order.findMany({
+    where: {
+      fundraiserId,
+      referralId: referral.id,
+      ...PAID_OR_PICKED_UP,
+    },
+    include: fundraiserOrderInclude,
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return {
+    referrer: referral.referrer,
+    orders,
+    fundraiser: referral.fundraiser,
+  };
+};
+
+/**
+ * Per-fundraiser order counts for referrers in an organization.
+ * Counts only CONFIRMED or picked-up orders (same rule as the seller referrals table).
+ * Optional referrerId scopes to one user; omit for org-wide aggregation (e.g. leaderboard).
+ */
+export const getReferrerOrderCountsForOrganization = async (
+  organizationId: string,
+  referrerId?: string
+) => {
+  const referrals = await prisma.referral.findMany({
+    where: {
+      fundraiser: { organizationId },
+      ...(referrerId ? { referrerId } : {}),
+    },
+    select: {
+      id: true,
+      referrerId: true,
+      fundraiser: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
+
+  if (referrals.length === 0) {
+    return [];
+  }
+
+  const counts = await prisma.order.groupBy({
+    by: ["referralId"],
+    where: {
+      referralId: { in: referrals.map((r) => r.id) },
+      ...PAID_OR_PICKED_UP,
+    },
+    _count: { _all: true },
+  });
+
+  const countByReferralId = new Map(
+    counts.map((c) => [c.referralId, c._count._all])
+  );
+
+  return referrals.map((referral) => ({
+    fundraiserId: referral.fundraiser.id,
+    fundraiserName: referral.fundraiser.name,
+    referrerId: referral.referrerId,
+    orderCount: countByReferralId.get(referral.id) ?? 0,
+  }));
+};
+
 export const getFundraiserItemsWithAvailability = async (
   fundraiserId: string
 ) => {
@@ -519,9 +672,7 @@ export const getItemConfirmedCount = async (itemId: string): Promise<number> => 
   const result = await prisma.orderItems.aggregate({
     where: {
       itemId,
-      order: {
-        OR: [{ paymentStatus: "CONFIRMED" }, { pickedUp: true }],
-      },
+      order: PAID_OR_PICKED_UP,
     },
     _sum: {
       quantity: true,
@@ -545,9 +696,7 @@ export const getItemsConfirmedCounts = async (
     by: ["itemId"],
     where: {
       itemId: { in: itemIds },
-      order: {
-        OR: [{ paymentStatus: "CONFIRMED" }, { pickedUp: true }],
-      },
+      order: PAID_OR_PICKED_UP,
     },
     _sum: {
       quantity: true,

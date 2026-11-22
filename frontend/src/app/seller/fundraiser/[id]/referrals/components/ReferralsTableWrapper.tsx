@@ -73,8 +73,8 @@ export function ReferralsTableWrapper({
 	);
 
 	const columns = useMemo(
-		() => getReferralsColumns({ onRemove: setToRemove }),
-		[],
+		() => getReferralsColumns({ fundraiserId, onRemove: setToRemove }),
+		[fundraiserId],
 	);
 
 	const handleRemove = async () => {
