@@ -7,7 +7,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { CompleteItemSchema, CreateFundraiserItemBody } from "common";
+import { CreateFundraiserItemBody, SellerItem } from "common";
 import { Dispatch, SetStateAction, useState } from "react";
 import { z } from "zod";
 import { PlusCircle, X, ShoppingCart, Pencil } from "lucide-react";
@@ -28,6 +28,7 @@ export const DEFAULT_ITEM_VALUES = {
 	imageUrl: undefined,
 	offsale: false,
 	limit: undefined,
+	unitCost: null,
 	category: undefined,
 };
 
@@ -46,8 +47,8 @@ export function FundraiserEditItemsForm({
 }: {
 	token: string;
 	fundraiserId: string;
-	items: z.infer<typeof CompleteItemSchema>[];
-	setItems: Dispatch<SetStateAction<z.infer<typeof CompleteItemSchema>[]>>;
+	items: SellerItem[];
+	setItems: Dispatch<SetStateAction<SellerItem[]>>;
 	isPublished?: boolean;
 	onAddPendingItem?: OnAddPendingItem;
 	onUpdatePendingItem?: OnUpdatePendingItem;
@@ -83,6 +84,7 @@ export function FundraiserEditItemsForm({
 			imageUrl: item.imageUrl ?? undefined,
 			offsale: item.offsale,
 			limit: item.limit ?? undefined,
+			unitCost: item.unitCost ?? null,
 			category: item.category,
 		});
 		setOpen(true);
@@ -90,7 +92,7 @@ export function FundraiserEditItemsForm({
 
 	// Handles removing item from the UI
 	// The API call to remove the item is in EditFundraiserModal where we batch all the delete API calls
-	const handleRemoveItem = (item: z.infer<typeof CompleteItemSchema>) => {
+	const handleRemoveItem = (item: SellerItem) => {
 		// Remove item from the local state array
 		// The item card is removed from this tab
 		setItems((prev) => prev.filter((i) => i.id !== item.id));
@@ -167,6 +169,11 @@ export function FundraiserEditItemsForm({
 										<p className="text-sm font-medium">
 											${Number(item.price).toFixed(2)}
 										</p>
+										{item.unitCost != null && (
+											<p className="text-sm text-gray-500">
+												Cost: ${Number(item.unitCost).toFixed(2)}
+											</p>
+										)}
 										{item.limit != null && (
 											<p className="text-sm text-gray-500">
 												Cap: {item.limit}

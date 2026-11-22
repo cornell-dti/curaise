@@ -52,6 +52,30 @@ describe("diffSavedItems", () => {
     expect(updated).toEqual([]);
   });
 
+  it("detects unit cost being added, changed, or cleared", () => {
+    const { updated } = diffSavedItems(
+      [
+        item("a", { unitCost: null }),
+        item("b", { unitCost: "1.00" }),
+        item("c", { unitCost: "1.00" }),
+      ],
+      [
+        item("a", { unitCost: 1 }),
+        item("b", { unitCost: 2 }),
+        item("c", { unitCost: null }),
+      ],
+    );
+    expect(updated.map((i) => i.id)).toEqual(["a", "b", "c"]);
+  });
+
+  it("treats equal unit costs in different formats, and null vs undefined, as unchanged", () => {
+    const { updated } = diffSavedItems(
+      [item("a", { unitCost: "1.50" }), item("b", { unitCost: null })],
+      [item("a", { unitCost: 1.5 }), item("b", { unitCost: undefined })],
+    );
+    expect(updated).toEqual([]);
+  });
+
   it("ignores temp items", () => {
     expect(
       diffSavedItems([item("a")], [item("a"), item("temp-123")]),

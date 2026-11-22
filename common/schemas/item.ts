@@ -30,4 +30,11 @@ export const ItemWithAvailabilitySchema = CompleteItemSchema.extend({
   available: z.number().nullable(),
 });
 
+// Seller-side view of an item, including the seller-only unit cost.
+export const SellerItemSchema = CompleteItemSchema.extend({
+  unitCost: MoneySchema.nullish(),
+});
+
+export type SellerItem = z.infer<typeof SellerItemSchema>;
+
 export type ItemWithAvailability = z.infer<typeof ItemWithAvailabilitySchema>;

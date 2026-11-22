@@ -19,7 +19,11 @@ interface FundraiserAnalytics {
   orders_picked_up: number;
   items: Record<string, number>;
   pending_orders: number;
-  profit: number;
+  // null when the seller hasn't entered costs; never an estimate
+  profit: number | null;
+  has_cost_data: boolean;
+  item_cost: number;
+  expenses: number | null;
   goal_amount: number;
   sale_data: Record<string, number>;
   revenue_data: Record<string, number>;
@@ -47,6 +51,12 @@ export function RealtimeAnalyticsWrapper({
   const [analytics, setAnalytics] = useState<FundraiserAnalytics>(initialAnalytics);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const supabase = useMemo(() => createClient(), []);
+
+  // router.refresh() (e.g. after saving costs in the edit modal) re-fetches
+  // analytics on the server; sync them in so profit updates without a reload
+  useEffect(() => {
+    setAnalytics(initialAnalytics);
+  }, [initialAnalytics]);
 
   useEffect(() => {
     const refetchData = async (forceRefresh = false) => {
@@ -241,15 +251,26 @@ export function RealtimeAnalyticsWrapper({
             <Goal className="shrink-0" />
             Profit Goal
             <InfoTooltip
-              content="Profit is estimated using a 20% profit margin."
+              content="Profit = revenue from confirmed or picked-up orders, minus each item's cost per unit, minus fundraiser expenses. Uses your current costs, so editing a cost updates past orders too."
               size={18}
             />
           </div>
           <div className="flex-1 flex items-center justify-center">
-            <ProfitGoalChart
-              profit={analytics.profit}
-              goalAmount={goalAmount}
-            />
+            {analytics.profit === null ? (
+              <div className="flex flex-col items-center gap-2 text-center p-4 border border-dashed rounded-lg">
+                <p className="font-semibold">Add costs to see profit</p>
+                <p className="text-sm text-muted-foreground">
+                  Click Edit and enter your fundraiser&apos;s expenses, or a
+                  cost per unit for every item. Until then, only revenue is
+                  shown.
+                </p>
+              </div>
+            ) : (
+              <ProfitGoalChart
+                profit={analytics.profit}
+                goalAmount={goalAmount}
+              />
+            )}
           </div>
         </div>
 

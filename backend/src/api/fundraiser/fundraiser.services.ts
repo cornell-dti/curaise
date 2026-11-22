@@ -12,9 +12,61 @@ import {
 import { z } from "zod";
 import memclient from "../../utils/memjs";
 
-// Extract profit margin constant for the protif calculation in the analytics
-// This constant can be easily mocked for profit calculation in backend test to ensure that different margin values work
-export const PROFIT_MARGIN = 0.2;
+// v2: analytics gained cost fields; bumping the key keeps older cache entries
+// (without them) from being incrementally updated after deploy.
+const analyticsCacheKey = (fundraiserId: string) =>
+  `fundraiser_analytics_v2_${fundraiserId}`;
+
+const roundMoney = (value: number) => Math.round(value * 100) / 100;
+
+/**
+ * Whether the seller has entered enough cost data to compute a real profit.
+ * Either a fundraiser-level expenses total is set (items without a unit cost
+ * are then assumed to be covered by it), or every item has a unit cost.
+ */
+export const hasCompleteCostData = (
+  expenses: number | null,
+  items: Array<{ unitCost: unknown }>
+) =>
+  expenses !== null ||
+  (items.length > 0 && items.every((item) => item.unitCost != null));
+
+/**
+ * Profit from seller-entered costs, or null if costs aren't entered.
+ * profit = revenue - sum(quantity * unitCost) - expenses
+ */
+export const computeProfit = ({
+  revenue,
+  itemCost,
+  expenses,
+  hasCostData,
+}: {
+  revenue: number;
+  itemCost: number;
+  expenses: number | null;
+  hasCostData: boolean;
+}): number | null =>
+  hasCostData ? roundMoney(revenue - itemCost - (expenses ?? 0)) : null;
+
+const orderItemsCost = (
+  items: Array<{ quantity: number; item: { unitCost?: unknown } }>
+) =>
+  items.reduce(
+    (sum, orderItem) =>
+      sum +
+      orderItem.quantity *
+        (orderItem.item.unitCost == null ? 0 : Number(orderItem.item.unitCost)),
+    0
+  );
+
+const refreshProfit = (analytics: FundraiserAnalytics) => {
+  analytics.profit = computeProfit({
+    revenue: analytics.total_revenue,
+    itemCost: analytics.item_cost,
+    expenses: analytics.expenses,
+    hasCostData: analytics.has_cost_data,
+  });
+};
 
 export const getFundraiser = async (fundraiserId: string) => {
   const fundraiser = await prisma.fundraiser.findUnique({
@@ -154,6 +206,7 @@ export const createFundraiser = async (
       venmoUsername: fundraiserBody.venmoUsername,
       venmoEmail: fundraiserBody.venmoEmail,
       goalAmount: fundraiserBody.goalAmount,
+      expenses: fundraiserBody.expenses ?? null,
       imageUrls: fundraiserBody.imageUrls,
       buyingStartsAt: fundraiserBody.buyingStartsAt,
       buyingEndsAt: fundraiserBody.buyingEndsAt,
@@ -211,6 +264,8 @@ export const updateFundraiser = async (
       venmoUsername: fundraiserBody.venmoUsername ?? null,
       venmoEmail: fundraiserBody.venmoEmail ?? null,
       goalAmount: fundraiserBody.goalAmount ?? null,
+      // undefined leaves expenses unchanged, null clears them
+      expenses: fundraiserBody.expenses,
       imageUrls: fundraiserBody.imageUrls,
       buyingStartsAt: fundraiserBody.buyingStartsAt,
       buyingEndsAt: fundraiserBody.buyingEndsAt,
@@ -288,6 +343,7 @@ export const createFundraiserItem = async (
       price: itemBody.price,
       imageUrl: itemBody.imageUrl,
       limit: itemBody.limit ?? null,
+      unitCost: itemBody.unitCost ?? null,
       category: itemBody.category,
       fundraiser: {
         connect: {
@@ -335,6 +391,8 @@ export const updateFundraiserItem = async (
       imageUrl: itemBody.imageUrl ?? null,
       offsale: itemBody.offsale,
       limit: itemBody.limit !== undefined ? itemBody.limit : undefined,
+      // undefined leaves unit cost unchanged, null clears it
+      unitCost: itemBody.unitCost,
       category: itemBody.category,
     },
   });
@@ -493,6 +551,21 @@ export const deleteReferral = async (referralId: string) => {
   return referral;
 };
 
+export const getFundraiserCosts = async (fundraiserId: string) => {
+  const fundraiser = await prisma.fundraiser.findUnique({
+    where: { id: fundraiserId },
+    select: {
+      expenses: true,
+      items: {
+        select: { id: true, unitCost: true },
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+
+  return fundraiser;
+};
+
 export const getFundraiserItemsWithAvailability = async (
   fundraiserId: string
 ) => {
@@ -593,7 +666,11 @@ export interface FundraiserAnalytics {
   orders_picked_up: number;
   items: Record<string, number>; // units sold for each item
   pending_orders: number;
-  profit: number;
+  // null when the seller hasn't entered costs; never an estimate
+  profit: number | null;
+  has_cost_data: boolean;
+  item_cost: number; // sum of quantity * unitCost over counted orders
+  expenses: number | null;
   goal_amount: number;
   sale_data: Record<string, number>; // orders sold on a particular day
   revenue_data: Record<string, number>; // revenue earned on a particular day
@@ -609,10 +686,14 @@ export interface FundraiserAnalytics {
 export const calculateAndCacheFundraiserAnalytics = async (
   fundraiserId: string
 ) => {
-  const [orders, fundraiser] = await Promise.all([
+  const [orders, fundraiser, items] = await Promise.all([
     getFundraiserOrders(fundraiserId),
     getFundraiser(fundraiserId),
+    getFundraiserItems(fundraiserId),
   ]);
+
+  const expenses =
+    fundraiser?.expenses == null ? null : Number(fundraiser.expenses);
 
   const analytics: FundraiserAnalytics = {
     total_revenue: 0,
@@ -620,7 +701,10 @@ export const calculateAndCacheFundraiserAnalytics = async (
     orders_picked_up: 0,
     items: {},
     pending_orders: 0,
-    profit: 0,
+    profit: null,
+    has_cost_data: hasCompleteCostData(expenses, items),
+    item_cost: 0,
+    expenses,
     goal_amount: Number(fundraiser?.goalAmount) ?? 0,
     sale_data: {},
     revenue_data: {},
@@ -646,8 +730,9 @@ export const calculateAndCacheFundraiserAnalytics = async (
           (analytics.items[orderItem.item.name] || 0) + orderItem.quantity;
       });
 
-      // The total revenue should only consider the orders that are picked up or paid·
+      // Revenue and costs only consider the orders that are picked up or paid
       analytics.total_revenue += orderTotal;
+      analytics.item_cost += orderItemsCost(order.items);
 
       // Track revenue by date only for paid or picked up orders
       const orderDate = order.createdAt.toISOString().split("T")[0];
@@ -662,10 +747,9 @@ export const calculateAndCacheFundraiserAnalytics = async (
     analytics.sale_data[orderDate] = (analytics.sale_data[orderDate] || 0) + 1;
   });
 
-  analytics.profit =
-    Math.round(analytics.total_revenue * PROFIT_MARGIN * 100) / 100;
+  refreshProfit(analytics);
 
-  const cacheKey = `fundraiser_analytics_${fundraiserId}`;
+  const cacheKey = analyticsCacheKey(fundraiserId);
   try {
     await memclient.set(cacheKey, JSON.stringify(analytics), { expires: 300 }); // Cache expires after 5 minutes
   } catch (error) {
@@ -681,7 +765,7 @@ export const calculateAndCacheFundraiserAnalytics = async (
  */
 export const getFundraiserAnalytics = async (fundraiserId: string) => {
   // Fundraiser specific id to access the cache
-  const cacheKey = `fundraiser_analytics_${fundraiserId}`;
+  const cacheKey = analyticsCacheKey(fundraiserId);
 
   try {
     const cached = await memclient.get(cacheKey);
@@ -705,7 +789,7 @@ export const getFundraiserAnalytics = async (fundraiserId: string) => {
 export const invalidateFundraiserAnalyticsCache = async (
   fundraiserId: string
 ) => {
-  const cacheKey = `fundraiser_analytics_${fundraiserId}`;
+  const cacheKey = analyticsCacheKey(fundraiserId);
   try {
     console.log("Invalidating cache for key:", cacheKey);
     const result = await memclient.delete(cacheKey);
@@ -750,7 +834,7 @@ export const updateCacheForNewOrder = async (
   fundraiserId: string,
   orderDate: Date
 ) => {
-  const cacheKey = `fundraiser_analytics_${fundraiserId}`;
+  const cacheKey = analyticsCacheKey(fundraiserId);
   try {
     // Peek at cache - only update if it exists
     const analytics = await peekCachedAnalytics(cacheKey);
@@ -794,12 +878,13 @@ export const updateCacheForOrderPickup = async (
       item: {
         name: string;
         price: number | any;
+        unitCost?: number | any;
       };
     }>;
   },
   paymentStatus: string
 ) => {
-  const cacheKey = `fundraiser_analytics_${fundraiserId}`;
+  const cacheKey = analyticsCacheKey(fundraiserId);
   try {
     // Peek at cache - only update if it exists
     const analytics = await peekCachedAnalytics(cacheKey);
@@ -825,8 +910,8 @@ export const updateCacheForOrderPickup = async (
     if (paymentStatus !== "CONFIRMED") {
       analytics.pending_orders--;
       analytics.total_revenue += orderTotal;
-      analytics.profit =
-        Math.round(analytics.total_revenue * PROFIT_MARGIN * 100) / 100;
+      analytics.item_cost += orderItemsCost(order.items);
+      refreshProfit(analytics);
 
       // Update revenue data by date
       const dateKey = order.createdAt.toISOString().split("T")[0];
@@ -860,11 +945,12 @@ export const updateCacheForOrderConfirmation = async (
       item: {
         name: string;
         price: number | any;
+        unitCost?: number | any;
       };
     }>;
   }
 ) => {
-  const cacheKey = `fundraiser_analytics_${fundraiserId}`;
+  const cacheKey = analyticsCacheKey(fundraiserId);
   try {
     // Peek at cache - only update if it exists
     const analytics = await peekCachedAnalytics(cacheKey);
@@ -894,8 +980,8 @@ export const updateCacheForOrderConfirmation = async (
     // Update counters and revenue
     analytics.pending_orders--;
     analytics.total_revenue += orderTotal;
-    analytics.profit =
-      Math.round(analytics.total_revenue * PROFIT_MARGIN * 100) / 100;
+    analytics.item_cost += orderItemsCost(order.items);
+    refreshProfit(analytics);
 
     // Update revenue data by date
     const dateKey = order.createdAt.toISOString().split("T")[0];

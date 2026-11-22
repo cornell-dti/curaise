@@ -54,6 +54,18 @@ export function ReviewFundraiserForm({
                   : "No goal set"}
               </p>
             </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Expenses</p>
+              <p
+                className={
+                  formData.expenses == null ? "text-muted-foreground" : ""
+                }
+              >
+                {formData.expenses != null
+                  ? `$${Number(formData.expenses).toFixed(2)}`
+                  : "Not provided"}
+              </p>
+            </div>
             <div className="md:col-span-2">
               <p className="text-sm font-medium text-gray-500">Description</p>
               <p
@@ -154,6 +166,11 @@ export function ReviewFundraiserForm({
                       </span>
                     </div>
                     <p className="text-sm text-gray-500">{item.description}</p>
+                    {item.unitCost != null && (
+                      <p className="text-sm text-gray-500">
+                        Cost: ${Number(item.unitCost).toFixed(2)}
+                      </p>
+                    )}
                   </div>
                   <p className="font-medium">
                     $

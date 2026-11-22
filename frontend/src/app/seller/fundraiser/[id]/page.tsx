@@ -4,6 +4,7 @@ import {
   CompleteFundraiserSchema,
   CompleteOrderSchema,
   CompleteItemSchema,
+  FundraiserCostsSchema,
 } from "common";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -22,7 +23,10 @@ interface FundraiserAnalytics {
   orders_picked_up: number;
   items: Record<string, number>;
   pending_orders: number;
-  profit: number;
+  profit: number | null;
+  has_cost_data: boolean;
+  item_cost: number;
+  expenses: number | null;
   goal_amount: number;
   sale_data: Record<string, number>;
   revenue_data: Record<string, number>;
@@ -57,7 +61,7 @@ export default async function FundraiserAnalyticsPage({
 
   // Fetch data in parallel
   // TODO: refactor fundraiseranalytics into a zod schema and validate it here instead of individually validating orders/items/fundraiser
-  const [fundraiser, analytics, orders, items] = await Promise.all([
+  const [fundraiser, analytics, orders, items, costs] = await Promise.all([
     serverFetch(`/fundraiser/${fundraiserId}`, {
       token: session.access_token,
       schema: CompleteFundraiserSchema,
@@ -73,7 +77,20 @@ export default async function FundraiserAnalyticsPage({
       token: session.access_token,
       schema: CompleteItemSchema.array(),
     }),
+    // Seller-only costs come from an admin-only endpoint so buyers never see them
+    serverFetch(`/fundraiser/${fundraiserId}/costs`, {
+      token: session.access_token,
+      schema: FundraiserCostsSchema,
+    }),
   ]);
+
+  const unitCostById = new Map(
+    costs.items.map((item) => [item.id, item.unitCost]),
+  );
+  const sellerItems = items.map((item) => ({
+    ...item,
+    unitCost: unitCostById.get(item.id) ?? null,
+  }));
 
   return (
     <ReferralsProvider
@@ -96,7 +113,8 @@ export default async function FundraiserAnalyticsPage({
           <FundraiserHeader
             token={session.access_token}
             fundraiser={fundraiser}
-            fundraiserItems={items}
+            fundraiserItems={sellerItems}
+            fundraiserExpenses={costs.expenses}
           />
         </div>
 

@@ -38,6 +38,7 @@ import {
   approveReferralHandler,
   deleteReferralHandler,
   getFundraiserItemsAvailabilityHandler,
+  getFundraiserCostsHandler,
 } from "./fundraiser.handlers";
 import { authenticate } from "../../middleware/authenticate";
 import {
@@ -161,6 +162,14 @@ fundraiserRouter.get(
   validate({ params: FundraiserRouteParams, query: AnalyticsQueryParams }),
   authenticate,
   asyncHandler(getFundraiserAnalyticsHandler)
+);
+
+// Seller-only cost data (unit costs + expenses), admin only
+fundraiserRouter.get(
+  "/:id/costs",
+  validate({ params: FundraiserRouteParams }),
+  authenticate,
+  asyncHandler(getFundraiserCostsHandler)
 );
 
 // Create a referral request

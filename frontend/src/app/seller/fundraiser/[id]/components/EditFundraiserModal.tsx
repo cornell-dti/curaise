@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { useEffect, useState } from "react";
 import { mutationFetch } from "@/lib/fetcher";
-import { CompleteFundraiserSchema, CompleteItemSchema } from "common";
+import { CompleteFundraiserSchema, SellerItem, SellerItemSchema } from "common";
 import MultiStepForm from "@/components/custom/MultiStepForm";
 import { FundraiserBasicInfoForm } from "@/app/seller/org/[id]/create-fundraiser/components/FundraiserBasicInfoForm";
 import { FundraiserVenmoInfoForm } from "@/app/seller/org/[id]/create-fundraiser/components/FundraiserVenmoInfoForm";
@@ -29,6 +29,7 @@ import { diffSavedItems } from "@/lib/item-changes";
 export function EditFundraiserModal({
   token,
   fundraiser,
+  fundraiserExpenses,
   currentFundraiserItems,
   open,
   setOpen,
@@ -36,7 +37,8 @@ export function EditFundraiserModal({
 }: {
   token: string;
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
-  currentFundraiserItems: z.infer<typeof CompleteItemSchema>[];
+  fundraiserExpenses: z.infer<typeof CreateFundraiserBody>["expenses"];
+  currentFundraiserItems: SellerItem[];
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   step: number;
@@ -49,6 +51,7 @@ export function EditFundraiserModal({
     description: fundraiser.description,
     imageUrls: fundraiser.imageUrls ?? [],
     goalAmount: fundraiser.goalAmount ?? undefined,
+    expenses: fundraiserExpenses ?? null,
     buyingStartsAt: fundraiser.buyingStartsAt,
     buyingEndsAt: fundraiser.buyingEndsAt,
     organizationId: fundraiser.organization.id,
@@ -56,19 +59,20 @@ export function EditFundraiserModal({
     venmoUsername: fundraiser.venmoUsername ?? undefined,
     pickupEvents: fundraiser.pickupEvents ?? [],
   });
-  const [fundraiserItems, setFundraiserItems] = useState<
-    z.infer<typeof CompleteItemSchema>[]
-  >(currentFundraiserItems);
+  const [fundraiserItems, setFundraiserItems] = useState<SellerItem[]>(
+    currentFundraiserItems,
+  );
   const [pickupEvents, setPickupEvents] = useState<
     z.infer<typeof PickupEventSchema>[]
   >(fundraiser.pickupEvents);
   const [formFundraiserItems, setFormFundraiserItems] = useState<
     z.infer<typeof CreateFundraiserItemBody>[]
   >(
-    currentFundraiserItems.map(({ id, imageUrl, limit, ...rest }) => ({
+    currentFundraiserItems.map(({ id, imageUrl, limit, unitCost, ...rest }) => ({
       ...rest,
       imageUrl: imageUrl ?? undefined,
       limit: limit ?? undefined,
+      unitCost: unitCost ?? null,
     })),
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -105,6 +109,8 @@ export function EditFundraiserModal({
       venmoEmail: formData.venmoEmail === "" ? null : formData.venmoEmail,
       venmoUsername:
         formData.venmoUsername === "" ? null : formData.venmoUsername,
+      // Send null (not undefined) so clearing the field clears expenses
+      expenses: formData.expenses ?? null,
     } as typeof formData & {
       venmoEmail: string | null;
       venmoUsername: string | null;
@@ -202,6 +208,7 @@ export function EditFundraiserModal({
                 imageUrl: item.imageUrl ?? undefined,
                 offsale: item.offsale,
                 limit: item.limit ?? null,
+                unitCost: item.unitCost ?? null,
                 category: item.category,
               },
             },
@@ -222,11 +229,11 @@ export function EditFundraiserModal({
           `/fundraiser/${fundraiser.id}/items/create`,
           { token, body: pending.data },
         );
-        return itemResult.data as z.infer<typeof CompleteItemSchema>;
+        return SellerItemSchema.parse(itemResult.data);
       }),
     );
 
-    const createdItems: z.infer<typeof CompleteItemSchema>[] = [];
+    const createdItems: SellerItem[] = [];
     createItemResults.forEach((result) => {
       if (result.status === "fulfilled") {
         createdItems.push(result.value);
@@ -270,10 +277,11 @@ export function EditFundraiserModal({
 
   useEffect(() => {
     setFormFundraiserItems(
-      fundraiserItems.map(({ id, imageUrl, limit, ...rest }) => ({
+      fundraiserItems.map(({ id, imageUrl, limit, unitCost, ...rest }) => ({
         ...rest,
         imageUrl: imageUrl ?? undefined,
         limit: limit ?? undefined,
+        unitCost: unitCost ?? null,
       })),
     );
   }, [fundraiserItems]);

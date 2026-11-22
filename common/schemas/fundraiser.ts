@@ -81,6 +81,8 @@ export const CreateFundraiserBody = z.object({
     .pipe(z.string().email().optional()),
   imageUrls: z.array(z.string().url()),
   goalAmount: MoneySchema.optional(),
+  // Seller-only fixed costs. Never returned by public fundraiser endpoints.
+  expenses: MoneySchema.nullish(),
   buyingStartsAt: z.coerce.date(),
   buyingEndsAt: z.coerce.date(),
   organizationId: z.string().uuid(),
@@ -106,6 +108,8 @@ export const UpdateFundraiserBody = z.object({
     )
     .pipe(z.string().email().optional()),
   goalAmount: MoneySchema.optional(),
+  // undefined leaves expenses unchanged, null clears them
+  expenses: MoneySchema.nullish(),
   imageUrls: z.array(z.string().url()),
   buyingStartsAt: z.coerce.date(),
   buyingEndsAt: z.coerce.date(),
@@ -118,6 +122,8 @@ export const CreateFundraiserItemBody = z.object({
   imageUrl: z.string().url().optional(),
   offsale: z.boolean(),
   limit: z.number().int().positive().optional(),
+  // Seller-only unit cost. Never returned by public item endpoints.
+  unitCost: MoneySchema.nullish(),
   category: ItemCategorySchema,
 });
 
@@ -128,8 +134,24 @@ export const UpdateFundraiserItemBody = z.object({
   imageUrl: z.string().url().optional(),
   offsale: z.boolean(),
   limit: z.number().int().positive().nullable().optional(),
+  // undefined leaves unit cost unchanged, null clears it
+  unitCost: MoneySchema.nullish(),
   category: ItemCategorySchema,
 });
+
+// Seller-only cost data (admin-only endpoint). Kept out of the public
+// fundraiser/item schemas so buyers never see a seller's margins.
+export const FundraiserCostsSchema = z.object({
+  expenses: MoneySchema.nullable(),
+  items: z.array(
+    z.object({
+      id: z.string().uuid(),
+      unitCost: MoneySchema.nullable(),
+    })
+  ),
+});
+
+export type FundraiserCosts = z.infer<typeof FundraiserCostsSchema>;
 
 export const CreateAnnouncementBody = z.object({
   message: z.string(),
