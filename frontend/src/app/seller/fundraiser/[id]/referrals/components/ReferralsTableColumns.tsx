@@ -10,19 +10,11 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ArrowUpDown } from "lucide-react";
-import { z } from "zod";
-import { ReferralSchema } from "common/schemas/fundraiser";
+import type { ReferralWithStats } from "@/lib/referral-stats";
 import { toast } from "sonner";
 
-// Extended referral type with calculated order quantities
-type Referral = z.infer<typeof ReferralSchema>;
-
-export interface ReferralWithQuantities extends Referral {
-	orderCount: number;
-	amountRaised: number;
-	// Every order credited to this referrer, including unpaid ones
-	attributedOrderCount: number;
-}
+// Referral with calculated order quantities (see computeReferralStats)
+export type ReferralWithQuantities = ReferralWithStats;
 
 export const getReferralsColumns = ({
 	onRemove,

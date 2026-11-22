@@ -7,10 +7,11 @@ import {
   sendPaymentRemindersHandler,
   sendPickupRemindersHandler,
   undoOrderPickupHandler,
+  updateOrderReferralHandler,
 } from "./order.handlers";
 import validate from "../../middleware/validate";
 import { OrderRouteParams } from "./order.types";
-import { CreateOrderBody } from "common";
+import { CreateOrderBody, UpdateOrderReferralBody } from "common";
 import { authenticate } from "../../middleware/authenticate";
 import {
   asyncHandler,
@@ -52,6 +53,14 @@ orderRouter.post(
   validate({ params: OrderRouteParams }),
   authenticate,
   asyncHandler(confirmOrderPaymentHandler),
+);
+
+// Fundraiser admins only: set, change, or clear (referralId: null) the referrer
+orderRouter.post(
+  "/:id/referral",
+  validate({ params: OrderRouteParams, body: UpdateOrderReferralBody }),
+  authenticate,
+  asyncHandler(updateOrderReferralHandler),
 );
 
 orderRouter.post(

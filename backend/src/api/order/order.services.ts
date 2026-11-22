@@ -134,62 +134,67 @@ const assertReferralValidForFundraiser = async (
   }
 };
 
-export const getOrder = async (orderId: string) => {
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
-    include: {
-      buyer: true,
-      fundraiser: {
+// Full order shape for the order details page (CompleteOrderSchema). Also
+// used after editing the referrer so the response matches a fresh GET.
+const orderWithReferralInclude = {
+  buyer: true,
+  fundraiser: {
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      published: true,
+      goalAmount: true,
+      imageUrls: true,
+      buyingStartsAt: true,
+      buyingEndsAt: true,
+      organization: {
         select: {
           id: true,
           name: true,
           description: true,
-          published: true,
-          goalAmount: true,
-          imageUrls: true,
-          buyingStartsAt: true,
-          buyingEndsAt: true,
-          organization: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-              authorized: true,
-              logoUrl: true,
-              admins: {
-                select: { id: true },
-              },
-            },
-          },
-          pickupEvents: {
-            orderBy: {
-              startsAt: "asc",
-            },
+          authorized: true,
+          logoUrl: true,
+          admins: {
+            select: { id: true },
           },
         },
       },
-      items: {
-        select: {
-          quantity: true,
-          item: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-              price: true,
-              imageUrl: true,
-              offsale: true,
-              category: true,
-            },
-          },
-        },
-      },
-      referral: {
-        include: {
-          referrer: true,
+      pickupEvents: {
+        orderBy: {
+          startsAt: "asc",
         },
       },
     },
+  },
+  items: {
+    select: {
+      quantity: true,
+      item: {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          price: true,
+          imageUrl: true,
+          offsale: true,
+          category: true,
+        },
+      },
+    },
+  },
+  referral: {
+    include: {
+      referrer: true,
+    },
+  },
+  referralUpdatedBy: true,
+} satisfies Prisma.OrderInclude;
+
+export const getOrder = async (orderId: string) => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: orderWithReferralInclude,
   });
 
   return order;
@@ -585,6 +590,74 @@ export const confirmOrderPayment = async (
   }
 
   return order;
+};
+
+/**
+ * Thrown when a requested referrer can't be attached to an order. The handler
+ * turns this into a 400; anything else bubbles up as a 500.
+ */
+export class InvalidOrderReferralError extends Error {}
+
+/**
+ * Set, change, or clear (referralId = null) an order's referrer after checkout,
+ * recording which admin made the change and when. The new referral must be an
+ * approved referral on the order's own fundraiser. Setting the referrer it
+ * already has is a no-op, so the audit fields only move on a real change.
+ *
+ * Referral counts in the seller referrals table are derived from
+ * Order.referralId, so they follow automatically.
+ */
+export const updateOrderReferral = async (
+  orderId: string,
+  referralId: string | null,
+  updatedById: string,
+) => {
+  return prisma.$transaction(async (tx) => {
+    const existingOrder = await tx.order.findUnique({
+      where: { id: orderId },
+      select: { id: true, fundraiserId: true, referralId: true },
+    });
+    if (!existingOrder) {
+      throw new InvalidOrderReferralError("Order not found");
+    }
+
+    // Nothing to change. Checked before validation so an order that was
+    // credited at checkout to a still-pending referrer can be left as is.
+    if (existingOrder.referralId === referralId) {
+      return tx.order.findUniqueOrThrow({
+        where: { id: orderId },
+        include: orderWithReferralInclude,
+      });
+    }
+
+    if (referralId !== null) {
+      const referral = await tx.referral.findUnique({
+        where: { id: referralId },
+        select: { fundraiserId: true, approved: true },
+      });
+      if (!referral || referral.fundraiserId !== existingOrder.fundraiserId) {
+        throw new InvalidOrderReferralError(
+          "Referrer is not part of this fundraiser",
+        );
+      }
+      if (!referral.approved) {
+        throw new InvalidOrderReferralError("Referrer has not been approved");
+      }
+    }
+
+    return tx.order.update({
+      where: { id: orderId },
+      data: {
+        referral:
+          referralId === null
+            ? { disconnect: true }
+            : { connect: { id: referralId } },
+        referralUpdatedAt: new Date(),
+        referralUpdatedBy: { connect: { id: updatedById } },
+      },
+      include: orderWithReferralInclude,
+    });
+  });
 };
 
 /**

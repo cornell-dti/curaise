@@ -8,6 +8,7 @@ import {
 } from "./ReferralsTableColumns";
 import { ReferralsExportButton } from "./ReferralsExportButton";
 import { useReferrals } from "./ReferralsProvider";
+import { computeReferralStats } from "@/lib/referral-stats";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -42,33 +43,7 @@ export function ReferralsTableWrapper({
 
 	// Calculate order count and amount raised for each referral
 	const referralsWithQuantities: ReferralWithQuantities[] = useMemo(
-		() =>
-			referrals.map((referral) => {
-				const attributedOrders = orders.filter(
-					(order) => order.referral?.id === referral.id,
-				);
-				// Only count orders that are confirmed (paid or picked up)
-				const referralOrders = attributedOrders.filter(
-					(order) => order.paymentStatus === "CONFIRMED" || order.pickedUp,
-				);
-
-				const amountRaised = referralOrders.reduce(
-					(total, order) =>
-						total +
-						order.items.reduce(
-							(sum, item) => sum + Number(item.item.price) * item.quantity,
-							0,
-						),
-					0,
-				);
-
-				return {
-					...referral,
-					orderCount: referralOrders.length,
-					amountRaised,
-					attributedOrderCount: attributedOrders.length,
-				};
-			}),
+		() => computeReferralStats(referrals, orders),
 		[referrals, orders],
 	);
 

@@ -1,7 +1,11 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { CompleteOrderSchema } from "common";
+import {
+  CompleteFundraiserSchema,
+  CompleteOrderSchema,
+  CompleteOrganizationSchema,
+} from "common";
 import Decimal from "decimal.js";
 import { isPast } from "date-fns";
 import Link from "next/link";
@@ -16,6 +20,7 @@ import {
 import { PaymentStatusBadge } from "@/components/custom/PaymentStatusBadge";
 import { PickupStatusBadge } from "@/components/custom/PickupStatusBadge";
 import { OrderActionButtons } from "@/components/custom/OrderActionButtons";
+import { OrderReferrerEditor } from "@/components/custom/OrderReferrerEditor";
 import {
   ArrowLeft,
   CreditCard,
@@ -62,6 +67,20 @@ export default async function OrderPage({
     schema: CompleteOrderSchema,
   });
   const buyer = getOrderBuyer(order);
+
+  // Referrers to choose from, and whether this viewer may change them (the
+  // buyer of the order can also open this page)
+  const [fundraiser, organization] = await Promise.all([
+    serverFetch(`/fundraiser/${order.fundraiser.id}`, {
+      token: session.access_token,
+      schema: CompleteFundraiserSchema,
+    }),
+    serverFetch(`/organization/${order.fundraiser.organization.id}`, {
+      token: session.access_token,
+      schema: CompleteOrganizationSchema,
+    }),
+  ]);
+  const isAdmin = organization.admins.some((admin) => admin.id === user.id);
 
   const orderTotal = order.items
     .reduce(
@@ -197,7 +216,12 @@ export default async function OrderPage({
                   <UserPlus className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
                   <div>
                     <h3 className="font-semibold">Referred By</h3>
-                    {order.referral ? (
+                    {isAdmin ? (
+                      <OrderReferrerEditor
+                        order={order}
+                        referrals={fundraiser.referrals}
+                      />
+                    ) : order.referral ? (
                       <>
                         <p className="text-sm mt-0.5">
                           {order.referral.referrer.name}
