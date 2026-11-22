@@ -7,6 +7,7 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "@/components/ui/chart";
+import { formatMoney, profitGoalProgress } from "@/lib/profit";
 
 interface ProfitGoalChartProps {
 	profit: number;
@@ -25,25 +26,23 @@ export function ProfitGoalChart({ profit, goalAmount }: ProfitGoalChartProps) {
 		},
 	};
 
-	// Calculate profit percentage (capped at 100%)
-	const profitPercentage =
-		goalAmount && goalAmount > 0
-			? Math.min((profit / goalAmount) * 100, 100)
-			: 0;
+	const { percentage: profitPercentage, remaining } = profitGoalProgress(
+		profit,
+		goalAmount
+	);
 	const remainingPercentage = 100 - profitPercentage;
 
-	const remaining = (goalAmount || 0) - profit;
 	const chartData = [
 		{
 			name: "Profit",
 			value: profitPercentage,
-			displayValue: `$${profit.toFixed(2)}`,
+			displayValue: formatMoney(profit),
 			fill: "#15803d",
 		},
 		{
 			name: "Remaining",
 			value: remainingPercentage,
-			displayValue: `$${remaining.toFixed(2)}`,
+			displayValue: formatMoney(remaining),
 			fill: "#e5e7eb",
 		},
 	];
@@ -89,22 +88,20 @@ export function ProfitGoalChart({ profit, goalAmount }: ProfitGoalChartProps) {
 										y={viewBox.cy}
 										textAnchor="middle"
 										dominantBaseline="middle">
+										{/* Goal sits on its own line so cents fit inside the ring */}
 										<tspan
 											x={viewBox.cx}
-											y={(viewBox.cy || 0) - 12}
-											className="fill-foreground text-3xl font-semibold">
-											${profit}
-											<tspan
-												className="fill-muted-foreground text-lg font-normal"
-												dy="0">
-												/{goalAmount || 0}
-											</tspan>
+											y={(viewBox.cy || 0) - 8}
+											className="fill-foreground text-2xl font-semibold">
+											{formatMoney(profit)}
 										</tspan>
 										<tspan
 											x={viewBox.cx}
-											y={(viewBox.cy || 0) + 24}
+											y={(viewBox.cy || 0) + 18}
 											className="fill-muted-foreground text-sm">
-											profit
+											{goalAmount && goalAmount > 0
+												? `of ${formatMoney(goalAmount)} goal`
+												: "profit"}
 										</tspan>
 									</text>
 								);

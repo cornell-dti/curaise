@@ -16,7 +16,7 @@ import {
 import UploadImageComponent from "@/components/custom/UploadImageComponent";
 import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
 import { UseFormReturn } from "react-hook-form";
-import { CompleteItemSchema, CreateFundraiserItemBody } from "common";
+import { CreateFundraiserItemBody, SellerItem } from "common";
 import { z } from "zod";
 import { toast } from "sonner";
 import { DEFAULT_ITEM_VALUES } from "./EditItems";
@@ -69,10 +69,8 @@ type FundraiserItemDialogProps = ItemDialogSharedProps & {
 	persistence?: "fundraiser";
 	token: string;
 	fundraiserId: string;
-	items: z.infer<typeof CompleteItemSchema>[];
-	setItems: React.Dispatch<
-		SetStateAction<z.infer<typeof CompleteItemSchema>[]>
-	>;
+	items: SellerItem[];
+	setItems: React.Dispatch<SetStateAction<SellerItem[]>>;
 	editingIndex: number | null;
 	isPublished?: boolean;
 	onAddPendingItem?: OnAddPendingItem;
@@ -137,7 +135,7 @@ export function ItemDialog(
 		if (mode === "add" || editingIndex === null) {
 			// Create a temporary item for display
 			const tempId = `temp-${Date.now()}`;
-			const tempItem: z.infer<typeof CompleteItemSchema> = {
+			const tempItem: SellerItem = {
 				id: tempId,
 				name: item.name,
 				description: item.description,
@@ -145,6 +143,7 @@ export function ItemDialog(
 				imageUrl: item.imageUrl,
 				offsale: false,
 				limit: item.limit ?? null,
+				unitCost: item.unitCost == null ? null : new Decimal(item.unitCost),
 				category: item.category,
 			};
 			setItems((prev) => [...prev, tempItem]);
@@ -189,6 +188,8 @@ export function ItemDialog(
 								imageUrl: item.imageUrl,
 								offsale: editingItem.offsale,
 								limit: item.limit !== undefined ? item.limit : null,
+								// Cost is seller-only, so it stays editable after publishing
+								unitCost: item.unitCost ?? null,
 								category: item.category,
 							},
 						}
@@ -203,13 +204,14 @@ export function ItemDialog(
 			}
 
 			// Update item in local state
-			const updatedItem: z.infer<typeof CompleteItemSchema> = {
+			const updatedItem: SellerItem = {
 				...editingItem,
 				name: item.name,
 				description: item.description,
 				price: new Decimal(item.price),
 				imageUrl: item.imageUrl,
 				limit: item.limit !== undefined ? item.limit : null,
+				unitCost: item.unitCost == null ? null : new Decimal(item.unitCost),
 				category: item.category,
 			};
 			setItems((prev) =>
@@ -370,6 +372,39 @@ export function ItemDialog(
 												onChange={(e) => {
 													const numericValue = parseFloat(e.target.value) || 0;
 													field.onChange(numericValue);
+												}}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={form.control}
+								name="unitCost"
+								render={({ field }) => (
+									<FormItem>
+										<div className="flex items-center gap-2">
+											<FormLabel className="mb-0">Cost per Unit (Optional)</FormLabel>
+											<InfoTooltip
+												content="What one unit costs you to make or buy. Used only to calculate your profit and never shown to buyers. You can change it at any time, even after publishing."
+												size={18}
+											/>
+										</div>
+										<FormControl>
+											<Input
+												type="number"
+												step="0.01"
+												min={0}
+												placeholder="Leave blank if unknown"
+												value={field.value != null ? field.value.toString() : ""}
+												onChange={(e) => {
+													field.onChange(
+														e.target.value === ""
+															? null
+															: parseFloat(e.target.value)
+													);
 												}}
 											/>
 										</FormControl>

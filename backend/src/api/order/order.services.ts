@@ -364,6 +364,7 @@ export const completeOrderPickup = async (orderId: string) => {
                   name: true,
                   description: true,
                   price: true,
+                  unitCost: true,
                   imageUrl: true,
                   offsale: true,
                   category: true,
@@ -455,6 +456,7 @@ export const undoOrderPickup = async (orderId: string) => {
               name: true,
               description: true,
               price: true,
+              unitCost: true,
               imageUrl: true,
               offsale: true,
               category: true,
@@ -488,6 +490,7 @@ const confirmedOrderInclude = {
         select: {
           name: true,
           price: true,
+          unitCost: true,
         },
       },
     },

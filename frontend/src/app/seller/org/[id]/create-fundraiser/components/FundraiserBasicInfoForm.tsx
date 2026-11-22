@@ -142,7 +142,7 @@ export function FundraiserBasicInfoForm({
                 <FormItem>
                   <FormLabel className="flex items-center">
                     Goal Amount (Optional){" "}
-                    <InfoTooltip content="The amount of total profit you want to raise (INCLUDING expenses)." />
+                    <InfoTooltip content="The profit you want to raise, after costs. Profit is calculated from the expenses and item costs you enter." />
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -155,6 +155,36 @@ export function FundraiserBasicInfoForm({
                           ? parseFloat(e.target.value)
                           : undefined;
                         field.onChange(value);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="expenses"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center">
+                    Expenses (Optional){" "}
+                    <InfoTooltip content="Total costs for this fundraiser, such as ingredients, supplies, or booth fees. Never shown to buyers. You can enter a cost per item instead. If you leave both blank, analytics shows revenue only." />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      placeholder="0.00"
+                      value={field.value != null ? field.value.toString() : ""}
+                      onChange={(e) => {
+                        field.onChange(
+                          e.target.value === ""
+                            ? null
+                            : parseFloat(e.target.value),
+                        );
                       }}
                     />
                   </FormControl>

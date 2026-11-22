@@ -32,6 +32,7 @@ import {
   approveReferral,
   deleteReferral,
   getFundraiserItemsWithAvailability,
+  getFundraiserCosts,
 } from "./fundraiser.services";
 import {
   AnnouncementSchema,
@@ -49,6 +50,8 @@ import {
   UpdatePickupEventBody,
   ReferralSchema,
   ItemWithAvailabilitySchema,
+  SellerItemSchema,
+  FundraiserCostsSchema,
 } from "common";
 import { getOrganization } from "../organization/organization.services";
 import { z } from "zod";
@@ -240,6 +243,9 @@ export const updateFundraiserHandler = async (
     res.status(500).json({ message: "Failed to update fundraiser" });
     return;
   }
+
+  // Expenses or goal may have changed, so profit must be recomputed
+  await invalidateFundraiserAnalyticsCache(req.params.id);
 
   // Send Venmo setup email if venmoEmail was edited
   if (venmoEmailEdited) {
@@ -470,8 +476,11 @@ export const createFundraiserItemHandler = async (
     return;
   }
 
-  // remove irrelevant fields
-  const parsedItem = CompleteItemSchema.safeParse(item);
+  // A new item without a unit cost can change whether profit is computable
+  await invalidateFundraiserAnalyticsCache(req.params.id);
+
+  // remove irrelevant fields (admin-only route, so unit cost is included)
+  const parsedItem = SellerItemSchema.safeParse(item);
   if (!parsedItem.success) {
     res.status(500).json({ message: "Couldn't parse item" });
     return;
@@ -551,8 +560,11 @@ export const updateFundraiserItemHandler = async (
     return;
   }
 
-  // remove irrelevant fields
-  const parsedItem = CompleteItemSchema.safeParse(item);
+  // Unit cost edits recompute profit for all past orders
+  await invalidateFundraiserAnalyticsCache(req.params.fundraiserId);
+
+  // remove irrelevant fields (admin-only route, so unit cost is included)
+  const parsedItem = SellerItemSchema.safeParse(item);
   if (!parsedItem.success) {
     res.status(500).json({ message: "Couldn't parse item" });
     return;
@@ -607,6 +619,8 @@ export const deleteFundraiserItemHandler = async (
     res.status(500).json({ message: "Failed to delete fundraiser item" });
     return;
   }
+
+  await invalidateFundraiserAnalyticsCache(req.params.fundraiserId);
 
   res.status(200).json({
     message: "Successfully deleted fundraiser item",
@@ -752,6 +766,43 @@ export const getFundraiserAnalyticsHandler = async (
     console.error("Analytics handler error:", error);
     res.status(500).json({ message: "Failed to retrieve analytics" });
   }
+};
+
+export const getFundraiserCostsHandler = async (
+  req: Request<FundraiserRouteParams, any, {}, {}>,
+  res: Response
+) => {
+  const fundraiser = await getFundraiser(req.params.id);
+  if (!fundraiser) {
+    res.status(404).json({ message: "Fundraiser not found" });
+    return;
+  }
+
+  // Costs reveal the seller's margins, so only org admins can read them
+  if (
+    !fundraiser.organization.admins.some(
+      (admin) => admin.id === res.locals.user!.id
+    )
+  ) {
+    res.status(403).json({ message: "Unauthorized to view fundraiser costs" });
+    return;
+  }
+
+  const costs = await getFundraiserCosts(req.params.id);
+  if (!costs) {
+    res.status(404).json({ message: "Fundraiser not found" });
+    return;
+  }
+
+  const parsedCosts = FundraiserCostsSchema.safeParse(costs);
+  if (!parsedCosts.success) {
+    res.status(500).json({ message: "Couldn't parse fundraiser costs" });
+    return;
+  }
+
+  res
+    .status(200)
+    .json({ message: "Fundraiser costs retrieved", data: parsedCosts.data });
 };
 
 export const createReferralHandler = async (

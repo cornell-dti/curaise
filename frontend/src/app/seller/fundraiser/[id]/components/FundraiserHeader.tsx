@@ -3,8 +3,9 @@
 import { Button } from "@/components/ui/button";
 import {
   CompleteFundraiserSchema,
-  CompleteItemSchema,
+  FundraiserCosts,
   PickupEventSchema,
+  SellerItem,
 } from "common";
 import { Calendar, MapPin } from "lucide-react";
 import { format } from "date-fns";
@@ -22,10 +23,12 @@ export function FundraiserHeader({
   token,
   fundraiser,
   fundraiserItems,
+  fundraiserExpenses,
 }: {
   token: string;
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
-  fundraiserItems: z.infer<typeof CompleteItemSchema>[];
+  fundraiserItems: SellerItem[];
+  fundraiserExpenses: FundraiserCosts["expenses"];
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
@@ -75,6 +78,7 @@ export function FundraiserHeader({
         key={editKey}
         token={token}
         fundraiser={fundraiser}
+        fundraiserExpenses={fundraiserExpenses}
         currentFundraiserItems={fundraiserItems}
         open={openEdit}
         setOpen={setOpenEdit}

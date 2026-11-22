@@ -56,6 +56,8 @@ model Fundraiser {
   description    String
   published      Boolean  @default(false)
   goalAmount     Decimal? @map("goal_amount") @db.Money
+  // Seller-entered fixed costs (booth fees, bulk ingredients, ...). Null = not entered.
+  expenses       Decimal? @db.Money
   imageUrls      String[] @map("image_urls")
   buyingStartsAt DateTime @map("buying_starts_at")
   buyingEndsAt   DateTime @map("buying_ends_at")
@@ -123,6 +125,8 @@ model Item {
   offsale     Boolean      @default(false)
   limit       Int?
   price       Decimal      @db.Money
+  // Seller-entered cost to make/buy one unit. Null = not entered.
+  unitCost    Decimal?     @map("unit_cost") @db.Money
   category    ItemCategory @default(OTHER)
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")

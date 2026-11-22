@@ -6,8 +6,14 @@ type SavedItem = {
   imageUrl?: string | null;
   offsale: boolean;
   limit?: number | null;
+  unitCost?: { toString(): string } | number | string | null;
   category: string;
 };
+
+const sameMoney = (a: SavedItem["unitCost"], b: SavedItem["unitCost"]) =>
+  a == null || b == null
+    ? (a ?? null) === (b ?? null)
+    : Number(a.toString()) === Number(b.toString());
 
 function sameItem(a: SavedItem, b: SavedItem) {
   return (
@@ -17,6 +23,7 @@ function sameItem(a: SavedItem, b: SavedItem) {
     (a.imageUrl ?? null) === (b.imageUrl ?? null) &&
     a.offsale === b.offsale &&
     (a.limit ?? null) === (b.limit ?? null) &&
+    sameMoney(a.unitCost, b.unitCost) &&
     a.category === b.category
   );
 }

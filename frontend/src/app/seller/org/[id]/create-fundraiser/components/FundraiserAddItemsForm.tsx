@@ -61,6 +61,7 @@ export function FundraiserAddItemsForm({
 			imageUrl: item.imageUrl,
 			offsale: item.offsale,
 			limit: item.limit,
+			unitCost: item.unitCost ?? null,
 			category: item.category,
 		});
 		setOpen(true);
@@ -135,6 +136,11 @@ export function FundraiserAddItemsForm({
 										<p className="text-sm font-medium">
 											${Number(item.price).toFixed(2)}
 										</p>
+										{item.unitCost != null && (
+											<p className="text-sm text-gray-500">
+												Cost: ${Number(item.unitCost).toFixed(2)}
+											</p>
+										)}
 										{item.limit != null && (
 											<p className="text-sm text-gray-500">
 												Cap: {item.limit}
