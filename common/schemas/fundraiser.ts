@@ -23,6 +23,10 @@ export const ReferralSchema = z.object({
   referrer: UserSchema,
 });
 
+export const ReferralCountSchema = z.object({
+  orderCount: z.number().int().nonnegative(),
+});
+
 export const BasicFundraiserSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1).max(255),

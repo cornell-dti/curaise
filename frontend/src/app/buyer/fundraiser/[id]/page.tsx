@@ -1,5 +1,9 @@
 import { connection } from "next/server";
-import { CompleteFundraiserSchema, ItemWithAvailabilitySchema } from "common";
+import {
+  CompleteFundraiserSchema,
+  ItemWithAvailabilitySchema,
+  ReferralCountSchema,
+} from "common";
 import { MapPin, Calendar, ChevronLeft, UserStar } from "lucide-react";
 import { isPast } from "date-fns";
 import { LocalDate } from "@/components/ui/LocalDate";
@@ -40,9 +44,28 @@ export default async function FundraiserPage({
   const fundraiser = await serverFetch(`/fundraiser/${id}`, {
     schema: CompleteFundraiserSchema,
   });
-  const fundraiserItems = await serverFetch(`/fundraiser/${id}/items/availability`, {
-    schema: ItemWithAvailabilitySchema.array(),
-  });
+  const showReferralCard =
+    codeValue === "" && user !== null && session?.access_token !== undefined;
+  const ownReferral = fundraiser.referrals.find(
+    (referral) => referral.referrer.id === user?.id,
+  );
+
+  const [fundraiserItems, referralOrderCount] = await Promise.all([
+    serverFetch(`/fundraiser/${id}/items/availability`, {
+      schema: ItemWithAvailabilitySchema.array(),
+    }),
+    showReferralCard && ownReferral?.approved
+      ? serverFetch(`/fundraiser/${id}/referrals/me`, {
+          token: session.access_token,
+          schema: ReferralCountSchema,
+        })
+          .then((count) => count.orderCount)
+          .catch((error: unknown) => {
+            console.error("Failed to load referral count:", error);
+            return null;
+          })
+      : null,
+  ]);
   const matchedReferral = fundraiser.referrals.find((r) => r.id === codeValue);
 
   if (
@@ -97,12 +120,13 @@ export default async function FundraiserPage({
             </p>
           </div>
           <div className="w-full">
-            {codeValue == "" && user && session?.access_token && (
+            {showReferralCard && (
               <FundraiserReferralCard
                 token={session.access_token}
                 fundraiser={fundraiser}
                 userId={user.id}
                 isPast={past}
+                referralOrderCount={referralOrderCount}
               />
             )}
             {codeValue != "" && (

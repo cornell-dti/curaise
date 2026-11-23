@@ -493,6 +493,29 @@ export const deleteReferral = async (referralId: string) => {
   return referral;
 };
 
+export const getReferralWithOrders = async (referralKey: {
+  fundraiserId: string;
+  referrerId: string;
+}) => {
+  const referral = await prisma.referral.findUnique({
+    where: { fundraiserId_referrerId: referralKey },
+    select: {
+      approved: true,
+      orders: {
+        select: {
+          paymentStatus: true,
+          pickedUp: true,
+          items: {
+            select: { quantity: true, item: { select: { price: true } } },
+          },
+        },
+      },
+    },
+  });
+
+  return referral;
+};
+
 export const getFundraiserItemsWithAvailability = async (
   fundraiserId: string
 ) => {

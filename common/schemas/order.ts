@@ -30,6 +30,36 @@ export const CompleteOrderSchema = BasicOrderSchema.extend({
   ),
 });
 
+type CompleteOrder = z.infer<typeof CompleteOrderSchema>;
+
+export type ReferralOrder = Pick<CompleteOrder, "paymentStatus" | "pickedUp"> & {
+  items: {
+    quantity: number;
+    item: Pick<CompleteOrder["items"][number]["item"], "price">;
+  }[];
+};
+
+export const getReferralQuantities = (orders: ReferralOrder[]) => {
+  const countedOrders = orders.filter(
+    (order) => order.paymentStatus === "CONFIRMED" || order.pickedUp,
+  );
+  const amountRaised = countedOrders.reduce(
+    (total, order) =>
+      total +
+      order.items.reduce(
+        (sum, { item, quantity }) => sum + Number(item.price) * quantity,
+        0,
+      ),
+    0,
+  );
+
+  return {
+    orderCount: countedOrders.length,
+    amountRaised,
+    attributedOrderCount: orders.length,
+  };
+};
+
 // CRUD BODIES:
 
 export const CreateOrderBody = z.object({
