@@ -21,13 +21,13 @@ export function InfoTooltip({
 }: InfoTooltipProps) {
   const px = Math.round(size);
   return (
-    <Tooltip>
+    <Tooltip delayDuration={100}>
       <TooltipTrigger asChild>
         <button
           type="button"
           aria-label="More information"
           className={cn(
-            "inline-flex items-center justify-center rounded-full …",
+            "inline-flex items-center justify-center rounded-full",
             className,
           )}
           style={{ width: px, height: px }}

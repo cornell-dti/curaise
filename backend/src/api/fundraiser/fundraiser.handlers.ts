@@ -31,6 +31,7 @@ import {
   getReferral,
   approveReferral,
   deleteReferral,
+  getReferralWithOrders,
   getFundraiserItemsWithAvailability,
 } from "./fundraiser.services";
 import {
@@ -48,7 +49,9 @@ import {
   CreatePickupEventBody,
   UpdatePickupEventBody,
   ReferralSchema,
+  ReferralCountSchema,
   ItemWithAvailabilitySchema,
+  getReferralQuantities,
 } from "common";
 import { getOrganization } from "../organization/organization.services";
 import { z } from "zod";
@@ -885,6 +888,37 @@ export const deleteReferralHandler = async (
   }
 
   res.status(200).json({ message: "Referral deleted successfully" });
+};
+
+export const getOwnReferralCountHandler = async (
+  req: Request<FundraiserRouteParams, any, {}, {}>,
+  res: Response
+) => {
+  const referral = await getReferralWithOrders({
+    fundraiserId: req.params.id,
+    referrerId: res.locals.user!.id,
+  });
+  if (!referral) {
+    res.status(404).json({ message: "Referral not found" });
+    return;
+  }
+
+  if (!referral.approved) {
+    res.status(403).json({ message: "Referral is not approved" });
+    return;
+  }
+
+  const parsedCount = ReferralCountSchema.safeParse(
+    getReferralQuantities(referral.orders)
+  );
+  if (!parsedCount.success) {
+    res.status(500).json({ message: "Couldn't parse referral count" });
+    return;
+  }
+
+  res
+    .status(200)
+    .json({ message: "Referral count retrieved", data: parsedCount.data });
 };
 
 export const getFundraiserItemsAvailabilityHandler = async (

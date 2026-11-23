@@ -37,6 +37,7 @@ import {
   createReferralHandler,
   approveReferralHandler,
   deleteReferralHandler,
+  getOwnReferralCountHandler,
   getFundraiserItemsAvailabilityHandler,
 } from "./fundraiser.handlers";
 import { authenticate } from "../../middleware/authenticate";
@@ -161,6 +162,13 @@ fundraiserRouter.get(
   validate({ params: FundraiserRouteParams, query: AnalyticsQueryParams }),
   authenticate,
   asyncHandler(getFundraiserAnalyticsHandler)
+);
+
+fundraiserRouter.get(
+  "/:id/referrals/me",
+  validate({ params: FundraiserRouteParams }),
+  authenticate,
+  asyncHandler(getOwnReferralCountHandler)
 );
 
 // Create a referral request

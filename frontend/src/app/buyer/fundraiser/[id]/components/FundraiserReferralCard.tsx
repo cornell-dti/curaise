@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -27,11 +28,13 @@ export function FundraiserReferralCard({
   token,
   userId,
   isPast,
+  referralOrderCount,
 }: {
   fundraiser: z.infer<typeof CompleteFundraiserSchema>;
   token: string;
   userId: string;
   isPast: boolean;
+  referralOrderCount: number | null;
 }) {
   const pathname = usePathname();
   const [referralOpen, setReferralOpen] = useState(false);
@@ -99,13 +102,24 @@ export function FundraiserReferralCard({
                 Sign Up
               </Button>
             ) : (
-              <Button
-                disabled={isPast}
-                className="cursor-pointer font-light text-sm lg:text-md lg:mt-0 w-full lg:w-auto"
-                onClick={() => copyToClipboard(link)}
-              >
-                Copy Referral Link
-              </Button>
+              <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-4">
+                {referralOrderCount !== null && (
+                  <Badge
+                    variant="outline"
+                    className="justify-center border-transparent bg-green-100 px-3 py-1 text-sm text-green-900 lg:whitespace-nowrap"
+                  >
+                    You&apos;ve referred {referralOrderCount} confirmed{" "}
+                    {referralOrderCount === 1 ? "order" : "orders"}
+                  </Badge>
+                )}
+                <Button
+                  disabled={isPast}
+                  className="cursor-pointer font-light text-sm lg:text-md lg:mt-0 w-full lg:w-auto"
+                  onClick={() => copyToClipboard(link)}
+                >
+                  Copy Referral Link
+                </Button>
+              </div>
             )}
           </div>
         </CardContent>
