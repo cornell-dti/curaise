@@ -1,157 +1,140 @@
-"use client";
-
-import { useMemo } from "react";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { CompleteItemSchema, CompleteOrderSchema } from "common";
-import { z } from "zod";
-
-type Item = z.infer<typeof CompleteItemSchema>;
-type Order = z.infer<typeof CompleteOrderSchema>;
+import {
+	OVER_LIMIT_STRIPES,
+	PENDING_STRIPES,
+} from "../../components/StatusLegend";
+import {
+	ItemStat,
+	formatCount,
+	getShownUnits,
+	getStockAlert,
+	getUnitsOverLimit,
+} from "./insights";
 
 interface ItemsSoldCardProps {
-	items: Item[];
-	orders: Order[];
+	itemStats: ItemStat[];
+	includePending: boolean;
 }
 
-type ItemRow = {
-	id: string;
-	name: string;
-	limit: number | null;
-	unitsSold: number;
-	available: number | null;
+const VISIBLE_ROWS = 4;
+
+const STOCK_BADGES = {
+	out: {
+		label: "Out of Stock",
+		className: "bg-red-100 text-red-700 hover:bg-red-100",
+	},
+	low: {
+		label: "Low Stock",
+		className: "bg-yellow-100 text-yellow-700 hover:bg-yellow-100",
+	},
 };
 
-const isConfirmedOrPickedUp = (order: Order) =>
-	order.paymentStatus === "CONFIRMED" || order.pickedUp;
+const grow = (units: number) => ({
+	flex: `${units} 0 0px`,
+	minWidth: units > 0 ? 2 : 0,
+});
 
 export function ItemsSoldCard({
-	items,
-	orders,
+	itemStats,
+	includePending,
 }: ItemsSoldCardProps) {
-	const rankedItems = useMemo(() => {
-		const rows = new Map<string, ItemRow>();
-
-		items.forEach((item) => {
-			rows.set(item.id, {
-				id: item.id,
-				name: item.name,
-				limit: item.limit ?? null,
-				unitsSold: 0,
-				available: item.limit ?? null,
-			});
-		});
-
-		orders.forEach((order) => {
-			if (!isConfirmedOrPickedUp(order)) {
-				return;
-			}
-
-			order.items.forEach((orderItem) => {
-				const row = rows.get(orderItem.item.id) ?? {
-					id: orderItem.item.id,
-					name: orderItem.item.name,
-					limit: orderItem.item.limit ?? null,
-					unitsSold: 0,
-					available: orderItem.item.limit ?? null,
-				};
-
-				row.unitsSold += orderItem.quantity;
-				row.available =
-					row.limit !== null ? Math.max(0, row.limit - row.unitsSold) : null;
-				rows.set(orderItem.item.id, row);
-			});
-		});
-
-		return Array.from(rows.values()).sort((a, b) => {
-			if (b.unitsSold !== a.unitsSold) {
-				return b.unitsSold - a.unitsSold;
-			}
-			return a.name.localeCompare(b.name);
-		});
-	}, [items, orders]);
-
-	const totalRealUnits = useMemo(
-		() =>
-			rankedItems.reduce((sum, item) => sum + item.unitsSold, 0),
-		[rankedItems]
+	const unlimitedScale = Math.max(
+		0,
+		...itemStats.map((stat) =>
+			Math.max(stat.limit ?? 0, stat.confirmed + stat.pending)
+		)
 	);
 
 	return (
-		<div
-			className="max-h-[222px] space-y-4 overflow-y-auto pr-2"
-		>
-				{rankedItems.map((item) => {
-					const limit = item.limit;
-					const progressValue =
-						limit !== null && limit > 0
-							? (item.unitsSold / limit) * 100
-							: totalRealUnits > 0
-								? (item.unitsSold / totalRealUnits) * 100
-								: 0;
-					const remainingPercent =
-						limit !== null && item.available !== null && limit > 0
-							? (item.available / limit) * 100
-							: null;
-					const isOutOfStock =
-						limit !== null && item.available !== null && item.available <= 0;
-					const isLowStock =
-						limit !== null &&
-						item.available !== null &&
-						item.available > 0 &&
-						remainingPercent !== null &&
-						remainingPercent <= 10;
+		<div className="flex flex-1 flex-col justify-center">
+			<div
+				className={cn(
+					itemStats.length > VISIBLE_ROWS &&
+						"max-h-[336px] overflow-y-auto pr-3"
+				)}>
+				{itemStats.map((stat) => {
+					const shown = getShownUnits(stat, includePending);
+					const over = getUnitsOverLimit(stat, includePending);
+					const confirmedWithin =
+						stat.limit === null ? stat.confirmed : Math.min(stat.confirmed, stat.limit);
+					const pendingWithin = shown - over - confirmedWithin;
+					const rest = Math.max(0, (stat.limit ?? unlimitedScale) - shown);
+					const stockAlert = getStockAlert(stat, includePending);
+					const stockBadge = stockAlert && STOCK_BADGES[stockAlert];
 
 					return (
-						<div key={item.id} className="flex items-start gap-3">
-							<div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-								<span className="text-sm font-medium text-muted-foreground">
-									{item.name.charAt(0)}
-								</span>
-							</div>
-
-							<div className="min-w-0 flex-1 space-y-1.5 [container-type:inline-size]">
-								{/*
-									Name left, count right. The stock badge sits beside the count
-									when the row is wide enough, and always on its own line under
-									the name when it is not, so it never wraps depending on the
-									name's length.
-								*/}
-								<div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1 [@container(min-width:22rem)]:grid-cols-[minmax(0,1fr)_auto_auto] [@container(min-width:22rem)]:gap-x-2">
+						<div key={stat.id} className="flex items-start gap-3 py-2">
+							<span
+								aria-hidden="true"
+								className="flex size-10 flex-none items-center justify-center rounded-full bg-muted text-sm font-medium text-muted-foreground">
+								{stat.name.charAt(0)}
+							</span>
+							<div className="flex min-w-0 flex-1 flex-col gap-1.5">
+								<div className="flex items-start justify-between gap-2">
 									<span
-										className="col-start-1 row-start-1 line-clamp-2 break-words text-sm font-medium text-foreground"
-										title={item.name}
-									>
-										{item.name}
+										className="line-clamp-2 min-w-0 break-words text-sm font-medium"
+										title={stat.name}>
+										{stat.name}
 									</span>
-									{isOutOfStock || isLowStock ? (
+									{stockBadge && (
 										<Badge
 											className={cn(
-												"col-span-2 col-start-1 row-start-2 justify-self-start whitespace-nowrap [@container(min-width:22rem)]:col-span-1 [@container(min-width:22rem)]:col-start-2 [@container(min-width:22rem)]:row-start-1",
-												isOutOfStock
-													? "bg-red-100 text-red-700 hover:bg-red-100"
-													: "bg-yellow-100 text-yellow-700 hover:bg-yellow-100"
-											)}
-										>
-											{isOutOfStock ? "Out of Stock" : "Low Stock"}
+												"flex-none whitespace-nowrap",
+												stockBadge.className
+											)}>
+											{stockBadge.label}
 										</Badge>
-									) : null}
-									<span className="col-start-2 row-start-1 whitespace-nowrap text-sm font-semibold [@container(min-width:22rem)]:col-start-3">
-										{limit !== null
-											? `${item.unitsSold} / ${limit} sold`
-											: `${item.unitsSold} sold`}
+									)}
+								</div>
+								<div aria-hidden="true" className="flex h-4 items-center">
+									<div
+										className="h-2 rounded-l bg-green-700"
+										style={grow(confirmedWithin)}
+									/>
+									<div
+										className={cn("h-2", PENDING_STRIPES)}
+										style={grow(pendingWithin)}
+									/>
+									<div
+										className={cn("h-2", stat.limit !== null && "bg-primary/20")}
+										style={grow(rest)}
+									/>
+									{stat.limit !== null && (
+										<div className="h-4 w-0.5 flex-none bg-foreground" />
+									)}
+									<div
+										className={cn("h-2", OVER_LIMIT_STRIPES)}
+										style={grow(over)}
+									/>
+								</div>
+								<div className="flex flex-wrap justify-between gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
+									<span>
+										<span className="font-semibold text-foreground">
+											{formatCount(stat.confirmed)}
+										</span>{" "}
+										Confirmed
+										{includePending && (
+											<>
+												{" + "}
+												<span className="font-semibold text-foreground">
+													{formatCount(stat.pending)}
+												</span>{" "}
+												Pending
+											</>
+										)}
+									</span>
+									<span>
+										{stat.limit !== null
+											? `Limit ${formatCount(stat.limit)}`
+											: "No limit"}
 									</span>
 								</div>
-
-								<Progress
-									value={Math.min(progressValue, 100)}
-									className="h-2 [&>div]:bg-green-700"
-								/>
 							</div>
 						</div>
 					);
 				})}
+			</div>
 		</div>
 	);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
 	ColumnDef,
 	SortingState,
@@ -20,23 +20,48 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { ReferralWithQuantities } from "./ReferralsTableColumns";
+import {
+	CELL_CLASS,
+	HEAD_CLASS,
+	CONFIRMED_COLUMN_FOR,
+	ReferralWithQuantities,
+} from "./ReferralsTableColumns";
 
 interface ReferralsTableProps<TValue> {
 	columns: ColumnDef<ReferralWithQuantities, TValue>[];
 	data: ReferralWithQuantities[];
+	includePending: boolean;
 	toolbar?: React.ReactNode;
 }
 
 export function ReferralsTable<TValue>({
 	columns,
 	data,
+	includePending,
 	toolbar,
 }: ReferralsTableProps<TValue>) {
 	const [sorting, setSorting] = useState<SortingState>([
-		{ id: "orderCount", desc: true }, // Referral with most order quantities default at the top
+		{ id: "totalOrderCount", desc: true }, // Referral with most order quantities default at the top
 	]);
 	const [globalFilter, setGlobalFilter] = useState("");
+
+	const visibleSorting = useMemo(
+		() =>
+			includePending
+				? sorting
+				: sorting.map((sort) => ({
+						...sort,
+						id: CONFIRMED_COLUMN_FOR[sort.id] ?? sort.id,
+				  })),
+		[sorting, includePending]
+	);
+	const columnVisibility = useMemo(
+		() =>
+			Object.fromEntries(
+				Object.keys(CONFIRMED_COLUMN_FOR).map((id) => [id, includePending])
+			),
+		[includePending]
+	);
 
 	// No pagination: sellers want to see every referrer at once
 	const table = useReactTable({
@@ -54,10 +79,12 @@ export function ReferralsTable<TValue>({
 			return name.includes(search) || email.includes(search);
 		},
 		state: {
-			sorting,
+			sorting: visibleSorting,
 			globalFilter,
+			columnVisibility,
 		},
 	});
+	const headerGroups = table.getHeaderGroups();
 
 	return (
 		<div className="space-y-4">
@@ -72,19 +99,26 @@ export function ReferralsTable<TValue>({
 			</div>
 
 			<div className="rounded-md border">
-				<Table className="min-w-[600px]">
+				<Table className={includePending ? "min-w-[820px]" : "min-w-[600px]"}>
 					<TableHeader>
-						{table.getHeaderGroups().map((headerGroup) => (
+						{headerGroups.map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
 								{headerGroup.headers.map((header) => {
+									if (headerGroup.depth > 0 && header.column.depth === 0) {
+										return null;
+									}
 									return (
-										<TableHead key={header.id}>
-											{header.isPlaceholder
-												? null
-												: flexRender(
-														header.column.columnDef.header,
-														header.getContext()
-												  )}
+										<TableHead
+											key={header.id}
+											colSpan={header.colSpan}
+											rowSpan={
+												header.isPlaceholder ? headerGroups.length : undefined
+											}
+											className={HEAD_CLASS[header.column.id]}>
+											{flexRender(
+												header.column.columnDef.header,
+												header.getContext()
+											)}
 										</TableHead>
 									);
 								})}
@@ -98,7 +132,9 @@ export function ReferralsTable<TValue>({
 									key={row.id}
 									data-state={row.getIsSelected() && "selected"}>
 									{row.getVisibleCells().map((cell) => (
-										<TableCell key={cell.id}>
+										<TableCell
+											key={cell.id}
+											className={CELL_CLASS[cell.column.id]}>
 											{flexRender(
 												cell.column.columnDef.cell,
 												cell.getContext()
@@ -110,7 +146,7 @@ export function ReferralsTable<TValue>({
 						) : (
 							<TableRow>
 								<TableCell
-									colSpan={columns.length}
+									colSpan={table.getVisibleLeafColumns().length}
 									className="h-24 text-center">
 									No referrals found.
 								</TableCell>

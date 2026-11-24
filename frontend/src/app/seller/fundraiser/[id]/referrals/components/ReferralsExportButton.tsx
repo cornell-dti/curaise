@@ -7,17 +7,28 @@ import { ReferralWithQuantities } from "./ReferralsTableColumns";
 export function ReferralsExportButton({
 	referrals,
 	fundraiserName,
+	includePending,
 }: {
 	referrals: ReferralWithQuantities[];
 	fundraiserName: string;
+	includePending: boolean;
 }) {
 	const handleExport = () => {
+		const money = (amount: number) => `$${amount.toFixed(2)}`;
 		const headers = [
 			"Name",
 			"Email",
 			"NetID",
-			"Orders",
-			"Amount Raised",
+			...(includePending
+				? [
+						"Confirmed Orders",
+						"Pending Orders",
+						"Total Orders",
+						"Confirmed Amount Raised",
+						"Pending Amount Raised",
+						"Total Amount Raised",
+				  ]
+				: ["Orders", "Amount Raised"]),
 			"Status",
 		];
 
@@ -25,8 +36,16 @@ export function ReferralsExportButton({
 			referral.referrer.name,
 			referral.referrer.email,
 			referral.referrer.email.split("@")[0],
-			String(referral.orderCount),
-			`$${referral.amountRaised.toFixed(2)}`,
+			...(includePending
+				? [
+						String(referral.orderCount),
+						String(referral.pendingOrderCount),
+						String(referral.attributedOrderCount),
+						money(referral.amountRaised),
+						money(referral.pendingAmount),
+						money(referral.totalAmount),
+				  ]
+				: [String(referral.orderCount), money(referral.amountRaised)]),
 			referral.approved ? "Approved" : "Pending",
 		]);
 

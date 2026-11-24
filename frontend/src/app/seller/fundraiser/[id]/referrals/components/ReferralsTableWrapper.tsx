@@ -8,6 +8,8 @@ import {
 } from "./ReferralsTableColumns";
 import { ReferralsExportButton } from "./ReferralsExportButton";
 import { useReferrals } from "./ReferralsProvider";
+import { IncludePendingSwitch } from "../../components/IncludePendingSwitch";
+import { isPendingOrder } from "../../analytics/components/insights";
 import { CompleteOrderSchema, getReferralQuantities } from "common/schemas/order";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -25,6 +27,12 @@ import {
 
 type Order = z.infer<typeof CompleteOrderSchema>;
 
+const getOrderTotal = (order: Order) =>
+	order.items.reduce(
+		(total, { item, quantity }) => total + Number(item.price) * quantity,
+		0,
+	);
+
 interface ReferralsTableWrapperProps {
 	orders: Order[];
 	fundraiserName: string;
@@ -35,6 +43,7 @@ export function ReferralsTableWrapper({
 	fundraiserName,
 }: ReferralsTableWrapperProps) {
 	const { referrals, fundraiserId, refetch } = useReferrals();
+	const [includePending, setIncludePending] = useState(true);
 	const [toRemove, setToRemove] = useState<ReferralWithQuantities | null>(
 		null,
 	);
@@ -42,12 +51,24 @@ export function ReferralsTableWrapper({
 
 	const referralsWithQuantities: ReferralWithQuantities[] = useMemo(
 		() =>
-			referrals.map((referral) => ({
-				...referral,
-				...getReferralQuantities(
-					orders.filter((order) => order.referral?.id === referral.id),
-				),
-			})),
+			referrals.map((referral) => {
+				const referralOrders = orders.filter(
+					(order) => order.referral?.id === referral.id,
+				);
+				const quantities = getReferralQuantities(referralOrders);
+				const pendingOrders = referralOrders.filter(isPendingOrder);
+				const pendingAmount = pendingOrders.reduce(
+					(total, order) => total + getOrderTotal(order),
+					0,
+				);
+				return {
+					...referral,
+					...quantities,
+					pendingOrderCount: pendingOrders.length,
+					pendingAmount,
+					totalAmount: quantities.amountRaised + pendingAmount,
+				};
+			}),
 		[referrals, orders],
 	);
 
@@ -83,11 +104,19 @@ export function ReferralsTableWrapper({
 			<ReferralsTable
 				columns={columns}
 				data={referralsWithQuantities}
+				includePending={includePending}
 				toolbar={
-					<ReferralsExportButton
-						referrals={referralsWithQuantities}
-						fundraiserName={fundraiserName}
-					/>
+					<div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+						<IncludePendingSwitch
+							checked={includePending}
+							onCheckedChange={setIncludePending}
+						/>
+						<ReferralsExportButton
+							referrals={referralsWithQuantities}
+							fundraiserName={fundraiserName}
+							includePending={includePending}
+						/>
+					</div>
 				}
 			/>
 
