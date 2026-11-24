@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { useMemo, useState } from "react";
 import { Banknote, Goal, Receipt } from "lucide-react";
 import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
 import { IncludePendingSwitch } from "../../components/IncludePendingSwitch";
@@ -11,6 +10,7 @@ import {
   PendingLabel,
   Swatch,
 } from "../../components/StatusLegend";
+import { useOrders } from "../../orders/components/OrdersProvider";
 import { ProfitGoalChart } from "./ProfitGoalChart";
 import { RevenueBreakdownChart } from "./RevenueBreakdownChart";
 import { ItemsSoldCard } from "./ItemsSoldCard";
@@ -19,189 +19,31 @@ import {
   formatCount,
   formatMoney,
   getItemStats,
+  getOrderCounts,
+  getProfit,
+  getRevenue,
   getUnitsOverLimit,
 } from "./insights";
 import { z } from "zod";
-import { CompleteItemSchema, CompleteOrderSchema } from "common";
+import { CompleteItemSchema } from "common";
 
 type Item = z.infer<typeof CompleteItemSchema>;
-type Order = z.infer<typeof CompleteOrderSchema>;
-
-const PROFIT_MARGIN = 0.2;
-
-interface FundraiserAnalytics {
-  total_revenue: number;
-  total_orders: number;
-  orders_picked_up: number;
-  items: Record<string, number>;
-  pending_orders: number;
-  profit: number;
-  goal_amount: number;
-  sale_data: Record<string, number>;
-  revenue_data: Record<string, number>;
-  start_date: Date;
-  end_date: Date;
-}
 
 interface RealtimeAnalyticsWrapperProps {
-  initialAnalytics: FundraiserAnalytics;
-  initialOrders: Order[];
-  fundraiserId: string;
-  token: string;
   goalAmount: number;
   items: Item[];
 }
 
 export function RealtimeAnalyticsWrapper({
-  initialAnalytics,
-  initialOrders,
-  fundraiserId,
-  token,
   goalAmount,
   items,
 }: RealtimeAnalyticsWrapperProps) {
-  const [analytics, setAnalytics] = useState<FundraiserAnalytics>(initialAnalytics);
-  const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const { orders } = useOrders();
   const [includePending, setIncludePending] = useState(true);
-  const supabase = useMemo(() => createClient(), []);
-
-  useEffect(() => {
-    const refetchData = async (forceRefresh = false) => {
-      try {
-        const analyticsUrl = forceRefresh
-          ? `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/analytics?refresh=true`
-          : `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/analytics`;
-
-        const [analyticsResponse, ordersResponse] = await Promise.all([
-          fetch(analyticsUrl, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/orders`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
-        ]);
-
-        const [analyticsResult, ordersResult] = await Promise.all([
-          analyticsResponse.json(),
-          ordersResponse.json(),
-        ]);
-
-        if (analyticsResponse.ok) {
-          setAnalytics(analyticsResult.data);
-        } else {
-          console.error("Failed to refetch analytics:", analyticsResult.message);
-        }
-
-        if (ordersResponse.ok) {
-          const parsedOrders = z.array(CompleteOrderSchema).safeParse(ordersResult.data);
-          if (parsedOrders.success) {
-            setOrders(parsedOrders.data);
-          } else {
-            console.error("Failed to parse refreshed orders:", parsedOrders.error);
-          }
-        } else {
-          console.error("Failed to refetch orders:", ordersResult.message);
-        }
-      } catch (error) {
-        console.error("Error refetching analytics data:", error);
-      }
-    };
-
-    const belongsToFundraiser = (
-      row: { fundraiser_id?: string } | null | undefined
-    ) => row?.fundraiser_id === fundraiserId;
-
-    let isCancelled = false;
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-
-    const setupRealtime = async () => {
-      const { data } = await supabase.auth.getSession();
-      const realtimeToken = data.session?.access_token ?? token;
-      if (!realtimeToken) {
-        return;
-      }
-
-      supabase.realtime.setAuth(realtimeToken);
-      if (isCancelled) return;
-
-      channel = supabase
-        .channel(`analytics-${fundraiserId}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "orders",
-            filter: `fundraiser_id=eq.${fundraiserId}`,
-          },
-          () => {
-            refetchData(true);
-          }
-        )
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "orders",
-          },
-          (payload) => {
-            if (
-              !belongsToFundraiser(
-                payload.new as { fundraiser_id?: string } | null | undefined
-              ) &&
-              !belongsToFundraiser(
-                payload.old as { fundraiser_id?: string } | null | undefined
-              )
-            ) {
-              return;
-            }
-            refetchData(true);
-          }
-        )
-        .on(
-          "postgres_changes",
-          {
-            event: "DELETE",
-            schema: "public",
-            table: "orders",
-          },
-          (payload) => {
-            if (
-              !belongsToFundraiser(
-                payload.old as { fundraiser_id?: string } | null | undefined
-              )
-            ) {
-              return;
-            }
-            refetchData(true);
-          }
-        )
-        .subscribe();
-
-      refetchData(true);
-    };
-
-    void setupRealtime();
-
-    return () => {
-      isCancelled = true;
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
-    };
-  }, [fundraiserId, token, supabase]);
 
   const itemStats = useMemo(() => getItemStats(items, orders), [items, orders]);
-  const pendingRevenue = itemStats.reduce(
-    (total, stat) => total + stat.pending * stat.price,
-    0
-  );
-  const pendingProfit = Math.round(pendingRevenue * PROFIT_MARGIN * 100) / 100;
+  const revenue = getRevenue(itemStats);
+  const orderCounts = getOrderCounts(orders);
   const hasLimit = itemStats.some((stat) => stat.limit !== null);
   const hasOverLimit = itemStats.some(
     (stat) => getUnitsOverLimit(stat, includePending) > 0
@@ -241,16 +83,16 @@ export function RealtimeAnalyticsWrapper({
             <StatCard
               icon={<Banknote className="shrink-0" />}
               title="Revenue"
-              confirmed={analytics.total_revenue}
-              pending={pendingRevenue}
+              confirmed={revenue.confirmed}
+              pending={revenue.pending}
               includePending={includePending}
               format={formatMoney}
             />
             <StatCard
               icon={<Receipt className="shrink-0" />}
               title="Total Orders"
-              confirmed={analytics.total_orders - analytics.pending_orders}
-              pending={analytics.pending_orders}
+              confirmed={orderCounts.confirmed}
+              pending={orderCounts.pending}
               includePending={includePending}
               format={formatCount}
             />
@@ -269,8 +111,8 @@ export function RealtimeAnalyticsWrapper({
             className="flex-[4_1_240px] gap-4"
           >
             <ProfitGoalChart
-              confirmedProfit={analytics.profit}
-              pendingProfit={pendingProfit}
+              confirmedProfit={getProfit(revenue.confirmed)}
+              pendingProfit={getProfit(revenue.pending)}
               goalAmount={goalAmount}
               includePending={includePending}
             />

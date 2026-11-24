@@ -1,4 +1,5 @@
 import { CompleteItemSchema, CompleteOrderSchema } from "common";
+import { isConfirmedOrder } from "common/schemas/order";
 import { z } from "zod";
 
 type Item = Pick<
@@ -18,10 +19,6 @@ export type ItemStat = {
 	confirmed: number;
 	pending: number;
 };
-
-export const isPendingOrder = (
-	order: Pick<Order, "paymentStatus" | "pickedUp">
-) => order.paymentStatus !== "CONFIRMED" && !order.pickedUp;
 
 export function getItemStats(items: Item[], orders: Order[]): ItemStat[] {
 	const stats = new Map<string, ItemStat>();
@@ -44,13 +41,13 @@ export function getItemStats(items: Item[], orders: Order[]): ItemStat[] {
 
 	items.forEach(statFor);
 	orders.forEach((order) => {
-		const isPending = isPendingOrder(order);
+		const isConfirmed = isConfirmedOrder(order);
 		order.items.forEach(({ item, quantity }) => {
 			const stat = statFor(item);
-			if (isPending) {
-				stat.pending += quantity;
-			} else {
+			if (isConfirmed) {
 				stat.confirmed += quantity;
+			} else {
+				stat.pending += quantity;
 			}
 		});
 	});
@@ -85,6 +82,29 @@ export const getStockAlert = (
 	const lowAt = Math.ceil((stat.limit * LOW_STOCK_PERCENT) / 100);
 	return taken > 0 && available <= lowAt ? "low" : null;
 };
+
+export const getRevenue = (itemStats: ItemStat[]) => ({
+	confirmed: itemStats.reduce(
+		(total, stat) => total + stat.confirmed * stat.price,
+		0
+	),
+	pending: itemStats.reduce(
+		(total, stat) => total + stat.pending * stat.price,
+		0
+	),
+});
+
+export const getOrderCounts = (
+	orders: Pick<Order, "paymentStatus" | "pickedUp">[]
+) => {
+	const confirmed = orders.filter(isConfirmedOrder).length;
+	return { confirmed, pending: orders.length - confirmed };
+};
+
+const PROFIT_MARGIN = 0.2;
+
+export const getProfit = (revenue: number) =>
+	Math.round(revenue * PROFIT_MARGIN * 100) / 100;
 
 const moneyFormat = new Intl.NumberFormat("en-US", {
 	style: "currency",

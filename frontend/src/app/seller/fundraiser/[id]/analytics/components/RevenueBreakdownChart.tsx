@@ -2,7 +2,12 @@ import { cn } from "@/lib/utils";
 import { PENDING_BASE, Swatch } from "../../components/StatusLegend";
 import { DonutRing, RingArc } from "./DonutRing";
 import { FitText } from "./FitText";
-import { ItemStat, formatMoney, formatShortAmount } from "./insights";
+import {
+  ItemStat,
+  formatMoney,
+  formatShortAmount,
+  getRevenue,
+} from "./insights";
 
 interface RevenueBreakdownChartProps {
   itemStats: ItemStat[];
@@ -33,9 +38,6 @@ const AMOUNT = "whitespace-nowrap text-right font-semibold tabular-nums";
 const STACKED_NAME = "[@container(max-width:20rem)]:col-span-3";
 const STACKED_CONFIRMED = "[@container(max-width:20rem)]:col-start-2";
 
-const sum = (values: number[]) =>
-  values.reduce((total, value) => total + value, 0);
-
 const longest = (texts: string[]) =>
   Math.max(0, ...texts.map((text) => text.length));
 
@@ -52,8 +54,8 @@ export function RevenueBreakdownChart({
       confirmed: stat.confirmed * stat.price,
       pending: stat.pending * stat.price,
     }));
-  const confirmedTotal = sum(rows.map((row) => row.confirmed));
-  const pendingTotal = sum(rows.map((row) => row.pending));
+  const { confirmed: confirmedTotal, pending: pendingTotal } =
+    getRevenue(itemStats);
   const revenue = includePending ? confirmedTotal + pendingTotal : confirmedTotal;
 
   const arcs: RingArc[] = [];

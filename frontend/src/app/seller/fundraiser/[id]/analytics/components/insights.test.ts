@@ -6,10 +6,12 @@ import {
 	formatMoney,
 	formatShortAmount,
 	getItemStats,
+	getOrderCounts,
+	getProfit,
+	getRevenue,
 	getShownUnits,
 	getStockAlert,
 	getUnitsOverLimit,
-	isPendingOrder,
 } from "./insights";
 
 const item = (id: string, price: string, limit: number | null = null) => ({
@@ -31,29 +33,6 @@ const stat = (overrides: Partial<ItemStat>): ItemStat => ({
 
 const brownie = item("brownie", "3.50", 20);
 const cookie = item("cookie", "2.00");
-
-describe("isPendingOrder", () => {
-	it("does not treat confirmed or picked-up orders as pending", () => {
-		expect(isPendingOrder({ paymentStatus: "CONFIRMED", pickedUp: false })).toBe(
-			false
-		);
-		expect(
-			isPendingOrder({ paymentStatus: "UNVERIFIABLE", pickedUp: true })
-		).toBe(false);
-		expect(isPendingOrder({ paymentStatus: "PENDING", pickedUp: true })).toBe(
-			false
-		);
-	});
-
-	it("treats every other order as pending", () => {
-		expect(isPendingOrder({ paymentStatus: "PENDING", pickedUp: false })).toBe(
-			true
-		);
-		expect(
-			isPendingOrder({ paymentStatus: "UNVERIFIABLE", pickedUp: false })
-		).toBe(true);
-	});
-});
 
 describe("getItemStats", () => {
 	it("splits units into confirmed and pending per item", () => {
@@ -245,6 +224,66 @@ describe("getStockAlert", () => {
 		const allPending = stat({ limit: 7, confirmed: 0, pending: 50 });
 		expect(getStockAlert(allPending, true)).toBe("out");
 		expect(getStockAlert(allPending, false)).toBeNull();
+	});
+});
+
+describe("getRevenue", () => {
+	it("adds up confirmed and pending money separately", () => {
+		expect(
+			getRevenue([
+				stat({ price: 3.5, confirmed: 5, pending: 4 }),
+				stat({ id: "b", price: 2, confirmed: 1, pending: 0 }),
+			])
+		).toEqual({ confirmed: 19.5, pending: 14 });
+	});
+
+	it("is zero with no items", () => {
+		expect(getRevenue([])).toEqual({ confirmed: 0, pending: 0 });
+	});
+
+	it("moves an order's money from pending to confirmed once it is received or picked up", () => {
+		const order = {
+			paymentStatus: "PENDING" as const,
+			pickedUp: false,
+			items: [{ quantity: 2, item: brownie }],
+		};
+		const revenueFor = (changed: typeof order | object) =>
+			getRevenue(getItemStats([brownie], [{ ...order, ...changed }]));
+
+		expect(revenueFor({})).toEqual({ confirmed: 0, pending: 7 });
+		expect(revenueFor({ paymentStatus: "CONFIRMED" })).toEqual({
+			confirmed: 7,
+			pending: 0,
+		});
+		expect(revenueFor({ pickedUp: true })).toEqual({ confirmed: 7, pending: 0 });
+	});
+});
+
+describe("getOrderCounts", () => {
+	it("counts confirmed and picked-up orders as confirmed and the rest as pending", () => {
+		expect(
+			getOrderCounts([
+				{ paymentStatus: "CONFIRMED", pickedUp: false },
+				{ paymentStatus: "PENDING", pickedUp: true },
+				{ paymentStatus: "UNVERIFIABLE", pickedUp: true },
+				{ paymentStatus: "PENDING", pickedUp: false },
+				{ paymentStatus: "UNVERIFIABLE", pickedUp: false },
+			])
+		).toEqual({ confirmed: 3, pending: 2 });
+	});
+
+	it("is zero with no orders", () => {
+		expect(getOrderCounts([])).toEqual({ confirmed: 0, pending: 0 });
+	});
+});
+
+describe("getProfit", () => {
+	it("is a fifth of the revenue, rounded to the cent", () => {
+		expect(getProfit(0)).toBe(0);
+		expect(getProfit(100)).toBe(20);
+		expect(getProfit(36.7)).toBe(7.34);
+		expect(getProfit(0.02)).toBe(0);
+		expect(getProfit(1187455.5)).toBe(237491.1);
 	});
 });
 

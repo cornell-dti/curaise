@@ -1,8 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState, useMemo } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { createClient } from "@/utils/supabase/client";
-import { OrdersTableWrapper } from "./OrdersTableWrapper";
 import { CompleteOrderSchema } from "common/schemas/order";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -10,21 +16,31 @@ import { mutate } from "swr";
 
 type Order = z.infer<typeof CompleteOrderSchema>;
 
-interface RealtimeOrdersWrapperProps {
-  initialOrders: Order[];
-  fundraiserId: string;
-  token: string;
-  fundraiserName: string;
+interface OrdersContextValue {
+  orders: Order[];
+  setOrderPickedUp: (orderId: string, pickedUp: boolean) => void;
+  setOrderPaymentConfirmed: (orderId: string) => void;
 }
 
-export function RealtimeOrdersWrapper({
+const OrdersContext = createContext<OrdersContextValue | null>(null);
+
+export function OrdersProvider({
   initialOrders,
   fundraiserId,
   token,
-  fundraiserName,
-}: RealtimeOrdersWrapperProps) {
+  children,
+}: {
+  initialOrders: Order[];
+  fundraiserId: string;
+  token: string;
+  children: React.ReactNode;
+}) {
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const supabase = useMemo(() => createClient(), []);
+
+  useEffect(() => {
+    setOrders(initialOrders);
+  }, [initialOrders]);
 
   const setOrderPickedUp = useCallback((orderId: string, pickedUp: boolean) => {
     setOrders((prev) =>
@@ -92,10 +108,10 @@ export function RealtimeOrdersWrapper({
             schema: "public",
             table: "orders",
             filter: `fundraiser_id=eq.${fundraiserId}`,
-        },
-        async (payload) => {
-          const newOrder = await fetchSingleOrder(payload.new.id as string);
-          if (!newOrder) return;
+          },
+          async (payload) => {
+            const newOrder = await fetchSingleOrder(payload.new.id as string);
+            if (!newOrder) return;
             setOrders((prev) => {
               if (prev.some((o) => o.id === newOrder.id)) return prev;
               toast.success("New order received!", {
@@ -112,11 +128,11 @@ export function RealtimeOrdersWrapper({
             event: "UPDATE",
             schema: "public",
             table: "orders",
-        },
-        (payload) => {
-          const row = payload.new;
-          setOrders((prev) =>
-            prev.map((order) => {
+          },
+          (payload) => {
+            const row = payload.new;
+            setOrders((prev) =>
+              prev.map((order) => {
                 if (order.id !== row.id) return order;
                 const updated: Order = {
                   ...order,
@@ -136,11 +152,11 @@ export function RealtimeOrdersWrapper({
             event: "DELETE",
             schema: "public",
             table: "orders",
-        },
-        (payload) => {
-          setOrders((prev) => prev.filter((o) => o.id !== payload.old.id));
-        }
-      )
+          },
+          (payload) => {
+            setOrders((prev) => prev.filter((o) => o.id !== payload.old.id));
+          }
+        )
         .subscribe();
     };
 
@@ -154,13 +170,20 @@ export function RealtimeOrdersWrapper({
     };
   }, [fundraiserId, token, supabase]);
 
-  return (
-    <OrdersTableWrapper
-      orders={orders}
-      token={token}
-      fundraiserName={fundraiserName}
-      onPickupChange={setOrderPickedUp}
-      onPaymentConfirmed={setOrderPaymentConfirmed}
-    />
+  const value = useMemo(
+    () => ({ orders, setOrderPickedUp, setOrderPaymentConfirmed }),
+    [orders, setOrderPickedUp, setOrderPaymentConfirmed]
   );
+
+  return (
+    <OrdersContext.Provider value={value}>{children}</OrdersContext.Provider>
+  );
+}
+
+export function useOrders() {
+  const context = useContext(OrdersContext);
+  if (!context) {
+    throw new Error("useOrders must be used within an OrdersProvider");
+  }
+  return context;
 }

@@ -9,8 +9,12 @@ import {
 import { ReferralsExportButton } from "./ReferralsExportButton";
 import { useReferrals } from "./ReferralsProvider";
 import { IncludePendingSwitch } from "../../components/IncludePendingSwitch";
-import { isPendingOrder } from "../../analytics/components/insights";
-import { CompleteOrderSchema, getReferralQuantities } from "common/schemas/order";
+import { useOrders } from "../../orders/components/OrdersProvider";
+import {
+	CompleteOrderSchema,
+	getReferralQuantities,
+	isConfirmedOrder,
+} from "common/schemas/order";
 import { z } from "zod";
 import { toast } from "sonner";
 import { mutationFetch } from "@/lib/fetcher";
@@ -34,15 +38,14 @@ const getOrderTotal = (order: Order) =>
 	);
 
 interface ReferralsTableWrapperProps {
-	orders: Order[];
 	fundraiserName: string;
 }
 
 export function ReferralsTableWrapper({
-	orders,
 	fundraiserName,
 }: ReferralsTableWrapperProps) {
 	const { referrals, fundraiserId, refetch } = useReferrals();
+	const { orders } = useOrders();
 	const [includePending, setIncludePending] = useState(true);
 	const [toRemove, setToRemove] = useState<ReferralWithQuantities | null>(
 		null,
@@ -56,7 +59,9 @@ export function ReferralsTableWrapper({
 					(order) => order.referral?.id === referral.id,
 				);
 				const quantities = getReferralQuantities(referralOrders);
-				const pendingOrders = referralOrders.filter(isPendingOrder);
+				const pendingOrders = referralOrders.filter(
+					(order) => !isConfirmedOrder(order),
+				);
 				const pendingAmount = pendingOrders.reduce(
 					(total, order) => total + getOrderTotal(order),
 					0,
