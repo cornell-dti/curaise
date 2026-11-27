@@ -5,8 +5,11 @@ import {
 	formatCount,
 	formatMoney,
 	formatShortAmount,
+	getBarUnits,
+	getConfirmedArcLength,
 	getItemStats,
 	getOrderCounts,
+	getPendingArcLength,
 	getProfit,
 	getRevenue,
 	getShownUnits,
@@ -144,33 +147,113 @@ describe("getItemStats", () => {
 });
 
 describe("getShownUnits", () => {
-	it("adds pending units only when they are included", () => {
+	it("adds pending units in step with the switch progress", () => {
 		const tiramisu = stat({ confirmed: 6, pending: 2 });
-		expect(getShownUnits(tiramisu, true)).toBe(8);
-		expect(getShownUnits(tiramisu, false)).toBe(6);
+		expect(getShownUnits(tiramisu, 0)).toBe(6);
+		expect(getShownUnits(tiramisu, 0.5)).toBe(7);
+		expect(getShownUnits(tiramisu, 1)).toBe(8);
 	});
 });
 
 describe("getUnitsOverLimit", () => {
 	it("is zero without a limit", () => {
-		expect(getUnitsOverLimit(stat({ confirmed: 500, pending: 500 }), true)).toBe(0);
+		expect(getUnitsOverLimit(stat({ confirmed: 500, pending: 500 }), 1)).toBe(0);
 	});
 
-	it("counts pending units past the limit only when they are included", () => {
+	it("counts pending units past the limit only once they are shown", () => {
 		const tiramisu = stat({ limit: 7, confirmed: 6, pending: 2 });
-		expect(getUnitsOverLimit(tiramisu, true)).toBe(1);
-		expect(getUnitsOverLimit(tiramisu, false)).toBe(0);
+		expect(getUnitsOverLimit(tiramisu, 0)).toBe(0);
+		expect(getUnitsOverLimit(tiramisu, 0.5)).toBe(0);
+		expect(getUnitsOverLimit(tiramisu, 0.75)).toBe(0.5);
+		expect(getUnitsOverLimit(tiramisu, 1)).toBe(1);
 	});
 
 	it("counts confirmed units past the limit", () => {
 		const poster = stat({ limit: 10, confirmed: 12 });
-		expect(getUnitsOverLimit(poster, false)).toBe(2);
+		expect(getUnitsOverLimit(poster, 0)).toBe(2);
 	});
 
 	it("is zero exactly at the limit", () => {
-		expect(getUnitsOverLimit(stat({ limit: 12, confirmed: 11, pending: 1 }), true)).toBe(
+		expect(getUnitsOverLimit(stat({ limit: 12, confirmed: 11, pending: 1 }), 1)).toBe(
 			0
 		);
+	});
+});
+
+describe("getBarUnits", () => {
+	const barAt = (bar: ItemStat, pendingProgress: number, unlimitedScale = 20) =>
+		getBarUnits(bar, { pendingProgress, unlimitedScale });
+
+	it("grows the pending part into the free space", () => {
+		const brownie = stat({ limit: 20, confirmed: 12, pending: 4 });
+		expect(barAt(brownie, 0)).toEqual({ confirmed: 12, pending: 0, rest: 8, over: 0 });
+		expect(barAt(brownie, 0.5)).toEqual({ confirmed: 12, pending: 2, rest: 6, over: 0 });
+		expect(barAt(brownie, 1)).toEqual({ confirmed: 12, pending: 4, rest: 4, over: 0 });
+	});
+
+	it("only shows units over the limit after the bar reaches it", () => {
+		const tiramisu = stat({ limit: 7, confirmed: 6, pending: 2 });
+		expect(barAt(tiramisu, 0)).toEqual({ confirmed: 6, pending: 0, rest: 1, over: 0 });
+		expect(barAt(tiramisu, 0.5)).toEqual({ confirmed: 6, pending: 1, rest: 0, over: 0 });
+		expect(barAt(tiramisu, 1)).toEqual({ confirmed: 6, pending: 1, rest: 0, over: 1 });
+	});
+
+	it("caps confirmed units at the limit and puts the rest over it", () => {
+		const poster = stat({ limit: 10, confirmed: 12, pending: 3 });
+		expect(barAt(poster, 0)).toEqual({ confirmed: 10, pending: 0, rest: 0, over: 2 });
+		expect(barAt(poster, 1)).toEqual({ confirmed: 10, pending: 0, rest: 0, over: 5 });
+	});
+
+	it("measures an item without a limit against the shared scale", () => {
+		const pie = stat({ confirmed: 6, pending: 2 });
+		expect(barAt(pie, 0)).toEqual({ confirmed: 6, pending: 0, rest: 14, over: 0 });
+		expect(barAt(pie, 1)).toEqual({ confirmed: 6, pending: 2, rest: 12, over: 0 });
+	});
+});
+
+describe("getConfirmedArcLength", () => {
+	it("always leaves a gap after an item that has no pending money", () => {
+		[0, 0.5, 1].forEach((pendingProgress) => {
+			expect(
+				getConfirmedArcLength({ length: 30, hasPending: false, pendingProgress })
+			).toBeCloseTo(29.4);
+		});
+	});
+
+	it("hands its gap over to the pending slice as the switch turns on", () => {
+		const lengthAt = (pendingProgress: number) =>
+			getConfirmedArcLength({ length: 30, hasPending: true, pendingProgress });
+		expect(lengthAt(0)).toBeCloseTo(29.4);
+		expect(lengthAt(0.5)).toBeCloseTo(29.7);
+		expect(lengthAt(1)).toBe(30);
+	});
+
+	it("keeps a tiny slice visible while it still owns the gap", () => {
+		expect(
+			getConfirmedArcLength({ length: 0.1, hasPending: false, pendingProgress: 1 })
+		).toBe(0.2);
+		expect(
+			getConfirmedArcLength({ length: 0.1, hasPending: true, pendingProgress: 0 })
+		).toBe(0.2);
+		expect(
+			getConfirmedArcLength({ length: 0.1, hasPending: true, pendingProgress: 1 })
+		).toBe(0.1);
+	});
+});
+
+describe("getPendingArcLength", () => {
+	it("is nothing with the switch off and a trimmed slice with it on", () => {
+		expect(getPendingArcLength({ length: 0, pendingProgress: 0 })).toBe(0);
+		expect(getPendingArcLength({ length: 10, pendingProgress: 1 })).toBeCloseTo(9.4);
+	});
+
+	it("grows in smoothly in between", () => {
+		expect(getPendingArcLength({ length: 5, pendingProgress: 0.5 })).toBeCloseTo(4.7);
+		expect(getPendingArcLength({ length: 0.05, pendingProgress: 0.5 })).toBeCloseTo(0.1);
+	});
+
+	it("keeps a tiny slice visible once the switch is fully on", () => {
+		expect(getPendingArcLength({ length: 0.3, pendingProgress: 1 })).toBe(0.2);
 	});
 });
 

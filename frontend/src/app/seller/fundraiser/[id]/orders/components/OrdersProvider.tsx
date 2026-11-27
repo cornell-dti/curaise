@@ -24,6 +24,7 @@ interface OrdersContextValue {
 
 const OrdersContext = createContext<OrdersContextValue | null>(null);
 
+// Single source of truth for all the orders inside the fundraiser seller page
 export function OrdersProvider({
   initialOrders,
   fundraiserId,

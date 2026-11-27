@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { FoldX } from "../../components/Fold";
 import { PENDING_BASE, Swatch } from "../../components/StatusLegend";
 import { DonutRing, RingArc } from "./DonutRing";
 import { FitText } from "./FitText";
@@ -6,12 +7,14 @@ import {
   ItemStat,
   formatMoney,
   formatShortAmount,
+  getConfirmedArcLength,
+  getPendingArcLength,
   getRevenue,
 } from "./insights";
 
 interface RevenueBreakdownChartProps {
   itemStats: ItemStat[];
-  includePending: boolean;
+  pendingProgress: number;
 }
 
 // Vibrant green shades
@@ -25,9 +28,6 @@ const greenShades = [
   "#16a34a", // Green 600
   "#84cc16", // Lime 500
 ];
-
-const SEGMENT_GAP = 0.6;
-const MIN_SEGMENT = 0.2;
 
 const AMOUNT_CHAR_PX = 7.5;
 const CONFIRMED_COLUMN_MIN_PX = 58;
@@ -43,8 +43,9 @@ const longest = (texts: string[]) =>
 
 export function RevenueBreakdownChart({
   itemStats,
-  includePending,
+  pendingProgress,
 }: RevenueBreakdownChartProps) {
+  const showPending = pendingProgress > 0;
   const rows = itemStats
     .filter((stat) => stat.confirmed + stat.pending > 0)
     .map((stat, index) => ({
@@ -56,23 +57,28 @@ export function RevenueBreakdownChart({
     }));
   const { confirmed: confirmedTotal, pending: pendingTotal } =
     getRevenue(itemStats);
-  const revenue = includePending ? confirmedTotal + pendingTotal : confirmedTotal;
+  const revenue = confirmedTotal + pendingTotal * pendingProgress;
+  const fadesIn = confirmedTotal <= 0;
 
   const arcs: RingArc[] = [];
   let position = 0;
   rows.forEach((row) => {
     const confirmedLength = revenue > 0 ? (row.confirmed / revenue) * 100 : 0;
     const pendingLength =
-      includePending && revenue > 0 ? (row.pending / revenue) * 100 : 0;
-    const trimmed = (length: number) =>
-      Math.max(length - SEGMENT_GAP, MIN_SEGMENT);
+      revenue > 0 ? ((row.pending * pendingProgress) / revenue) * 100 : 0;
+    const opacity = fadesIn ? pendingProgress : undefined;
 
     if (confirmedLength > 0) {
       arcs.push({
         id: `${row.id}:confirmed`,
         start: position,
-        length: pendingLength > 0 ? confirmedLength : trimmed(confirmedLength),
+        length: getConfirmedArcLength({
+          length: confirmedLength,
+          hasPending: row.pending > 0,
+          pendingProgress,
+        }),
         color: row.color,
+        opacity,
         label: `${row.name}: ${formatMoney(row.confirmed)}`,
       });
     }
@@ -80,9 +86,10 @@ export function RevenueBreakdownChart({
       arcs.push({
         id: `${row.id}:pending`,
         start: position + confirmedLength,
-        length: trimmed(pendingLength),
+        length: getPendingArcLength({ length: pendingLength, pendingProgress }),
         color: row.color,
         stripedOn: PENDING_BASE,
+        opacity,
         label: `${row.name} (Pending): ${formatMoney(row.pending)}`,
       });
     }
@@ -91,7 +98,7 @@ export function RevenueBreakdownChart({
 
   const confirmedText = (amount: number) => `$${formatShortAmount(amount)}`;
   const pendingText = (amount: number) =>
-    includePending ? `+ $${formatShortAmount(amount)}` : "";
+    showPending ? `+ $${formatShortAmount(amount)}` : "";
   const tableRows = [
     ...rows.map((row) => ({
       id: row.id,
@@ -118,8 +125,14 @@ export function RevenueBreakdownChart({
 
   return (
     <>
-      <DonutRing arcs={arcs} showTrack={revenue <= 0}>
-        <FitText align="center" className="text-2xl font-semibold">
+      <DonutRing
+        arcs={arcs}
+        showTrack={revenue <= 0 || (fadesIn && pendingProgress < 1)}
+      >
+        <FitText
+          align="center"
+          className="text-2xl font-semibold tabular-nums"
+        >
           {formatMoney(revenue)}
         </FitText>
         <span className="text-sm text-muted-foreground">revenue</span>
@@ -133,7 +146,9 @@ export function RevenueBreakdownChart({
             )}>
             <span className="col-start-2 text-right">Confirmed</span>
             <span className="min-w-14 text-right">
-              {includePending && "Pending"}
+              {showPending && (
+                <span style={{ opacity: pendingProgress }}>Pending</span>
+              )}
             </span>
           </div>
           {rows.map((row) => (
@@ -153,7 +168,11 @@ export function RevenueBreakdownChart({
               <span className={cn(AMOUNT, stackNames && STACKED_CONFIRMED)}>
                 {confirmedText(row.confirmed)}
               </span>
-              <span className={AMOUNT}>{pendingText(row.pending)}</span>
+              <span className={AMOUNT}>
+                <FoldX progress={pendingProgress}>
+                  {pendingText(row.pending)}
+                </FoldX>
+              </span>
             </div>
           ))}
           <div className={cn(ROW, "sticky bottom-0 mt-1 border-t bg-white pt-2")}>
@@ -167,7 +186,11 @@ export function RevenueBreakdownChart({
             <span className={cn(AMOUNT, stackNames && STACKED_CONFIRMED)}>
               {confirmedText(confirmedTotal)}
             </span>
-            <span className={AMOUNT}>{pendingText(pendingTotal)}</span>
+            <span className={AMOUNT}>
+              <FoldX progress={pendingProgress}>
+                {pendingText(pendingTotal)}
+              </FoldX>
+            </span>
           </div>
         </div>
       </div>

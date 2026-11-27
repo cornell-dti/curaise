@@ -18,6 +18,7 @@ import {
 import { z } from "zod";
 import { toast } from "sonner";
 import { mutationFetch } from "@/lib/fetcher";
+import { usePendingProgress } from "@/hooks/usePendingProgress";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -47,6 +48,7 @@ export function ReferralsTableWrapper({
 	const { referrals, fundraiserId, refetch } = useReferrals();
 	const { orders } = useOrders();
 	const [includePending, setIncludePending] = useState(true);
+	const pendingProgress = usePendingProgress(includePending);
 	const [toRemove, setToRemove] = useState<ReferralWithQuantities | null>(
 		null,
 	);
@@ -110,6 +112,7 @@ export function ReferralsTableWrapper({
 				columns={columns}
 				data={referralsWithQuantities}
 				includePending={includePending}
+				pendingProgress={pendingProgress}
 				toolbar={
 					<div className="flex flex-wrap items-center gap-x-5 gap-y-3">
 						<IncludePendingSwitch

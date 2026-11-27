@@ -1,3 +1,4 @@
+import { FoldY } from "../../components/Fold";
 import {
 	PENDING_BASE,
 	PENDING_STRIPES,
@@ -12,6 +13,7 @@ interface ProfitGoalChartProps {
 	pendingProfit: number;
 	goalAmount: number;
 	includePending: boolean;
+	pendingProgress: number;
 }
 
 const CONFIRMED_COLOR = "#15803D";
@@ -23,21 +25,32 @@ export function ProfitGoalChart({
 	pendingProfit,
 	goalAmount,
 	includePending,
+	pendingProgress,
 }: ProfitGoalChartProps) {
 	const hasGoal = goalAmount > 0;
-	const profit = includePending ? confirmedProfit + pendingProfit : confirmedProfit;
+	const totalProfit = confirmedProfit + pendingProfit;
+	const profit = confirmedProfit + pendingProfit * pendingProgress;
 	const confirmedPercent = hasGoal
 		? Math.min((confirmedProfit / goalAmount) * 100, 100)
 		: 0;
-	const pendingPercent =
-		hasGoal && includePending
-			? Math.min((pendingProfit / goalAmount) * 100, 100 - confirmedPercent)
-			: 0;
+	const pendingPercent = hasGoal
+		? Math.min(
+				((pendingProfit * pendingProgress) / goalAmount) * 100,
+				100 - confirmedPercent
+		  )
+		: 0;
 	const remaining = Math.max(0, goalAmount - profit);
-	const profitText = formatMoney(profit);
+	const settledRemaining = Math.max(
+		0,
+		goalAmount - (includePending ? totalProfit : confirmedProfit)
+	);
 	const goalText = formatShortAmount(goalAmount);
+	const longestProfitText = Math.max(
+		formatMoney(confirmedProfit).length,
+		formatMoney(totalProfit).length
+	);
 	const showGoalInline =
-		hasGoal && profitText.length + goalText.length <= INLINE_GOAL_MAX_CHARS;
+		hasGoal && longestProfitText + goalText.length <= INLINE_GOAL_MAX_CHARS;
 
 	return (
 		<>
@@ -64,11 +77,13 @@ export function ProfitGoalChart({
 						start: confirmedPercent + pendingPercent,
 						length: hasGoal ? 100 - confirmedPercent - pendingPercent : 0,
 						color: REMAINING_COLOR,
-						label: `Remaining: ${formatMoney(remaining)}`,
+						label: `Remaining: ${formatMoney(settledRemaining)}`,
 					},
 				]}>
-				<FitText align="center" className="text-2xl font-semibold">
-					{profitText}
+				<FitText
+					align="center"
+					className="text-2xl font-semibold tabular-nums">
+					{formatMoney(profit)}
 					{showGoalInline && (
 						<span className="text-sm font-normal text-muted-foreground">
 							/{goalText}
@@ -79,25 +94,25 @@ export function ProfitGoalChart({
 					{hasGoal && !showGoalInline ? `of $${goalText} profit` : "profit"}
 				</FitText>
 			</DonutRing>
-			<div className="flex flex-col gap-2 text-sm">
+			<div className="flex flex-col text-sm">
 				<div className="flex items-center gap-2">
 					<Swatch className="bg-green-700" />
 					<span className="flex-1 text-muted-foreground">Confirmed</span>
 					<span className="font-semibold">{formatMoney(confirmedProfit)}</span>
 				</div>
-				{includePending && (
-					<div className="flex items-center gap-2">
+				<FoldY progress={pendingProgress}>
+					<div className="flex items-center gap-2 pt-2">
 						<Swatch className={PENDING_STRIPES} />
 						<span className="flex-1 text-muted-foreground">Pending</span>
 						<span className="font-semibold">
 							+ {formatMoney(pendingProfit)}
 						</span>
 					</div>
-				)}
+				</FoldY>
 				{hasGoal && (
-					<div className="flex justify-between gap-2 border-t pt-2.5">
+					<div className="mt-2 flex justify-between gap-2 border-t pt-2.5">
 						<span className="text-muted-foreground">Remaining</span>
-						<span className="font-semibold">
+						<span className="font-semibold tabular-nums">
 							{formatMoney(remaining)}
 						</span>
 					</div>

@@ -57,13 +57,57 @@ export function getItemStats(items: Item[], orders: Order[]): ItemStat[] {
 	);
 }
 
-export const getShownUnits = (stat: ItemStat, includePending: boolean) =>
-	includePending ? stat.confirmed + stat.pending : stat.confirmed;
+export const getShownUnits = (stat: ItemStat, pendingProgress: number) =>
+	stat.confirmed + stat.pending * pendingProgress;
 
-export const getUnitsOverLimit = (stat: ItemStat, includePending: boolean) =>
+export const getUnitsOverLimit = (stat: ItemStat, pendingProgress: number) =>
 	stat.limit === null
 		? 0
-		: Math.max(0, getShownUnits(stat, includePending) - stat.limit);
+		: Math.max(0, getShownUnits(stat, pendingProgress) - stat.limit);
+
+export const getBarUnits = (
+	stat: ItemStat,
+	{
+		pendingProgress,
+		unlimitedScale,
+	}: { pendingProgress: number; unlimitedScale: number }
+) => {
+	const shown = getShownUnits(stat, pendingProgress);
+	const over = getUnitsOverLimit(stat, pendingProgress);
+	const confirmed =
+		stat.limit === null ? stat.confirmed : Math.min(stat.confirmed, stat.limit);
+	return {
+		confirmed,
+		pending: shown - over - confirmed,
+		rest: Math.max(0, (stat.limit ?? unlimitedScale) - shown),
+		over,
+	};
+};
+
+const SEGMENT_GAP = 0.6;
+const MIN_SEGMENT = 0.2;
+
+export const getConfirmedArcLength = ({
+	length,
+	hasPending,
+	pendingProgress,
+}: {
+	length: number;
+	hasPending: boolean;
+	pendingProgress: number;
+}) => {
+	const gapShare = hasPending ? 1 - pendingProgress : 1;
+	return Math.max(length - SEGMENT_GAP * gapShare, MIN_SEGMENT * gapShare);
+};
+
+export const getPendingArcLength = ({
+	length,
+	pendingProgress,
+}: {
+	length: number;
+	pendingProgress: number;
+}) =>
+	Math.max(length - SEGMENT_GAP * pendingProgress, MIN_SEGMENT * pendingProgress);
 
 const LOW_STOCK_PERCENT = 10;
 
@@ -74,7 +118,7 @@ export const getStockAlert = (
 	if (stat.limit === null) {
 		return null;
 	}
-	const taken = getShownUnits(stat, includePending);
+	const taken = getShownUnits(stat, includePending ? 1 : 0);
 	const available = Math.max(0, stat.limit - taken);
 	if (available === 0) {
 		return "out";

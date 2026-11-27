@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { Banknote, Goal, Receipt } from "lucide-react";
 import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
+import { usePendingProgress } from "@/hooks/usePendingProgress";
+import { FoldX } from "../../components/Fold";
 import { IncludePendingSwitch } from "../../components/IncludePendingSwitch";
 import {
   ConfirmedLabel,
@@ -29,6 +31,8 @@ import { CompleteItemSchema } from "common";
 
 type Item = z.infer<typeof CompleteItemSchema>;
 
+const formatOrderCount = (value: number) => formatCount(Math.round(value));
+
 interface RealtimeAnalyticsWrapperProps {
   goalAmount: number;
   items: Item[];
@@ -40,14 +44,19 @@ export function RealtimeAnalyticsWrapper({
 }: RealtimeAnalyticsWrapperProps) {
   const { orders } = useOrders();
   const [includePending, setIncludePending] = useState(true);
+  const pendingProgress = usePendingProgress(includePending);
 
   const itemStats = useMemo(() => getItemStats(items, orders), [items, orders]);
+  const orderCounts = useMemo(() => getOrderCounts(orders), [orders]);
   const revenue = getRevenue(itemStats);
-  const orderCounts = getOrderCounts(orders);
   const hasLimit = itemStats.some((stat) => stat.limit !== null);
-  const hasOverLimit = itemStats.some(
-    (stat) => getUnitsOverLimit(stat, includePending) > 0
-  );
+  const isOverLimitAt = (progress: number) =>
+    itemStats.some((stat) => getUnitsOverLimit(stat, progress) > 0);
+  const overLimitProgress = isOverLimitAt(0)
+    ? 1
+    : isOverLimitAt(1)
+    ? pendingProgress
+    : 0;
 
   return (
     <div className="mb-6">
@@ -59,21 +68,27 @@ export function RealtimeAnalyticsWrapper({
             onCheckedChange={setIncludePending}
           />
         </div>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-          <ConfirmedLabel />
-          {includePending && <PendingLabel />}
+        <div className="-ml-4 flex flex-wrap items-center gap-y-2 text-sm text-muted-foreground">
+          <span className="flex pl-4">
+            <ConfirmedLabel />
+          </span>
+          <FoldX progress={pendingProgress}>
+            <span className="flex pl-4">
+              <PendingLabel />
+            </span>
+          </FoldX>
           {hasLimit && (
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1.5 pl-4">
               <span className="h-3.5 w-0.5 flex-none bg-foreground" />
               Limit
             </span>
           )}
-          {hasOverLimit && (
-            <span className="flex items-center gap-1.5">
+          <FoldX progress={overLimitProgress}>
+            <span className="flex items-center gap-1.5 pl-4">
               <Swatch className={OVER_LIMIT_STRIPES} />
               Over limit
             </span>
-          )}
+          </FoldX>
         </div>
       </div>
       <div className="flex flex-wrap gap-6">
@@ -85,7 +100,7 @@ export function RealtimeAnalyticsWrapper({
               title="Revenue"
               confirmed={revenue.confirmed}
               pending={revenue.pending}
-              includePending={includePending}
+              pendingProgress={pendingProgress}
               format={formatMoney}
             />
             <StatCard
@@ -93,8 +108,8 @@ export function RealtimeAnalyticsWrapper({
               title="Total Orders"
               confirmed={orderCounts.confirmed}
               pending={orderCounts.pending}
-              includePending={includePending}
-              format={formatCount}
+              pendingProgress={pendingProgress}
+              format={formatOrderCount}
             />
           </div>
 
@@ -115,6 +130,7 @@ export function RealtimeAnalyticsWrapper({
               pendingProfit={getProfit(revenue.pending)}
               goalAmount={goalAmount}
               includePending={includePending}
+              pendingProgress={pendingProgress}
             />
           </InsightCard>
         </div>
@@ -128,7 +144,7 @@ export function RealtimeAnalyticsWrapper({
           >
             <RevenueBreakdownChart
               itemStats={itemStats}
-              includePending={includePending}
+              pendingProgress={pendingProgress}
             />
           </InsightCard>
 
@@ -147,6 +163,7 @@ export function RealtimeAnalyticsWrapper({
             <ItemsSoldCard
               itemStats={itemStats}
               includePending={includePending}
+              pendingProgress={pendingProgress}
             />
           </InsightCard>
         </div>

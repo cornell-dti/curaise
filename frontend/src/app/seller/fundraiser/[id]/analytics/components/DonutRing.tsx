@@ -8,6 +8,7 @@ export type RingArc = {
 	length: number;
 	color: string;
 	stripedOn?: string;
+	opacity?: number;
 	label: string;
 };
 
@@ -78,6 +79,7 @@ export function DonutRing({
 				{visibleArcs.map((arc) => (
 					<g
 						key={arc.id}
+						opacity={arc.opacity}
 						strokeDashoffset={RING_LENGTH - arc.start}
 						onMouseMove={(event) => trackPointer(arc.id, event)}
 						onMouseLeave={() => setHover(null)}>

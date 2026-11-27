@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import {
+	Cell,
 	ColumnDef,
 	SortingState,
 	flexRender,
@@ -20,6 +21,7 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { FoldX } from "../../components/Fold";
 import {
 	CELL_CLASS,
 	HEAD_CLASS,
@@ -27,10 +29,22 @@ import {
 	ReferralWithQuantities,
 } from "./ReferralsTableColumns";
 
+const CELL_PADDING_PX = 8;
+const MIN_WIDTH_PX = { confirmedOnly: 600, withPending: 820 };
+
+const CellContent = memo(function CellContent({
+	cell,
+}: {
+	cell: Cell<ReferralWithQuantities, unknown>;
+}) {
+	return flexRender(cell.column.columnDef.cell, cell.getContext());
+});
+
 interface ReferralsTableProps<TValue> {
 	columns: ColumnDef<ReferralWithQuantities, TValue>[];
 	data: ReferralWithQuantities[];
 	includePending: boolean;
+	pendingProgress: number;
 	toolbar?: React.ReactNode;
 }
 
@@ -38,6 +52,7 @@ export function ReferralsTable<TValue>({
 	columns,
 	data,
 	includePending,
+	pendingProgress,
 	toolbar,
 }: ReferralsTableProps<TValue>) {
 	const [sorting, setSorting] = useState<SortingState>([
@@ -55,13 +70,28 @@ export function ReferralsTable<TValue>({
 				  })),
 		[sorting, includePending]
 	);
+	const showPendingColumns = pendingProgress > 0;
 	const columnVisibility = useMemo(
 		() =>
 			Object.fromEntries(
-				Object.keys(CONFIRMED_COLUMN_FOR).map((id) => [id, includePending])
+				Object.keys(CONFIRMED_COLUMN_FOR).map((id) => [id, showPendingColumns])
 			),
-		[includePending]
+		[showPendingColumns]
 	);
+	const foldingStyle = (columnId: string) =>
+		columnId in CONFIRMED_COLUMN_FOR && pendingProgress < 1
+			? {
+					paddingLeft: CELL_PADDING_PX * pendingProgress,
+					paddingRight: CELL_PADDING_PX * pendingProgress,
+					textAlign: "center" as const,
+			  }
+			: undefined;
+	const fold = (columnId: string, content: React.ReactNode) =>
+		columnId in CONFIRMED_COLUMN_FOR ? (
+			<FoldX progress={pendingProgress}>{content}</FoldX>
+		) : (
+			content
+		);
 
 	// No pagination: sellers want to see every referrer at once
 	const table = useReactTable({
@@ -99,7 +129,13 @@ export function ReferralsTable<TValue>({
 			</div>
 
 			<div className="rounded-md border">
-				<Table className={includePending ? "min-w-[820px]" : "min-w-[600px]"}>
+				<Table
+					style={{
+						minWidth:
+							MIN_WIDTH_PX.confirmedOnly +
+							(MIN_WIDTH_PX.withPending - MIN_WIDTH_PX.confirmedOnly) *
+								pendingProgress,
+					}}>
 					<TableHeader>
 						{headerGroups.map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
@@ -114,10 +150,14 @@ export function ReferralsTable<TValue>({
 											rowSpan={
 												header.isPlaceholder ? headerGroups.length : undefined
 											}
-											className={HEAD_CLASS[header.column.id]}>
-											{flexRender(
-												header.column.columnDef.header,
-												header.getContext()
+											className={HEAD_CLASS[header.column.id]}
+											style={foldingStyle(header.column.id)}>
+											{fold(
+												header.column.id,
+												flexRender(
+													header.column.columnDef.header,
+													header.getContext()
+												)
 											)}
 										</TableHead>
 									);
@@ -134,11 +174,9 @@ export function ReferralsTable<TValue>({
 									{row.getVisibleCells().map((cell) => (
 										<TableCell
 											key={cell.id}
-											className={CELL_CLASS[cell.column.id]}>
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext()
-											)}
+											className={CELL_CLASS[cell.column.id]}
+											style={foldingStyle(cell.column.id)}>
+											{fold(cell.column.id, <CellContent cell={cell} />)}
 										</TableCell>
 									))}
 								</TableRow>
