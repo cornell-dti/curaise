@@ -1,118 +1,123 @@
-"use client";
-
-import * as React from "react";
-import { Label, Pie, PieChart } from "recharts";
+import { FoldY } from "../../components/Fold";
 import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent,
-} from "@/components/ui/chart";
+	PENDING_BASE,
+	PENDING_STRIPES,
+	Swatch,
+} from "../../components/StatusLegend";
+import { DonutRing } from "./DonutRing";
+import { FitText } from "./FitText";
+import { formatMoney, formatShortAmount } from "./insights";
 
 interface ProfitGoalChartProps {
-	profit: number;
-	goalAmount: number | null;
+	confirmedProfit: number;
+	pendingProfit: number;
+	goalAmount: number;
+	includePending: boolean;
+	pendingProgress: number;
 }
 
-export function ProfitGoalChart({ profit, goalAmount }: ProfitGoalChartProps) {
-	const chartConfig = {
-		profit: {
-			label: "Profit",
-			color: "#15803d",
-		},
-		remaining: {
-			label: "Remaining",
-			color: "#e5e7eb",
-		},
-	};
+const CONFIRMED_COLOR = "#15803D";
+const REMAINING_COLOR = "#E5E7EB";
+const INLINE_GOAL_MAX_CHARS = 10;
 
-	// Calculate profit percentage (capped at 100%)
-	const profitPercentage =
-		goalAmount && goalAmount > 0
-			? Math.min((profit / goalAmount) * 100, 100)
-			: 0;
-	const remainingPercentage = 100 - profitPercentage;
-
-	const remaining = (goalAmount || 0) - profit;
-	const chartData = [
-		{
-			name: "Profit",
-			value: profitPercentage,
-			displayValue: `$${profit.toFixed(2)}`,
-			fill: "#15803d",
-		},
-		{
-			name: "Remaining",
-			value: remainingPercentage,
-			displayValue: `$${remaining.toFixed(2)}`,
-			fill: "#e5e7eb",
-		},
-	];
+export function ProfitGoalChart({
+	confirmedProfit,
+	pendingProfit,
+	goalAmount,
+	includePending,
+	pendingProgress,
+}: ProfitGoalChartProps) {
+	const hasGoal = goalAmount > 0;
+	const totalProfit = confirmedProfit + pendingProfit;
+	const profit = confirmedProfit + pendingProfit * pendingProgress;
+	const confirmedPercent = hasGoal
+		? Math.min((confirmedProfit / goalAmount) * 100, 100)
+		: 0;
+	const pendingPercent = hasGoal
+		? Math.min(
+				((pendingProfit * pendingProgress) / goalAmount) * 100,
+				100 - confirmedPercent
+		  )
+		: 0;
+	const remaining = Math.max(0, goalAmount - profit);
+	const settledRemaining = Math.max(
+		0,
+		goalAmount - (includePending ? totalProfit : confirmedProfit)
+	);
+	const goalText = formatShortAmount(goalAmount);
+	const longestProfitText = Math.max(
+		formatMoney(confirmedProfit).length,
+		formatMoney(totalProfit).length
+	);
+	const showGoalInline =
+		hasGoal && longestProfitText + goalText.length <= INLINE_GOAL_MAX_CHARS;
 
 	return (
-		<ChartContainer
-			config={chartConfig}
-			className="mx-auto aspect-square w-full max-w-[250px]">
-			<PieChart>
-				<ChartTooltip
-					cursor={false}
-					content={
-						<ChartTooltipContent
-							hideLabel
-							className="min-w-[120px]"
-							formatter={(value, name, item) => (
-								<div className="flex items-center gap-2">
-									<div
-										className="h-2.5 w-2.5 rounded-[2px]"
-										style={{ backgroundColor: item.payload.fill }}
-									/>
-									<span>{item.payload.name}: {item.payload.displayValue}</span>
-								</div>
-							)}
-						/>
-					}
-				/>
-				<Pie
-					data={chartData}
-					dataKey="value"
-					nameKey="name"
-					cx="50%"
-					cy="50%"
-					innerRadius="60%"
-					outerRadius="80%"
-					strokeWidth={5}>
-					<Label
-						content={({ viewBox }) => {
-							if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-								return (
-									<text
-										x={viewBox.cx}
-										y={viewBox.cy}
-										textAnchor="middle"
-										dominantBaseline="middle">
-										<tspan
-											x={viewBox.cx}
-											y={(viewBox.cy || 0) - 12}
-											className="fill-foreground text-3xl font-semibold">
-											${profit}
-											<tspan
-												className="fill-muted-foreground text-lg font-normal"
-												dy="0">
-												/{goalAmount || 0}
-											</tspan>
-										</tspan>
-										<tspan
-											x={viewBox.cx}
-											y={(viewBox.cy || 0) + 24}
-											className="fill-muted-foreground text-sm">
-											profit
-										</tspan>
-									</text>
-								);
-							}
-						}}
-					/>
-				</Pie>
-			</PieChart>
-		</ChartContainer>
+		<>
+			<DonutRing
+				showTrack
+				arcs={[
+					{
+						id: "confirmed",
+						start: 0,
+						length: confirmedPercent,
+						color: CONFIRMED_COLOR,
+						label: `Confirmed: ${formatMoney(confirmedProfit)}`,
+					},
+					{
+						id: "pending",
+						start: confirmedPercent,
+						length: pendingPercent,
+						color: CONFIRMED_COLOR,
+						stripedOn: PENDING_BASE,
+						label: `Pending: ${formatMoney(pendingProfit)}`,
+					},
+					{
+						id: "remaining",
+						start: confirmedPercent + pendingPercent,
+						length: hasGoal ? 100 - confirmedPercent - pendingPercent : 0,
+						color: REMAINING_COLOR,
+						label: `Remaining: ${formatMoney(settledRemaining)}`,
+					},
+				]}>
+				<FitText
+					align="center"
+					className="text-2xl font-semibold tabular-nums">
+					{formatMoney(profit)}
+					{showGoalInline && (
+						<span className="text-sm font-normal text-muted-foreground">
+							/{goalText}
+						</span>
+					)}
+				</FitText>
+				<FitText align="center" className="text-sm text-muted-foreground">
+					{hasGoal && !showGoalInline ? `of $${goalText} profit` : "profit"}
+				</FitText>
+			</DonutRing>
+			<div className="flex flex-col text-sm">
+				<div className="flex items-center gap-2">
+					<Swatch className="bg-green-700" />
+					<span className="flex-1 text-muted-foreground">Confirmed</span>
+					<span className="font-semibold">{formatMoney(confirmedProfit)}</span>
+				</div>
+				<FoldY progress={pendingProgress}>
+					<div className="flex items-center gap-2 pt-2">
+						<Swatch className={PENDING_STRIPES} />
+						<span className="flex-1 text-muted-foreground">Pending</span>
+						<span className="font-semibold">
+							+ {formatMoney(pendingProfit)}
+						</span>
+					</div>
+				</FoldY>
+				{hasGoal && (
+					<div className="mt-2 flex justify-between gap-2 border-t pt-2.5">
+						<span className="text-muted-foreground">Remaining</span>
+						<span className="font-semibold tabular-nums">
+							{formatMoney(remaining)}
+						</span>
+					</div>
+				)}
+			</div>
+		</>
 	);
 }

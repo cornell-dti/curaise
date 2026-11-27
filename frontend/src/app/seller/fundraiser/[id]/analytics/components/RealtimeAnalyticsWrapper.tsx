@@ -1,286 +1,171 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { useMemo, useState } from "react";
 import { Banknote, Goal, Receipt } from "lucide-react";
 import { InfoTooltip } from "@/components/custom/MoreInfoToolTip";
+import { usePendingProgress } from "@/hooks/usePendingProgress";
+import { FoldX } from "../../components/Fold";
+import { IncludePendingSwitch } from "../../components/IncludePendingSwitch";
+import {
+  ConfirmedLabel,
+  OVER_LIMIT_STRIPES,
+  PendingLabel,
+  Swatch,
+} from "../../components/StatusLegend";
+import { useOrders } from "../../orders/components/OrdersProvider";
 import { ProfitGoalChart } from "./ProfitGoalChart";
 import { RevenueBreakdownChart } from "./RevenueBreakdownChart";
 import { ItemsSoldCard } from "./ItemsSoldCard";
+import { InsightCard, StatCard } from "./InsightCard";
+import {
+  formatCount,
+  formatMoney,
+  getItemStats,
+  getOrderCounts,
+  getProfit,
+  getRevenue,
+  getUnitsOverLimit,
+} from "./insights";
 import { z } from "zod";
-import { CompleteItemSchema, CompleteOrderSchema } from "common";
+import { CompleteItemSchema } from "common";
 
 type Item = z.infer<typeof CompleteItemSchema>;
-type Order = z.infer<typeof CompleteOrderSchema>;
 
-interface FundraiserAnalytics {
-  total_revenue: number;
-  total_orders: number;
-  orders_picked_up: number;
-  items: Record<string, number>;
-  pending_orders: number;
-  profit: number;
-  goal_amount: number;
-  sale_data: Record<string, number>;
-  revenue_data: Record<string, number>;
-  start_date: Date;
-  end_date: Date;
-}
+const formatOrderCount = (value: number) => formatCount(Math.round(value));
 
 interface RealtimeAnalyticsWrapperProps {
-  initialAnalytics: FundraiserAnalytics;
-  initialOrders: Order[];
-  fundraiserId: string;
-  token: string;
   goalAmount: number;
   items: Item[];
 }
 
 export function RealtimeAnalyticsWrapper({
-  initialAnalytics,
-  initialOrders,
-  fundraiserId,
-  token,
   goalAmount,
   items,
 }: RealtimeAnalyticsWrapperProps) {
-  const [analytics, setAnalytics] = useState<FundraiserAnalytics>(initialAnalytics);
-  const [orders, setOrders] = useState<Order[]>(initialOrders);
-  const supabase = useMemo(() => createClient(), []);
+  const { orders } = useOrders();
+  const [includePending, setIncludePending] = useState(true);
+  const pendingProgress = usePendingProgress(includePending);
 
-  useEffect(() => {
-    const refetchData = async (forceRefresh = false) => {
-      try {
-        const analyticsUrl = forceRefresh
-          ? `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/analytics?refresh=true`
-          : `${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/analytics`;
-
-        const [analyticsResponse, ordersResponse] = await Promise.all([
-          fetch(analyticsUrl, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/fundraiser/${fundraiserId}/orders`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }),
-        ]);
-
-        const [analyticsResult, ordersResult] = await Promise.all([
-          analyticsResponse.json(),
-          ordersResponse.json(),
-        ]);
-
-        if (analyticsResponse.ok) {
-          setAnalytics(analyticsResult.data);
-        } else {
-          console.error("Failed to refetch analytics:", analyticsResult.message);
-        }
-
-        if (ordersResponse.ok) {
-          const parsedOrders = z.array(CompleteOrderSchema).safeParse(ordersResult.data);
-          if (parsedOrders.success) {
-            setOrders(parsedOrders.data);
-          } else {
-            console.error("Failed to parse refreshed orders:", parsedOrders.error);
-          }
-        } else {
-          console.error("Failed to refetch orders:", ordersResult.message);
-        }
-      } catch (error) {
-        console.error("Error refetching analytics data:", error);
-      }
-    };
-
-    const belongsToFundraiser = (
-      row: { fundraiser_id?: string } | null | undefined
-    ) => row?.fundraiser_id === fundraiserId;
-
-    let isCancelled = false;
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-
-    const setupRealtime = async () => {
-      const { data } = await supabase.auth.getSession();
-      const realtimeToken = data.session?.access_token ?? token;
-      if (!realtimeToken) {
-        return;
-      }
-
-      supabase.realtime.setAuth(realtimeToken);
-      if (isCancelled) return;
-
-      channel = supabase
-        .channel(`analytics-${fundraiserId}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "orders",
-            filter: `fundraiser_id=eq.${fundraiserId}`,
-          },
-          () => {
-            refetchData(true);
-          }
-        )
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "orders",
-          },
-          (payload) => {
-            if (
-              !belongsToFundraiser(
-                payload.new as { fundraiser_id?: string } | null | undefined
-              ) &&
-              !belongsToFundraiser(
-                payload.old as { fundraiser_id?: string } | null | undefined
-              )
-            ) {
-              return;
-            }
-            refetchData(true);
-          }
-        )
-        .on(
-          "postgres_changes",
-          {
-            event: "DELETE",
-            schema: "public",
-            table: "orders",
-          },
-          (payload) => {
-            if (
-              !belongsToFundraiser(
-                payload.old as { fundraiser_id?: string } | null | undefined
-              )
-            ) {
-              return;
-            }
-            refetchData(true);
-          }
-        )
-        .subscribe();
-
-      refetchData(true);
-    };
-
-    void setupRealtime();
-
-    return () => {
-      isCancelled = true;
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
-    };
-  }, [fundraiserId, token, supabase]);
-
-  // Create a map of item name to price for revenue calculation
-  const itemPriceMap = new Map<string, number>();
-  items.forEach((item) => {
-    itemPriceMap.set(item.name, Number(item.price));
-  });
-
-  // Calculate revenue per item
-  const itemRevenue: Record<string, number> = {};
-  Object.entries(analytics.items).forEach(([itemName, count]) => {
-    const price = itemPriceMap.get(itemName) || 0;
-    itemRevenue[itemName] = count * price;
-  });
+  const itemStats = useMemo(() => getItemStats(items, orders), [items, orders]);
+  const orderCounts = useMemo(() => getOrderCounts(orders), [orders]);
+  const revenue = getRevenue(itemStats);
+  const hasLimit = itemStats.some((stat) => stat.limit !== null);
+  const isOverLimitAt = (progress: number) =>
+    itemStats.some((stat) => getUnitsOverLimit(stat, progress) > 0);
+  const overLimitProgress = isOverLimitAt(0)
+    ? 1
+    : isOverLimitAt(1)
+    ? pendingProgress
+    : 0;
 
   return (
     <div className="mb-6">
-      <h2 className="text-xl font-bold mb-6">Key Insights</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 min-[1400px]:grid-cols-[0.6fr_1fr_1fr_1.5fr] gap-6">
-        {/* First Column - Revenue and Total Orders stacked */}
-        <div className="flex flex-col gap-6 h-full">
-          {/* Revenue Card */}
-          <div className="bg-white rounded-lg shadow p-6 flex-1 flex flex-col">
-            <div className="flex items-center gap-2 mb-2 font-semibold">
-              <Banknote />
-              Revenue
-            </div>
-            <div className="text-3xl font-semibold">
-              ${analytics.total_revenue.toFixed(2)}
-            </div>
-          </div>
-
-          {/* Total Orders Card */}
-          <div className="bg-white rounded-lg shadow p-6 flex-1 flex flex-col">
-            <div className="flex items-center gap-2 mb-2 font-semibold">
-              <Receipt />
-              Total Orders
-            </div>
-            <div className="text-3xl font-semibold">
-              {analytics.total_orders}
-            </div>
-            <div className="flex gap-3 mt-2 text-sm text-muted-foreground">
-              <span className="whitespace-nowrap">
-                <span className="font-semibold text-foreground">
-                  {analytics.total_orders - analytics.pending_orders}
-                </span>{" "}
-                Confirmed
-              </span>
-              <span className="whitespace-nowrap">
-                <span className="font-semibold text-foreground">
-                  {analytics.pending_orders}
-                </span>{" "}
-                Pending
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Profit Goal Card */}
-        <div className="bg-white rounded-lg shadow p-6 overflow-hidden flex flex-col">
-          <div className="flex items-center gap-2 mb-4 font-semibold">
-            <Goal className="shrink-0" />
-            Profit Goal
-            <InfoTooltip
-              content="Profit is estimated using a 20% profit margin."
-              size={18}
-            />
-          </div>
-          <div className="flex-1 flex items-center justify-center">
-            <ProfitGoalChart
-              profit={analytics.profit}
-              goalAmount={goalAmount}
-            />
-          </div>
-        </div>
-
-        {/* Revenue Breakdown Card */}
-        <div className="bg-white rounded-lg shadow p-6 overflow-hidden flex flex-col">
-          <div className="flex items-center gap-2 mb-4 font-semibold whitespace-nowrap">
-            <Receipt className="shrink-0" />
-            Revenue Breakdown
-          </div>
-          <div className="flex-1 flex items-center justify-center">
-            <RevenueBreakdownChart
-              itemRevenue={itemRevenue}
-              totalRevenue={analytics.total_revenue}
-            />
-          </div>
-        </div>
-
-        {/* Items Sold Card */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center gap-2 mb-4 font-semibold">
-            <Receipt className="shrink-0" />
-            Item Performance
-            <InfoTooltip
-              content="Sorted by confirmed units sold. Inventory caps are affected only by confirmed or picked-up orders, not carts or unpaid pending orders."
-              size={18}
-            />
-          </div>
-          <ItemsSoldCard
-            items={items}
-            orders={orders}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+          <h2 className="text-xl font-bold">Key Insights</h2>
+          <IncludePendingSwitch
+            checked={includePending}
+            onCheckedChange={setIncludePending}
           />
+        </div>
+        <div className="-ml-4 flex flex-wrap items-center gap-y-2 text-sm text-muted-foreground">
+          <span className="flex pl-4">
+            <ConfirmedLabel />
+          </span>
+          <FoldX progress={pendingProgress}>
+            <span className="flex pl-4">
+              <PendingLabel />
+            </span>
+          </FoldX>
+          {hasLimit && (
+            <span className="flex items-center gap-1.5 pl-4">
+              <span className="h-3.5 w-0.5 flex-none bg-foreground" />
+              Limit
+            </span>
+          )}
+          <FoldX progress={overLimitProgress}>
+            <span className="flex items-center gap-1.5 pl-4">
+              <Swatch className={OVER_LIMIT_STRIPES} />
+              Over limit
+            </span>
+          </FoldX>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-6">
+        <div className="flex min-w-0 flex-[1.75_1_444px] flex-wrap gap-6">
+          {/* First Column - Revenue and Total Orders stacked */}
+          <div className="flex min-w-0 flex-[3_1_180px] flex-col gap-6">
+            <StatCard
+              icon={<Banknote className="shrink-0" />}
+              title="Revenue"
+              confirmed={revenue.confirmed}
+              pending={revenue.pending}
+              pendingProgress={pendingProgress}
+              format={formatMoney}
+            />
+            <StatCard
+              icon={<Receipt className="shrink-0" />}
+              title="Total Orders"
+              confirmed={orderCounts.confirmed}
+              pending={orderCounts.pending}
+              pendingProgress={pendingProgress}
+              format={formatOrderCount}
+            />
+          </div>
+
+          {/* Profit Goal Card */}
+          <InsightCard
+            icon={<Goal className="shrink-0" />}
+            title="Profit Goal"
+            info={
+              <InfoTooltip
+                content="Profit is estimated using a 20% profit margin."
+                size={18}
+              />
+            }
+            className="flex-[4_1_240px] gap-4"
+          >
+            <ProfitGoalChart
+              confirmedProfit={getProfit(revenue.confirmed)}
+              pendingProfit={getProfit(revenue.pending)}
+              goalAmount={goalAmount}
+              includePending={includePending}
+              pendingProgress={pendingProgress}
+            />
+          </InsightCard>
+        </div>
+
+        <div className="flex min-w-0 flex-[2.4_1_564px] flex-wrap gap-6">
+          {/* Revenue Breakdown Card */}
+          <InsightCard
+            icon={<Receipt className="shrink-0" />}
+            title="Revenue Breakdown"
+            className="flex-[1_1_240px] gap-4"
+          >
+            <RevenueBreakdownChart
+              itemStats={itemStats}
+              pendingProgress={pendingProgress}
+            />
+          </InsightCard>
+
+          {/* Items Sold Card */}
+          <InsightCard
+            icon={<Receipt className="shrink-0" />}
+            title="Item Performance"
+            info={
+              <InfoTooltip
+                content="Sorted by confirmed units sold. Inventory caps are affected only by confirmed or picked-up orders, not carts or unpaid pending orders."
+                size={18}
+              />
+            }
+            className="flex-[1.4_1_300px] gap-2"
+          >
+            <ItemsSoldCard
+              itemStats={itemStats}
+              includePending={includePending}
+              pendingProgress={pendingProgress}
+            />
+          </InsightCard>
         </div>
       </div>
     </div>

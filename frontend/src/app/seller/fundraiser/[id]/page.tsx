@@ -7,28 +7,15 @@ import {
 } from "common";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { OrdersProvider } from "@/app/seller/fundraiser/[id]/orders/components/OrdersProvider";
 import { OrdersSectionHeader } from "@/app/seller/fundraiser/[id]/orders/components/OrdersSectionHeader";
-import { RealtimeOrdersWrapper } from "@/app/seller/fundraiser/[id]/orders/components/RealtimeOrdersWrapper";
+import { OrdersTableWrapper } from "@/app/seller/fundraiser/[id]/orders/components/OrdersTableWrapper";
 import { ReferralsProvider } from "@/app/seller/fundraiser/[id]/referrals/components/ReferralsProvider";
 import { ReferralsTableWrapper } from "@/app/seller/fundraiser/[id]/referrals/components/ReferralsTableWrapper";
 import { RealtimeAnalyticsWrapper } from "@/app/seller/fundraiser/[id]/analytics/components/RealtimeAnalyticsWrapper";
 import { FundraiserHeader } from "./components/FundraiserHeader";
 import { serverFetch } from "@/lib/fetcher";
 import { isPast } from "date-fns";
-
-interface FundraiserAnalytics {
-  total_revenue: number;
-  total_orders: number;
-  orders_picked_up: number;
-  items: Record<string, number>;
-  pending_orders: number;
-  profit: number;
-  goal_amount: number;
-  sale_data: Record<string, number>;
-  revenue_data: Record<string, number>;
-  start_date: Date;
-  end_date: Date;
-}
 
 export default async function FundraiserAnalyticsPage({
   params,
@@ -56,15 +43,11 @@ export default async function FundraiserAnalyticsPage({
   }
 
   // Fetch data in parallel
-  // TODO: refactor fundraiseranalytics into a zod schema and validate it here instead of individually validating orders/items/fundraiser
-  const [fundraiser, analytics, orders, items] = await Promise.all([
+  const [fundraiser, orders, items] = await Promise.all([
     serverFetch(`/fundraiser/${fundraiserId}`, {
       token: session.access_token,
       schema: CompleteFundraiserSchema,
     }),
-    serverFetch(`/fundraiser/${fundraiserId}/analytics`, {
-      token: session.access_token,
-    }) as Promise<FundraiserAnalytics>,
     serverFetch(`/fundraiser/${fundraiserId}/orders`, {
       token: session.access_token,
       schema: CompleteOrderSchema.array(),
@@ -78,6 +61,11 @@ export default async function FundraiserAnalyticsPage({
   return (
     <ReferralsProvider
       initialReferrals={fundraiser.referrals}
+      fundraiserId={fundraiserId}
+      token={session.access_token}
+    >
+    <OrdersProvider
+      initialOrders={orders}
       fundraiserId={fundraiserId}
       token={session.access_token}
     >
@@ -102,10 +90,6 @@ export default async function FundraiserAnalyticsPage({
 
         {/* Key Insights - Realtime */}
         <RealtimeAnalyticsWrapper
-          initialAnalytics={analytics}
-          initialOrders={orders}
-          fundraiserId={fundraiserId}
-          token={session.access_token}
           goalAmount={Number(fundraiser.goalAmount)}
           items={items}
         />
@@ -122,9 +106,7 @@ export default async function FundraiserAnalyticsPage({
           />
           <div className="bg-white rounded-lg shadow-sm">
             <div className="p-6">
-              <RealtimeOrdersWrapper
-                initialOrders={orders}
-                fundraiserId={fundraiserId}
+              <OrdersTableWrapper
                 token={session.access_token}
                 fundraiserName={fundraiser.name}
               />
@@ -137,15 +119,13 @@ export default async function FundraiserAnalyticsPage({
           <h2 className="text-xl font-bold mb-6">Referrals</h2>
           <div className="bg-white rounded-lg shadow-sm">
             <div className="p-6">
-              <ReferralsTableWrapper
-                orders={orders}
-                fundraiserName={fundraiser.name}
-              />
+              <ReferralsTableWrapper fundraiserName={fundraiser.name} />
             </div>
           </div>
         </div>
       </div>
     </div>
+    </OrdersProvider>
     </ReferralsProvider>
   );
 }

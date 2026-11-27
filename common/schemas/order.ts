@@ -39,10 +39,12 @@ export type ReferralOrder = Pick<CompleteOrder, "paymentStatus" | "pickedUp"> & 
   }[];
 };
 
+export const isConfirmedOrder = (
+  order: Pick<CompleteOrder, "paymentStatus" | "pickedUp">,
+) => order.paymentStatus === "CONFIRMED" || order.pickedUp;
+
 export const getReferralQuantities = (orders: ReferralOrder[]) => {
-  const countedOrders = orders.filter(
-    (order) => order.paymentStatus === "CONFIRMED" || order.pickedUp,
-  );
+  const countedOrders = orders.filter(isConfirmedOrder);
   const amountRaised = countedOrders.reduce(
     (total, order) =>
       total +

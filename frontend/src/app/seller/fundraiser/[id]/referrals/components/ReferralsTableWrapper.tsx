@@ -8,10 +8,17 @@ import {
 } from "./ReferralsTableColumns";
 import { ReferralsExportButton } from "./ReferralsExportButton";
 import { useReferrals } from "./ReferralsProvider";
-import { CompleteOrderSchema, getReferralQuantities } from "common/schemas/order";
+import { IncludePendingSwitch } from "../../components/IncludePendingSwitch";
+import { useOrders } from "../../orders/components/OrdersProvider";
+import {
+	CompleteOrderSchema,
+	getReferralQuantities,
+	isConfirmedOrder,
+} from "common/schemas/order";
 import { z } from "zod";
 import { toast } from "sonner";
 import { mutationFetch } from "@/lib/fetcher";
+import { usePendingProgress } from "@/hooks/usePendingProgress";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -25,16 +32,23 @@ import {
 
 type Order = z.infer<typeof CompleteOrderSchema>;
 
+const getOrderTotal = (order: Order) =>
+	order.items.reduce(
+		(total, { item, quantity }) => total + Number(item.price) * quantity,
+		0,
+	);
+
 interface ReferralsTableWrapperProps {
-	orders: Order[];
 	fundraiserName: string;
 }
 
 export function ReferralsTableWrapper({
-	orders,
 	fundraiserName,
 }: ReferralsTableWrapperProps) {
 	const { referrals, fundraiserId, refetch } = useReferrals();
+	const { orders } = useOrders();
+	const [includePending, setIncludePending] = useState(true);
+	const pendingProgress = usePendingProgress(includePending);
 	const [toRemove, setToRemove] = useState<ReferralWithQuantities | null>(
 		null,
 	);
@@ -42,12 +56,26 @@ export function ReferralsTableWrapper({
 
 	const referralsWithQuantities: ReferralWithQuantities[] = useMemo(
 		() =>
-			referrals.map((referral) => ({
-				...referral,
-				...getReferralQuantities(
-					orders.filter((order) => order.referral?.id === referral.id),
-				),
-			})),
+			referrals.map((referral) => {
+				const referralOrders = orders.filter(
+					(order) => order.referral?.id === referral.id,
+				);
+				const quantities = getReferralQuantities(referralOrders);
+				const pendingOrders = referralOrders.filter(
+					(order) => !isConfirmedOrder(order),
+				);
+				const pendingAmount = pendingOrders.reduce(
+					(total, order) => total + getOrderTotal(order),
+					0,
+				);
+				return {
+					...referral,
+					...quantities,
+					pendingOrderCount: pendingOrders.length,
+					pendingAmount,
+					totalAmount: quantities.amountRaised + pendingAmount,
+				};
+			}),
 		[referrals, orders],
 	);
 
@@ -83,11 +111,20 @@ export function ReferralsTableWrapper({
 			<ReferralsTable
 				columns={columns}
 				data={referralsWithQuantities}
+				includePending={includePending}
+				pendingProgress={pendingProgress}
 				toolbar={
-					<ReferralsExportButton
-						referrals={referralsWithQuantities}
-						fundraiserName={fundraiserName}
-					/>
+					<div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+						<IncludePendingSwitch
+							checked={includePending}
+							onCheckedChange={setIncludePending}
+						/>
+						<ReferralsExportButton
+							referrals={referralsWithQuantities}
+							fundraiserName={fundraiserName}
+							includePending={includePending}
+						/>
+					</div>
 				}
 			/>
 
