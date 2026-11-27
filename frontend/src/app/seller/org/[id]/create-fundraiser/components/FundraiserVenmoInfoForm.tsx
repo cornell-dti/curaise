@@ -47,13 +47,16 @@ export function FundraiserVenmoInfoForm({
 }: {
 	defaultValues: z.infer<typeof VenmoFormSchema>;
 	onNext: (data: z.infer<typeof VenmoFormSchema>) => void;
-	onBack: () => void;
+	onBack: (data?: z.infer<typeof VenmoFormSchema>) => void;
 	onSave: (data: z.infer<typeof VenmoFormSchema>) => void;
 	isSubmitting: boolean;
 }) {
 	const form = useForm<z.infer<typeof VenmoFormSchema>>({
 		resolver: zodResolver(VenmoFormSchema),
-		defaultValues: defaultValues,
+		defaultValues: {
+			venmoUsername: defaultValues.venmoUsername,
+			venmoEmail: defaultValues.venmoEmail,
+		},
 	});
 	return (
 		<Card>
@@ -116,11 +119,16 @@ export function FundraiserVenmoInfoForm({
 						/>
 					</CardContent>
 					<CardFooter className="flex justify-between">
-						<Button type="button" variant="outline" onClick={onBack}>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={form.handleSubmit(onBack, () => onBack())}
+						>
 							Back
 						</Button>
 						<div className="flex gap-2">
 							<Button
+								type="button"
 								onClick={form.handleSubmit(onSave)}
 								className="text-[#333F37] border border-current bg-transparent hover:bg-[#e6f0ea]"
 								disabled={isSubmitting}
